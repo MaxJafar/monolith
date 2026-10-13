@@ -6,6 +6,8 @@
 @import './preflight.css';
 @import './themes/index.css';
 @import './global.css';
+@import './monolith.css';
+@import './board.css';
 @import './autofill.css';
 @import './utils.css';
 

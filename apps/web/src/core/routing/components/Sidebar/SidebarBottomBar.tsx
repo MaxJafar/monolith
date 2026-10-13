@@ -35,32 +35,40 @@ function SidebarBottomBar() {
   if (!userData) return <></>
 
   return (
-    <Flex centered pb="md" px={sidebarExpanded ? 'md' : 'none'} width="100%">
+    <Flex
+      centered
+      pb="md"
+      pt="sm"
+      px={sidebarExpanded ? 'md' : 'sm'}
+      width="100%"
+    >
       <ContextMenu
         buttonComponent={
-          <Transition>
+          <Transition property={['background-color', 'color', 'border-color']}>
             <Card
               align="center"
+              aria-label={userData.name || userData.email}
               as="button"
               bg={sidebarExpanded ? surface.lightInteractive : 'transparent'}
               direction="row"
-              gap="xl"
+              gap="sm"
               justify={sidebarExpanded ? 'between' : 'center'}
+              p="sm"
+              r="sm"
               width="100%"
             >
               <Flex centered gap="sm" minWidth="0">
                 <Flex
                   centered
-                  shadow
                   bg={{
                     base: 'bg-100',
                     dark: 'bg-700'
                   }}
                   flexShrink="0"
-                  height="2.5rem"
+                  height="2.25rem"
                   overflow="hidden"
-                  r="full"
-                  width="2.5rem"
+                  r="sm"
+                  width="2.25rem"
                 >
                   {userData.avatar ? (
                     <Box
@@ -83,17 +91,16 @@ function SidebarBottomBar() {
                   minWidth="0"
                 >
                   <Text truncate align="left" weight="semibold">
-                    {userData?.name}
+                    {userData.name}
                   </Text>
                   <Text truncate align="left" as="p" color="muted" size="sm">
-                    {userData?.email}
+                    {userData.email}
                   </Text>
                 </Flex>
               </Flex>
               {sidebarExpanded && (
                 <Icon
                   color={{ base: 'bg-400', dark: 'bg-600' }}
-                  display={sidebarExpanded ? 'flex' : 'none'}
                   icon="ph:caret-up-down-bold"
                 />
               )}

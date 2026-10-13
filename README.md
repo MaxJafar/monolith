@@ -1,240 +1,58 @@
-> [!NOTE]
->
-> Don't worry, LifeForge is still alive and kicking. 🚀
->
-> ### Update · 31 May 2026
->
-> The UI library rewrite and the subsequent migration away from Tailwind CSS have been successfully completed.
->
-> The core client architecture now runs entirely on the new internal UI system. Remaining work primarily involves migrating existing modules and updating project documentation.
->
-> This milestone marks the completion of one of the largest architectural transitions in LifeForge's history.
->
-> Don't get too comfortable, though. This is definitely not the largest forever. If LifeForge has taught us anything, it's that every "final architecture" eventually becomes tomorrow's migration project. :)
+# monolith
 
-> [!IMPORTANT]
->
-> ## UI Architecture Migration Completed
->
-> Development was previously blocked by a critical styling issue in the module federation architecture.
->
-> ### What happened?
->
-> Both the host application and federated modules were bundling Tailwind CSS independently. This created CSS cascade layer conflicts across module boundaries, resulting in:
->
-> - Unpredictable style overrides
-> - Broken responsive utilities
-> - Cross-module styling interference
-> - Inconsistent rendering behavior between host and remote applications
->
-> When multiple Tailwind CSS bundles coexist within the same runtime, cascade layer ordering becomes difficult to control reliably.
->
-> Each federated module generates its own CSS output, but all styles ultimately converge into a single document cascade. As modules are loaded and composed dynamically, style precedence can become dependent on injection order rather than application intent, creating subtle and difficult-to-debug styling conflicts.
->
-> While Tailwind CSS excels in conventional application architectures, it was never designed with large-scale federated frontend systems as a primary use case.
->
-> **The problem was never subtle.**
->
-> Once multiple Tailwind bundles were introduced into the module federation architecture, styling conflicts became immediately visible and could affect entire sections of the UI. Because the conflict originated from the interaction between independently generated CSS outputs sharing the same cascade, no practical or reliable fix existed without changing the underlying styling model itself.
->
-> The migration away from Tailwind was therefore not a preference change, but an architectural necessity.
->
-> ### Resolution
->
-> PR #93 introduced a complete redesign of the internal UI library and styling architecture.
->
-> The new system is:
->
-> - Token-driven
-> - Component-based
-> - Fully independent of Tailwind CSS
-> - Designed specifically for module federation
-> - Built around a single shared UI contract
->
-> Rather than allowing each module to generate and ship its own CSS, all applications now consume UI primitives, tokens, and styling behavior directly from `@lifeforge/ui`.
->
-> This establishes `@lifeforge/ui` as the single source of truth for visual presentation across the entire platform.
->
-> As a result:
->
-> - Federated modules no longer bundle their own styling systems
-> - Visual behavior remains consistent regardless of module load order
-> - Styling ownership is centralized and predictable
-> - Cross-module cascade conflicts are eliminated by design
->
-> The migration introduced breaking changes and required substantial refactoring across the codebase, but it permanently resolved a class of architectural problems that could not be reliably addressed within the previous model.
+A personal workspace built on LifeForge, with twelve personal tools, connected databases, block documents, a visual knowledge map and an agent team. Monolith uses a black and white identity, quiet surfaces, compact controls and an original geometric M mark. Light and dark themes share a Notion-inspired page tree, canvas and board experience.
 
-> [!TIP]
->
-> ## Looking for the Legacy Version?
->
-> The final Tailwind-based implementation has been preserved and remains available for reference.
->
-> - Legacy Release: https://github.com/Lifeforge-app/lifeforge/releases/tag/legacy-final
-> - Legacy Branch: https://github.com/Lifeforge-app/lifeforge/tree/legacy-final
->
-> The legacy version is no longer actively developed, but it may still be useful for historical reference, migration guidance, or reviewing previous implementations.
+## Local development
 
-<div align="center">
-<img src="https://raw.githubusercontent.com/LifeForge-app/lifeforge-docs-media/main/assets/lifeforge-logo.svg" alt="LifeForge Logo" width="240" height="80"/></img>
-</div>
+Use Node 22.23 or newer and pnpm. The repository declares pnpm 11.21.0. PostgreSQL 17 must already be available. Set `POSTGRES_BIN` to its bin directory (for example, `$env:POSTGRES_BIN='C:\Program Files\PostgreSQL\17\bin'` in PowerShell). The macOS default is `/opt/homebrew/opt/postgresql@17/bin`. Store database timestamps in UTC.
 
-<p align="center">
-A self-hosted solution to streamline and organize all aspects of your life.</p>
+```sh
+pnpm install --frozen-lockfile
+pnpm build
+pnpm local:setup
+pnpm db:push
+pnpm dev
+```
 
-![LifeForge Interface Mockup](https://raw.githubusercontent.com/LifeForge-app/lifeforge-docs-media/main/assets/mockup-new.webp)
+Open [monolith](http://localhost:5173). The API listens at `http://localhost:3636`; the isolated development database uses `127.0.0.1:55432/zillion_dev`. On a new database, onboarding creates the first profile. The existing verification database contains synthetic preview data. Local verification credentials are stored privately in ignored `.temp/preview-login.json`.
 
-<div align="center">
+`local:setup` creates ignored `env/.env.local` with random secrets, an administrative schema role and a restricted application role. Never use a superuser or BYPASSRLS role for `DATABASE_URL`: API startup checks this. `DATABASE_ADMIN_URL` is for schema management and rehearsal tooling. The setup command refuses a different host, port or database; it does not manage other installations.
 
-![skills](https://img.shields.io/badge/-TYPESCRIPT-FF0000?style=for-the-badge&logo=typescript&logoColor=white&color=3178C6)
-![skills](https://img.shields.io/badge/-HTML-FF0000?style=for-the-badge&logo=html5&logoColor=white&color=orange)
-![skills](https://img.shields.io/badge/-CSS-FF0000?style=for-the-badge&logo=css3&logoColor=white&color=blue)
-![skills](https://img.shields.io/badge/-REACT_JS-FF0000?style=for-the-badge&logo=react&logoColor=white&color=skyblue)
-![skills](https://img.shields.io/badge/-NODE_JS-FF0000?style=for-the-badge&logo=node.js&logoColor=white&color=green)
-![skills](https://img.shields.io/badge/-EXPRESS_JS-FF0000?style=for-the-badge&logo=express&logoColor=white&color=black)
-![skills](https://img.shields.io/badge/-POCKETBASE-FF0000?style=for-the-badge&logo=pocketbase&logoColor=black&color=white)
+For separate terminals, use `pnpm --filter @lifeforge/server dev` and `pnpm --filter @lifeforge/client dev --strictPort`. Stop those terminals with Ctrl+C. `pnpm local:stop` stops this checkout’s database while retaining its files under `.temp`. Windows uses a separate native cluster so an existing macOS cluster is preserved.
 
-</div>
+## What is included
 
-<div align="center">
-<a href="README.md">🇬🇧 English</a>
-<a href="readme/README.zh-CN.md">🇨🇳 简体中文</a>
-<a href="readme/README.zh-TW.md">🇹🇼 繁體中文</a>
-<a href="readme/README.ms.md">🇲🇾 Bahasa Malaysia</a>
-</div>
+Todo List, Idea Box, Calendar, Pomodoro Timer, Code Time, Achievements, Blog, Projects, Notes, Flashcards, Wallet and Wishlist use current contracts, PostgreSQL and the shared UI. The database module adds typed properties, record pages, table, Kanban and calendar views, saved filters/sorts and reciprocal relations across bases. Date, tags and owner shortcuts create typed properties; owners can be the current account or owned workspace agents. Filters combine all/any groups, exact tag membership and relative dates such as this week or overdue.
 
-<h3 align="center">
-  THIS PROJECT IS STILL IN EARLY DEVELOPMENT. FEATURES AND MODULES ARE SUBJECT TO CHANGE. PLEASE CHECK THE <a href="https://docs.lifeforge.dev/progress/changelog">DOCUMENTATION</a> FOR THE LATEST UPDATES.
-</h3>
+[Calendar](http://localhost:5173/calendar) combines native calendars, ICS and module events with saved database calendar views. Select multiple calendars and categories, search, or filter by source, event type, date range, tags and owner. Filter selections are kept in the URL. Database calendar views bind a Date property and optional end Date property, offer month/week/agenda layouts, retain undated pages, and move date ranges without overwriting competing edits. Database dates are civil days; time-specific appointments use native Calendar events.
 
-## 📋 Table of Contents
+[Documents](http://localhost:5173/databases?section=documents) adds nested pages with headings, lists, checklists, quotes, code, dividers, block movement/duplication, undo/redo and Markdown export. Documents, database record pages and Notes share the same block editor. Existing plain text is retained until explicitly saved; Markdown in old content remains literal text.
 
-- [📋 Table of Contents](#-table-of-contents)
-- [🔥 Support the Author](#-support-the-author)
-- [🤔 The Problem](#-the-problem)
-- [✅ The Solution](#-the-solution)
-- [🧱 Modules](#-modules)
-- [🖥 Screenshots](#-screenshots)
-- [⌨️ Setup](#️-setup)
-- [Contributing](#contributing)
-  - [Contributing to Core](#contributing-to-core)
-  - [Creating Modules](#creating-modules)
-  - [Feature Requests \& Bug Reports](#feature-requests--bug-reports)
-  - [Translation](#translation)
-- [💡 Credits](#-credits)
-- [📄 License](#-license)
+[Knowledge map](http://localhost:5173/databases?section=graph) connects documents, records and notes through stable page links, `[[Title|alias]]` references, live backlinks, database relations and labeled manual connections. Explore global/local neighborhoods with search, type/orphan filters, zoom, pan and draggable nodes. Page links resolve only within the signed-in account; duplicate titles require an explicit page choice. Document revisions, record/note timestamps and relation baselines reject stale saves. Editors warn before discarding drafts.
 
-## 🔥 Support the Author
+[Agents](http://localhost:5173/agents) adds assignable agent profiles, roles, reporting lines, project grants, dependencies, linked page context, budgets, execution leases, review and durable token history. Agents share existing Projects tasks. Choose a local planner, OpenAI worker, custom CLI, Codex CLI or OpenClaw runtime. Per-task automation can dispatch ready work and complete successful tasks; configured workers must remain running. `pnpm agents:worker` uses private scoped credentials, your installed runtime/model and token rates. See [Multica/Paperclip REA, architecture and worker setup](docs/ZILLION-AGENTS-RESEARCH.md). Live provider execution requires your configuration.
 
-<a href="https://www.buymeacoffee.com/melvinchiah" target="_blank">
-  <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="60" width="217">
-</a>
+Internal `@lifeforge/*` package names and database table prefixes remain compatible. The user-facing product is monolith. English, Malay, Simplified Chinese and Traditional Chinese locale packs are included.
 
-## 🤔 The Problem
+## Verification and migration
 
-People nowadays having tons of different apps to increase their productivity, but [using too much apps distracts your focus](https://theunfilteredreport.com/why-productivity-apps-are-making-people-less-productive/).
+See [the local verification report](docs/ZILLION-VERIFICATION.md), [AFFiNE/REA research and relation semantics](docs/ZILLION-AFFINE-RESEARCH.md), [agent systems research and runtime protocol](docs/ZILLION-AGENTS-RESEARCH.md), [PocketBase migration rehearsal](docs/ZILLION-POCKETBASE-MIGRATION.md) and [container setup](docs/ZILLION-CONTAINERS.md).
 
-Most software-as-a-service (SaaS) solutions are subscription-based, leading to recurring costs that can add up over time. Additionally, many of these services collect user data for advertising or analytics purposes, and even using those data for AI training, raising privacy concerns.
+```sh
+pnpm typecheck
+pnpm --filter @lifeforge/server-utils test
+pnpm --filter @lifeforge/api test
+pnpm --filter @lifeforge/blocks test
+pnpm exec cross-env ZILLION_INTEGRATION=1 pnpm --filter @lifeforge/server exec vitest run src/tests
+pnpm exec cross-env ZILLION_INTEGRATION=1 pnpm exec vitest run tools/src/zillion/migratePocketBase.test.ts
+```
 
-## ✅ The Solution
+Integration tests are restricted to the isolated local development/test services. PocketBase migration defaults to dry-run, requires explicit owner mapping and supports guarded local apply/rollback. Existing bcrypt passwords are verified and rehashed to argon2 only after a successful login. Production data and deployment were outside this local task and were not changed.
 
-LifeForge is a **personal management system** designed to help you manage your life efficiently. Whether it's keeping track of tasks, organizing projects, setting personal goals, or managing financial statuses, LifeForge has got you covered.
+External AI/OAuth/API integrations require the owner’s credentials. Code Time accepts authenticated tracking data; installing/configuring an external editor integration is separate. Container sources are prepared and statically checked; container execution remains unverified. Maintained source formatting is checked separately from archived reference evidence. Repository-wide ESLint still reports legacy typing and conditional-check debt; the [verification report](docs/ZILLION-VERIFICATION.md) distinguishes global results from passing checks for the new runtime and repaired navigation code.
 
-With its modular architecture, you can customize LifeForge to fit your unique needs. Activate only the modules you require, **keep yourself from a pile of unused features**, and create a streamlined experience tailored just for you.
+## Attribution and licenses
 
-Built with privacy in mind, your data is stored locally on your own server or device (we do not host any servers too), which means you are in full control of your data. **No telemetry, no data mining, just pure privacy**.
+monolith is a modified LifeForge fork. [LifeForge](https://github.com/LifeForge-app/lifeforge) was initiated by [Melvin Chia](https://github.com/melvinchia3636) and is licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). The original license and package/module notices are retained. Some packages have their own licenses; consult their LICENSE files. Original upstream development documentation remains available through the LifeForge repository and its [documentation](https://docs.lifeforge.dev).
 
-## 🧱 Modules
-
-LifeForge’s modular system is designed to empower users by providing a diverse range of tools and features tailored to their unique needs. Each module focuses on a specific aspect of life, such as productivity, finance, lifestyle, and learning, offering flexibility and customization. Whether you’re organizing your tasks, managing finances, or exploring creative pursuits, LifeForge’s modular design allows you to activate only the features you need, creating a personalized and streamlined experience.
-
-Key highlights of the modules include:
-
-- Productivity Tools: Boost efficiency with modules like the Todo List, Projects, Idea Box, and the Pomodoro Timer. These tools help users manage tasks, brainstorm ideas, and stay focused on their goals.
-- Finance Management: Take control of finances using the Wallet, Wishlist, and Budget modules, offering tools for tracking expenses, saving for future goals, and planning budgets.
-- Lifestyle Enhancements: Reflect and grow with the Journal and Achievements modules, or stay active with features like Workout tracking.
-- Study Aids: Improve learning with the Flashcards, Notes, and CFOP Algorithms modules, ideal for students and lifelong learners.
-- Storage Solutions: Organize books, photos, music, and more with modules like Books Library, Photos, and Guitar Tabs.
-- Information Management: Stay informed and efficient with tools like the Mail Inbox and Changi Airport for specialized insights.
-- Customization: Tailor the platform to individual preferences using the Personalization module for a unique user experience.
-
-The modular approach ensures flexibility and scalability, allowing users to toggle on or off the features they need. Whether you’re a professional, a student, or a hobbyist, the system's diverse modules are designed to fit seamlessly into your lifestyle.
-
-For the full list of modules, please visit [here](https://github.com/lifeforge-app?q=lifeforge-module&type=all&language=&sort=).
-
-**(The new module system, Forgistry is currently under development and will be released soon!)**
-
-## 🖥 Screenshots
-
-The screenshots provided are just a glimpse of LifeForge. There's a lot more to
-explore and discover within the project.
-
-<div align="center">
-  <img width="49%" src="https://github.com/user-attachments/assets/a23e7659-b9e0-40ec-bd8c-05a7181e82b7" alt="LifeForge Dashboard">
-  <img width="49%" src="https://github.com/user-attachments/assets/44985456-4df8-4c7a-8f93-1eac59de42df" alt="LifeForge Todo List Module">
-  <img width="49%" src="https://github.com/user-attachments/assets/ba32412b-edd1-4b68-8f56-111c8eb64e27" alt="LifeForge Calendar">
-  <img width="49%" src="https://github.com/user-attachments/assets/3d03a481-7976-42c6-a0d4-f9329118121b" alt="Code Time">
-  <img width="49%" src="https://github.com/user-attachments/assets/9b93f817-9797-42d7-96ca-7bacdc8d7d3a" alt="LifeForge Wallet Module">
-  <img width="49%" src="https://github.com/user-attachments/assets/41b2c15b-307a-40d6-a57f-049d1afbeba6" alt="LifeForge Book Library">
-  <img width="49%" src="https://github.com/user-attachments/assets/bb6523f6-5079-44d7-b021-34cd4c787e1d">
-  <img width="49%" src="https://github.com/user-attachments/assets/f6b7ed5f-219f-4990-b37d-e6273701e2bb">
-  <img width="49%" src="https://github.com/user-attachments/assets/de700a7a-f80d-4656-afad-caf852b64e36">
-  <img width="49%" src="https://github.com/user-attachments/assets/441d5996-1695-4eaf-b47f-ddad866a45d0">
-  <img width="49%" src="https://github.com/user-attachments/assets/b5fb64bb-23f7-4aba-8dcb-2f8d9f646615">
-  <img width="49%" src="https://github.com/user-attachments/assets/16b23910-37bf-4f56-892d-c971d70b19ae">
-</div>
-
-## ⌨️ Setup
-
-**LifeForge now supports Docker for easy deployment! 🐳 You can get up and running with just a few commands. For those who prefer manual installation, that option is still available.**
-
-Visit the [Documentation](https://docs.lifeforge.dev) to see how to install and setup.
-
-## Contributing
-
-We welcome contributions from the community! If you're interested in contributing to LifeForge, please check out our [Contributing Guidelines](https://docs.lifeforge.dev/developer-guide/contributing).
-
-### Contributing to Core
-
-As this project is still in its early stages, we highly encourage developers to make a discussion in the [Discussions](https://github.com/lifeforge-app/lifeforge/discussions) section before starting any significant work. This helps ensure that your contributions align with the project's goals and reduces the chances of duplicated efforts.
-
-### Creating Modules
-
-LifeForge's modular architecture allows developers to create and integrate their own modules seamlessly. If you're interested in developing a module, please refer to our [Module Development Guide](https://docs.lifeforge.dev/developer-guide/modules) for detailed instructions and best practices.
-
-### Feature Requests & Bug Reports
-
-If you have ideas for new features or have encountered any bugs, please submit them through the [Issues](https://github.com/lifeforge-app/lifeforge/issues) section on GitHub.
-
-However, if the feature is seems to be specific to a particular module, please refer to the specific module's repository for feature requests and bug reports.
-
-### Translation
-
-We are looking for volunteers to help translate LifeForge into different languages. If you're interested, please follow the instructions in our [Translation Guide](https://docs.lifeforge.dev/developer-guide/localization).
-
-However, for individual modules, please refer to the specific module's documentation for translation instructions.
-
-## 💡 Credits
-
-LifeForge was inspired by the need for a unified personal management system that integrates various tools and resources to help streamline daily life, and also [this project](https://github.com/Volmarg/personal-management-system).
-For the full story, visit the [Documentation](https://docs.lifeforge.dev).
-
-Huge credits to the open-source community for their invaluable contributions, libraries, and tools that have made LifeForge possible.
-
-## ⭐️ Star History
-
-That's a crazy exponential growth. Huge thanks to all of you guys supporting this project!
-
-<div align="center">
-<a href="https://star-history.dera.page/#lifeforge-app/lifeforge&type=date&legend=top-left">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://star-history.dera.page/svg?repos=lifeforge-app/lifeforge&type=date&theme=dark&legend=top-left" />
-   <source media="(prefers-color-scheme: light)" srcset="https://star-history.dera.page/svg?repos=lifeforge-app/lifeforge&type=date&legend=top-left" />
-   <img alt="Star History Chart" src="https://star-history.dera.page/svg?repos=lifeforge-app/lifeforge&type=date&legend=top-left" />
- </picture>
-</a>
-</div>
-
-## 📄 License
-
-<p xmlns:cc="http://creativecommons.org/ns#" xmlns:dct="http://purl.org/dc/terms/"><a property="dct:title" rel="cc:attributionURL" href="https://github.com/LifeForge-app/lifeforge">LifeForge</a> is a project initiated by <a rel="cc:attributionURL dct:creator" property="cc:attributionName" href="https://github.com/melvinchia3636">Melvin Chia</a>, and is licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/?ref=chooser-v1" target="_blank" rel="license noopener noreferrer" style="display:inline-block;">CC BY-NC-SA 4.0 <img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/cc.svg?ref=chooser-v1" alt=""><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/by.svg?ref=chooser-v1" alt=""><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/nc.svg?ref=chooser-v1" alt=""><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/sa.svg?ref=chooser-v1" alt=""></a></p>
+AFFiNE source was researched with REA; its CRDT/collaboration implementation was not copied. The independent database, document and graph implementation and source/license references are documented in the research report. Notion, Outline and Obsidian informed interaction patterns; their source code and assets were not copied. Multica and Paperclip informed the independent agent/project/run design; [their pinned licenses and analysis limits](docs/ZILLION-AGENTS-RESEARCH.md#licenses) are recorded without vendoring their code. Rich editing uses Tiptap 3.31.4 and graph layout uses d3-force 3.0.0 through the shared UI library. This implementation does not provide full upstream feature parity, collaboration or offline synchronization. The Monolith logo is an original SVG; no reference product logo or assets were copied.

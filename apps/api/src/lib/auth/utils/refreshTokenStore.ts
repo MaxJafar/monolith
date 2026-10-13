@@ -1,9 +1,11 @@
-import { and, eq, lt } from 'drizzle-orm'
+import { and, eq, gt, lt } from 'drizzle-orm'
+
 import { db } from '../../../core/drizzle'
 import { authRefreshTokens } from '../schema.drizzle'
 import { hashToken } from './tokens'
 
 export async function storeRefreshToken(params: {
+  userId: string
   token: string
   family: string
   ip: string
@@ -11,6 +13,7 @@ export async function storeRefreshToken(params: {
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
 
   await db.insert(authRefreshTokens).values({
+    userId: params.userId,
     token_hash: hashToken(params.token),
     family: params.family,
     bound_ip: params.ip,
@@ -38,33 +41,41 @@ export async function rotateToken(params: {
   newToken: string
   ip: string
   family: string
-}): Promise<void> {
-  const oldRecord = await db.query.authRefreshTokens.findFirst({
-    where: { token_hash: params.oldTokenHash }
-  })
+}): Promise<boolean> {
+  return db.transaction(async transaction => {
+    const [oldRecord] = await transaction
+      .update(authRefreshTokens)
+      .set({
+        revoked: true,
+        last_used_at: new Date(),
+        last_ip: params.ip,
+        updated: new Date()
+      })
+      .where(
+        and(
+          eq(authRefreshTokens.token_hash, params.oldTokenHash),
+          eq(authRefreshTokens.family, params.family),
+          eq(authRefreshTokens.bound_ip, params.ip),
+          eq(authRefreshTokens.revoked, false),
+          gt(authRefreshTokens.expires_at, new Date())
+        )
+      )
+      .returning()
 
-  if (!oldRecord || oldRecord.revoked) return
+    if (!oldRecord) return false
 
-  await db
-    .update(authRefreshTokens)
-    .set({
-      revoked: true,
-      last_used_at: new Date(),
+    await transaction.insert(authRefreshTokens).values({
+      userId: oldRecord.userId,
+      token_hash: hashToken(params.newToken),
+      family: oldRecord.family,
+      bound_ip: params.ip,
       last_ip: params.ip,
-      updated: new Date()
+      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      revoked: false,
+      last_used_at: new Date()
     })
-    .where(eq(authRefreshTokens.token_hash, params.oldTokenHash))
 
-  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-
-  await db.insert(authRefreshTokens).values({
-    token_hash: hashToken(params.newToken),
-    family: params.family,
-    bound_ip: params.ip,
-    last_ip: params.ip,
-    expires_at: expiresAt,
-    revoked: false,
-    last_used_at: new Date()
+    return true
   })
 }
 

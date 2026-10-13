@@ -74,7 +74,7 @@ async function importRSAPublicKey(pemKey: string): Promise<CryptoKey> {
 
   return await crypto.subtle.importKey(
     'spki',
-    binaryDer.buffer as ArrayBuffer,
+    binaryDer.buffer,
     {
       name: 'RSA-OAEP',
       hash: 'SHA-256'
@@ -227,9 +227,9 @@ async function encryptWithAES(
   const tag = encryptedArray.slice(ciphertextLength)
 
   return {
-    iv: arrayBufferToBase64(iv.buffer as ArrayBuffer),
-    ciphertext: arrayBufferToBase64(ciphertext.buffer as ArrayBuffer),
-    tag: arrayBufferToBase64(tag.buffer as ArrayBuffer)
+    iv: arrayBufferToBase64(iv.buffer),
+    ciphertext: arrayBufferToBase64(ciphertext.buffer),
+    tag: arrayBufferToBase64(tag.buffer)
   }
 }
 

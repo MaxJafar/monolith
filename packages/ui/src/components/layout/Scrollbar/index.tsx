@@ -12,6 +12,7 @@ import {
 export function Scrollbar({
   children,
   hideHorizontal = false,
+  usePaddingRight = true,
   ...props
 }: {
   children: React.ReactNode
@@ -41,7 +42,10 @@ export function Scrollbar({
         />
       )}
       renderView={p => {
-        const viewStyle = { ...p.style }
+        const viewStyle = {
+          ...p.style,
+          paddingRight: usePaddingRight ? '8px' : undefined
+        }
 
         if (hideHorizontal) {
           viewStyle.overflowX = 'clip'

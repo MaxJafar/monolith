@@ -1,46 +1,49 @@
-# Dependencies (will be reinstalled in container)
+# Install and build inside the container from the committed workspace and lockfile.
 **/node_modules
-
-# Build outputs
 **/dist
+**/dist-docker
 **/.next
 **/build
-
-# Development files
-**/.git
-**/.gitignore
-**/.env*
-!**/env/.env.docker.example
-
-# IDE and editor files
-**/.vscode
+**/*.tsbuildinfo
+.git
+.github
+.temp
+.turbo
+.opencode
+.vscode
 **/.idea
-**/*.swe
-**/*.swo
-
-# Test files
-**/*.test.ts
-**/*.spec.ts
-**/coverage
-**/__tests__
-
-# Documentation
-**/README.md
-**/CHANGELOG.md
-
-# Docker files (not needed inside containers)
-**/Dockerfile
-**/docker-compose*.yaml
-**/.dockerignore
-
-# OS files
 **/.DS_Store
 **/Thumbs.db
-
-# Logs
 **/*.log
 **/logs
+**/coverage
+**/storybook-static
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+**/__tests__
 
-# Misc
+# Development databases, personal files, env secrets and historical source archives.
+**/.env*
+!env/.env.docker.example
+database
+storage
+reference
+readme
+instructions
+*.tar.gz
+*.zip
+*.rar
+*.7z
+BUILD-ERRORS.txt
+BUILD-REPORT.json
+SCHEMA-ERROR.txt
+MIGRATION-REPORT.json
+MODULE-HEADS.json
+
+# Retain all upstream license and notice files in the redistributed workspace.
 **/*.md
-**/LICENSE
+!**/LICENSE*
+!**/NOTICE*
+!**/COPYRIGHT*

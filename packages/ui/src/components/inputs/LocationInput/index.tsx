@@ -96,8 +96,8 @@ export function LocationInput({
           onChange={location => {
             onChange(location ?? null)
           }}
-          onQueryChanged={setQuery}
           onEnter={onEnter}
+          onQueryChanged={setQuery}
         >
           {query.trim() !== '' &&
             (dataQuery.data ? (

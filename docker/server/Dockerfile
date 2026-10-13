@@ -1,86 +1,37 @@
-# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile:1.7
+FROM node:22-bookworm-slim AS toolchain
+ENV PNPM_HOME=/pnpm
+ENV PATH=/pnpm:$PATH
+WORKDIR /zillion
+RUN corepack enable && corepack prepare pnpm@11.21.0 --activate
 
-# ============================================
-# Builder stage - build core server bundle only
-# ============================================
-FROM oven/bun:alpine AS builder
-
-RUN apk update && apk add git
-
-WORKDIR /lifeforge
-
-# Copy source
+FROM toolchain AS builder
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates python3 make g++ \
+    && rm -rf /var/lib/apt/lists/*
+ARG VITE_API_HOST=/api
+ENV VITE_API_HOST=$VITE_API_HOST
 COPY . .
+RUN --mount=type=cache,id=zillion-pnpm,target=/pnpm/store \
+    pnpm install --frozen-lockfile --store-dir /pnpm/store
+# Builds shared packages first, then every selected module and the API.
+RUN pnpm run build
 
-# Install dependencies
-RUN --mount=type=cache,target=/root/.bun/install/cache \
-    pnpm install --linker isolated
-
-# Build shared package
-RUN cd /lifeforge/shared && pnpm run build
-
-# Build @lifeforge/log package
-RUN cd /lifeforge/packages/log && pnpm run build
-
-# Build lifeforge-server-utils package
-RUN cd /lifeforge/packages/server-utils && pnpm run build
-
-# Build server bundle
-RUN cd /lifeforge/apps/api && pnpm run build
-
-# Create cleaned package.json without workspace deps for production install
-RUN pnpm -e "const pkg = require('./apps/api/package.json'); \
-    delete pkg.dependencies.shared; \
-    delete pkg.dependencies['@lifeforge/log']; \
-    delete pkg.dependencies['@lifeforge/server-utils']; \
-    delete pkg.devDependencies; \
-    require('fs').writeFileSync('./apps/api/package.docker.json', JSON.stringify(pkg, null, 2))"
-
-# ============================================
-# Production stage - core server only (no modules)
-# ============================================
-FROM oven/bun:alpine AS production
-
-# Install curl for health check
-RUN apk add --no-cache curl
-
-WORKDIR /lifeforge
-
-# Copy bundled server
-COPY --from=builder /lifeforge/apps/api/dist ./apps/api/dist
-
-# Copy shared package
-COPY --from=builder /lifeforge/shared/dist ./shared/dist
-COPY --from=builder /lifeforge/shared/package.json ./shared/package.json
-
-# Copy @lifeforge/log package
-COPY --from=builder /lifeforge/packages/log/dist ./packages/log/dist
-COPY --from=builder /lifeforge/packages/log/package.json ./packages/log/package.json
-
-# Copy lifeforge-server-utils package (required by module bundles at runtime)
-COPY --from=builder /lifeforge/packages/server-utils/dist ./packages/server-utils/dist
-COPY --from=builder /lifeforge/packages/server-utils/package.json ./packages/server-utils/package.json
-
-# Install server dependencies
-COPY --from=builder /lifeforge/apps/api/package.docker.json ./package.json
-RUN pnpm install --production
-
-# Create apps directory for module mounting
-RUN mkdir -p /lifeforge/modules
-
-# Copy entrypoint
-COPY docker/server/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh && \
-    sed -i 's/\r$//' /entrypoint.sh
-
+FROM toolchain AS production
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates curl postgresql-client chromium graphicsmagick ghostscript fonts-dejavu-core \
+    && rm -rf /var/lib/apt/lists/*
+# Keep workspace symlinks, schema sources and CLI together for the migration service.
+# Module bundles externalize workspace packages; a bare API-only copy cannot resolve them.
+COPY --from=builder --chown=node:node /zillion /zillion
+RUN chmod +x /zillion/docker/server/*.sh \
+    && mkdir -p /zillion/storage && chown node:node /zillion/storage
+ENV NODE_ENV=production
+ENV ROOT_DIR=/zillion
+ENV FILE_STORAGE_LOCAL_PATH=/zillion/storage
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+ENV PORT=3636
+USER node
 EXPOSE 3636
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost:3636/ || exit 1
-
-# Modules should be mounted to /lifeforge/modules at runtime:
-#   docker run -v /path/to/modules:/lifeforge/modules lifeforge-server
-ENTRYPOINT ["/entrypoint.sh"]
-
-
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+    CMD curl --fail --silent http://localhost:3636/status || exit 1
+ENTRYPOINT ["/zillion/docker/server/entrypoint.sh"]

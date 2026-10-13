@@ -5,7 +5,6 @@ import {
   Box,
   Card,
   Flex,
-  type IDashboardLayout,
   Icon,
   Stack,
   Switch,
@@ -17,6 +16,7 @@ import {
 } from '@lifeforge/ui'
 
 import { useUserPersonalization } from '@/core/providers/features/UserPersonalizationProvider'
+import { addDashboardWidget } from '@/system/dashboard/utils/layout'
 
 function ComponentListItem({
   id,
@@ -36,67 +36,27 @@ function ComponentListItem({
   moduleName?: string
 }) {
   const { t } = useTranslation(`apps.${moduleName}`)
-
-  const {
-    dashboardLayout: enabledWidgets,
-    setDashboardLayout: setEnabledWidgets
-  } = usePersonalization()
-
+  const { dashboardLayout: enabledWidgets } = usePersonalization()
   const { changeDashboardLayout: setDashboardLayout } = useUserPersonalization()
 
   const isEnabled = useMemo(() => {
-    return Object.values(
-      JSON.stringify(enabledWidgets || {}) !== '{}' ? enabledWidgets : { a: [] }
-    ).some(e => e.find(i => i.i === id) !== undefined)
+    return Object.values(enabledWidgets).some(widgets =>
+      widgets.some(widget => widget.i === id)
+    )
   }, [enabledWidgets, id])
 
   function addComponent() {
-    const newEnabledWidgets = JSON.parse(JSON.stringify(enabledWidgets || {}))
-
-    if (Object.keys(newEnabledWidgets).length === 0) {
-      for (const breakpoint of ['lg', 'md', 'sm', 'xs', 'xxs']) {
-        newEnabledWidgets[breakpoint] = [
-          {
-            x: 0,
-            y: 0,
-            w: minW ?? 4,
-            h: minH ?? 4,
-            minW: minW ?? 1,
-            minH: minH ?? 1,
-            maxW: maxW ?? 8,
-            maxH: maxH ?? 8,
-            i: id
-          }
-        ]
-      }
-      setDashboardLayout(newEnabledWidgets)
-
-      return
-    }
-
-    for (const breakpoint of ['lg', 'md', 'sm', 'xs', 'xxs']) {
-      newEnabledWidgets[breakpoint] = newEnabledWidgets[breakpoint] ?? []
-      newEnabledWidgets[breakpoint].push({
-        x: 0,
-        y: Infinity,
-        w: minW || maxW || 4,
-        h: minH || maxH || 4,
-        minW: minW ?? 1,
-        minH: minH ?? 1,
-        maxW: maxW ?? 8,
-        maxH: maxH ?? 8,
-        i: id
-      })
-    }
-
-    setEnabledWidgets(newEnabledWidgets)
+    void setDashboardLayout(
+      addDashboardWidget(enabledWidgets, id, { minW, minH, maxW, maxH })
+    )
   }
 
   function removeComponent() {
     const newEnabledWidgets = Object.fromEntries(
-      Object.entries(
-        JSON.parse(JSON.stringify(enabledWidgets || {})) as IDashboardLayout
-      ).map(([k, value]) => [k, value.filter(i => i.i !== id)])
+      Object.entries(enabledWidgets).map(([k, value]) => [
+        k,
+        value.filter(i => i.i !== id)
+      ])
     )
 
     if (Object.values(newEnabledWidgets).every(e => e.length === 0)) {
@@ -163,8 +123,10 @@ function ComponentListItem({
           position={{ base: 'absolute', sm: 'static' }}
           right="1em"
           top="1.75em"
+          onClick={event => event.stopPropagation()}
         >
           <Switch
+            aria-label={t([`widgets.${id}.title`, `widgets.${id}`, id])}
             value={isEnabled}
             onChange={() => {
               toggleComponent()

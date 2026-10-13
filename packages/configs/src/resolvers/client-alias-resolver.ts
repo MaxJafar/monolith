@@ -61,7 +61,9 @@ export function clientAliasResolver(
 
   for (const candidate of candidates) {
     if (fs.existsSync(candidate)) {
-      return candidate
+      // Vite identifies modules by slash-normalized IDs. Mixing a Windows
+      // alias path with a relative import otherwise creates two React contexts.
+      return candidate.replace(/\\/g, '/')
     }
   }
 

@@ -13,7 +13,7 @@ import type { FreqSpecificParams, RRuleParams } from '..'
 dayjs.extend(utc)
 
 const createStartDate = (start: Date | null) => {
-  const startDate = dayjs(start)
+  const startDate = dayjs(start).utc()
 
   return datetime(
     startDate.year(),
@@ -57,7 +57,7 @@ export const configureYearlyOptions = (
   if (data.type === 'exactDate') {
     options.bymonth = data.month
     options.bymonthday = data.date
-  } else if (data.type === 'relativeDay') {
+  } else {
     options.bysetpos = {
       first: 1,
       second: 2,
@@ -79,7 +79,7 @@ export const configureMonthlyOptions = (
 
   if (data.type === 'exactDate') {
     options.bymonthday = data.onDate
-  } else if (data.type === 'relativeDay') {
+  } else {
     options.bysetpos = {
       first: 1,
       second: 2,
@@ -157,31 +157,19 @@ export function getRRULEString({
 
   switch (params.freq) {
     case 'yearly':
-      configureYearlyOptions(
-        options,
-        params.data as FreqSpecificParams['yearly']
-      )
+      configureYearlyOptions(options, params.data)
       break
     case 'monthly':
-      configureMonthlyOptions(
-        options,
-        params.data as FreqSpecificParams['monthly']
-      )
+      configureMonthlyOptions(options, params.data)
       break
     case 'weekly':
-      configureWeeklyOptions(
-        options,
-        params.data as FreqSpecificParams['weekly']
-      )
+      configureWeeklyOptions(options, params.data)
       break
     case 'daily':
-      configureDailyOptions(options, params.data as FreqSpecificParams['daily'])
+      configureDailyOptions(options, params.data)
       break
     case 'hourly':
-      configureHourlyOptions(
-        options,
-        params.data as FreqSpecificParams['hourly']
-      )
+      configureHourlyOptions(options, params.data)
       break
   }
 
@@ -195,25 +183,50 @@ export function fromRRULEString(rrule: string): {
   start: Date | null
   duration: {
     duration_amt: number
-    duration_unit: 'hour' | 'day' | 'week' | 'month' | 'year'
+    duration_unit: 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'
   } | null
 } | null {
-  const duration = rrule.split('||')[1]
+  const parts = rrule.split('||')
+
+  if (parts.length > 2 || !parts[0].trim()) return null
+
+  const [rule, duration] = parts
 
   let durationParams: {
     duration_amt: number
-    duration_unit: 'hour' | 'day' | 'week' | 'month' | 'year'
+    duration_unit: 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'
   } | null = null
 
-  if (duration) {
-    durationParams = Object.fromEntries(
-      duration.split(';').map(part => part.split('='))
-    )
+  if (duration !== undefined) {
+    const matched =
+      /^duration_amt=(\d+);duration_unit=(minute|hour|day|week|month|year)$/.exec(
+        duration
+      )
+
+    if (!matched) return null
+
+    const amount = Number(matched[1])
+
+    if (!Number.isSafeInteger(amount) || amount < 1) return null
+
+    durationParams = {
+      duration_amt: amount,
+      duration_unit: matched[2] as NonNullable<
+        typeof durationParams
+      >['duration_unit']
+    }
   }
 
-  const options = RRule.parseString(rrule.split('||')[0])
+  let options: Partial<RRuleOptions>
 
-  if (!options) return null
+  try {
+    options = RRule.parseString(rule)
+  } catch {
+    return null
+  }
+
+  if (options.dtstart && !Number.isFinite(options.dtstart.getTime()))
+    return null
 
   const freq = options.freq
 
@@ -439,14 +452,7 @@ export function fromRRULEString(rrule: string): {
       return null
   }
 
-  const startString = /DTSTART:(\d{8}T\d{6}Z)/.exec(rrule)
-
-  const start = startString
-    ? dayjs(
-        startString[1].replace('T', ' ').replace('Z', ''),
-        'YYYYMMDD HHmmss'
-      ).toDate()
-    : null
+  const start = options.dtstart ?? null
 
   return {
     start,

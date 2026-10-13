@@ -1,0 +1,48 @@
+{
+  "title": "Kad imbas",
+  "description": "Cipta dek pembelajaran dan kukuhkan ingatan melalui ulang kaji berselang.",
+  "create": "Cipta",
+  "edit": "Sunting",
+  "save": "Simpan",
+  "cancel": "Batal",
+  "delete": "Padam",
+  "confirmDelete": "Padam rekod ini dan item berkaitannya?",
+  "empty": "Belum ada rekod. Cipta rekod pertama anda.",
+  "noResults": "Tiada rekod sepadan.",
+  "loading": "Memuatkan…",
+  "retry": "Cuba lagi",
+  "none": "Tiada",
+  "yes": "Ya",
+  "no": "Tidak",
+  "saveFailed": "Rekod tidak dapat disimpan.",
+  "study": "Belajar",
+  "reveal": "Lihat jawapan",
+  "again": "Ulang",
+  "good": "Faham",
+  "finished": "Semua kad telah diulang kaji.",
+  "search": "Cari",
+  "board": "Papan",
+  "manage": "Urus",
+  "entities": {
+    "tags": "Tag",
+    "decks": "Dek",
+    "cards": "Kad"
+  },
+  "inputs": {
+    "search": "Cari",
+    "name": "Nama",
+    "color": "Warna",
+    "description": "Keterangan",
+    "tag_id": "Tag",
+    "question": "Soalan",
+    "answer": "Jawapan",
+    "deck_id": "Dek"
+  },
+  "options": {
+    "private": "Peribadi",
+    "public": "Awam",
+    "unlisted": "Tidak tersenarai",
+    "note": "Nota",
+    "folder": "Folder"
+  }
+}

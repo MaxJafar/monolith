@@ -1,16 +1,16 @@
 {
-  "name": "lifeforge-monorepo",
+  "name": "monolith",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@11.21.0",
-  "description": "A comprehensive self-hosted all-in-one personal management system",
+  "description": "monolith — a personal workspace for projects, knowledge and connected databases",
   "version": "0.0.0",
   "license": "CC BY-NC-SA 4.0",
   "author": "LifeForge (https://github.com/LifeForge-app)",
-  "homepage": "https://docs.lifeforge.melvinchia.dev",
+  "homepage": "https://github.com/MaxJafar/monolith",
   "repository": {
     "type": "git",
-    "url": "https://github.com/LifeForge-app/lifeforge.git"
+    "url": "https://github.com/MaxJafar/monolith.git"
   },
   "workspaces": [
     "./apps/api",
@@ -23,6 +23,11 @@
   ],
   "scripts": {
     "forge": "tsx --tsconfig=./tools/tsconfig.json tools/src/index.ts",
+    "local:setup": "tsx --tsconfig=./tools/tsconfig.json tools/src/zillion/localDatabase.ts start",
+    "local:stop": "tsx --tsconfig=./tools/tsconfig.json tools/src/zillion/localDatabase.ts stop",
+    "migrate:pocketbase": "tsx --tsconfig=./tools/tsconfig.json tools/src/zillion/migratePocketBase.ts",
+    "agents:worker": "tsx --tsconfig=./tools/tsconfig.json tools/src/zillion/agentWorker.ts",
+    "dev": "pnpm forge dev",
     "build": "turbo build --filter=\"./packages/*\" && turbo build --continue",
     "lint": "prettier --check . && eslint .",
     "fix": "prettier --write ./ && pnpm lint",
@@ -34,7 +39,10 @@
     "typecheck": "turbo typecheck"
   },
   "keywords": [
-    "lifeforge"
+    "monolith",
+    "workspace",
+    "knowledge",
+    "projects"
   ],
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -51,7 +59,7 @@
     "@types/react-dom": "^19.2.3",
     "@types/tinycolor2": "^1.4.6",
     "@typescript-eslint/eslint-plugin": "^8.64.0",
-    "@typescript-eslint/parser": "link:latest@typescript-eslint/eslint-plugin@latest",
+    "@typescript-eslint/parser": "^8.64.0",
     "@typescript-eslint/utils": "8.61.0",
     "@typescript/typescript6": "^6.0.2",
     "@vitejs/plugin-react": "^6.0.3",

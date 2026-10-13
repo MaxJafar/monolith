@@ -1,5 +1,6 @@
 import * as CheckboxPrimitive from '@radix-ui/react-checkbox'
 import clsx from 'clsx'
+import { useId } from 'react'
 
 import { Bordered, Flex, Icon, Text, Transition } from '@/components/primitives'
 import { usePersonalization } from '@/providers'
@@ -28,6 +29,7 @@ export function Checkbox({
   label?: React.ReactNode
 }) {
   const { getMostReadableColor } = usePersonalization()
+  const id = useId()
 
   return (
     <Flex align="center" gap="sm" style={{ opacity: disabled ? 0.5 : 1 }}>
@@ -36,6 +38,7 @@ export function Checkbox({
         checked={checked}
         className={clsx(checkboxRootRecipe(), className)}
         disabled={disabled}
+        id={id}
         onCheckedChange={onCheckedChange}
       >
         <Transition>
@@ -71,7 +74,7 @@ export function Checkbox({
           </Bordered>
         </Transition>
       </CheckboxPrimitive.Root>
-      {label && <label>{label}</label>}
+      {label && <label htmlFor={id}>{label}</label>}
     </Flex>
   )
 }

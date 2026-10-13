@@ -1,9 +1,13 @@
 import { ErrorBoundary } from 'react-error-boundary'
 import { Outlet, useLocation } from 'react-router'
 
-import { ErrorScreen, Flex } from '@lifeforge/ui'
+import { ErrorScreen, Flex, ModalManager } from '@lifeforge/ui'
+
+import { WorkspaceProvider } from '@/core/workspaces/WorkspaceProvider'
 
 import useTitleEffect from '../hooks/useTitleEffect'
+import CanvasWidgetBridge from './CanvasWidgetBridge'
+import MonolithAppBar from './MonolithAppBar'
 import Sidebar from './Sidebar/Sidebar'
 
 function RootLayout() {
@@ -11,31 +15,32 @@ function RootLayout() {
   useTitleEffect()
 
   return (
-    <>
-      <Sidebar />
-      <Flex
-        direction="column"
-        height="100%"
-        minHeight="0"
-        minWidth="0"
-        ml={{
-          base: 'none',
-          sm: '3xl',
-          lg: 'none'
-        }}
-        overflowX="hidden"
-        position="relative"
-        width="100%"
-      >
-        <ErrorBoundary
-          key={location.pathname}
-          fallback={<ErrorScreen message="An unexpected error occurred." />}
-          resetKeys={[location.pathname]}
-        >
-          <Outlet />
-        </ErrorBoundary>
-      </Flex>
-    </>
+    <WorkspaceProvider>
+      <CanvasWidgetBridge>
+        <Flex height="100%" minWidth="0" width="100%">
+          <Sidebar />
+          <Flex
+            direction="column"
+            flex="1"
+            minHeight="0"
+            minWidth="0"
+            overflowX="hidden"
+            position="relative"
+            width="100%"
+          >
+            <MonolithAppBar />
+            <ErrorBoundary
+              key={location.pathname}
+              fallback={<ErrorScreen message="An unexpected error occurred." />}
+              resetKeys={[location.pathname]}
+            >
+              <Outlet />
+            </ErrorBoundary>
+          </Flex>
+        </Flex>
+        <ModalManager />
+      </CanvasWidgetBridge>
+    </WorkspaceProvider>
   )
 }
 

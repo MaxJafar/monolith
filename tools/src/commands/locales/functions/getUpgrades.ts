@@ -1,7 +1,7 @@
 import { log } from '@clack/prompts'
 import chalk from 'chalk'
 
-import { resolveEntry, type RegistryEntry } from '@/utils/registryIndex'
+import { type RegistryEntry, resolveEntry } from '@/utils/registryIndex'
 
 export interface LocaleUpgrade {
   id: string

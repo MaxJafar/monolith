@@ -1,0 +1,49 @@
+{
+  "title": "願望清單",
+  "description": "收集心儀的商品，規劃購買並記錄已購商品。",
+  "create": "建立",
+  "edit": "編輯",
+  "save": "儲存",
+  "cancel": "取消",
+  "delete": "刪除",
+  "confirmDelete": "刪除此記錄及其關聯項目？",
+  "empty": "尚無記錄，建立第一筆記錄。",
+  "noResults": "沒有符合的記錄。",
+  "loading": "載入中…",
+  "retry": "重試",
+  "none": "無",
+  "yes": "是",
+  "no": "否",
+  "saveFailed": "無法儲存記錄。",
+  "study": "學習",
+  "reveal": "顯示答案",
+  "again": "再來一次",
+  "good": "記住了",
+  "finished": "所有卡片已複習。",
+  "search": "搜尋",
+  "board": "看板",
+  "manage": "管理",
+  "entities": {
+    "lists": "清單",
+    "entries": "項目"
+  },
+  "inputs": {
+    "search": "搜尋",
+    "name": "名稱",
+    "description": "描述",
+    "color": "顏色",
+    "icon": "圖示",
+    "url": "商品連結",
+    "price": "價格",
+    "list_id": "清單",
+    "image": "圖片連結",
+    "bought": "已購買"
+  },
+  "options": {
+    "private": "私密",
+    "public": "公開",
+    "unlisted": "不公開列出",
+    "note": "筆記",
+    "folder": "資料夾"
+  }
+}

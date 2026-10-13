@@ -43,8 +43,12 @@ export function Listbox<T>({
     <HeadlessListbox
       disabled={disabled}
       multiple={multiple}
-      value={value as never}
-      onChange={onChange as never}
+      value={value}
+      onChange={(selected: T | T[]) => {
+        // Headless UI's callback value follows the discriminated multiple prop.
+        if (multiple) onChange(selected as T[])
+        else onChange(selected as T)
+      }}
     >
       <Transition property="all">
         <Flex

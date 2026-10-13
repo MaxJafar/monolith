@@ -23,7 +23,7 @@ export default {
   displayName: 'Module Manager',
   version: '1.0.0',
   author: 'LifeForge <https://lifeforge.dev>',
-  description: 'UI-based module manager for your LifeForge instance',
+  description: 'UI-based module manager for your monolith workspace',
   icon: 'tabler:puzzle',
   category: 'Settings',
   APIKeyAccess: {}

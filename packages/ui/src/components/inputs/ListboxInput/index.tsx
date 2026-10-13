@@ -1,7 +1,7 @@
 import { ListboxButton } from '@headlessui/react'
 import { useCallback, useMemo } from 'react'
 
-import { Box, Flex, Text } from '@/components/primitives'
+import { Box, Flex, Icon, Text } from '@/components/primitives'
 
 import { InputActionButton } from '../shared/components/InputActionButton'
 import { InputIcon } from '../shared/components/InputIcon'
@@ -84,8 +84,9 @@ export function ListboxInput<T>({
       return
     }
 
-    const inputInside = (e.target as HTMLElement).querySelector('input') as
+    const inputInside = (e.target as HTMLElement).querySelector<
       HTMLInputElement | HTMLTextAreaElement
+    >('input')
 
     if (inputInside && inputInside instanceof HTMLInputElement) {
       inputInside.focus()
@@ -172,7 +173,11 @@ export function ListboxInput<T>({
                         : '0.75em'
                 }}
                 variant={variant}
-              />
+              >
+                <span aria-hidden="true">
+                  <Icon icon="heroicons:chevron-up-down-16-solid" />
+                </span>
+              </InputActionButton>
             </Box>
           </ListboxButton>
         </Flex>

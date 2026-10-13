@@ -1,10 +1,13 @@
 import clsx from 'clsx'
+import { useId } from 'react'
 
+import { useInputLabel } from '@/components/inputs/shared/hooks/useInputLabel'
 import { Box, type BoxProps } from '@/components/primitives'
 
 import * as styles from './SliderInput.css'
 import { SliderHeader } from './components/SliderHeader'
 import { SliderTicks } from './components/SliderTicks'
+import { sliderRange } from './range'
 
 export interface SliderInputProps extends Omit<
   BoxProps<'div'>,
@@ -37,47 +40,68 @@ export function SliderInput({
   className,
   namespace,
   renderValue,
+  'aria-label': ariaLabel,
+  'aria-labelledby': labelledBy,
   ...rest
 }: SliderInputProps) {
-  const progress = ((value - min) / (max - min)) * 100
+  const id = useId()
+
+  const inputLabel = useInputLabel({
+    label: label ?? 'rangeValue',
+    namespace: label ? namespace : 'common.inputs'
+  })
+  const range = sliderRange(value, min, max, step)
+  const unavailable = disabled || range.fixed
+  const update = (next: number) =>
+    onChange(sliderRange(next, min, max, step).value)
 
   return (
     <Box width="100%" {...rest}>
       <SliderHeader
-        disabled={disabled}
+        disabled={unavailable}
         icon={icon}
+        inputId={id}
         label={label}
-        max={max}
-        min={min}
+        max={range.max}
+        min={range.min}
         namespace={namespace}
         renderValue={renderValue}
         required={required}
-        value={value}
-        onChange={onChange}
+        value={range.value}
+        onChange={update}
       />
       <Box
-        bg={{ base: 'bg-200', dark: 'bg-800' }}
         className={clsx(
           styles.track,
-          disabled && styles.inputDisabled,
+          unavailable && styles.inputDisabled,
           className
         )}
       >
-        <Box className={styles.fill} style={{ width: `${progress}%` }} />
+        <Box aria-hidden="true" className={styles.rail} />
+        <Box
+          aria-hidden="true"
+          className={styles.fill}
+          style={{ width: `${range.progress}%` }}
+        />
         <input
+          aria-label={ariaLabel || inputLabel}
+          aria-labelledby={labelledBy}
+          aria-required={required || undefined}
+          aria-valuetext={renderValue?.(range.value)}
           className={styles.input}
-          disabled={disabled}
-          max={max}
-          min={min}
-          step={step}
+          disabled={unavailable}
+          id={id}
+          max={range.max}
+          min={range.min}
+          step={range.step}
           type="range"
-          value={value}
+          value={range.value}
           onChange={e => {
-            onChange(parseFloat(e.target.value))
+            update(e.target.valueAsNumber)
           }}
         />
       </Box>
-      <SliderTicks max={max} min={min} renderValue={renderValue} />
+      <SliderTicks max={range.max} min={range.min} renderValue={renderValue} />
     </Box>
   )
 }

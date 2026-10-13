@@ -1,0 +1,44 @@
+.zillion-gym-section {
+  animation: zillion-gym-section-enter var(--motion-normal, 220ms)
+    var(--motion-ease, ease-out) both;
+}
+.zillion-gym-metric-value {
+  font-variant-numeric: tabular-nums;
+}
+@keyframes zillion-gym-section-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.375rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .zillion-gym-section {
+    animation: none;
+  }
+}
+
+.zillion-gym-print-sheet {
+  display: none;
+}
+@media print {
+  body:has(.zillion-gym-print-sheet) > :not(.zillion-gym-print-sheet) {
+    display: none !important;
+  }
+  .zillion-gym-print-sheet {
+    display: block;
+    color: #111;
+    background: #fff;
+  }
+  .zillion-gym-print-sheet * {
+    color: inherit;
+    background: transparent;
+    box-shadow: none;
+  }
+  .zillion-gym-print-sheet section {
+    break-inside: avoid;
+  }
+}

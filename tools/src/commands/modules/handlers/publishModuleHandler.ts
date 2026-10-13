@@ -3,11 +3,11 @@ import chalk from 'chalk'
 import fs from 'fs'
 import path from 'path'
 
-import { ROOT_DIR } from '@/utils/constants'
 import bumpPackageVersion, {
   revertPackageVersion
 } from '@/utils/bumpPackageVersion'
 import executeCommand from '@/utils/commands'
+import { ROOT_DIR } from '@/utils/constants'
 import { getRepoSlug, getTagCommit, updateRegistryIndex } from '@/utils/github'
 import { assertKebabRepo } from '@/utils/kebab'
 import normalizePackage from '@/utils/normalizePackage'
@@ -51,7 +51,9 @@ export async function publishModuleHandler(moduleName: string): Promise<void> {
 
   try {
     executeCommand(`git add package.json`, { cwd: dir })
-    executeCommand(`git commit -m "chore: release v${newVersion}"`, { cwd: dir })
+    executeCommand(`git commit -m "chore: release v${newVersion}"`, {
+      cwd: dir
+    })
     executeCommand(`git tag v${newVersion}`, { cwd: dir })
     executeCommand('git push', { cwd: dir })
     executeCommand('git push --tags', { cwd: dir })

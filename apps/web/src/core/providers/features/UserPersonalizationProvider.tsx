@@ -111,7 +111,7 @@ function UserPersonalizationProvider({
       setTheme(userData.theme as 'light' | 'dark' | 'system')
     }
 
-    if (userData.color) {
+    if (userData.color && userData.color !== '#f58a38') {
       setRawThemeColor(
         userData.color.startsWith('#')
           ? userData.color

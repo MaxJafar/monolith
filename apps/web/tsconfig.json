@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2020",
     "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable", "ES2024.Object"],
+    "lib": ["ES2020", "DOM", "DOM.Iterable", "ES2022.Error", "ES2024.Object"],
     "module": "ESNext",
     "skipLibCheck": true,
     /* Bundler mode */
@@ -29,6 +29,7 @@
     "./src/**/*",
     "./vite.config.ts",
     "./contract.ts",
+    "../../modules/zillion--databases/client/contract.ts",
     "../../packages/localization/src/providers/I18nCommonNameSpacePreloadProvider.tsx"
   ]
 }

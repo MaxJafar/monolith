@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import ReactDOM from 'react-dom/client'
+import ReactDOM, { type Root } from 'react-dom/client'
 import { ErrorBoundary } from 'react-error-boundary'
 
 import { ErrorScreen, Flex, Text } from '@lifeforge/ui'
@@ -41,10 +41,8 @@ function App() {
   )
 }
 
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {})
-  })
-}
-
-ReactDOM.createRoot(document.getElementById('root')!).render(<App />)
+const root: Root =
+  import.meta.hot?.data.root ??
+  ReactDOM.createRoot(document.getElementById('root')!)
+if (import.meta.hot) import.meta.hot.data.root = root
+root.render(<App />)

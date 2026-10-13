@@ -19,7 +19,15 @@ const config: Linter.Config[] = [
       '**/*.config.ts',
       '**/*.config.js',
       '**/dist/',
+      '**/tsbuild/**',
+      'docs/plugins/*.js',
+      'docs/plugins/*.d.ts',
+      'docs/vite.config.d.ts',
+      '**/dist-docker/**',
       'dist/',
+      '.temp/**',
+      'reference/**',
+      '.opencode/**',
       'tools/src/templates/**',
       '**/storybook-static/',
       'modules/melvinchia3636--truckers-log/client/src/lib/'
@@ -34,7 +42,15 @@ const config: Linter.Config[] = [
       },
       sourceType: 'module',
       parserOptions: {
-        project: './tsconfig.eslint.json',
+        project: [
+          './modules/*/client/tsconfig.json',
+          './modules/*/server/tsconfig.json',
+          './packages/*/tsconfig.json',
+          './apps/*/tsconfig.json',
+          './docs/tsconfig.json',
+          './tools/tsconfig.json',
+          './tsconfig.eslint.json'
+        ],
         tsconfigRootDir: process.cwd(),
         sourceType: 'module'
       }
@@ -42,7 +58,7 @@ const config: Linter.Config[] = [
   },
 
   // JS/TS Presets
-  js.configs.recommended as Linter.Config,
+  js.configs.recommended,
   ...(tseslint.configs.recommended as Linter.Config[]),
 
   // Feature / Plugin Configs

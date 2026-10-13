@@ -33,6 +33,7 @@ function FontScaleSelector() {
       >
         <Box minWidth={{ md: '16em' }} width="100%">
           <SliderInput
+            aria-label={t('fontScaleSelector.title')}
             max={2}
             min={0.5}
             namespace="common.personalization"

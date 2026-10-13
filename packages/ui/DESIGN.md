@@ -51,22 +51,22 @@ Spacing scales are defined under `vars.space` and scale with font size to keep v
 
 ### B. Border Radius (Rounding) Tokens
 
-Border corners are defined under `vars.radii` and scale with the user's corner multiplier (`--custom-border-radius-multiplier`; independent of font scale). Each radius is a whole multiple of the spacing unit (`0.25rem` - i.e. `--spacing` at the default font scale) so nested corners stay concentric.
+Border corners are defined under `vars.radii` and scale with the user's corner multiplier (`--custom-border-radius-multiplier`; independent of font scale). The compact workspace uses a fixed 4px base radius step. Spacing still follows the font scale, so match nested corners to the actual rendered padding.
 
-| Token  | Raw value           | Multiple of `0.25rem` | Rendered at `:root` 14px |
-| :----- | :------------------ | :-------------------- | :----------------------- |
-| `none` | `0`                 | -                     | `0`                      |
-| `sm`   | `var(--radius-sm)`  | `1`                   | `3.5px`                  |
-| `md`   | `var(--radius-md)`  | `2`                   | `7px`                    |
-| `lg`   | `var(--radius-lg)`  | `3`                   | `10.5px`                 |
-| `xl`   | `var(--radius-xl)`  | `4`                   | `14px`                   |
-| `2xl`  | `var(--radius-2xl)` | `6`                   | `21px`                   |
-| `3xl`  | `var(--radius-3xl)` | `8`                   | `28px`                   |
-| `full` | `9999px`            | -                     | pill                     |
+| Token  | Raw value           | Multiple of `4px` | Default radius |
+| :----- | :------------------ | :---------------- | :------------- |
+| `none` | `0`                 | -                 | `0`            |
+| `sm`   | `var(--radius-sm)`  | `1`               | `4px`          |
+| `md`   | `var(--radius-md)`  | `2`               | `8px`          |
+| `lg`   | `var(--radius-lg)`  | `3`               | `12px`         |
+| `xl`   | `var(--radius-xl)`  | `4`               | `16px`         |
+| `2xl`  | `var(--radius-2xl)` | `5`               | `20px`         |
+| `3xl`  | `var(--radius-3xl)` | `6`               | `24px`         |
+| `full` | `9999px`            | -                 | pill           |
 
 #### Concentric nested corners
 
-When a rounded element sits inside another one with padding, keep the corners concentric using `inner radius = outer radius - padding`. Because all radius and spacing tokens share the `0.25rem` unit, the result usually maps to another token:
+When a rounded element sits inside another one with padding, keep the corners concentric using `inner radius = outer radius - padding`. At a 16px font base and a radius multiplier of 1, the following combinations map exactly to tokens; adjust for personalized scaling:
 
 | Outer radius | Padding | Inner radius |
 | :----------- | :------ | :----------- |
@@ -75,8 +75,8 @@ When a rounded element sits inside another one with padding, keep the corners co
 | `lg`         | `sm`    | `sm`         |
 | `xl`         | `xs`    | `lg`         |
 | `xl`         | `sm`    | `md`         |
-| `2xl`        | `sm`    | `xl`         |
-| `3xl`        | `sm`    | `2xl`        |
+| `2xl`        | `sm`    | `lg`         |
+| `3xl`        | `sm`    | `xl`         |
 
 When the outer radius is less than or equal to the padding, the inner element should use `r="none"` - a square inner corner reads as concentric because it never crosses the outer corner's curve.
 
@@ -826,7 +826,7 @@ Since `Button` extends `FlexProps` (which extends `BoxProps`), **any layout prop
 
 1. **Dynamic Contrast Matching:** In `useButtonStyleProps`, when `variant="primary"` is set, the button fetches the user's active theme color (`derivedThemeColor`) and runs `getMostReadableColor()` to compute a text color with optimal contrast.
 2. **Smart i18n Translation:** If the children is a string, it automatically attempts to search for translations across various namespaces (e.g., `buttons.cancel`, `common.buttons:cancel`).
-3. **Loading Spinners:** Renders the pre-animated `svg-spinners:ring-resize` icon automatically.
+3. **Loading Spinners:** Renders `svg-spinners:ring-resize` with or without an `icon` prop. Iconless loading preserves the content's layout and accessible name. `aria-busy` marks pending work; disabled/loading buttons prevent activation even when rendered as links.
 
 #### Example:
 
@@ -1725,3 +1725,91 @@ Before submitting a pull request, verify that you have adhered to all core desig
 - [ ] **List spacing:** For vertical lists (`Stack`), `mb="lg"` is the standard bottom margin - no need to define responsive sizes like `mb={{ base: '6rem', md: 'lg' }}`. The spacing token `lg` is consistent across breakpoints and is sufficient for all list containers.
 - [ ] **Component organization:** Components are strictly separated into individual files under their respective `components/` folders instead of being grouped together.
 - [ ] **Conventional functions:** All React components use standard function declarations (`export function Component()`) and avoid arrow functions.
+
+## monolith visual defaults
+
+Monolith uses a black and white identity in a Notion-inspired workspace: a persistent page tree, compact breadcrumb header and editable page canvas. The original geometric M mark in `apps/web/public/brand` is shared by the interface, favicon, app icons and desktop shortcut. Keep specialized area dashboards connected to their existing data.
+
+- Light canvas and panels `#ffffff`, sidebar `#f7f7f5`, lifted panels `#f1f1ef`, primary text `#252525`, supporting text `#73736f`. Dark canvas `#191919`, panels and sidebar `#202020`, lifted panels `#2c2c2c`, primary text `#eeeeec`, supporting text `#a6a6a2`. Essential labels use the supporting role or primary text.
+- Primary actions use `--interactive-primary` and `--interactive-on-primary`, inverting in dark mode. Neutral tonal containers mix 8% text into the panel. Red and amber remain reserved for meaningful error and warning states; categorical property colors can convey data.
+- Inter for UI and headings, JetBrains Mono for technical content.
+- Radius tokens: sm 4px, md 6px, lg 8px, xl 12px, full 9999px. Compatibility 2xl/3xl tokens use 12px. Controls use 6px corners; rounded pills are reserved for badges and switches.
+- Use an 8px spacing rhythm, 4px for connected controls and fluid gutters `clamp(20px, 4vw, 64px)`. Reflow at 700px and 1000px. Page headings use 40px on desktop and 32px on phones; content uses a 920px standard or 1480px full-width canvas.
+- Surfaces are opaque and tonal. Board cards have a subtle 1px border and shallow shadow; hover strengthens the border and raises the card by 1px. Menus use `--floating-shadow`. Avoid decorative gradients and glass.
+- Controls have at least 44px touch targets and 34px desktop height. Focus rings use 2px primary text with 3px offset, 2px for fields. Pressed buttons scale to 98%. Motion uses 140/220/320ms with `cubic-bezier(.2, 0, 0, 1)`; respect reduced motion. Animate transform and opacity for cards, menus and mobile drawers; retain mounted drawer contents during exit.
+- Boards scroll horizontally within the content area and snap gently on touch. Reveal card actions on hover or keyboard focus, keeping them visible on touch. Every draggable card also offers a keyboard-accessible move menu. Show optimistic moves immediately, then restore the previous state on failure. Preserve records whose grouping option was removed and allow creation directly within each group.
+- Keep localization, responsive primitive props, semantic headings, keyboard support and user personalization.
+
+Internal LifeForge package identifiers remain compatible with existing modules and data.
+
+The sidebar uses one continuous scroll region, with workspace pages before installed areas. Keep the workspace selector compact and keyboard accessible. Page branches expose their expanded state and reveal the active page's ancestors; collapsed children are absent from keyboard and accessibility navigation. Show child-page actions on hover or focus on desktop, and retain 44px visible targets on touch layouts. Dismiss the mobile drawer only after guarded navigation commits, including query-only workspace changes. The drawer and backdrop share the 1000px breakpoint.
+
+### Editable workspace pages
+
+`ModuleWrapper` renders each area inside `WorkspaceCanvas`; retain the module's providers and native dashboard as its connected area block. Home uses the same canvas with live project, service and finance widgets. Custom pages use `/page/:id`. The host supplies `CanvasPageStorage` from the accessible workspace's page contract, including role and revision protection; the core `user.pages` contract remains a compatibility fallback. Do not copy records into dashboard configuration.
+
+`CanvasWidgetExtensionProvider` supplies installed widget descriptors and a render callback. Widget configuration may contain a name filter; it must never contain credentials or copied monitoring readings. Use the existing widget provider and module metadata to load widgets lazily. A missing module displays an explicit unavailable state.
+
+Canvas blocks support document content, headings, callouts, safe link buttons, dividers, one native area dashboard, connected widgets and live database views. A database block stores workspace/base/view UUIDs and renders the same database engine, never copied rows. Full, half and third widths stack on phones. Edit titles and text inline; expose structural actions on the focused or hovered grip. Keep keyboard-accessible move actions. `BlockEditor` provides cursor-positioned slash search, arrow/Enter/Escape navigation and selection formatting. Autosave validated changes after 800ms and serialize saves; edits made during a request retain their draft while receiving the new revision. Keep a manual Save action for retry. Failure or conflict retains the draft and pauses automatic retry. Reloading a saved version requires an inline confirmation, with a Keep editing action; lock editing while reloading and retain the draft if the fetch fails. Mount the navigation guard only while dirty so it cannot override a nested native form's guard. Never discard a pending save.
+
+Page queries use contract-derived keys with authenticated actor and workspace identity. Workspace pages and area layouts have independent server revisions. Owner/editor/viewer roles are checked on the server; viewers receive an explicit read-only page. Include pages and canonical database records in the link picker and navigate to their actual workspace routes. Validate linked database references and new document links against that workspace. Never expose all page bodies in profile responses, replace the whole page map or use browser storage as the authoritative document store. Workspace context identity lives separately from its provider to survive hot updates. The root renders one modal manager; opening a modal captures module metadata for localization.
+
+Seed the content query with an already validated page from route metadata to avoid a duplicate initial request. Preserve the contract's freshness defaults. Commit a successful response and its returned revision before refreshing navigation metadata; refresh metadata independently and show a retry warning if it fails. A cached query error must retain the editable draft and its navigation guard. Invalidate exact actor/page metadata without refetching the separate content query after each autosave. Page controls scroll with the heading so they cannot cover the title or document while browsing.
+
+### Data visualization
+
+`HorizontalBarChart`, `LineChart` and `ProgressRing` are exported by `@lifeforge/ui`. Read `components/display/DataViz/DataViz.stories.tsx` before using them. Comparison bars use primitives; trends and rings use SVG geometry. All use existing theme variables without a charting dependency. Compose their panels, headings and controls with primitives.
+
+Pass real source data as `{ label, value, position?, detail?, color? }`. A null value is unknown, not zero; line charts preserve gaps, and bars display an em dash. Bar scales start at zero. Progress ratios clamp safely, including empty or zero goals. Line charts support explicit domains, inverted scales and reference lines; use numeric `position` for actual time spacing and retain duplicate-date sessions. Localize labels and units in the calling module. Source colors may be passed as CSS colors, while defaults use the theme accent.
+
+Line points support hover/focus readouts, native titles and an accessible data table. Container queries keep SVG labels readable in narrow panels; position-based tick selection avoids overlapping clustered dates. Values and labels accompany comparison bars and progress rings, so color is never the only signal. Charts do not animate geometry or run timers. Keep summaries scoped to the selected view/range. A paginated usage chart must explicitly describe the current history page, while totals and coverage use the full filtered server result. Cached input is a subset of input tokens, not an additional token category.
+
+### Documents, graphs and motion
+
+`BlockEditor` and `KnowledgeGraph` are exported by `@lifeforge/ui`; modules must not import their Tiptap or d3 dependencies directly. Read their stories under `components/display` before using them. Controls use primitives; third-party editor/graph styling uses scoped plain CSS and shared color/motion variables.
+
+Pass the persisted body as `BlockEditor.value`, update the draft through `onChange`, and track `onValidityChange` so invalid blocks disable saving. Pass only owned `pages` and handle `onOpenPage` through application navigation. The editor preserves plain text until an actual content edit. Preview/edit switches and loading state must use `setEditable` without update emission. A page link stores identity independently of its display label; avoid replacing IDs with titles.
+
+Formatting controls retain the editor selection on pointer activation. Reveal the compact formatting toolbar without moving the document; within a canvas its lower edge stays above the focused block. Keep canvas controls in one horizontally scrolling row, with 44px touch targets, so a narrow toolbar cannot cover the paragraph. Slash commands must match the current collapsed selection at the end of a plain paragraph. Revalidate that range before inserting, and dismiss the menu on blur or when the selection leaves it. Read-only editors reject command and block-movement shortcuts as well as direct typing.
+
+Pass a `KnowledgeSnapshot`, selected page key and navigation callbacks to `KnowledgeGraph`. Keep an accessible page list alongside the visual graph. Stop force simulations on cleanup, honor `prefers-reduced-motion` for both initial layout and dragging, and keep wheel/pointer handlers scoped to the graph.
+
+Use `--motion-fast`, `--motion-normal`, `--motion-slow` and `--motion-ease` for transitions. Animate opacity/transform for route entry and explicit visual button properties; avoid `transition: all` and layout animation. Reduced motion disables entrance transitions and animated graph settlement.
+
+Interactive cards transition only their visual properties, without animating size or position. Shared CSS animations and transitions are disabled under `prefers-reduced-motion: reduce`; do not use a tiny duration for infinite animations. Modal removal must not depend solely on `transitionend`: the manager also schedules removal after the fade, or immediately with reduced motion. Nested transition events must not finish the outer modal's fade early. Icon-only close buttons have localized accessible names; switches accept `aria-label` and forward native disabled state.
+
+### Agent workspace
+
+The Agents module uses the shared primitives and motion tokens for its metric cards, team profiles, work columns and review panels. Keep status columns stacked on phones, use wrapping navigation/actions, and bound result scrolling inside the panel. Long worker output and once-visible credentials use scoped plain CSS wrapping rather than arbitrary inline styles. Format persisted timestamps through day.js and the locale-aware display formatter.
+
+The React 19 agent provider owns the contract-derived snapshot query, refresh, action errors and URL navigation. Keep the shared context and consumer hook in a separate module so provider hot updates retain its identity; the context imports provider types only. Profile/assignment/review drafts stay with their forms and use navigation guards. Show runtime, roles, grants, budget usage, queued execution, human review or owner-selected automatic completion and failure feedback explicitly. The local planner's copy must describe a checklist; external workers must show their connection requirement. Approval completes the existing Projects task and updates both views. Keep credential values out of persistent client storage and clear them when hidden or revoked.
+
+Usage filters use responsive grids and must display their empty-value selections (All agents/All time). Show unknown historical token counts explicitly, distinguish cached input from additional tokens, and retain the run title/runtime snapshot. Link history rows to the requested owned run rather than substituting a recent run. Keep currency/rate estimates separate from provider invoices in visible copy.
+
+Shared `TabbedView` and `ViewMode` factories keep state in their React 19 Root contexts so separate roots cannot overwrite one another. Storage failures fall back to in-memory state. Recompute translated labels when language changes. Sidebar search matches localized module/category names and removes empty groups. Collapsed subsections must be inert and hidden from accessibility; subsection links use absolute paths and expand controls expose their state.
+
+### Calendar views and smart properties
+
+Database browsing uses compact base rows with live record counts, horizontally scrolling view tabs and an overflow menu for secondary actions. Temporary title search filters the selected saved view without changing persisted filters, sorts or canonical rows; provide clear and Escape recovery and explicit no-results feedback. Read-only embedded views keep search, view selection and record navigation usable while disabling schema changes, item changes, dragging and date moves. Compact desktop controls become 44px touch targets.
+
+Database calendar layouts use civil dates, with an optional inclusive end-date property. Keep undated or invalid legacy pages reachable in an Unscheduled section. Month/week cells use table/row/cell semantics and ordinary keyboard-accessible buttons; date moves need a focused form alternative to dragging. Confine wide date grids to their own horizontal scroller on phones. Respect hidden properties on event cards and show person names rather than stored UUIDs.
+
+Calendar source selections distinguish `null` (all sources) from `[]` (no sources), preserving both in URL state. Use one typed filter function for the main calendar and mini-calendar indicators. `ListboxInput` needs `renderContent` to show the selected value; show clear active-filter chips, counts, reset actions and empty/error feedback. Owned saved database views are read-only sources in the dedicated Calendar and open their original record pages. Their date filters use the browser's civil-day context, and feed queries refresh after returning from edits.
+
+Built-in Type, Completed, Date and End date are canonical record properties. View filters/sorts and calendar bindings read these directly instead of duplicating them in custom property JSON. Date feeds receive the browser's IANA time zone; moving a canonical calendar item preserves its time and duration. Filter before deduplicating a native event and its database counterpart, so a source-specific selection still works. Native legacy timestamps are stored as UTC without a zone; raw SQL adapters must explicitly interpret them at UTC to prevent drift.
+
+### Connected workspaces and LifeForge modules
+
+Workspaces select modules and personal, collaborative or agent profiles. Excluding a module hides its navigation without deleting data. Collaborative sections use typed canonical collections for projects, tasks, notes, events and posts. Personal sections retain their specialized LifeForge dashboards and synchronize common item properties in both directions. Type changes preserve canonical IDs and relations; incompatible titles or recurring date changes reject atomically. Native journals are drained in the request transaction, under a consistent owner lock, before reading current canonical state. Background native writes are consumed on the next canonical read.
+
+Scope every database identity, relation target, page parent, graph endpoint and agent project/task/run to the verified workspace. Membership permits access to its rows, never the owner's entire account. Agent identities, credentials and budgets remain reusable account resources; project work and activity are workspace-scoped. Agent controls currently require the workspace owner. Support human member roles in project management without implying real-time collaborative editor synchronization.
+
+### Knowledge library and agent playbooks
+
+Knowledge Library lives in the Databases area with an explicit workspace and optional collection selection. Linked sources retain canonical page/record IDs and read current saved text on each search. Imported text and Markdown stay in workspace-scoped storage. Show ranked source passages and citations as keyword retrieval; do not present excerpts as model-generated answers. Canonical citations open their original page or record. Workspace viewers can search and follow links, while editors and owners manage collections and sources.
+
+Collection/source forms own their drafts and guard query-only navigation. Keep drafts mounted when background metadata loses a collection or source, and explain recovery. Permission changes disable editing while retaining Cancel and the draft; they are separate from pending request state. A committed mutation stays successful if metadata refresh fails. Reset forms and confirmations when guarded collection navigation commits; ignore callbacks from an unmounted workspace. Plain text excerpts and long names wrap within their panels. Collection lists stack above results on narrow layouts.
+
+Agent playbooks contain reusable instructions and explicit completion checks. Selection belongs to the agent profile; each dispatch captures immutable revisions. Show review requirements and worker-reported evidence on the run. Required checks need a connected worker, and evidence remains subject to human review. Playbook text must never itself grant permissions or run shell hooks. Preserve existing runtime, budget and usage controls.
+
+Global system search lives at `/search` and is reachable from the app bar. Show current index coverage and Mac mini connectivity, allow workspace/module filters and resumable indexing, and retain keyword results when model services fail. Generated answer statements link to numbered evidence; image-derived text is labeled as an AI interpretation. Clear private result state on account/scope changes and discard late responses from the prior scope. Keep original source links, keyboard-accessible controls and visible file coverage warnings. Host credentials remain on the backend.

@@ -8,6 +8,7 @@ import z from 'zod'
 
 import { ClientError, FetchAIFunc } from '@lifeforge/server-utils'
 
+import type { db } from '../../../drizzle'
 import { getProvider, registerProvider } from './providers'
 import { deepseekProvider } from './providers/deepseek.provider'
 import { groqProvider } from './providers/groq.provider'
@@ -35,6 +36,7 @@ type FetchAIArgs<T extends z.ZodTypeAny | undefined = undefined> = {
 }
 
 async function fetchAI<T extends z.ZodTypeAny | undefined = undefined>(
+  database: typeof db,
   callerModule: CallerModule,
   { provider, model, messages, structure }: FetchAIArgs<T>
 ): Promise<(T extends z.ZodTypeAny ? z.infer<T> : string) | null> {
@@ -49,7 +51,7 @@ async function fetchAI<T extends z.ZodTypeAny | undefined = undefined>(
   if (aiProvider.requireAPIKey) {
     await validateCallerAccess(callerModule, provider)
 
-    const fetchedKey = await getAPIKeyFactory(callerModule)(provider)
+    const fetchedKey = await getAPIKeyFactory(database, callerModule)(provider)
 
     if (!fetchedKey) {
       throw new ClientError(`API key for ${provider} not found.`)
@@ -76,16 +78,19 @@ async function fetchAI<T extends z.ZodTypeAny | undefined = undefined>(
  * doesn't need to detect the caller at runtime.
  */
 export default function createFetchAI(
+  database: typeof db,
   callerModule: CallerModule | undefined
 ): FetchAIFunc {
   function boundFetchAI<T extends z.ZodTypeAny | undefined = undefined>(
     args: FetchAIArgs<T>
   ): Promise<(T extends z.ZodTypeAny ? z.infer<T> : string) | null> {
     if (!callerModule) {
-      throw new Error('Unable to determine caller module for API key validation.')
+      throw new Error(
+        'Unable to determine caller module for API key validation.'
+      )
     }
 
-    return fetchAI(callerModule, args)
+    return fetchAI(database, callerModule, args)
   }
 
   return boundFetchAI as FetchAIFunc

@@ -7,10 +7,8 @@ export const inputWrapperRecipe = recipe({
   variants: {
     variant: {
       classic: {
-        borderTopLeftRadius: vars.radii.lg,
-        borderTopRightRadius: vars.radii.lg,
-        borderBottomWidth: '2px',
-        borderBottomStyle: 'solid'
+        borderRadius: vars.radii.md,
+        minHeight: '56px'
       },
       plain: {
         borderRadius: vars.radii.lg
@@ -34,7 +32,9 @@ export const inputWrapperRecipe = recipe({
         borderColor: COLORS['bg-500'],
         selectors: {
           '&:focus-within': {
-            borderColor: COLORS['custom-500']
+            borderColor: COLORS['primary'],
+            outline: '2px solid var(--accent-teal)',
+            outlineOffset: '2px'
           }
         }
       }

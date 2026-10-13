@@ -40,7 +40,7 @@ ${JSON.stringify(structure)}`
           content: systemPrompt
         },
         ...messages
-      ] as any,
+      ],
       response_format: { type: 'json_object' },
       reasoning_effort: 'none'
     })
@@ -61,7 +61,7 @@ ${JSON.stringify(structure)}`
       )
 
       return parsedResponse as T extends z.ZodTypeAny ? z.infer<T> : string
-    } catch (e) {
+    } catch {
       logger.error('Failed to parse JSON response from DeepSeek model: ' + res)
 
       return null
@@ -70,7 +70,7 @@ ${JSON.stringify(structure)}`
 
   const response = await client.chat.completions.create({
     model,
-    messages: messages as any
+    messages: messages
   })
 
   const res = response.choices[0]?.message?.content

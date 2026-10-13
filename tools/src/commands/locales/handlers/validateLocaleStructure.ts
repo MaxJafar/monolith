@@ -49,9 +49,7 @@ export function validateLocaleStructureHandler(lang: string) {
 
   if (!packageJson.success) {
     log.error('Locale validation failed:')
-    packageJson.error.issues.forEach(issue =>
-      log.error(`  - ${issue.message}`)
-    )
+    packageJson.error.issues.forEach(issue => log.error(`  - ${issue.message}`))
 
     process.exit(1)
   }

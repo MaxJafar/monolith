@@ -88,6 +88,24 @@ export const Loading: Story = {
   render: props => <Button {...props} />
 }
 
+/** Loading without an icon preserves the button's width and accessible label. */
+export const LoadingWithoutIcon: Story = {
+  args: {
+    children: 'Save',
+    loading: true
+  }
+}
+
+/** Disabled links stay on the current page, just like disabled native buttons. */
+export const DisabledLink: Story = {
+  args: {
+    as: 'a',
+    children: 'Open Link',
+    disabled: true,
+    href: 'https://docs.lifeforge.dev'
+  }
+}
+
 /**
  * A button that displays only an icon.
  */

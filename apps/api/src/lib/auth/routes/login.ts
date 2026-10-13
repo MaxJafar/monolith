@@ -1,6 +1,7 @@
-import { verify as argonVerify } from 'argon2'
+import { and, eq } from 'drizzle-orm'
 import z from 'zod'
 
+import { users } from '../../user/schema.drizzle'
 import { getCookieOptions } from '../constants/cookie'
 import forge from '../forge'
 import { create2FASession } from '../utils/2fa'
@@ -9,6 +10,7 @@ import {
   clearLoginRateLimit,
   recordFailedLogin
 } from '../utils/loginRateLimiter'
+import { verifyPassword } from '../utils/password'
 import { storeRefreshToken } from '../utils/refreshTokenStore'
 import {
   generateFamily,
@@ -64,7 +66,7 @@ export const login = forge
       return response.unauthorized()
     }
 
-    const valid = await argonVerify(passwordHash, password)
+    const { valid, replacement } = await verifyPassword(passwordHash, password)
 
     if (!valid) {
       recordFailedLogin(ip)
@@ -73,6 +75,15 @@ export const login = forge
     }
 
     clearLoginRateLimit(ip)
+
+    if (replacement) {
+      await db
+        .update(users)
+        .set({ auth_password_hash: replacement })
+        .where(
+          and(eq(users.id, user.id), eq(users.auth_password_hash, passwordHash))
+        )
+    }
 
     if (user.twoFASecret) {
       const tid = await create2FASession(user.id)
@@ -88,12 +99,18 @@ export const login = forge
     const family = generateFamily()
 
     await storeRefreshToken({
+      userId: user.id,
       token: refreshToken,
       family,
       ip
     })
 
     res.cookie('refresh_token', refreshToken, getCookieOptions(req))
+    res.cookie('access_token', accessToken, {
+      ...getCookieOptions(req),
+      path: '/',
+      maxAge: 15 * 60 * 1000
+    })
 
     return response.ok({ accessToken })
   })

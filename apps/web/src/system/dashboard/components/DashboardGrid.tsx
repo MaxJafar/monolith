@@ -6,7 +6,6 @@ import { ModuleMetadataProvider } from '@lifeforge/federation'
 import {
   Box,
   Card,
-  EmptyStateScreen,
   Icon,
   LoadingScreen,
   colorWithOpacity,
@@ -18,6 +17,11 @@ import { useUserPersonalization } from '@/core/providers/features/UserPersonaliz
 
 import useWidgetDimension from '../hooks/useWidgetDimension'
 import { useWidgets } from '../providers/WidgetProvider'
+import {
+  hasDashboardWidgets,
+  shouldPersistDashboardLayout
+} from '../utils/layout'
+import WorkspaceOverview from './WorkspaceOverview'
 
 function DashboardGrid({
   wrapperRef,
@@ -29,26 +33,16 @@ function DashboardGrid({
   const { t } = useTranslation('common.dashboard')
   const { loading, getComponent } = useWidgets()
   const { getDimension } = useWidgetDimension()
-  const { width, height } = useDivSize(wrapperRef)
+  const { width } = useDivSize(wrapperRef)
   const { dashboardLayout: enabledWidgets } = usePersonalization()
   const { changeDashboardLayout } = useUserPersonalization()
 
-  if (width === 0) {
-    return <LoadingScreen message={t('loading')} />
+  if (!hasDashboardWidgets(enabledWidgets)) {
+    return <WorkspaceOverview />
   }
 
-  if (Object.values(enabledWidgets).every(e => e.length === 0)) {
-    return (
-      <Box asChild flex="1">
-        <EmptyStateScreen
-          icon="tabler:hammer"
-          message={{
-            id: 'welcome',
-            namespace: 'common.dashboard'
-          }}
-        />
-      </Box>
-    )
+  if (width === 0) {
+    return <LoadingScreen message={t('loading')} />
   }
 
   return (
@@ -71,7 +65,14 @@ function DashboardGrid({
         rowHeight={100}
         width={width}
         onLayoutChange={(_, layouts) => {
-          changeDashboardLayout(layouts)
+          if (
+            shouldPersistDashboardLayout(
+              canLayoutChange,
+              enabledWidgets,
+              layouts
+            )
+          )
+            void changeDashboardLayout(layouts)
         }}
       >
         {[
@@ -89,10 +90,6 @@ function DashboardGrid({
             }}
           >
             {(() => {
-              if (!width || !height) {
-                return null
-              }
-
               if (loading) {
                 return (
                   <Card centered height="100%" width="100%">

@@ -84,4 +84,34 @@ describe('collectExistenceChecks', () => {
       collectExistenceChecks(z.object({ name: z.string() }), { name: 'a' })
     ).toEqual([])
   })
+
+  it('does not check the empty sentinel in an optional reference union', () => {
+    const schema = z.object({
+      category: z
+        .union([existsIn(z.string().uuid(), categories), z.literal('')])
+        .optional()
+    })
+
+    expect(collectExistenceChecks(schema, { category: '' })).toEqual([])
+    expect(collectExistenceChecks(schema, {})).toEqual([])
+    expect(
+      collectExistenceChecks(schema, {
+        category: '00000000-0000-4000-8000-000000000001'
+      })
+    ).toHaveLength(1)
+  })
+
+  it('checks references only in the selected discriminated branch', () => {
+    const schema = z.discriminatedUnion('type', [
+      z.object({ type: z.literal('user'), id: existsIn(z.string(), users) }),
+      z.object({
+        type: z.literal('category'),
+        id: existsIn(z.string(), categories)
+      })
+    ])
+
+    expect(collectExistenceChecks(schema, { type: 'user', id: 'a' })).toEqual([
+      { path: 'id', table: users, column: undefined, values: ['a'] }
+    ])
+  })
 })

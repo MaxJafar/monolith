@@ -1,4 +1,4 @@
-import { notInArray } from 'drizzle-orm'
+import { and, eq, notInArray } from 'drizzle-orm'
 
 import { db } from '../core/drizzle'
 import { authRefreshTokens } from '../lib/auth/schema.drizzle'
@@ -10,6 +10,7 @@ let cachedUsername = ''
 let cachedName = ''
 let initialized = false
 let snapshotIds: string[] = []
+let testedUserId = ''
 
 async function connectToServer(): Promise<boolean> {
   try {
@@ -50,10 +51,6 @@ export async function initAuthTests(): Promise<{
     throw new Error('TEST_USER_PASSWORD must be set in env/.env.local.')
   }
 
-  const existingTokens = await db.query.authRefreshTokens.findMany()
-
-  snapshotIds = existingTokens.map(r => r.id)
-
   const allUsers = await db.query.users.findMany()
 
   const firstUser = allUsers[0]
@@ -61,6 +58,12 @@ export async function initAuthTests(): Promise<{
   if (!firstUser) {
     throw new Error('No users found in database. Create a user first.')
   }
+  testedUserId = firstUser.id
+  const existingTokens = await db
+    .select()
+    .from(authRefreshTokens)
+    .where(eq(authRefreshTokens.userId, testedUserId))
+  snapshotIds = existingTokens.map(r => r.id)
 
   cachedEmail = firstUser.email
   cachedUsername = firstUser.username
@@ -95,11 +98,20 @@ export async function initAuthTests(): Promise<{
 }
 
 export async function cleanupTestTokens(): Promise<void> {
+  // A rejected/missing test configuration must never clear application sessions.
+  if (!initialized || !testedUserId) return
   if (snapshotIds.length > 0) {
     await db
       .delete(authRefreshTokens)
-      .where(notInArray(authRefreshTokens.id, snapshotIds))
+      .where(
+        and(
+          eq(authRefreshTokens.userId, testedUserId),
+          notInArray(authRefreshTokens.id, snapshotIds)
+        )
+      )
   } else {
-    await db.delete(authRefreshTokens)
+    await db
+      .delete(authRefreshTokens)
+      .where(eq(authRefreshTokens.userId, testedUserId))
   }
 }

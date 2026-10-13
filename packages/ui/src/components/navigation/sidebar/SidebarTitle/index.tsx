@@ -50,10 +50,9 @@ export function SidebarTitle({
         <Text
           as="h3"
           className={className}
-          color={{ base: 'bg-400', dark: 'bg-600' }}
-          size="sm"
-          tracking="widest"
-          transform="uppercase"
+          color="muted"
+          size="base"
+          tracking="normal"
           weight="semibold"
           whiteSpace="nowrap"
         >

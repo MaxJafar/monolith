@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Socket, io } from 'socket.io-client'
 
-import { setAccessToken, useAuth } from '@lifeforge/api'
+import { resolveSocketUrl, setAccessToken, useAuth } from '@lifeforge/api'
 import { toast } from '@lifeforge/ui'
 
 import forgeAPI from '@/core/utils/forgeAPI'
@@ -99,9 +99,12 @@ export default function useQRLoginSession({
       }
 
       const apiHost = import.meta.env.VITE_API_HOST || window.location.origin
-      const socket = io(`${apiHost}/qr-login`, {
-        transports: ['websocket', 'polling']
-      })
+      const socket = io(
+        resolveSocketUrl(apiHost, window.location.origin, '/qr-login'),
+        {
+          transports: ['websocket', 'polling']
+        }
+      )
 
       socketRef.current = socket
 

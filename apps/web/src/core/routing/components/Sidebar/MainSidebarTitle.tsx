@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 
 import { useFederation } from '@lifeforge/federation'
-import { SidebarTitle, usePersonalization } from '@lifeforge/ui'
+import { Text, usePersonalization } from '@lifeforge/ui'
 
 function MainSidebarTitle({ title }: { title: string }) {
   const { categoryTranslations } = useFederation()
@@ -17,9 +17,21 @@ function MainSidebarTitle({ title }: { title: string }) {
     }
 
     return title
-  }, [categoryTranslations, language])
+  }, [title, categoryTranslations, language])
 
-  return <SidebarTitle label={translatedTitle} namespace={false} />
+  return (
+    <Text
+      as="h3"
+      color="muted"
+      pb="xs"
+      pt="md"
+      px="lg"
+      size="sm"
+      weight="medium"
+    >
+      {translatedTitle}
+    </Text>
+  )
 }
 
 export default MainSidebarTitle

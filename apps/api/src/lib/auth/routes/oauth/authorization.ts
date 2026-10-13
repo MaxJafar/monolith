@@ -181,12 +181,18 @@ export const verify = forge
       const family = generateFamily()
 
       await storeRefreshToken({
+        userId: user.id,
         token: refreshToken,
         family,
         ip
       })
 
       res.cookie('refresh_token', refreshToken, getCookieOptions(req))
+      res.cookie('access_token', jwtToken, {
+        ...getCookieOptions(req),
+        path: '/',
+        maxAge: 15 * 60 * 1000
+      })
 
       return response.ok({ accessToken: jwtToken })
     }

@@ -4,17 +4,13 @@ import type { RouteObject } from 'react-router'
 
 import type { ModuleConfig, ModuleGroup } from '@lifeforge/configs'
 import type { FederatedModule } from '@lifeforge/federation'
-import {
-  ErrorScreen,
-  LoadingScreen,
-  ModalManager,
-  ModuleWrapper,
-  NotFoundScreen
-} from '@lifeforge/ui'
+import { Box, ErrorScreen, ModuleWrapper, NotFoundScreen } from '@lifeforge/ui'
 
 import APIKeyStatusProvider from '@/core/providers/features/APIKeyStatusProvider'
 
 import LazyRouteLoader from '../components/LazyRouteLoader'
+import RouteLoadingScreen from '../components/RouteLoadingScreen'
+import { modulePath } from './navigation'
 
 export interface RouteBuilderOptions {
   routes: ModuleConfig['routes']
@@ -24,6 +20,7 @@ export interface RouteBuilderOptions {
     name: string
     title: string
     icon: string
+    translationNamespace?: string
     clearQueryOnUnmount: boolean
   }
 }
@@ -44,7 +41,7 @@ export function buildChildRoutes({
         <APIKeyStatusProvider APIKeyAccess={APIKeyAccess}>
           <Suspense
             key={`route-${path.startsWith('/') ? path.slice(1) : path}`}
-            fallback={<LoadingScreen message={loadingMessage} />}
+            fallback={<RouteLoadingScreen message={loadingMessage} />}
           >
             <ErrorBoundary
               fallbackRender={({ error }) => (
@@ -60,8 +57,9 @@ export function buildChildRoutes({
               resetKeys={[path]}
             >
               <ModuleWrapper config={config}>
-                <Component />
-                <ModalManager />
+                <Box className="zillion-route-enter" display="contents">
+                  <Component />
+                </Box>
               </ModuleWrapper>
             </ErrorBoundary>
           </Suspense>
@@ -92,27 +90,21 @@ export function createModuleRoute(
       config: {
         name: item.name || '',
         title: item.name,
+        translationNamespace: `common.${item.name}`,
         icon: item.icon,
         clearQueryOnUnmount: item.clearQueryOnUnmount ?? true
       },
       loadingMessage
     }
 
-    const strippedName = item.name.replace(/^@[^/]+\//, '')
-
     return {
-      path: `/${strippedName.startsWith('lifeforge--') ? strippedName.split('--')[1] : strippedName}`,
+      path: modulePath(item.name),
       children: buildChildRoutes(routeConfig)
     }
   }
 
-  const strippedName = item.name.replace(/^@[^/]+\//, '')
-  const baseRoute = strippedName.startsWith('lifeforge--')
-    ? strippedName.split('--')[1]
-    : strippedName
-
   return {
-    path: `/${baseRoute}/*`,
+    path: `${modulePath(item.name)}/*`,
     element: <LazyRouteLoader item={item} loadingMessage={loadingMessage} />
   }
 }

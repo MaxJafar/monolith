@@ -1,33 +1,17 @@
 import { useEffect } from 'react'
-import tinycolor from 'tinycolor2'
 
-function useMetaEffect(themeColor: string) {
+/** Keep the product mark stable; preserve touch icons and other install assets. */
+export default function useMetaEffect() {
   useEffect(() => {
-    const hexColor = tinycolor(themeColor).toHexString()
-    const favIcon = document.querySelector(
-      "meta[name='ori-icon']"
-    ) as HTMLMetaElement | null
-
-    let targetSVGString = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="none" stroke="${hexColor}" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m11.414 10l-7.383 7.418a2.09 2.09 0 0 0 0 2.967a2.11 2.11 0 0 0 2.976 0L14.414 13m3.707 2.293l2.586-2.586a1 1 0 0 0 0-1.414l-7.586-7.586a1 1 0 0 0-1.414 0L9.121 6.293a1 1 0 0 0 0 1.414l7.586 7.586a1 1 0 0 0 1.414 0"/></svg>`
-
-    if (favIcon) {
-      targetSVGString = atob(favIcon.content.split(',')[1] || '').replace(
-        'currentColor',
-        hexColor
-      )
+    let icon = document.querySelector<HTMLLinkElement>(
+      'link[rel="icon"][type="image/svg+xml"]'
+    )
+    if (!icon) {
+      icon = document.createElement('link')
+      icon.rel = 'icon'
+      icon.type = 'image/svg+xml'
+      document.head.appendChild(icon)
     }
-
-    const existingFavicons = document.querySelectorAll("link[rel*='icon']")
-
-    existingFavicons.forEach(icon => icon.remove())
-
-    const newFavIcon = document.createElement('link')
-
-    newFavIcon.rel = 'icon'
-    newFavIcon.type = 'image/svg+xml'
-    newFavIcon.href = `data:image/svg+xml;base64,${btoa(targetSVGString)}`
-    document.head.appendChild(newFavIcon)
-  }, [themeColor])
+    icon.href = '/icon.svg'
+  }, [])
 }
-
-export default useMetaEffect

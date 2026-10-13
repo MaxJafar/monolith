@@ -10,18 +10,25 @@ import { ModuleRegistry } from '@lifeforge/module-runtime/registry'
 import * as apiKeysSchema from '../lib/apiKeys/schema.drizzle'
 import * as authSchema from '../lib/auth/schema.drizzle'
 import * as fontsSchema from '../lib/fonts/schema.drizzle'
+import * as searchSchema from '../lib/search/schema.drizzle'
 import * as userSchema from '../lib/user/schema.drizzle'
 
 const connectionString = process.env.DATABASE_URL!
 
-const client = postgres(connectionString, { max: 10, prepare: false })
+// Timestamp-without-time-zone columns are stored and decoded as UTC.
+const client = postgres(connectionString, {
+  max: 10,
+  prepare: false,
+  connection: { TimeZone: 'UTC' }
+})
 
 const coreTables = {
   ...userSchema.tables,
   ...authSchema.tables,
   ...apiKeysSchema.tables,
   ...fontsSchema.tables,
-  ...filesSchema.tables
+  ...filesSchema.tables,
+  ...searchSchema.tables
 }
 
 const coreDefinition = defineModuleSchema(coreTables, r =>
@@ -31,7 +38,8 @@ const coreDefinition = defineModuleSchema(coreTables, r =>
     authSchema.relations(r),
     apiKeysSchema.relations(r),
     fontsSchema.relations(r),
-    filesSchema.relations(r)
+    filesSchema.relations(r),
+    searchSchema.relations(r)
   )
 )
 
@@ -56,4 +64,15 @@ export function initDrizzle(): void {
     client,
     relations: composeRelations(ModuleRegistry.schemaParts)
   }) as unknown as PostgresJsDatabase<CoreRelations>
+}
+
+export async function verifyDatabaseIsolation(): Promise<void> {
+  const [role] =
+    await client`select rolsuper, rolbypassrls from pg_roles where rolname = current_user`
+
+  if (!role || role.rolsuper || role.rolbypassrls) {
+    throw new Error(
+      'DATABASE_URL must use a non-superuser role without BYPASSRLS. Use DATABASE_ADMIN_URL only for migrations.'
+    )
+  }
 }

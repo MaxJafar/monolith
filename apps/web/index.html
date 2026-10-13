@@ -2,20 +2,32 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <title>monolith</title>
+    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
     <link rel="manifest" href="/manifest.json" />
-    <meta name="theme-color" content="#09090b" />
+    <meta name="theme-color" content="#ffffff" />
     <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"
+      name="description"
+      content="Monolith brings your projects, documents, and knowledge together in one focused workspace."
     />
-    <meta name="title" content="LifeForge." />
+    <link rel="apple-touch-icon" href="/brand/monolith-180.png" />
+    <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script>
+      try {
+        const theme = localStorage.getItem('monolith.theme')
+        if (
+          theme === 'dark' ||
+          (theme === 'system' &&
+            matchMedia('(prefers-color-scheme: dark)').matches)
+        )
+          document.documentElement.classList.add('dark')
+      } catch {}
+    </script>
+    <meta name="title" content="monolith" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <link
-      rel="apple-touch-startup-image"
-      href="/assets/icons/icon-512x512.png"
-      sizes="512x512"
-    />
+    <link rel="apple-touch-startup-image" href="/icon.svg" sizes="512x512" />
     <style>
       body {
         margin: 0;
@@ -31,15 +43,16 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        background-color: black;
+        background-color: #ffffff;
         font-family: 'Inter', sans-serif;
         z-index: 9999;
       }
 
       .loader {
-        width: 36px;
-        height: 36px;
-        border: 4px solid white;
+        width: 18px;
+        height: 18px;
+        margin-top: 24px;
+        border: 3px solid #252525;
         border-bottom-color: transparent;
         border-radius: 50%;
         display: inline-block;
@@ -59,15 +72,27 @@
       .forging-text {
         font-size: 1.125rem;
         font-weight: 500;
-        color: white;
+        color: #18181b;
       }
 
       .dark .preloader {
-        background-color: var(--color-bg-950);
+        background-color: #191919;
+      }
+      .dark .forging-text {
+        color: #eeeeec;
+      }
+      .dark .loader {
+        border-color: #eeeeec;
+        border-bottom-color: transparent;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .loader {
+          animation: none;
+        }
       }
 
       #root {
-        background-color: white;
+        background-color: #ffffff;
         color: black;
       }
 
@@ -80,8 +105,9 @@
 
   <body>
     <div class="preloader">
-      <span class="loader"></span>
-      <p class="forging-text">Forging things together...</p>
+      <img src="/icon.svg" alt="monolith" width="48" height="48" />
+      <span class="loader" aria-hidden="true"></span>
+      <p class="forging-text">Opening your workspace…</p>
     </div>
     <div id="root"></div>
     <script type="module" src="/src/index.tsx"></script>

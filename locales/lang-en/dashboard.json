@@ -1,6 +1,6 @@
 {
-  "title": "Dashboard",
-  "description": "Your mission control center, making everything more exciting.",
+  "title": "Your workspace",
+  "description": "Projects, knowledge and connected databases, together.",
   "widgets": {},
   "modals": {
     "manageWidgets": "Manage Widgets"
@@ -17,7 +17,7 @@
   },
   "empty": {
     "welcome": {
-      "title": "Welcome to LifeForge!",
+      "title": "Welcome to monolith!",
       "description": "Get started by installing some modules from Forgistry."
     },
     "notFound": {
@@ -26,5 +26,20 @@
     }
   },
   "loading": "Loading dashboard...",
-  "test": ""
+  "test": "",
+  "overview": {
+    "heading": "Your work, in focus.",
+    "description": "Plan projects, organize knowledge and connect your work in one place.",
+    "databases": "Open databases",
+    "tools": "Your tools",
+    "greeting": "Ready to begin, {{name}}?",
+    "documents": "Documents",
+    "knowledge": "Knowledge map",
+    "agents": "Agents",
+    "quickAccess": "Quick access",
+    "documentsDescription": "Write and connect your workspace documents.",
+    "knowledgeDescription": "Explore relationships across your knowledge.",
+    "agentsDescription": "Coordinate agents and review their work.",
+    "toolsDescription": "Open the tools that support your daily work."
+  }
 }

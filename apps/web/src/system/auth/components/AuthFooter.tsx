@@ -1,6 +1,10 @@
+import { Trans, useTranslation } from 'react-i18next'
+
 import { Flex, Icon, Stack, Text } from '@lifeforge/ui'
 
 function AuthFooter() {
+  const { t } = useTranslation('common.auth')
+
   return (
     <Stack centered as="footer" mt="xl">
       <Flex centered gap="sm">
@@ -14,33 +18,39 @@ function AuthFooter() {
         ))}
       </Flex>
       <Text align="center" color="muted" size="sm">
-        A project by{' '}
-        <Text
-          as="a"
-          color="primary"
-          href="https://melvinchia.dev"
-          rel="noreferrer"
-          style={{
-            textDecoration: 'underline'
+        {t('forkAttribution')}
+      </Text>
+      <Text align="center" color="muted" size="sm">
+        <Trans
+          components={{
+            author: (
+              <Text
+                as="a"
+                color="primary"
+                href="https://melvinchia.dev"
+                rel="noreferrer"
+                style={{
+                  textDecoration: 'underline'
+                }}
+                target="_blank"
+              />
+            ),
+            license: (
+              <Text
+                as="a"
+                color="primary"
+                href="https://creativecommons.org/licenses/by-nc-sa/4.0/"
+                rel="noreferrer"
+                style={{
+                  textDecoration: 'underline'
+                }}
+                target="_blank"
+              />
+            )
           }}
-          target="_blank"
-        >
-          Melvin Chia
-        </Text>{' '}
-        licensed under{' '}
-        <Text
-          as="a"
-          color="primary"
-          href="https://creativecommons.org/licenses/by-nc-sa/4.0/"
-          rel="noreferrer"
-          style={{
-            textDecoration: 'underline'
-          }}
-          target="_blank"
-        >
-          CC BY-NC-SA 4.0
-        </Text>
-        .
+          i18nKey="licenseAttribution"
+          ns="common.auth"
+        />
       </Text>
     </Stack>
   )

@@ -17,6 +17,9 @@ export const logout = forge
   .callback(async ({ req, res, response }) => {
     const refreshToken = req.cookies?.refresh_token as string | undefined
 
+    res.cookie('access_token', '', { ...getClearCookieOptions(req), path: '/' })
+    res.cookie('refresh_token', '', getClearCookieOptions(req))
+
     if (!refreshToken) {
       return response.unauthorized()
     }
@@ -24,14 +27,10 @@ export const logout = forge
     const record = await findToken(refreshToken)
 
     if (!record) {
-      res.cookie('refresh_token', '', getClearCookieOptions(req))
-
       return response.unauthorized()
     }
 
     await revokeFamily(record.family)
-
-    res.cookie('refresh_token', '', getClearCookieOptions(req))
 
     return response.ok(true)
   })

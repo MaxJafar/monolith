@@ -43,6 +43,13 @@ function useFontFamily(
     const currentController = abortControllerRef.current
 
     async function updateFontFamily() {
+      if (fontFamily === 'Inter') {
+        styleTag!.textContent = ''
+        document.body.style.fontFamily = 'Inter, sans-serif'
+
+        return
+      }
+
       try {
         // Check if this is a custom font (identified by 'custom:' prefix)
         if (fontFamily.startsWith('custom:')) {
@@ -69,7 +76,7 @@ function useFontFamily(
           }
 
           if (!fontData.file) {
-            document.body.style.fontFamily = 'Onest, sans-serif'
+            document.body.style.fontFamily = 'Inter, sans-serif'
 
             return
           }
@@ -89,7 +96,7 @@ function useFontFamily(
             await probe.load()
           } catch {
             styleTag!.textContent = ''
-            document.body.style.fontFamily = 'Onest, sans-serif'
+            document.body.style.fontFamily = 'Inter, sans-serif'
 
             return
           }
@@ -121,7 +128,7 @@ function useFontFamily(
         }
 
         if (!data.enabled) {
-          document.body.style.fontFamily = 'Onest, sans-serif'
+          document.body.style.fontFamily = 'Inter, sans-serif'
 
           return
         }
@@ -153,7 +160,7 @@ function useFontFamily(
       } catch (error) {
         // Only log error and apply fallback if not aborted
         if (!currentController.signal.aborted) {
-          document.body.style.fontFamily = 'Onest, sans-serif'
+          document.body.style.fontFamily = 'Inter, sans-serif'
           console.warn(
             'Failed to update font family, applying fallback',
             (error as Error).message

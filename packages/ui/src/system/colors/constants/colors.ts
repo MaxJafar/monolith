@@ -32,9 +32,17 @@ const BASE_COLORS = {
   'custom-700': 'var(--color-custom-700)',
   'custom-800': 'var(--color-custom-800)',
   'custom-900': 'var(--color-custom-900)',
-  dangerous: TAILWIND_PALETTE.red[500],
-  muted: 'var(--color-bg-500)',
-  primary: 'var(--color-custom-500)',
+  canvas: 'var(--bg-primary)',
+  surface: 'var(--bg-surface)',
+  lifted: 'var(--bg-lifted)',
+  'surface-container': 'var(--md-sys-color-surface-container)',
+  'surface-container-high': 'var(--md-sys-color-surface-container-high)',
+  'primary-container': 'var(--md-sys-color-primary-container)',
+  'on-primary-container': 'var(--md-sys-color-on-primary-container)',
+  'text-primary': 'var(--text-primary)',
+  dangerous: 'var(--accent-red)',
+  muted: 'var(--md-sys-color-on-surface-variant)',
+  primary: 'var(--accent-teal)',
   inherit: 'inherit'
 } as const
 
@@ -47,7 +55,7 @@ function buildPaletteColors(): Record<TailwindPaletteToken, string> {
     }
   }
 
-  return result as Record<TailwindPaletteToken, string>
+  return result
 }
 
 export const COLORS = {

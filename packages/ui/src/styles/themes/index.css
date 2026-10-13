@@ -43,15 +43,13 @@
 
   --spacing: calc(0.25rem * var(--custom-font-scale));
 
-  /* Border radius variables with multiplier.
-     Values are whole multiples of the spacing unit (0.25rem) so nested
-     radius token = outer radius token - padding token stays concentric. */
-  --radius-sm: calc(0.25rem * var(--custom-border-radius-multiplier));
-  --radius-md: calc(0.5rem * var(--custom-border-radius-multiplier));
-  --radius-lg: calc(0.75rem * var(--custom-border-radius-multiplier));
-  --radius-xl: calc(1rem * var(--custom-border-radius-multiplier));
-  --radius-2xl: calc(1.5rem * var(--custom-border-radius-multiplier));
-  --radius-3xl: calc(2rem * var(--custom-border-radius-multiplier));
+  /* Compact workspace corners retain the user-controlled radius multiplier. */
+  --radius-sm: calc(4px * var(--custom-border-radius-multiplier));
+  --radius-md: calc(8px * var(--custom-border-radius-multiplier));
+  --radius-lg: calc(12px * var(--custom-border-radius-multiplier));
+  --radius-xl: calc(16px * var(--custom-border-radius-multiplier));
+  --radius-2xl: calc(20px * var(--custom-border-radius-multiplier));
+  --radius-3xl: calc(24px * var(--custom-border-radius-multiplier));
 
   --text-xs--line-height: calc(1 / 0.75);
   --text-sm--line-height: calc(1.25 / 0.875);

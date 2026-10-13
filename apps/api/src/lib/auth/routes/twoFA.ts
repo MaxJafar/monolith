@@ -29,8 +29,10 @@ export const generate = forge
       })
     }
   })
-  .callback(async ({ db, response }) => {
-    const user = await db.query.users.findFirst()
+  .callback(async ({ res, db, response }) => {
+    const user = await db.query.users.findFirst({
+      where: { id: res.locals.userId as string }
+    })
 
     if (!user) {
       return response.unauthorized()
@@ -39,14 +41,14 @@ export const generate = forge
     const secret = speakeasy.generateSecret({
       name: user.email,
       length: 32,
-      issuer: 'LifeForge.'
+      issuer: 'ZillionOS'
     }).base32
 
     const tid = v4()
 
-    pendingTOTPSetups.set(tid, { secret })
+    pendingTOTPSetups.set(tid, { secret, userId: user.id })
 
-    const otpauthUrl = `otpauth://totp/${encodeURIComponent(user.email)}?secret=${secret}&issuer=LifeForge.`
+    const otpauthUrl = `otpauth://totp/${encodeURIComponent(user.email)}?secret=${secret}&issuer=ZillionOS`
 
     return response.ok({
       tid,
@@ -68,10 +70,10 @@ export const enable = forge
       NO_CONTENT: true
     }
   })
-  .callback(async ({ db, body: { otp, tid }, response }) => {
+  .callback(async ({ res, db, body: { otp, tid }, response }) => {
     const pending = pendingTOTPSetups.get(tid)
 
-    if (!pending) {
+    if (!pending || pending.userId !== res.locals.userId) {
       return response.unauthorized()
     }
 
@@ -90,7 +92,9 @@ export const enable = forge
     // late code can be retried within the TTL.
     pendingTOTPSetups.del(tid)
 
-    const user = await db.query.users.findFirst()
+    const user = await db.query.users.findFirst({
+      where: { id: res.locals.userId as string }
+    })
 
     if (!user) {
       return response.unauthorized()
@@ -118,8 +122,10 @@ export const disable = forge
       NO_CONTENT: true
     }
   })
-  .callback(async ({ db, response }) => {
-    const user = await db.query.users.findFirst()
+  .callback(async ({ res, db, response }) => {
+    const user = await db.query.users.findFirst({
+      where: { id: res.locals.userId as string }
+    })
 
     if (!user) {
       return response.unauthorized()
@@ -195,12 +201,18 @@ export const verify = forge
     const family = generateFamily()
 
     await storeRefreshToken({
+      userId,
       token: refreshToken,
       family,
       ip
     })
 
     res.cookie('refresh_token', refreshToken, getCookieOptions(req))
+    res.cookie('access_token', accessToken, {
+      ...getCookieOptions(req),
+      path: '/',
+      maxAge: 15 * 60 * 1000
+    })
 
     return response.ok({ accessToken })
   })

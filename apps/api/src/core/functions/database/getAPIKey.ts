@@ -4,11 +4,9 @@ import chalk from 'chalk'
 
 import { ModuleRegistry } from '@lifeforge/module-runtime/registry'
 
-import { db } from '../../drizzle'
+import type { db } from '../../drizzle'
 
 const logger = createServiceLogger('API Key Vault')
-
-const apiKeyCache = new Map<string, { key: string; exposable: boolean }>()
 
 export async function validateCallerAccess(
   callerModule: { source: 'app' | 'core'; id: string },
@@ -36,6 +34,7 @@ export async function validateCallerAccess(
 }
 
 async function getAPIKey(
+  database: typeof db,
   id: string,
   callerModule?: { source: 'app' | 'core'; id: string }
 ): Promise<string> {
@@ -46,17 +45,7 @@ async function getAPIKey(
       )
     }
 
-    const cached = apiKeyCache.get(id)
-
-    if (cached !== undefined) {
-      if (!cached.exposable) {
-        await validateCallerAccess(callerModule, id)
-      }
-
-      return cached.key
-    }
-
-    const record = await db.query.apiKeysEntries.findFirst({
+    const record = await database.query.apiKeysEntries.findFirst({
       where: { keyId: id }
     })
 
@@ -73,25 +62,21 @@ async function getAPIKey(
         `API key for ${chalk.blue(id)} retrieved by ${chalk.blue(callerModule.source)}:${chalk.blue(callerModule.id)}`
       )
 
-      const decrypted = decrypt2(record.key, process.env.MASTER_KEY!)
-      apiKeyCache.set(id, {
-        key: decrypted,
-        exposable: record.exposable
-      })
-
-      return decrypted
+      return decrypt2(record.key, process.env.MASTER_KEY!)
     } catch {
       throw new Error(`Failed to decrypt API key for ${id}.`)
     }
   } catch (err) {
     throw new Error(
-      `Failed to retrieve API key for ${id}: ${err instanceof Error ? err.message : String(err)}`
+      `Failed to retrieve API key for ${id}: ${err instanceof Error ? err.message : String(err)}`,
+      { cause: err }
     )
   }
 }
 
 export default function getAPIKeyFactory(
+  database: typeof db,
   callerModule?: { source: 'app' | 'core'; id: string }
 ): (id: string) => Promise<string> {
-  return (id: string) => getAPIKey(id, callerModule)
+  return (id: string) => getAPIKey(database, id, callerModule)
 }

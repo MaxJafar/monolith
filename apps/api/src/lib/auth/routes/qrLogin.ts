@@ -61,7 +61,7 @@ export const approve = forge
       })
     }
   })
-  .callback(async ({ db, body: { sessionId }, req, response }) => {
+  .callback(async ({ res, db, body: { sessionId }, req, response }) => {
     const session = sessions.get(sessionId)
 
     if (!session) {
@@ -72,27 +72,27 @@ export const approve = forge
       return response.badRequest('Session already approved')
     }
 
-    const user = await db.query.users.findFirst()
+    const user = await db.query.users.findFirst({
+      where: { id: res.locals.userId as string }
+    })
 
     if (!user) {
       return response.unauthorized()
     }
 
+    // The user lookup yields; another device may approve or consume this QR
+    // session before it returns. Recheck and choose the account synchronously.
+    const current = sessions.get(sessionId)
+
+    if (!current || current !== session) return response.notFound()
+    if (current.status !== 'pending')
+      return response.badRequest('Session already approved')
+
     const accessToken = signAccessToken(user.id)
-    const refreshToken = generateRefreshToken()
-    const family = generateFamily()
-    const ip = req.ip || req.socket.remoteAddress || '127.0.0.1'
 
-    await storeRefreshToken({
-      token: refreshToken,
-      family,
-      ip
-    })
-
-    session.status = 'approved'
-    session.userId = user.id
-    session.accessToken = accessToken
-    session.refreshToken = refreshToken
+    current.status = 'approved'
+    current.userId = user.id
+    current.accessToken = accessToken
 
     const io = req.io
 
@@ -146,8 +146,6 @@ export const status = forge
     if (session.status === 'approved') {
       const { accessToken } = session
 
-      sessions.del(sessionId)
-
       return response.ok({
         status: 'approved' as const,
         accessToken
@@ -156,7 +154,9 @@ export const status = forge
 
     return response.ok({
       status: 'pending' as const,
-      expiresAt: new Date(sessions.expiryTime(sessionId)!).toISOString()
+      expiresAt: new Date(
+        sessions.expiryTime(sessionId) ?? Date.now()
+      ).toISOString()
     })
   })
 
@@ -179,15 +179,30 @@ export const claim = forge
   .callback(async ({ body: { sessionId }, req, res, response }) => {
     const session = sessions.get(sessionId)
 
-    if (!session || session.status !== 'approved') {
+    if (!session || session.status !== 'approved' || !session.userId) {
       return response.notFound()
     }
 
-    res.cookie('refresh_token', session.refreshToken, getCookieOptions(req))
-
-    const { accessToken } = session
-
+    // Consume before awaiting persistence so simultaneous claims cannot each
+    // create a session. Refresh credentials bind to the receiving browser.
     sessions.del(sessionId)
+    const accessToken = signAccessToken(session.userId)
+    const refreshToken = generateRefreshToken()
+    const ip = req.ip || req.socket.remoteAddress || '127.0.0.1'
+
+    await storeRefreshToken({
+      userId: session.userId,
+      token: refreshToken,
+      family: generateFamily(),
+      ip
+    })
+
+    res.cookie('refresh_token', refreshToken, getCookieOptions(req))
+    res.cookie('access_token', accessToken, {
+      ...getCookieOptions(req),
+      path: '/',
+      maxAge: 15 * 60 * 1000
+    })
 
     return response.ok({ accessToken })
   })

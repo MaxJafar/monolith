@@ -1,6 +1,8 @@
 import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router'
 
+import { useModuleTranslation } from '@lifeforge/localization'
+
 import { SidebarItemContent } from '../SidebarItem/components/SidebarItemContent'
 import { SidebarItemIcon } from '../SidebarItem/components/SidebarItemIcon'
 import { SidebarItemSubsection } from '../SidebarItem/components/SidebarItemSubsection'
@@ -46,11 +48,11 @@ export function MainSidebarItem({
   link,
   subsection,
   sidebarExpanded,
-  toggleSidebar,
   active = false
 }: MainSidebarItemProps) {
   const navigate = useNavigate()
-  const [subsectionExpanded, setSubsectionExpanded] = useState(false)
+  const { t } = useModuleTranslation(['common.sidebar'])
+  const [subsectionExpanded, setSubsectionExpanded] = useState(active)
 
   const handleNavigation = useCallback(() => {
     setSubsectionExpanded(!subsectionExpanded)
@@ -61,10 +63,8 @@ export function MainSidebarItem({
 
     navigate(link)
 
-    if (window.innerWidth < 1024) {
-      toggleSidebar?.()
-    }
-  }, [subsectionExpanded, subsection, link, navigate, toggleSidebar])
+    // The host closes its mobile drawer only once guarded navigation commits.
+  }, [subsectionExpanded, subsection, link, navigate])
   const handleToggleSubsection = useCallback(() => {
     if (subsection !== undefined) {
       setSubsectionExpanded(!subsectionExpanded)
@@ -73,7 +73,16 @@ export function MainSidebarItem({
 
   return (
     <>
-      <SidebarItemWrapper active={active} onClick={handleNavigation}>
+      <SidebarItemWrapper
+        active={active}
+        ariaLabel={
+          typeof label === 'string'
+            ? t(`common.sidebar:apps.${label}.title`)
+            : undefined
+        }
+        expanded={subsection ? subsectionExpanded : undefined}
+        onClick={handleNavigation}
+      >
         <SidebarItemIcon active={active} icon={icon} />
         <SidebarItemContent
           active={active}

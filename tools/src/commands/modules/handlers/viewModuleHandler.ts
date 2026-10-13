@@ -27,7 +27,9 @@ export async function viewModuleHandler(moduleName: string): Promise<void> {
   startSpinner('Fetching package info...')
 
   try {
-    const content = run(`gh api repos/${entry.repo}/contents/package.json --jq .content`)
+    const content = run(
+      `gh api repos/${entry.repo}/contents/package.json --jq .content`
+    )
 
     pkg = JSON.parse(Buffer.from(content, 'base64').toString('utf-8'))
   } catch {

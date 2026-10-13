@@ -1,0 +1,48 @@
+{
+  "title": "闪卡",
+  "description": "创建学习卡组，通过间隔复习巩固记忆。",
+  "create": "创建",
+  "edit": "编辑",
+  "save": "保存",
+  "cancel": "取消",
+  "delete": "删除",
+  "confirmDelete": "删除此记录及其关联项目？",
+  "empty": "暂无记录，创建第一条记录。",
+  "noResults": "没有匹配的记录。",
+  "loading": "加载中…",
+  "retry": "重试",
+  "none": "无",
+  "yes": "是",
+  "no": "否",
+  "saveFailed": "无法保存记录。",
+  "study": "学习",
+  "reveal": "显示答案",
+  "again": "再来一次",
+  "good": "记住了",
+  "finished": "所有卡片已复习。",
+  "search": "搜索",
+  "board": "看板",
+  "manage": "管理",
+  "entities": {
+    "tags": "标签",
+    "decks": "卡组",
+    "cards": "卡片"
+  },
+  "inputs": {
+    "search": "搜索",
+    "name": "名称",
+    "color": "颜色",
+    "description": "描述",
+    "tag_id": "标签",
+    "question": "问题",
+    "answer": "答案",
+    "deck_id": "卡组"
+  },
+  "options": {
+    "private": "私密",
+    "public": "公开",
+    "unlisted": "不公开列出",
+    "note": "笔记",
+    "folder": "文件夹"
+  }
+}

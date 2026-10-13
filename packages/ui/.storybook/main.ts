@@ -12,6 +12,7 @@ const federationStubPlugin = {
     if (id === 'virtual:__federation__') {
       return '\0virtual:__federation__'
     }
+
     return null
   },
   load(id: string) {
@@ -22,6 +23,7 @@ const federationStubPlugin = {
         export const __federation_method_unwrapDefault = (m) => m?.default ?? m
       `
     }
+
     return null
   }
 }
@@ -56,6 +58,7 @@ const config: StorybookConfig = {
         if (p && typeof p === 'object' && 'name' in p) {
           return p.name !== 'vite:dts'
         }
+
         return true
       }),
       federationStubPlugin,
@@ -64,6 +67,7 @@ const config: StorybookConfig = {
     config.build = {
       ...config.build
     }
+
     return {
       ...config
     }

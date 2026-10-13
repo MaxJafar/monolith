@@ -18,7 +18,7 @@ function findEnvFile(startDir: string): string | null {
 const envPath = findEnvFile(__dirname || process.cwd())
 
 if (envPath) {
-  dotenv.config({ path: envPath })
+  dotenv.config({ path: envPath, quiet: true })
 }
 
 export default defineConfig({

@@ -1,0 +1,84 @@
+.monolith-page-bar {
+  min-height: 48px;
+  padding: 4px 20px;
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.monolith-page-bar a {
+  text-decoration: none;
+}
+.monolith-module-content {
+  padding: 24px clamp(20px, 4vw, 64px) 48px !important;
+  max-width: 1600px;
+  margin-inline: auto;
+}
+.zillion-main-sidebar {
+  background: var(--bg-sidebar) !important;
+  border-right: 1px solid var(--border-subtle);
+  width: 250px !important;
+  transition:
+    width var(--motion-expressive) var(--motion-ease),
+    opacity var(--motion-standard) var(--motion-ease),
+    transform var(--motion-expressive) var(--motion-ease),
+    visibility var(--motion-expressive);
+}
+.zillion-main-sidebar > * {
+  min-width: 249px;
+}
+.zillion-main-sidebar[data-expanded='false'] {
+  width: 0 !important;
+  opacity: 0;
+  visibility: hidden;
+  border-right-width: 0;
+  pointer-events: none;
+}
+.monolith-sidebar-backdrop {
+  display: none;
+}
+.zillion-main-sidebar .sidebar-item > [role='button'] {
+  border-radius: 8px;
+  min-height: 36px;
+  font-size: 14px;
+}
+.zillion-main-sidebar .sidebar-item {
+  padding-inline: 12px;
+}
+@media (max-width: 1000px) {
+  .monolith-sidebar-backdrop {
+    display: block;
+    position: absolute;
+    inset: 0;
+    background: #0005;
+    border: 0;
+    z-index: 98;
+    padding: 0;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      opacity var(--motion-standard) var(--motion-ease),
+      visibility var(--motion-standard);
+  }
+  .monolith-sidebar-backdrop[data-expanded='true'] {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+  .zillion-main-sidebar {
+    position: absolute !important;
+    box-shadow: var(--floating-shadow);
+    max-width: calc(100vw - 40px);
+  }
+  .zillion-main-sidebar[data-expanded='false'] {
+    width: 250px !important;
+    transform: translateX(-100%);
+  }
+}
+@media (max-width: 700px) {
+  .monolith-page-bar {
+    padding-inline: 12px;
+  }
+  .zillion-main-sidebar .sidebar-item > [role='button'] {
+    min-height: 44px;
+  }
+}

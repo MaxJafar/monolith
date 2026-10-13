@@ -8,6 +8,41 @@ import { AIProvider } from './index'
 
 const logger = createServiceLogger('AI')
 
+/** Translate the shared Chat message contract to the Responses input contract. */
+export function toResponsesInput(
+  messages: OpenAI.ChatCompletionMessageParam[]
+): OpenAI.Responses.ResponseInput {
+  return messages.map(message => {
+    if (
+      message.role === 'tool' ||
+      message.role === 'function' ||
+      (message.role === 'assistant' &&
+        (message.tool_calls?.length || message.function_call))
+    ) {
+      throw new Error(
+        'Tool messages are not supported by this text/image provider'
+      )
+    }
+
+    const content =
+      typeof message.content === 'string'
+        ? message.content
+        : (message.content ?? []).map(part => {
+            if (part.type === 'text')
+              return { type: 'input_text' as const, text: part.text }
+            if (part.type === 'image_url')
+              return {
+                type: 'input_image' as const,
+                image_url: part.image_url.url,
+                detail: part.image_url.detail ?? ('auto' as const)
+              }
+            throw new Error(`Unsupported message content: ${part.type}`)
+          })
+
+    return { role: message.role, content }
+  })
+}
+
 async function fetchOpenAI<
   T extends z.ZodTypeAny | undefined = undefined
 >(params: {
@@ -27,7 +62,7 @@ async function fetchOpenAI<
   if (structure) {
     const completion = await client.responses.parse({
       model,
-      input: messages as never,
+      input: toResponsesInput(messages),
       text: {
         format: zodTextFormat(structure, 'response')
       }
@@ -49,7 +84,7 @@ async function fetchOpenAI<
   }
 
   const response = await client.responses.create({
-    input: messages as never,
+    input: toResponsesInput(messages),
     model
   })
 

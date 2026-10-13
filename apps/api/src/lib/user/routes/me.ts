@@ -23,7 +23,8 @@ export const me = forge
             avatar: true,
             bgImage: true,
             created: true,
-            updated: true
+            updated: true,
+            workspacePages: true
           })
           .extend({
             avatar: fileReferenceSchema.nullable(),
@@ -34,8 +35,10 @@ export const me = forge
       })
     }
   })
-  .callback(async ({ db, core, response }) => {
-    const user = await db.query.users.findFirst()
+  .callback(async ({ res, db, core, response }) => {
+    const user = await db.query.users.findFirst({
+      where: { id: res.locals.userId as string }
+    })
 
     if (!user) {
       return response.unauthorized()

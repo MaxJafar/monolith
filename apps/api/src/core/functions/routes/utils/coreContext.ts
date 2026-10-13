@@ -30,6 +30,7 @@ import { type Logger, createLogger } from '@lifeforge/log'
 import { ModuleRegistry } from '@lifeforge/module-runtime/registry'
 import { CoreContext } from '@lifeforge/server-utils'
 
+import type { db as coreDb } from '../../../drizzle'
 import { storageProvider } from '../../../storage'
 
 async function checkModulesAvailability(moduleId: string): Promise<boolean> {
@@ -70,9 +71,9 @@ export function createCoreContext({
       logging
     ),
     api: {
-      fetchAI: createFetchAI(module),
+      fetchAI: createFetchAI(db as typeof coreDb, module),
       searchLocations,
-      getAPIKey: getAPIKeyFactory(module)
+      getAPIKey: getAPIKeyFactory(db as typeof coreDb, module)
     },
     tempFile: TempFileManager,
     validation: {

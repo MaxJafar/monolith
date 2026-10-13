@@ -1,17 +1,11 @@
-#!/bin/bash
-set -e
-
-echo "=== LifeForge Docker Build ==="
-
-# Build the deps image first (shared dependencies)
-echo "Building deps image..."
-docker compose --profile build build deps
-
-# Build all other services
-echo "Building all services..."
-docker compose build
-
-echo "=== Build Complete ==="
-echo ""
-echo "To start the application, run:"
-echo "  docker compose up -d"
+#!/bin/sh
+set -eu
+cd "$(dirname "$0")/.."
+if [ ! -f env/.env.docker ]; then
+    echo 'Copy env/.env.docker.example to env/.env.docker and fill its values first.' >&2
+    exit 1
+fi
+docker compose --env-file env/.env.docker config --quiet
+docker compose --env-file env/.env.docker build migrate client
+printf '%s\n' 'ZillionOS images built. Start the isolated stack with:' \
+    'docker compose --env-file env/.env.docker up -d'

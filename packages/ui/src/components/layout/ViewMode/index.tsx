@@ -1,6 +1,10 @@
 import type React from 'react'
-import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
-import { create } from 'zustand'
+import {
+  createContext,
+  useEffect,
+  useMemo,
+  useContext as useReactContext
+} from 'react'
 
 import { useModuleMetadata } from '@lifeforge/federation'
 import { useModuleTranslation } from '@lifeforge/localization'
@@ -60,20 +64,29 @@ export function createViewMode<
   namespace,
   persistInLocalStorage = true,
   defaultValue,
-  useNuqs = true,
+  useNuqs: syncWithUrl = true,
   selectorProps: configSelectorProps,
   contextMenuSelectorProps: configContextMenuSelectorProps
 }: CreateViewModeConfig<TViewModes>) {
   const modeValues = modes.map(m => m.value)
 
-  const useContext = create<ViewModeState<TViewModes[number]['value']>>(
-    set => ({
-      currentMode: (defaultValue ??
-        modeValues[0]) as TViewModes[number]['value'],
-      setCurrentMode: (mode: TViewModes[number]['value']) =>
-        set({ currentMode: mode })
-    })
-  )
+  const ModeContext = createContext<ViewModeState<
+    TViewModes[number]['value']
+  > | null>(null)
+
+  function useContext(): ViewModeState<TViewModes[number]['value']>
+  function useContext<T>(
+    selector: (state: ViewModeState<TViewModes[number]['value']>) => T
+  ): T
+  function useContext<T>(
+    selector?: (state: ViewModeState<TViewModes[number]['value']>) => T
+  ) {
+    const state = useReactContext(ModeContext)
+
+    if (!state) throw new Error('ViewMode.Root is required')
+
+    return selector ? selector(state) : state
+  }
 
   function Root({
     children,
@@ -91,48 +104,43 @@ export function createViewMode<
       return `${moduleName}-${suffix}`
     }, [moduleName])
 
-    const storedDefault =
-      typeof window !== 'undefined' && storageKey
-        ? (localStorage.getItem(storageKey) as
-            TViewModes[number]['value'] | null)
-        : null
+    let storedCandidate: string | null = null
 
-    const effectiveDefault = storedDefault ?? defaultValue
+    try {
+      if (typeof window !== 'undefined' && storageKey)
+        storedCandidate = localStorage.getItem(storageKey)
+    } catch {
+      // Some browsers disable storage. URL and in-memory selection remain usable.
+    }
+
+    const effectiveDefault =
+      modeValues.find(value => value === storedCandidate) ?? defaultValue
 
     const [currentMode, setCurrentMode] = useNuqsOrBasicState({
       options: modeValues,
       defaultValue: effectiveDefault,
-      useNuqs: useNuqs ? 'view' : false,
+      useNuqs: syncWithUrl ? 'view' : false,
       controlled: {
         value: controlledMode ?? null,
         setValue: controlledOnModeChange ?? null
       }
     })
 
-    const setCurrentModeRef = useRef(setCurrentMode)
-
-    setCurrentModeRef.current = setCurrentMode
-
-    useEffect(() => {
-      useContext.setState({
-        setCurrentMode: (mode: TViewModes[number]['value']) => {
-          useContext.setState({ currentMode: mode })
-          setCurrentModeRef.current(mode)
-        }
-      })
-    }, [])
-
-    useLayoutEffect(() => {
-      useContext.setState({ currentMode })
-    }, [currentMode])
-
     useEffect(() => {
       if (storageKey) {
-        localStorage.setItem(storageKey, currentMode)
+        try {
+          localStorage.setItem(storageKey, currentMode)
+        } catch {
+          // Storage is optional; selecting a view must still work.
+        }
       }
     }, [storageKey, currentMode])
 
-    return <>{children}</>
+    return (
+      <ModeContext value={{ currentMode, setCurrentMode }}>
+        {children}
+      </ModeContext>
+    )
   }
 
   function When({
@@ -142,7 +150,7 @@ export function createViewMode<
     mode: TViewModes[number]['value']
     children: React.ReactNode
   }) {
-    const currentMode = useContext(s => s.currentMode)
+    const { currentMode } = useContext()
 
     if (mode !== currentMode) {
       return null
@@ -169,7 +177,7 @@ export function createViewMode<
           ...mode,
           text: namespace === false || !mode.text ? mode.text : t(mode.text)
         })),
-      []
+      [t]
     )
 
     return (

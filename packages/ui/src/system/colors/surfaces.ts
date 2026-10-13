@@ -1,24 +1,22 @@
-import { colorWithOpacity } from './color-with-opacity'
-
 export const surface = {
   light: {
-    base: colorWithOpacity('bg-200', '50%'),
-    dark: colorWithOpacity('bg-800', '50%')
+    base: 'surface-container',
+    dark: 'surface-container'
   },
   lightInteractive: {
-    base: colorWithOpacity('bg-200', '50%'),
-    dark: colorWithOpacity('bg-800', '70%'),
-    hover: colorWithOpacity('bg-200', '70%'),
-    darkHover: colorWithOpacity('bg-700', '50%')
+    base: 'surface-container',
+    dark: 'surface-container',
+    hover: 'surface-container-high',
+    darkHover: 'surface-container-high'
   },
   default: {
-    base: 'bg-50',
-    dark: 'bg-900'
+    base: 'surface',
+    dark: 'surface'
   },
   defaultInteractive: {
-    base: 'bg-50',
-    dark: 'bg-900',
-    hover: colorWithOpacity('bg-50', '70%'),
-    darkHover: 'bg-800'
+    base: 'surface',
+    dark: 'surface',
+    hover: 'surface-container',
+    darkHover: 'surface-container'
   }
 } as const

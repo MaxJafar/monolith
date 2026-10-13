@@ -104,7 +104,11 @@ function walk(
 
     case 'union': {
       for (const option of def.options) {
-        walk(option, value, path, results)
+        // Only the selected branch owns its references. Empty sentinel values
+        // and fields belonging to other discriminated branches are not IDs.
+        if (option.safeParse(value).success) {
+          walk(option, value, path, results)
+        }
       }
 
       return

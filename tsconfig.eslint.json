@@ -1,5 +1,9 @@
 {
   "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "noUncheckedIndexedAccess": true
+  },
   "include": [
     "modules/**/*",
     "packages/**/*",
@@ -8,8 +12,10 @@
     "docs/**/*",
     "scripts/**/*",
     "tools/**/*",
-    "eslint.config.ts",
+    ".pnpmfile.cjs",
+    "eslint.config.js",
+    "packages/ui/.storybook/**/*",
     "eslint/**/*.ts"
   ],
-  "exclude": ["**/node_modules", "**/dist", "**/dist-docker"]
+  "exclude": ["**/node_modules", "**/dist", "**/dist-docker", "**/tsbuild"]
 }

@@ -3,6 +3,7 @@ import { boolean, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core'
 
 export const authRefreshTokens = pgTable('auth__refresh_tokens', {
   id: uuid('id').defaultRandom().primaryKey(),
+  userId: uuid('user_id').notNull(),
   token_hash: varchar('token_hash', { length: 255 }).notNull(),
   family: varchar('family', { length: 255 }).notNull(),
   bound_ip: varchar('bound_ip', { length: 255 }).notNull(),
@@ -27,4 +28,5 @@ export const authOAuthProviders = pgTable('auth__oauth_providers', {
 })
 
 export const tables = { authRefreshTokens, authOAuthProviders }
+
 export const relations = (_r: RelationsBuilder<typeof tables>) => ({})

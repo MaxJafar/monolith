@@ -19,6 +19,15 @@ describe('externalDependencyRegex', () => {
     })
   })
 
+  describe('happy path: Node built-ins', () => {
+    it.each(['node:fs', 'node:fs/promises', 'fs/promises'])(
+      'matches %s',
+      specifier => {
+        expect(externalDependencyRegex.test(specifier)).toBe(true)
+      }
+    )
+  })
+
   describe('happy path: scoped packages', () => {
     it.each([
       '@lifeforge/api',
@@ -88,6 +97,11 @@ describe('externalDependencyRegex', () => {
       'src/index.ts',
       'src/index.js',
       'src/index.tsx',
+      'src/index.jsx',
+      'src/index.mjs',
+      'src/index.cjs',
+      'src/index.mts',
+      'src/index.cts',
       'src/main.ts',
       'foo/bar.ts',
       '@scope/pkg/file.js'
@@ -116,6 +130,8 @@ describe('externalDependencyRegex', () => {
       'react\\dom',
       'foo/..',
       'foo/.',
+      'foo/../bar',
+      '@scope/pkg/./nested',
       '.react',
       '..react',
       '/react',

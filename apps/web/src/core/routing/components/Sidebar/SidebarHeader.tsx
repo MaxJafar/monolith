@@ -1,13 +1,16 @@
+import { useTranslation } from 'react-i18next'
+
 import {
   Box,
   Button,
   Flex,
-  Icon,
   SearchInput,
   Text,
   surface,
   useMainSidebarState
 } from '@lifeforge/ui'
+
+import MonolithLogo from '@/core/components/MonolithLogo'
 
 function SidebarHeader({
   searchQuery,
@@ -16,47 +19,55 @@ function SidebarHeader({
   searchQuery: string
   setSearchQuery: React.Dispatch<React.SetStateAction<string>>
 }) {
-  const { sidebarExpanded, toggleSidebar } = useMainSidebarState()
+  const { toggleSidebar } = useMainSidebarState()
+  const { t } = useTranslation('common.sidebar')
 
   return (
     <>
       <Flex
         align="center"
         flexShrink="0"
-        height="6em"
-        justify={sidebarExpanded ? 'between' : 'center'}
-        overflow={!sidebarExpanded ? 'hidden' : 'auto'}
-        px="lg"
+        height="3.75rem"
+        justify="between"
+        overflow="hidden"
+        px="md"
       >
-        <Flex asChild align="center" flexShrink="0" gap="sm">
-          <Text as="h1" size="xl" weight="semibold" whiteSpace="nowrap">
-            <Icon color="primary" icon="tabler:hammer" />
-            {sidebarExpanded && (
-              <Text tracking="wide">
-                LifeForge
-                <Text color="primary" size="2xl">
-                  .
-                </Text>
-              </Text>
-            )}
+        <Flex align="center" flexShrink="0" gap="sm">
+          <MonolithLogo size={24} />
+          <Text
+            size="lg"
+            tracking="tight"
+            weight="semibold"
+            whiteSpace="nowrap"
+          >
+            monolith
           </Text>
         </Flex>
-        {sidebarExpanded && (
-          <Button icon="tabler:menu" variant="plain" onClick={toggleSidebar} />
-        )}
+        <Button
+          aria-controls="workspace-navigation"
+          aria-expanded={true}
+          aria-label={t('collapseNavigation')}
+          className="monolith-navigation-action"
+          icon="lucide:panel-left-close"
+          p="xs"
+          variant="plain"
+          onClick={toggleSidebar}
+        />
       </Flex>
-      {sidebarExpanded && (
-        <Box px="md">
-          <SearchInput
-            bg={surface.lightInteractive}
-            mb="md"
-            namespace="common.sidebar"
-            searchTarget="module"
-            value={searchQuery}
-            onChange={setSearchQuery}
-          />
-        </Box>
-      )}
+      <Box px="md">
+        <SearchInput
+          bg={surface.lightInteractive}
+          mb="sm"
+          minHeight="44px"
+          namespace="common.sidebar"
+          px="md"
+          py="sm"
+          r="sm"
+          searchTarget="module"
+          value={searchQuery}
+          onChange={setSearchQuery}
+        />
+      </Box>
     </>
   )
 }

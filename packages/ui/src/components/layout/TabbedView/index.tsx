@@ -1,6 +1,10 @@
 import type React from 'react'
-import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
-import { create } from 'zustand'
+import {
+  createContext,
+  useMemo,
+  useContext as useReactContext,
+  useState
+} from 'react'
 
 import { useModuleTranslation } from '@lifeforge/localization'
 
@@ -60,21 +64,29 @@ export function createTabbedView<
   tabs,
   defaultValue,
   namespace,
-  useNuqs = false,
+  useNuqs: syncWithUrl = false,
   enabled,
   selectorProps: configSelectorProps
 }: CreateTabbedViewConfig<TTabItems>) {
   const tabValues = tabs.map(t => t.id)
 
-  const useContext = create<TabState<TTabItems[number]['id']>>(set => ({
-    amounts: {},
-    currentTab: (defaultValue && enabled?.includes(defaultValue)
-      ? defaultValue
-      : enabled?.[0] || tabValues[0]) as TTabItems[number]['id'],
-    setAmounts: (amounts: Partial<Record<TTabItems[number]['id'], number>>) =>
-      set({ amounts }),
-    setCurrentTab: (tab: TTabItems[number]['id']) => set({ currentTab: tab })
-  }))
+  const TabContext = createContext<TabState<TTabItems[number]['id']> | null>(
+    null
+  )
+
+  function useContext(): TabState<TTabItems[number]['id']>
+  function useContext<T>(
+    selector: (state: TabState<TTabItems[number]['id']>) => T
+  ): T
+  function useContext<T>(
+    selector?: (state: TabState<TTabItems[number]['id']>) => T
+  ) {
+    const state = useReactContext(TabContext)
+
+    if (!state) throw new Error('TabbedView.Root is required')
+
+    return selector ? selector(state) : state
+  }
 
   function Root({
     children,
@@ -82,7 +94,7 @@ export function createTabbedView<
     onTabChange: controlledOnTabChange
   }: TabbedViewRootProps<TTabItems>) {
     const effectiveDefault =
-      defaultValue && enabled?.includes(defaultValue)
+      defaultValue && (!enabled || enabled.includes(defaultValue))
         ? defaultValue
         : enabled?.[0] || tabValues[0]
 
@@ -90,7 +102,7 @@ export function createTabbedView<
       TTabItems[number]['id']
     >({
       options: tabValues,
-      useNuqs: useNuqs ? 'tab' : false,
+      useNuqs: syncWithUrl ? 'tab' : false,
       defaultValue: effectiveDefault,
       controlled: {
         value: controlledTab ?? null,
@@ -98,24 +110,15 @@ export function createTabbedView<
       }
     })
 
-    const setCurrentTabRef = useRef(setCurrentTab)
+    const [amounts, setAmounts] = useState<
+      Partial<Record<TTabItems[number]['id'], number>>
+    >({})
 
-    setCurrentTabRef.current = setCurrentTab
-
-    useEffect(() => {
-      useContext.setState({
-        setCurrentTab: (tab: TTabItems[number]['id']) => {
-          useContext.setState({ currentTab: tab })
-          setCurrentTabRef.current(tab)
-        }
-      })
-    }, [])
-
-    useLayoutEffect(() => {
-      useContext.setState({ currentTab })
-    }, [currentTab])
-
-    return <>{children}</>
+    return (
+      <TabContext value={{ currentTab, setCurrentTab, amounts, setAmounts }}>
+        {children}
+      </TabContext>
+    )
   }
 
   function When({
@@ -125,7 +128,7 @@ export function createTabbedView<
     tabId: TTabItems[number]['id']
     children: React.ReactNode
   }) {
-    const currentTab = useContext(s => s.currentTab)
+    const { currentTab } = useContext()
 
     if (tabId !== currentTab) {
       return null
@@ -159,7 +162,7 @@ export function createTabbedView<
               }
             : { ...tab, name: namespace === false ? tab.name : t(tab.name) }
         }),
-      [amounts]
+      [amounts, t]
     )
 
     return (

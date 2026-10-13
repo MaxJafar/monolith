@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import fs from 'fs'
 import path from 'path'
+import { format } from 'prettier'
 
 import { isSuccessOutputKey } from '../response'
 
@@ -181,11 +182,11 @@ export function serializeRoutes(node: any): any {
   return node
 }
 
-export function writeContractFileToClient(
+export async function writeContractFileToClient(
   routes: any,
   serverRootDir: string,
   clientDir: string = '../client'
-): void {
+): Promise<void> {
   if (process.env.NODE_ENV === 'production') return
 
   const serialized = serializeRoutes(routes)
@@ -198,5 +199,15 @@ export function writeContractFileToClient(
     fs.mkdirSync(clientSrcDir, { recursive: true })
   }
 
-  fs.writeFileSync(path.join(clientSrcDir, 'contract.ts'), content)
+  const formatted = await format(content, {
+    parser: 'typescript',
+    singleQuote: true,
+    semi: false,
+    trailingComma: 'none',
+    printWidth: 80
+  })
+  const target = path.join(clientSrcDir, 'contract.ts')
+
+  if (!fs.existsSync(target) || fs.readFileSync(target, 'utf8') !== formatted)
+    fs.writeFileSync(target, formatted)
 }

@@ -1,59 +1,38 @@
 import { useTranslation } from 'react-i18next'
 
-import { Box, Flex, Text, colorWithOpacity } from '@lifeforge/ui'
+import { Flex, Text } from '@lifeforge/ui'
+
+import MonolithLogo from '@/core/components/MonolithLogo'
 
 function AuthSideImage() {
   const { t } = useTranslation('common.auth')
 
   return (
     <Flex
+      bg={{ base: 'bg-100', dark: 'bg-900' }}
+      direction="column"
       display={{ base: 'none', lg: 'flex' }}
+      gap="xl"
       height="100%"
-      position="relative"
+      justify="between"
+      p="3xl"
       width="50%"
     >
-      <img
-        alt="Login"
-        src="/assets/login.jpg"
-        style={{
-          height: '100%',
-          objectFit: 'cover'
-        }}
-      />
-      <div
-        style={{
-          background:
-            'linear-gradient(to bottom right, var(--color-custom-100), var(--color-custom-900))',
-          inset: 0,
-          opacity: 0.5,
-          position: 'absolute'
-        }}
-      />
-      <Box
-        bg={colorWithOpacity('bg-900', '50%')}
-        position="absolute"
-        style={{ inset: 0 }}
-      />
-      <Flex
-        centered
-        direction="column"
-        position="absolute"
-        style={{ inset: 0 }}
-        width="100%"
-      >
-        <Text color="primary" mb="lg" size="2xl" tracking="wider">
-          {t('sideImageDesc.part1')}
-        </Text>
-        <Text
-          align="center"
-          color="bg-50"
-          size="5xl"
-          tracking="wide"
-          weight="semibold"
-        >
-          {t('sideImageDesc.part2')}
+      <Flex align="center" gap="md">
+        <MonolithLogo size={40} />
+        <Text size="xl" tracking="tight" weight="semibold">
+          monolith
         </Text>
       </Flex>
+      <Flex direction="column" gap="lg" maxWidth="34em">
+        <Text as="h2" size="5xl" tracking="tight" weight="semibold">
+          {t('sideImageDesc.part2')}
+        </Text>
+        <Text as="p" color="muted" size="xl">
+          {t('sideImageDesc.part1')}
+        </Text>
+      </Flex>
+      <Text color="muted">{t('workspaceNote')}</Text>
     </Flex>
   )
 }

@@ -1,12 +1,11 @@
-import { COLORS, colorWithOpacity, shadowClass } from '@/system'
+import { COLORS, colorWithOpacity } from '@/system'
 
 export const primary = {
-  backgroundColor: COLORS['custom-500'],
-  boxShadow: shadowClass,
-  color: `var(--button-text-color, ${COLORS['bg-50']})`,
+  backgroundColor: 'var(--interactive-primary)',
+  color: 'var(--interactive-on-primary)',
   selectors: {
     '&:hover:not(:disabled)': {
-      backgroundColor: COLORS['custom-600']
+      backgroundColor: 'var(--interactive-primary-hover)'
     },
     '&:disabled': {
       backgroundColor: COLORS['bg-200'],

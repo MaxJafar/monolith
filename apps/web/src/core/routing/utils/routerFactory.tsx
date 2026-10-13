@@ -1,13 +1,20 @@
+import { Suspense, lazy } from 'react'
 import { Navigate, type RouteObject } from 'react-router'
 
 import type { ModuleGroup } from '@lifeforge/configs'
-import { LoadingScreen, NotFoundScreen } from '@lifeforge/ui'
+import { NotFoundScreen } from '@lifeforge/ui'
 
 import Auth from '@/system/auth'
 
+import CanvasPageRoute from '../components/CanvasPageRoute'
 import RootLayout from '../components/RootLayout'
 import RouteErrorScreen from '../components/RouteErrorScreen'
+import RouteLoadingScreen from '../components/RouteLoadingScreen'
+import { resolveModuleAvailability } from './moduleAvailability'
+import { workspaceRedirect } from './navigation'
 import { createModuleRoute } from './routeBuilder'
+
+const SystemSearchPage = lazy(() => import('@/core/search/SystemSearchPage'))
 
 interface CreateRouterConfigOptions {
   routes: ModuleGroup[]
@@ -22,11 +29,7 @@ export function DashboardRedirectHandler() {
 
   const redirect = searchParams.get('redirect')
 
-  if (redirect) {
-    return <Navigate replace to={redirect} />
-  }
-
-  return <Navigate replace to="/dashboard" />
+  return <Navigate replace to={workspaceRedirect(redirect)} />
 }
 
 export function AuthRedirectHandler() {
@@ -48,16 +51,7 @@ export async function createRouterConfig({
 }: CreateRouterConfigOptions): Promise<RouteObject[]> {
   const allItems = routes.flatMap(category => category.items)
 
-  const resolvedItems = await Promise.all(
-    allItems.map(async item => {
-      const disabled =
-        typeof item.disabled === 'function'
-          ? await item.disabled()
-          : item.disabled
-
-      return { ...item, disabled }
-    })
-  )
+  const resolvedItems = await resolveModuleAvailability(allItems)
 
   const enabledItems = resolvedItems.filter(item => !item.disabled)
 
@@ -72,6 +66,17 @@ export async function createRouterConfig({
       element: <RootLayout />,
       children: [
         ...moduleRoutes,
+        {
+          path: '/search',
+          element: (
+            <Suspense
+              fallback={<RouteLoadingScreen message="loadingUserData" />}
+            >
+              <SystemSearchPage />
+            </Suspense>
+          )
+        },
+        { path: '/page/:id', element: <CanvasPageRoute /> },
         {
           path: '/auth/*',
           element: <DashboardRedirectHandler />
@@ -116,7 +121,7 @@ export function createAuthLoadingConfig(): RouteObject[] {
   return [
     {
       path: '*',
-      element: <LoadingScreen message="Loading data..." />
+      element: <RouteLoadingScreen message="loadingUserData" />
     }
   ]
 }

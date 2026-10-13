@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useTranslation } from 'react-i18next'
 import { type DataRouter, createBrowserRouter } from 'react-router'
 
 import { useAuth } from '@lifeforge/api'
@@ -12,11 +11,17 @@ import {
 } from '../utils/routerFactory'
 
 export function useAppRouter() {
-  const { t } = useTranslation('common.misc')
-  const { auth, authLoading } = useAuth()
+  const { auth, authLoading, userData } = useAuth()
   const { moduleGroups, loading: moduleGroupsLoading } = useFederation()
-  const [appRouter, setAppRouter] = useState<DataRouter | null>(null)
+
+  const [appRouter, setAppRouter] = useState<{
+    router: DataRouter
+    ownerId: string
+  } | null>(null)
+
   const [routerId, setRouterId] = useState(0)
+
+  const ownerId = userData?.id ?? null
 
   const loadingRouter = useMemo(
     () => createBrowserRouter(createAuthLoadingConfig()),
@@ -27,12 +32,13 @@ export function useAppRouter() {
     []
   )
   useEffect(() => {
-    if (
-      authLoading ||
-      !auth ||
-      moduleGroupsLoading ||
-      moduleGroups.length === 0
-    ) {
+    if (!auth || !ownerId) {
+      setAppRouter(null)
+
+      return
+    }
+
+    if (authLoading || moduleGroupsLoading || moduleGroups.length === 0) {
       return
     }
 
@@ -40,10 +46,10 @@ export function useAppRouter() {
 
     createRouterConfig({
       routes: moduleGroups,
-      loadingMessage: t('loadingModule')
+      loadingMessage: 'loadingModule'
     }).then(routerConfig => {
       if (!cancelled) {
-        setAppRouter(createBrowserRouter(routerConfig))
+        setAppRouter({ router: createBrowserRouter(routerConfig), ownerId })
         setRouterId(id => id + 1)
       }
     })
@@ -51,10 +57,16 @@ export function useAppRouter() {
     return () => {
       cancelled = true
     }
-  }, [auth, t, authLoading, moduleGroups, moduleGroupsLoading])
+  }, [auth, ownerId, authLoading, moduleGroups, moduleGroupsLoading])
+
+  useEffect(() => () => appRouter?.router.dispose(), [appRouter])
 
   const router = useMemo(() => {
-    if (authLoading || moduleGroupsLoading) {
+    if (
+      authLoading ||
+      moduleGroupsLoading ||
+      (auth && moduleGroups.length === 0)
+    ) {
       return loadingRouter
     }
 
@@ -62,9 +74,10 @@ export function useAppRouter() {
       return authRouter
     }
 
-    return appRouter ?? loadingRouter
+    return appRouter?.ownerId === ownerId ? appRouter.router : loadingRouter
   }, [
     auth,
+    ownerId,
     authLoading,
     moduleGroupsLoading,
     moduleGroups,
@@ -86,9 +99,12 @@ export function useAppRouter() {
       return 'auth'
     }
 
-    return appRouter ? `app-${routerId}` : 'loading'
+    return appRouter?.ownerId === ownerId
+      ? `app-${ownerId}-${routerId}`
+      : 'loading'
   }, [
     auth,
+    ownerId,
     authLoading,
     moduleGroupsLoading,
     moduleGroups,

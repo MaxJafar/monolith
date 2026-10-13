@@ -10,16 +10,14 @@ import forge from './forge'
 
 const welcome = forge
   .query({
-    description: 'Welcome to LifeForge API',
+    description: 'Welcome to ZillionOS API',
     noAuth: true,
     encrypted: false,
     output: {
-      OK: z.literal('Get ready to forge your life!')
+      OK: z.literal('Welcome to ZillionOS')
     }
   })
-  .callback(async ({ response }) =>
-    response.ok('Get ready to forge your life!')
-  )
+  .callback(async ({ response }) => response.ok('Welcome to ZillionOS'))
 
 const ping = forge
   .mutation({
@@ -81,6 +79,7 @@ const coreRoutes = forgeRouter({
   locations: (await import('@lib/locations')).default,
   modules: (await import('@lib/modules')).default,
   ai: (await import('@lib/ai')).default,
+  search: (await import('@lib/search')).default,
   files: (await import('@lib/files')).default,
   ping,
   status,

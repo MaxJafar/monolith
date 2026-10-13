@@ -14,6 +14,7 @@ type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   args: {
+    'aria-label': 'Enable notifications',
     onChange: () => {},
     value: true
   },
@@ -35,6 +36,7 @@ export const Default: Story = {
 
 export const Disabled: Story = {
   args: {
+    'aria-label': 'Enable notifications',
     disabled: true,
     onChange: () => {},
     value: false
@@ -43,6 +45,7 @@ export const Disabled: Story = {
 
 export const Unchecked: Story = {
   args: {
+    'aria-label': 'Enable notifications',
     onChange: () => {},
     value: false
   }

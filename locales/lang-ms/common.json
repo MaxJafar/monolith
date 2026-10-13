@@ -1,0 +1,774 @@
+{
+  "buttons": {
+    "create": "Cipta",
+    "update": "Kemas kini",
+    "edit": "Sunting",
+    "rename": "Namakan semula",
+    "select": "Pilih",
+    "cancel": "Batal",
+    "close": "Tutup",
+    "delete": "Padam",
+    "save": "Simpan",
+    "copy": "Salin",
+    "copied": "Disalin",
+    "previous": "Sebelumnya",
+    "next": "Seterusnya",
+    "print": "Cetak",
+    "remove": "Buang",
+    "upload": "Muat naik",
+    "import": "Import",
+    "submit": "Hantar",
+    "new": "Tambah {{item}}",
+    "proceed": "Teruskan",
+    "applyFilters": "Guna Penapis",
+    "retry": "Cuba lagi",
+    "refresh": "Segarkan",
+    "pin": "Pin",
+    "unpin": "Nyahpin",
+    "search": "Cari",
+    "favourite": "Kegemaran",
+    "unfavourite": "Nyahkegemaran",
+    "archive": "Arkib",
+    "unarchive": "Nyaharkib",
+    "download": "Muat turun",
+    "stop": "Berhenti",
+    "record": "Rakam",
+    "overwrite": "Timpa",
+    "adjust": "Sesuaikan",
+    "downloading": "Sedang Muat Turun ...",
+    "generate": "Janakan",
+    "regenerate": "Jana Semula",
+    "confirm": "Sahkan",
+    "goBack": "Kembali",
+    "moreActions": "Tindakan lain"
+  },
+  "modals": {
+    "deleteConfirmation": {
+      "title": "Adakah anda pasti mahu memadam {{itemName}}?",
+      "desc": "Ini akan memadam {{itemName}} dan semua kandungan yang berkaitan. Tindakan ini tidak boleh dipulihkan!",
+      "inputs": {
+        "confirmation": {
+          "placeholder": "Sila taip \"{{text}}\" untuk mengesahkan pemadaman",
+          "label": "Sahkan Pembuangan"
+        }
+      },
+      "error": "Ralat semasa memadam item. Sila cuba lagi."
+    },
+    "searchFilters": "Penapis Carian",
+    "datePicker": {
+      "title": "Pilih Tarikh",
+      "titleWithTime": "Pilih Tarikh & Masa",
+      "yearMonth": "Pilih Tahun & Bulan"
+    },
+    "iconPicker": {
+      "title": "Pilih Ikon",
+      "items": {
+        "icon": "Ikon",
+        "iconSet": "Set Ikon"
+      },
+      "empty": {
+        "icon": {
+          "title": "Tiada ikon",
+          "description": "Tiada ikon ditemui, sila cuba kata kunci lain."
+        }
+      }
+    },
+    "imagePicker": {
+      "title": "Pilih Fail",
+      "local": "Muat naik imej tempatan",
+      "url": "URL Imej",
+      "pixabay": "Muat turun dari Pixabay",
+      "orPasteLink": "Atau tampal pautan imej",
+      "inputs": {
+        "imageLink": "Pautan imej",
+        "imageType": "Jenis imej",
+        "imageCategory": "Kategori imej",
+        "imageColor": "Warna imej",
+        "editorsChoice": "Pilihan Editor",
+        "prompt": "Teks Prompt AI"
+      },
+      "imageType": {
+        "all": "Semua",
+        "photo": "Foto",
+        "vector": "Vektor",
+        "illustration": "Ilustrasi"
+      },
+      "items": {
+        "pixabay": "Pixabay"
+      },
+      "empty": {
+        "result": {
+          "title": "Tiada hasil",
+          "description": "Tiada imej ditemui, sila cuba kata kunci lain."
+        },
+        "pixabay": {
+          "title": "Disediakan oleh Pixabay",
+          "description": "Cari lebih daripada 13 juta imej percuma berkualiti tinggi."
+        },
+        "noAPIKey": {
+          "title": "Kunci API Pixabay tidak dikonfigurasikan",
+          "description": "Sila tetapkan kunci API Pixabay anda dalam Peti Kunci API untuk menggunakan ciri ini."
+        },
+        "noOpenAIKey": {
+          "title": "Kunci API OpenAI tidak dikonfigurasikan",
+          "description": "Sila tetapkan kunci API OpenAI anda dalam Peti Kunci API untuk menggunakan ciri ini."
+        }
+      },
+      "ai": "Penjanaan Imej AI"
+    },
+    "colorPicker": {
+      "title": "Pilih Warna",
+      "modals": {
+        "morandiColorPalette": "Palet Warna Morandi",
+        "tailwindCssColorPalette": "Palet Warna Tailwind CSS",
+        "flatUiColors": "Flat UI Colors"
+      },
+      "buttons": {
+        "morandiColorPalette": "Palet Warna Morandi",
+        "tailwindCssColorPalette": "Palet Warna Tailwind CSS",
+        "flatUiColors": "Flat UI Colors"
+      }
+    },
+    "imagePreview": "Pratonton Imej",
+    "qrCodeScanner": "Pengimbas Kod QR",
+    "viewImage": "Lihat Imej"
+  },
+  "misc": {
+    "alert": {
+      "note": "Nota",
+      "warning": "Amaran",
+      "caution": "Awas",
+      "tip": "Petua",
+      "important": "Penting"
+    },
+    "search": "Cari {{item}}...",
+    "notFound": {
+      "title": "Oops! Tiada apa-apa di sini",
+      "description": "Halaman yang anda cari tidak dapat dijumpai. Sila semak URL dan cuba lagi."
+    },
+    "tipsAndTricks": "Petua dan Trik",
+    "loadingModule": "Memuatkan modul...",
+    "deprecated": "Tidak lagi disokong",
+    "imageUpload": {
+      "local": "Muat naik imej tempatan",
+      "url": "URL Imej",
+      "pixabay": "Muat turun dari Pixabay",
+      "orPasteLink": "Atau tampal pautan imej",
+      "inputs": {
+        "imageLink": "Pautan imej",
+        "imageType": "Jenis imej",
+        "imageCategory": "Kategori imej",
+        "imageColor": "Warna imej",
+        "editorsChoice": "Pilihan Editor"
+      },
+      "imageType": {
+        "all": "Semua",
+        "photo": "Foto",
+        "vector": "Vektor",
+        "illustration": "Ilustrasi"
+      },
+      "items": {
+        "pixabay": "Pixabay"
+      },
+      "empty": {
+        "result": {
+          "title": "Tiada hasil",
+          "description": "Tiada imej dijumpai, sila cuba kata kunci lain."
+        },
+        "pixabay": {
+          "title": "Disediakan oleh Pixabay",
+          "description": "Cari lebih daripada 13 juta imej percuma berkualiti tinggi."
+        }
+      }
+    },
+    "dnd": {
+      "dropHere": "Letakkan item di sini",
+      "dragAndDropToUpload": "Seret dan lepas atau klik untuk memuat naik",
+      "or": "atau",
+      "buttons": {
+        "pasteFromClipboard": "Tampal dari Papan Klip"
+      }
+    },
+    "buttons": {
+      "goBack": "Kembali",
+      "reportBug": "Laporkan pepijat"
+    },
+    "colorPicker": {
+      "title": "Pilih warna",
+      "modals": {
+        "morandiColorPalette": "Palet warna Morandi",
+        "tailwindCssColorPalette": "Palet warna Tailwind CSS"
+      },
+      "buttons": {
+        "morandiColorPalette": "Palet warna Morandi",
+        "tailwindCssColorPalette": "Palet warna Tailwind CSS"
+      }
+    },
+    "empty": {
+      "apiStatus": {
+        "title": "Tidak dapat menyambung ke API",
+        "description": "Sila semak sambungan rangkaian anda dan cuba lagi. Jika anda seorang pembangun, sila semak jika pelayan berjalan dengan betul."
+      }
+    },
+    "iconPicker": {
+      "items": {
+        "icon": "Ikon",
+        "iconSet": "Set ikon"
+      },
+      "empty": {
+        "icon": {
+          "title": "Tiada ikon",
+          "description": "Tiada ikon dijumpai, sila cuba kata kunci lain."
+        }
+      }
+    },
+    "locationDisabled": {
+      "description": "Input lokasi kini tidak tersedia. Sila tambah kunci API Google Cloud yang telah dikonfigurasikan dengan betul untuk mengaktifkan ciri ini. Untuk maklumat lanjut, rujuk kepada",
+      "title": "T/A"
+    },
+    "dates": {
+      "months": {
+        "0": "Januari",
+        "1": "Februari",
+        "2": "Mac",
+        "3": "April",
+        "4": "Mei",
+        "5": "Jun",
+        "6": "Julai",
+        "7": "Ogos",
+        "8": "September",
+        "9": "Oktober",
+        "10": "November",
+        "11": "Disember"
+      },
+      "days": {
+        "0": "Isnin",
+        "1": "Selasa",
+        "2": "Rabu",
+        "3": "Khamis",
+        "4": "Jumaat",
+        "5": "Sabtu",
+        "6": "Ahad"
+      }
+    },
+    "fieldRequired": "Ruangan ini adalah wajib.",
+    "invalidField": "Medan tidak sah.",
+    "invalidColor": "Warna tidak sah. Sila masukkan nilai hex yang sah dalam format #RRGGBB.",
+    "invalidIcon": "Ikon tidak sah. Ia mesti pengenalan ikon yang sah dari Iconify dalam format <icon-set>:<icon-name>.",
+    "loadingUserData": "Memuatkan data pengguna...",
+    "invalidSelection": "Pemilihan tidak sah. Sila pilih pilihan yang sah dari senarai.",
+    "fileInputSupportedFormat": "Format yang disokong: {{format}}",
+    "viewMode": "Lihat sebagai"
+  },
+  "sidebar": {
+    "categories": {},
+    "buttons": {
+      "signOut": "Log Keluar",
+      "accountSettings": "Tetapan Akaun"
+    },
+    "items": {
+      "module": "Modul"
+    },
+    "empty": {
+      "modules": {
+        "title": "Tiada Modul Ditemui",
+        "description": "Cuba mengubahcari modul."
+      }
+    },
+    "openNavigation": "Buka navigasi",
+    "collapseNavigation": "Tutup navigasi"
+  },
+  "fetch": {
+    "error": "Gagal mendapatkan data dari pelayan",
+    "success": "Yay! Berjaya {{action}} item!",
+    "failure": "Oh tidak... Gagal {{action}} item. Sila cuba lagi.",
+    "action": {
+      "create": "mencipta",
+      "update": "mengemas kini",
+      "delete": "memadam",
+      "rename": "menamakan semula",
+      "pin": "pin",
+      "unpin": "nyahpin",
+      "archive": "arkib",
+      "unarchive": "nyaharkib",
+      "remove": "mengeluarkan",
+      "add": "menambah",
+      "save": "menyimpan",
+      "public": "umum",
+      "private": "peribadi",
+      "replace": "menggantikan",
+      "clearMedium": "membersihkan",
+      "thumbnail": "mengemas kini gambar kecil",
+      "generate": "menjana",
+      "cleanedup": "dibersihkan",
+      "summarized": "diringkaskan",
+      "unlock": "membuka kunci",
+      "download": "memuat turun",
+      "NASFilesReady": " Fail sedia untuk dimuat turun. Pergi ke NAS anda.",
+      "addedToFavourites": "ditambah ke kegemaran",
+      "removedFromFavourites": "dikeluarkan dari kegemaran"
+    },
+    "redirected": "telah dialihkan",
+    "redirecting": "mengalihkan...",
+    "unlock": "membuka kunci"
+  },
+  "auth": {
+    "header": "Selamat kembali",
+    "desc": "Ruang kerja anda sedia untuk digunakan.",
+    "welcome": {
+      "header": "Selamat datang ke monolith",
+      "desc": "Cipta ruang kerja peribadi anda."
+    },
+    "sideImageDesc": {
+      "part1": "Projek, pengetahuan dan semua yang menghubungkannya.",
+      "part2": "Berikan ruang untuk perkara penting."
+    },
+    "or": "atau",
+    "buttons": {
+      "signIn": "Log Masuk",
+      "proceed": "Teruskan"
+    },
+    "inputs": {
+      "emailOrUsername": {
+        "label": "Emel atau Nama Pengguna",
+        "placeholder": "johndoe@gmail.com"
+      },
+      "email": {
+        "label": "Emel",
+        "placeholder": "johndoe@gmail.com"
+      },
+      "username": {
+        "label": "Nama Pengguna",
+        "placeholder": "johndoe"
+      },
+      "name": {
+        "label": "Nama Paparan",
+        "placeholder": "John Doe"
+      },
+      "password": {
+        "label": "Kata Laluan",
+        "placeholder": "Masukkan kata laluan anda"
+      },
+      "confirmPassword": {
+        "label": "Sahkan Kata Laluan",
+        "placeholder": "Masukkan semula kata laluan anda"
+      }
+    },
+    "validation": {
+      "emailRequired": "Emel diperlukan",
+      "emailInvalid": "Sila masukkan alamat emel yang sah",
+      "usernameRequired": "Nama pengguna diperlukan",
+      "usernameTooShort": "Nama pengguna mesti sekurang-kurangnya 3 aksara",
+      "usernameInvalid": "Nama pengguna hanya boleh mengandungi huruf, nombor, dan garis bawah",
+      "nameRequired": "Nama diperlukan",
+      "passwordRequired": "Kata laluan diperlukan",
+      "passwordTooShort": "Kata laluan mesti sekurang-kurangnya 8 aksara",
+      "passwordMismatch": "Kata laluan tidak sepadan"
+    },
+    "modals": {
+      "twoFA": {
+        "title": "Pengesahan Dua Fasa",
+        "description": "Sila masukkan OTP yang diberikan oleh aplikasi pengesah yang anda daftarkan sebelum ini.",
+        "buttons": {
+          "useEmailOtp": "Gunakan OTP Emel",
+          "useAuthApp": "Gunakan Aplikasi Pengesah"
+        },
+        "emailDescription": "Sila masukkan alamat emel yang anda gunakan untuk akaun anda.",
+        "inputs": {
+          "email": "Alamat Emel"
+        }
+      }
+    },
+    "orAuthenticateWith": "Atau sahkan dengan",
+    "messages": {
+      "otpSent": "Kata laluan sekali guna telah dihantar ke alamat email anda, jika ia dikaitkan dengan mana-mana akaun.",
+      "welcomeBack": "Selamat datang kembali, {{name}}!",
+      "invalidCredentials": "Emel atau kata laluan tidak sah. Sila cuba lagi.",
+      "invalidFields": "Medan tidak sah. Sila masukkan alamat email dan kata laluan yang sah.",
+      "quotaExceeded": "Jumlah percubaan maksimum telah dicapai. Sila cuba lagi kemudian.",
+      "unknownError": "Ralat yang tidak diketahui. Sila cuba lagi nanti.",
+      "invalidLoginAttempt": "Percubaan log masuk tidak sah. Sila cuba lagi.",
+      "userCreated": "Akaun berjaya dibuat! Selamat datang ke monolith."
+    },
+    "qrLogin": {
+      "title": "Imbas untuk Log Masuk",
+      "description": "Log masuk ke akaun anda menggunakan peranti lain.",
+      "expired": "Kod QR tamat tempoh",
+      "clickToRefresh": "Klik untuk muat semula",
+      "approved": "Log masuk diluluskan! Mengalihkan...",
+      "waiting": "Menunggu kelulusan...",
+      "approvalTitle": "Luluskan Log Masuk",
+      "approvalDescription": "Peranti meminta untuk log masuk ke akaun anda",
+      "browserInfo": "Maklumat Peranti",
+      "approve": "Luluskan Log Masuk",
+      "deny": "Tolak",
+      "success": "Log masuk berjaya diluluskan",
+      "scanQRCode": "Imbas Kod QR untuk Log Masuk",
+      "invalidQR": "Kod QR tidak sah",
+      "sessionNotFound": "Sesi tidak dijumpai atau tamat tempoh",
+      "alreadyApproved": "Sesi telah diluluskan"
+    },
+    "workspaceNote": "Satu ruang kerja. Mengikut rentak anda.",
+    "forkAttribution": "monolith, dibina berasaskan LifeForge.",
+    "licenseAttribution": "LifeForge oleh <author>Melvin Chia</author>, dilesenkan di bawah <license>CC BY-NC-SA 4.0</license>."
+  },
+  "vault": {
+    "vault": {
+      "lockedMessage": "Petak simpanan anda dikunci",
+      "passwordRequired": "Kata laluan utama diperlukan untuk menyahsulit petak simpanan anda.",
+      "unlocked": "Petak simpanan dibuka",
+      "failedToUnlock": "Gagal membuka petak simpanan",
+      "buttons": {
+        "unlock": "Buka Kunci",
+        "recoverAccount": "Pulihkan Akaun"
+      },
+      "createPassword": {
+        "title": "Tetapkan Kata Laluan Utama",
+        "desc": "Sila tetapkan kata laluan utama untuk melindungi petak simpanan anda."
+      },
+      "inputs": {
+        "newPassword": "Kata Laluan Baru",
+        "confirmPassword": "Sahkan Kata Laluan",
+        "masterPassword": "Kata Laluan Utama"
+      },
+      "confirmSetNewPassword": {
+        "title": "Pastikan anda ingat kata laluan utama anda!",
+        "desc": "Kata laluan utama ini tidak boleh diubah (buat masa ini)! Jika anda terlupa kata laluan secara tidak sengaja, anda akan kehilangan segala-galanya. Kata laluan ini dihash dan disimpan dalam profil pengguna anda, dan ia tidak boleh disahsulit. Ia akan digunakan untuk menyulit dan menyahsulit data yang anda simpan dalam petak simpanan anda."
+      }
+    },
+    "otp": {
+      "buttons": {
+        "request": "Minta OTP",
+        "resend": "Hantar Semula OTP",
+        "verify": "Sahkan OTP",
+        "authByQR": "Sahkan dengan Kod QR"
+      },
+      "messages": {
+        "success": "OTP dihantar! Sila semak emel anda.",
+        "failed": "Gagal meminta OTP",
+        "invalid": "OTP mesti nombor 6 digit",
+        "cooldown": "Permintaan terlalu kerap, sila cuba lagi nanti",
+        "required": {
+          "title": "OTP Diperlukan untuk Membuka Kunci",
+          "desc": "Untuk keselamatan tambahan, OTP diperlukan untuk membuka kunci modul ini. Sila klik butang di bawah untuk meminta OTP."
+        },
+        "verify": {
+          "success": "Pengesahan OTP berjaya",
+          "failed": "Pengesahan OTP gagal"
+        }
+      }
+    }
+  },
+  "recurring": {
+    "freqs": {
+      "yearly": "Tahunan",
+      "monthly": "Bulanan",
+      "weekly": "Mingguan",
+      "daily": "Harian",
+      "hourly": "Setiap Jam"
+    },
+    "onThe": {
+      "first": "Pertama",
+      "second": "Kedua",
+      "third": "KetigK",
+      "fourth": "Keempat",
+      "last": "Terakhir"
+    },
+    "onTheDay": {
+      "weekday": "Hari Minggu",
+      "day": "Hari",
+      "weekendDay": "Hari Weekend"
+    },
+    "endTypes": {
+      "never": "Tidak pernah",
+      "after": "Selepas",
+      "on": "Pada Tarikh"
+    },
+    "inputs": {
+      "on": "Tarikh",
+      "after": "Jumlah",
+      "executions": "Pelaksanaan",
+      "durationUnit": "Unit Tempoh",
+      "durationAmount": "Jumlah Tempoh",
+      "frequency": "Kekerapan",
+      "yearly": {
+        "exactDate": {
+          "title": "Pada Tarikh Tepat",
+          "inputs": {
+            "month": "Bulan",
+            "date": "Tarikh"
+          }
+        },
+        "relativeDay": {
+          "title": "Pada Hari Relatif",
+          "inputs": {
+            "onThe": "Pada",
+            "onTheDay": "Hari",
+            "ofTheMonth": "Bulan Ini"
+          }
+        }
+      },
+      "monthly": {
+        "inputs": {
+          "every": "Setiap",
+          "months": "Bulan"
+        },
+        "exactDate": {
+          "title": "Pada Tarikh Tepat",
+          "inputs": {
+            "date": "Tarikh"
+          }
+        },
+        "relativeDay": {
+          "title": "Pada Hari Relatif",
+          "inputs": {
+            "onThe": "Pada",
+            "onTheDay": "Hari"
+          }
+        }
+      },
+      "weekly": {
+        "inputs": {
+          "every": "Setiap",
+          "weeks": "Minggu",
+          "onDays": "Pada Hari"
+        }
+      },
+      "daily": {
+        "inputs": {
+          "every": "Setiap",
+          "days": "Hari"
+        }
+      },
+      "hourly": {
+        "inputs": {
+          "every": "Setiap",
+          "hours": "Jam"
+        }
+      },
+      "endType": "Tamat"
+    },
+    "durationUnits": {
+      "minute": "Minit",
+      "hour": "Jam",
+      "day": "Hari",
+      "week": "Minggu",
+      "month": "Bulan",
+      "year": "Tahun"
+    }
+  },
+  "blocks": {
+    "editor": "Kandungan dokumen",
+    "toolbar": "Pemformatan dan blok",
+    "placeholder": "Tulis sesuatu, atau taip / untuk blok…",
+    "loading": "Membuka editor…",
+    "add": "Blok",
+    "bold": "Tebal",
+    "italic": "Condong",
+    "code": "Kod sebaris",
+    "linkPage": "Pautkan halaman",
+    "searchPages": "Cari halaman",
+    "noPages": "Tiada halaman sepadan. Cipta dokumen, nota atau rekod dahulu.",
+    "undo": "Buat asal",
+    "redo": "Buat semula",
+    "moveUp": "Alih blok ke atas",
+    "moveDown": "Alih blok ke bawah",
+    "duplicate": "Gandakan blok",
+    "delete": "Padam blok",
+    "unavailable": "Halaman ini tidak tersedia",
+    "hint": "Taip / untuk memilih blok. Gunakan [[Tajuk halaman]] atau Pautkan halaman untuk menghubungkan idea.",
+    "types": {
+      "paragraph": "Teks",
+      "heading1": "Tajuk 1",
+      "heading2": "Tajuk 2",
+      "heading3": "Tajuk 3",
+      "bulletList": "Senarai berbulet",
+      "orderedList": "Senarai bernombor",
+      "taskList": "Senarai semak",
+      "blockquote": "Petikan",
+      "codeBlock": "Kod",
+      "horizontalRule": "Pemisah"
+    }
+  },
+  "graph": {
+    "map": "Peta pengetahuan",
+    "count": "{{nodes}} halaman · {{edges}} hubungan",
+    "zoomIn": "Zum masuk",
+    "zoomOut": "Zum keluar",
+    "fit": "Muatkan peta",
+    "hint": "Seret untuk mengalih peta atau nod. Tatal untuk zum. Gunakan Tab dan Enter untuk memilih; +, − dan kekunci anak panah pada peta.",
+    "empty": "Idea yang berhubung akan muncul di sini.",
+    "kinds": {
+      "document": "Dokumen",
+      "record": "Rekod",
+      "note": "Nota"
+    }
+  },
+  "appBar": {
+    "navigation": "Navigasi ruang kerja",
+    "workspace": "Ruang kerja",
+    "databases": "Pangkalan data",
+    "techLab": "Tech Lab",
+    "calendar": "Kalendar",
+    "agents": "Ejen",
+    "modules": "Modul",
+    "account": "Tetapan akaun",
+    "lightTheme": "Tukar kepada tema cerah",
+    "darkTheme": "Tukar kepada tema gelap",
+    "page": "Halaman",
+    "openSidebar": "Buka senarai halaman",
+    "closeSidebar": "Tutup senarai halaman"
+  },
+  "canvas": {
+    "home": "Utama",
+    "quickAccess": "Akses pantas",
+    "projects": "Projek",
+    "documents": "Dokumen & pangkalan data",
+    "homelab": "Makmal rumah",
+    "financialOverview": "Gambaran kewangan",
+    "notes": "Nota",
+    "pageTitle": "Tajuk halaman",
+    "pages": "Halaman",
+    "newPage": "Halaman baharu",
+    "untitled": "Tanpa tajuk",
+    "document": "Blok dokumen",
+    "editPage": "Edit halaman",
+    "savePage": "Simpan halaman",
+    "saveFailed": "Halaman tidak dapat disimpan. Draf masih tersedia.",
+    "loadFailed": "Halaman ini tidak dapat dimuatkan.",
+    "loading": "Memuatkan…",
+    "retry": "Cuba lagi",
+    "cancel": "Batal",
+    "unsaved": "Perubahan belum disimpan",
+    "keepEditing": "Teruskan mengedit",
+    "discard": "Buang perubahan",
+    "addBlock": "Tambah blok",
+    "liveBlocks": "Blok bersambung",
+    "newButton": "Buka halaman",
+    "blockTitle": "Tajuk blok",
+    "optionalTitle": "Tajuk pilihan",
+    "buttonUrl": "Alamat butang",
+    "content": "Kandungan",
+    "connectedArea": "Papan pemuka bahagian · bersambung kepada data sedia ada",
+    "connectedWidget": "Widget langsung · kembali kepada data langsung selepas disimpan",
+    "unavailableWidget": "Blok bersambung ini tidak tersedia. Pilih blok yang dipasang melalui Edit halaman.",
+    "unsafeLink": "Gunakan alamat web yang selamat atau laluan halaman ruang kerja.",
+    "fullWidth": "Lebar penuh",
+    "standardWidth": "Lebar standard",
+    "dragBlock": "Seret blok",
+    "moveUp": "Alih blok ke atas",
+    "moveDown": "Alih blok ke bawah",
+    "removeBlock": "Buang blok",
+    "width": {
+      "full": "Penuh",
+      "half": "1/2",
+      "third": "1/3"
+    },
+    "types": {
+      "document": "Teks & dokumen",
+      "heading": "Tajuk",
+      "callout": "Sorotan",
+      "button": "Butang",
+      "divider": "Pemisah",
+      "native": "Papan pemuka bahagian",
+      "widget": "Widget langsung",
+      "database": "Pangkalan data terpaut"
+    },
+    "filter": "Penapis kandungan",
+    "filterHelp": "Nama perkhidmatan, peranti atau projek pilihan",
+    "labHealth": "Status makmal",
+    "deviceResources": "Sumber peranti",
+    "widgets": {
+      "projectOverview": "Papan projek",
+      "techLabServices": "Pelancar perkhidmatan",
+      "techLabHealth": "Status pemantauan",
+      "techLabDevice": "Sumber peranti",
+      "assetsBalance": "Baki aset"
+    },
+    "saving": "Menyimpan…",
+    "saved": "Semua perubahan disimpan",
+    "readOnly": "Halaman baca sahaja",
+    "noDatabases": "Cipta pangkalan data ruang kerja untuk dipautkan di sini.",
+    "changeView": "Tukar paparan pangkalan data",
+    "linkSettings": "Edit pintasan",
+    "workspace": "Ruang kerja",
+    "newWorkspace": "Ruang kerja baharu",
+    "workspaceSettings": "Tetapan ruang kerja",
+    "workspaceName": "Nama ruang kerja",
+    "workspaceProfile": "Jenis ruang kerja",
+    "createWorkspace": "Cipta ruang kerja",
+    "newChildPage": "Subhalaman baharu",
+    "profiles": {
+      "personal": "Peribadi",
+      "collaborative": "Kolaboratif",
+      "agents": "Ejen sahaja"
+    },
+    "areaTitles": {
+      "page": "Halaman",
+      "task": "Senarai tugas",
+      "note": "Nota",
+      "project": "Projek",
+      "event": "Kalendar",
+      "post": "Blog"
+    },
+    "reloadSaved": "Muat semula versi tersimpan",
+    "reloadConfirm": "Buang perubahan halaman yang belum disimpan dan muat versi tersimpan?",
+    "refreshFailed": "Halaman disimpan. Navigasi tidak dapat dimuat semula. Cuba lagi."
+  },
+  "systemSearch": {
+    "title": "Cari semuanya",
+    "subtitle": "Cari jawapan dalam ruang kerja Monolith anda dengan sumber yang boleh dirujuk.",
+    "scope": "Ruang kerja",
+    "allWorkspaces": "Semua ruang kerja yang boleh diakses dan modul peribadi",
+    "module": "Modul",
+    "allModules": "Semua modul",
+    "queryLabel": "Apa yang anda cari?",
+    "placeholder": "Tanya soalan, huraikan imej atau cari frasa…",
+    "search": "Cari",
+    "keyword": "Kata kunci sahaja",
+    "generate": "Jana jawapan dengan rujukan",
+    "coverage": "{{ready}} daripada {{total}} sumber diindeks",
+    "loading": "Memuatkan status indeks…",
+    "checkingHost": "Menyemak Mac mini…",
+    "hostReady": "Mac mini disambungkan · embedding, visi, LLM dan Laya",
+    "hostOffline": "Mac mini tidak tersedia · carian kata kunci masih berfungsi",
+    "indexing": "Mengindeks {{source}}…",
+    "index": "Kemas kini indeks",
+    "stop": "Berhenti selepas kelompok ini",
+    "retryHost": "Cuba sambungan semula",
+    "indexHelp": "Pengindeksan disambung daripada kelompok yang lengkap. Kemas kini selepas kandungan berubah. Skop ruang kerja mencari halaman, rekod dan pengetahuan yang diimport; fail modul peribadi disertakan dalam skop semua ruang kerja.",
+    "failed": "Carian gagal. Sila cuba lagi.",
+    "answer": "Jawapan daripada sumber anda",
+    "answerHelp": "Tafsiran dijana AI. Semak bukti yang dipautkan sebelum bergantung padanya.",
+    "evidence": "Bukti ({{count}})",
+    "empty": "Tiada bukti sepadan. Cuba perkataan lain atau kemas kini indeks untuk carian semantik.",
+    "visionLabel": "Tafsiran imej AI",
+    "relevance": "Kerelevanan Laya {{score}}% · keyakinan {{confidence}}%",
+    "open": "Buka sumber",
+    "citation": "Bukti {{id}}",
+    "stages": {
+      "keyword": "Kata kunci",
+      "embedding": "Embedding",
+      "laya": "Laya",
+      "llm": "Jawapan"
+    },
+    "warnings": {
+      "general": "Sesetengah kandungan tidak dapat diindeks sepenuhnya.",
+      "file-too-large": "Kandungan fail melebihi had 12 MiB; metadatanya boleh dicari.",
+      "unsupported-file": "Format fail ini hanya menyokong carian metadata.",
+      "missing-file": "Kandungan fail tidak tersedia.",
+      "file-partial": "Hanya 80 halaman pertama atau 100,000 aksara diindeks.",
+      "scanned-pdf": "PDF ini mempunyai sedikit teks boleh diekstrak; halaman imbasan belum boleh dicari.",
+      "embedding-unavailable": "API embedding tidak tersedia; memaparkan padanan kata kunci.",
+      "index-pending": "Sesetengah sumber perlu diindeks. Teks semasanya masih boleh dicari melalui kata kunci.",
+      "laya-unavailable": "Laya tidak tersedia; memaparkan susunan carian.",
+      "answer-unavailable": "Penjanaan jawapan tidak tersedia atau tidak disahkan; memaparkan bukti sumber.",
+      "sources-changed": "Sumber berubah semasa carian. Cari semula untuk jawapan terkini.",
+      "unreadable-file": "Fail tidak dapat dinyahkod dengan selamat; hanya metadatanya diindeks."
+    },
+    "clearIndex": "Kosongkan indeks carian saya"
+  },
+  "inputs": {
+    "rangeValue": "Nilai"
+  }
+}

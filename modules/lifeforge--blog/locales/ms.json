@@ -1,0 +1,50 @@
+{
+  "title": "Blog",
+  "description": "Tulis entri blog dan susun idea anda mengikut kategori.",
+  "create": "Cipta",
+  "edit": "Sunting",
+  "save": "Simpan",
+  "cancel": "Batal",
+  "delete": "Padam",
+  "confirmDelete": "Padam rekod ini dan item berkaitannya?",
+  "empty": "Belum ada rekod. Cipta rekod pertama anda.",
+  "noResults": "Tiada rekod sepadan.",
+  "loading": "Memuatkan…",
+  "retry": "Cuba lagi",
+  "none": "Tiada",
+  "yes": "Ya",
+  "no": "Tidak",
+  "saveFailed": "Rekod tidak dapat disimpan.",
+  "study": "Belajar",
+  "reveal": "Lihat jawapan",
+  "again": "Ulang",
+  "good": "Faham",
+  "finished": "Semua kad telah diulang kaji.",
+  "search": "Cari",
+  "board": "Papan",
+  "manage": "Urus",
+  "entities": {
+    "categories": "Kategori",
+    "entries": "Entri"
+  },
+  "inputs": {
+    "search": "Cari",
+    "name": "Nama",
+    "color": "Warna",
+    "icon": "Ikon",
+    "title": "Tajuk",
+    "content": "Kandungan (Markdown)",
+    "excerpt": "Petikan",
+    "visibility": "Keterlihatan",
+    "category_id": "Kategori",
+    "labels": "Label (dipisahkan koma)",
+    "featured_image": "URL imej utama"
+  },
+  "options": {
+    "private": "Peribadi",
+    "public": "Awam",
+    "unlisted": "Tidak tersenarai",
+    "note": "Nota",
+    "folder": "Folder"
+  }
+}

@@ -18,6 +18,8 @@ import path from 'node:path'
 import { sweepStagingDir } from '@lifeforge/file-storage/server'
 import { traceRouteStack } from '@lifeforge/server-utils'
 
+import './loadEnv'
+
 dotenv.config({
   path: path.join(ROOT_DIR, 'env/.env.local'),
   quiet: true
@@ -25,8 +27,8 @@ dotenv.config({
 
 // Parse CLI arguments
 program
-  .name('lifeforge-server')
-  .description('LifeForge API Server')
+  .name('monolith-server')
+  .description('monolith API Server')
   .option(
     '-l, --log-level <level>',
     `Set log level (${LOG_LEVELS.join(', ')})`,
@@ -73,6 +75,8 @@ async function main(): Promise<void> {
   // Import the app after loading env so module-level env reads (e.g. JWT secret)
   // are populated regardless of how the server is spawned.
   const { default: app } = await import('./core/app')
+  const { verifyDatabaseIsolation } = await import('./core/drizzle')
+  await verifyDatabaseIsolation()
 
   LocaleService.validateAndLoad()
   ensureCredentials()
@@ -80,6 +84,81 @@ async function main(): Promise<void> {
   const server = createSocketServer(app)
 
   startServer(server, app)
+
+  const { db } = await import('./core/drizzle')
+  const { users } = await import('./lib/user/schema.drizzle')
+  const { asc, gt } = await import('drizzle-orm')
+  const { startGymPushDispatcher } =
+    await import('../../../modules/zillion--gym/server/push')
+  const { startTechLabDispatcher } =
+    await import('../../../modules/zillion--tech-lab/server/collectors')
+  const pushLogger = createServiceLogger('Gym notifications')
+  const techLabLogger = createServiceLogger('Tech Lab monitoring')
+
+  let pushOwnerCursor: string | null = null
+  let techLabOwnerCursor: string | null = null
+
+  const techLab = startTechLabDispatcher({
+    db: db as unknown as import('../../../modules/zillion--tech-lab/server/store').TechLabDatabase,
+    async listOwners(limit) {
+      let owners = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(
+          techLabOwnerCursor ? gt(users.id, techLabOwnerCursor) : undefined
+        )
+        .orderBy(asc(users.id))
+        .limit(limit)
+
+      if (!owners.length && techLabOwnerCursor) {
+        techLabOwnerCursor = null
+        owners = await db
+          .select({ id: users.id })
+          .from(users)
+          .orderBy(asc(users.id))
+          .limit(limit)
+      }
+      techLabOwnerCursor = owners.at(-1)?.id ?? null
+
+      return owners.map(owner => owner.id)
+    },
+    onError: code => techLabLogger.warn(code)
+  })
+
+  const gymPush = startGymPushDispatcher({
+    db: db as unknown as import('../../../modules/zillion--gym/server/store').GymDatabase,
+    async listOwners(limit) {
+      let owners = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(pushOwnerCursor ? gt(users.id, pushOwnerCursor) : undefined)
+        .orderBy(asc(users.id))
+        .limit(limit)
+
+      if (!owners.length && pushOwnerCursor) {
+        pushOwnerCursor = null
+        owners = await db
+          .select({ id: users.id })
+          .from(users)
+          .orderBy(asc(users.id))
+          .limit(limit)
+      }
+      pushOwnerCursor = owners.at(-1)?.id ?? null
+
+      return owners.map(owner => owner.id)
+    },
+    onError: code => pushLogger.warn(code)
+  })
+  server.once('close', () => {
+    techLab.stop()
+    void gymPush.stop()
+  })
+  const stopNotifications = () => {
+    techLab.stop()
+    void gymPush.stop().finally(() => process.exit(0))
+  }
+  process.once('SIGINT', stopNotifications)
+  process.once('SIGTERM', stopNotifications)
 
   // Routes are already loaded via `./core/app`; start watching for module changes.
   const { startModuleWatcher } = await import('./core/routes')

@@ -1,6 +1,8 @@
 import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu'
 import type React from 'react'
 
+import { useModuleTranslation } from '@lifeforge/localization'
+
 import { Button } from '@/components/inputs'
 import {
   Bordered,
@@ -41,19 +43,20 @@ export function ContextMenu({
   side = 'bottom',
   ...rest
 }: MenuProps) {
+  const { t } = useModuleTranslation(['common.buttons'])
   return (
     <DropdownMenuPrimitive.Root onOpenChange={onOpenChange}>
       <DropdownMenuPrimitive.Trigger asChild>
-        <Box {...rest} role="menu">
+        <Box asChild {...rest}>
           {buttonComponent || (
             <Button
+              aria-label={t('moreActions')}
               icon={customIcon ?? 'tabler:dots-vertical'}
               iconProps={componentProps?.icon}
               tabIndex={0}
               variant="plain"
               {...componentProps?.button}
               onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-                e.preventDefault()
                 e.stopPropagation()
                 componentProps?.button?.onClick?.(e)
               }}
@@ -61,7 +64,7 @@ export function ContextMenu({
           )}
         </Box>
       </DropdownMenuPrimitive.Trigger>
-      <DropdownMenuPrimitive.Portal container={document.getElementById('app')!}>
+      <DropdownMenuPrimitive.Portal container={document.getElementById('app')}>
         <DropdownMenuPrimitive.Content
           asChild
           avoidCollisions
@@ -69,7 +72,7 @@ export function ContextMenu({
           alignOffset={0}
           collisionPadding={16}
           side={side}
-          sideOffset={12}
+          sideOffset={6}
         >
           <Bordered
             bg={{ base: 'bg-50', dark: 'bg-800' }}

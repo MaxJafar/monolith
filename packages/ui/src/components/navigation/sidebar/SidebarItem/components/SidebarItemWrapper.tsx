@@ -1,7 +1,6 @@
 import clsx from 'clsx'
 
 import { Flex, Text, Transition } from '@/components/primitives'
-import { colorWithOpacity } from '@/system/colors/color-with-opacity'
 
 import * as styles from './SidebarItemWrapper.css'
 
@@ -9,11 +8,15 @@ export function SidebarItemWrapper({
   active,
   children,
   className,
+  ariaLabel,
+  expanded,
   onClick
 }: {
   active: boolean
   children: React.ReactNode
   className?: string
+  ariaLabel?: string
+  expanded?: boolean
   onClick?: () => void
 }) {
   return (
@@ -39,16 +42,18 @@ export function SidebarItemWrapper({
             <Flex
               asChild
               align="center"
+              aria-expanded={expanded}
+              aria-label={ariaLabel}
               as="button"
               bg={
                 active
                   ? {
-                      base: colorWithOpacity('bg-200', '50%'),
+                      base: 'bg-200',
                       dark: 'bg-800'
                     }
                   : {
-                      hover: colorWithOpacity('bg-200', '30%'),
-                      darkHover: colorWithOpacity('bg-800', '30%')
+                      hover: 'bg-200',
+                      darkHover: 'bg-800'
                     }
               }
               className="group"
@@ -66,6 +71,15 @@ export function SidebarItemWrapper({
               tabIndex={0}
               width="100%"
               onClick={onClick}
+              onKeyDown={event => {
+                if (
+                  event.target === event.currentTarget &&
+                  (event.key === 'Enter' || event.key === ' ')
+                ) {
+                  event.preventDefault()
+                  onClick?.()
+                }
+              }}
             >
               <Text align="left">{children}</Text>
             </Flex>

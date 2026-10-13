@@ -1,4 +1,5 @@
 export * from './Card'
+export * from './WorkspaceCanvas'
 
 export * from './ContentWrapperWithSidebar'
 

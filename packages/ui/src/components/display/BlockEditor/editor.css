@@ -1,0 +1,211 @@
+/* ProseMirror owns the document DOM; these selectors style its semantic blocks. */
+.zillion-prose,
+.zillion-prose * {
+  user-select: text;
+}
+.zillion-prose {
+  min-height: 16rem;
+  outline: none;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+  padding: var(--spacing-md);
+  border: 1px solid var(--color-bg-300);
+  border-radius: var(--radius-lg);
+  caret-color: var(--color-custom-500);
+}
+.dark .zillion-prose {
+  border-color: var(--color-bg-700);
+}
+.zillion-prose:focus {
+  border-color: var(--color-custom-500);
+}
+.zillion-prose > * {
+  scroll-margin-top: 6rem;
+}
+.zillion-prose p {
+  margin: 0.6em 0;
+}
+.zillion-prose h1,
+.zillion-prose h2,
+.zillion-prose h3 {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  line-height: 1.25;
+  margin: 1.2em 0 0.5em;
+}
+.zillion-prose h1 {
+  font-size: 2em;
+}
+.zillion-prose h2 {
+  font-size: 1.5em;
+}
+.zillion-prose h3 {
+  font-size: 1.25em;
+}
+.zillion-prose ul,
+.zillion-prose ol {
+  padding-left: 1.75em;
+  list-style: revert;
+}
+.zillion-prose li > p {
+  margin: 0.2em 0;
+}
+.zillion-prose blockquote {
+  border-left: 3px solid var(--color-custom-500);
+  padding-left: 1em;
+  margin: 1em 0;
+  color: var(--color-bg-600);
+}
+.dark .zillion-prose blockquote {
+  color: var(--color-bg-400);
+}
+.zillion-prose pre {
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  background: var(--color-bg-100);
+  overflow-x: auto;
+}
+.dark .zillion-prose pre {
+  background: var(--color-bg-950);
+}
+.zillion-prose code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.88em;
+}
+.zillion-prose hr {
+  margin: 1.5rem 0;
+  border: 0;
+  border-top: 1px solid var(--color-bg-500);
+}
+.zillion-prose a,
+.zillion-page-link {
+  color: var(--color-custom-500);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.zillion-page-link {
+  border-radius: 0.3em;
+  background: color-mix(in srgb, var(--color-custom-500) 12%, transparent);
+  padding: 0.1em 0.35em;
+  text-decoration: none;
+}
+.zillion-page-link[data-unavailable='true'] {
+  opacity: 0.6;
+  text-decoration: line-through;
+}
+.zillion-page-link:focus-visible {
+  outline: 2px solid var(--color-custom-500);
+  outline-offset: 2px;
+}
+.zillion-prose ul[data-type='taskList'] {
+  padding: 0;
+  list-style: none;
+}
+.zillion-prose li[data-checked] {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+.zillion-prose li[data-checked] > label {
+  flex: 0 0 auto;
+  cursor: pointer;
+}
+.zillion-prose li[data-checked] > div {
+  flex: 1;
+  min-width: 0;
+}
+.zillion-prose input[type='checkbox'] {
+  accent-color: var(--color-custom-500);
+  width: 1.1em;
+  height: 1.1em;
+}
+.zillion-prose li[data-checked='true'] > div > p {
+  opacity: 0.6;
+  text-decoration: line-through;
+}
+.zillion-prose p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--color-bg-500);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+.zillion-editor-menu {
+  background: var(--md-sys-color-surface-container-high);
+  box-shadow: var(--shadow-floating, 0 8px 40px #0003);
+  animation: zillion-editor-enter var(--motion-normal, 220ms)
+    var(--motion-ease, ease) both;
+}
+.zillion-block-editor {
+  position: relative;
+}
+.monolith-editor-toolbar {
+  position: sticky;
+  top: 8px;
+  z-index: 5;
+  padding: 4px;
+  border-radius: 12px;
+  width: fit-content;
+  background: var(--md-sys-color-surface-container);
+}
+.monolith-editor-toolbar[data-focused='false']:not(:focus-within) {
+  opacity: 0;
+  visibility: hidden;
+  height: auto;
+  min-height: 32px;
+  padding: 4px;
+  overflow: hidden;
+  pointer-events: none;
+}
+.monolith-editor-toolbar button {
+  min-height: 32px;
+  padding: 4px 8px;
+  flex-shrink: 0;
+}
+.workspace-canvas .monolith-editor-toolbar {
+  position: absolute;
+  top: auto;
+  bottom: calc(100% + 4px);
+  left: 0;
+  max-width: 100%;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+.monolith-editor-toolbar {
+  transition: opacity var(--motion-fast, 140ms) var(--motion-ease, ease);
+}
+.workspace-canvas .zillion-prose[contenteditable='true'] {
+  min-height: 48px;
+}
+.zillion-prose,
+.zillion-page-link {
+  transition:
+    border-color var(--motion-fast, 140ms),
+    background-color var(--motion-fast, 140ms);
+}
+@media (max-width: 700px), (pointer: coarse) {
+  .monolith-editor-toolbar button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+@keyframes zillion-editor-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .zillion-editor-menu {
+    animation: none;
+  }
+  .zillion-prose,
+  .zillion-page-link,
+  .monolith-editor-toolbar {
+    transition: none;
+  }
+}

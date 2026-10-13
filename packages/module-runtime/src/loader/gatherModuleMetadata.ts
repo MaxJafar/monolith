@@ -25,7 +25,8 @@ async function resolveBundledMetadata(
   isProduction: boolean
 ): Promise<ModuleBundledMetadata | null> {
   if (!isProduction) {
-    const { extractModuleMetadata } = await import('@lifeforge/configs/metadata')
+    const { extractModuleMetadata } =
+      await import('@lifeforge/configs/metadata')
 
     return extractModuleMetadata(moduleDir)
   }

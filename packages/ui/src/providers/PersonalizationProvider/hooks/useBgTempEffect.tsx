@@ -22,7 +22,8 @@ function useBgTempEffect(
         'bg-olive',
         'bg-mist',
         'bg-taupe',
-        'bg-custom'
+        'bg-custom',
+        'bg-zillion'
       )
       rootElement.classList.add(bgTemp.startsWith('#') ? 'bg-custom' : bgTemp)
     }

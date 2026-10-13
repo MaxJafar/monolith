@@ -1,5 +1,4 @@
-import { useState } from 'react'
-
+import { Button } from '@/components/inputs/Button'
 import { useInputLabel } from '@/components/inputs/shared/hooks/useInputLabel'
 import { Flex, Icon, Text } from '@/components/primitives'
 import { useModalStore } from '@/providers'
@@ -8,6 +7,7 @@ import { SliderValueModal } from './SliderValueModal'
 
 export function SliderHeader({
   icon,
+  inputId,
   label,
   namespace,
   value,
@@ -19,6 +19,7 @@ export function SliderHeader({
   renderValue
 }: {
   icon?: string
+  inputId: string
   label?: string
   namespace?: string | false
   value: number
@@ -31,9 +32,7 @@ export function SliderHeader({
 }) {
   const { open } = useModalStore()
   const inputLabel = useInputLabel({ namespace, label: label ?? '' })
-  const [isHovered, setIsHovered] = useState(false)
-
-  if (!label || !icon) return null
+  if (!label) return null
 
   function handleValueClick() {
     if (disabled || !onChange) return
@@ -52,18 +51,13 @@ export function SliderHeader({
       align="center"
       gap="xl"
       justify="between"
-      mb="md"
+      mb="xs"
       minWidth="0"
       width="100%"
     >
-      <Text asChild color={{ base: 'bg-400', dark: 'bg-600' }} weight="medium">
-        <Flex
-          align="center"
-          gap="sm"
-          minWidth="0"
-          style={{ letterSpacing: '0.025em' }}
-        >
-          <Icon icon={icon} size="1.5rem" />
+      <Text asChild color="muted" weight="medium">
+        <Flex as="label" htmlFor={inputId} align="center" gap="sm" minWidth="0">
+          {icon && <Icon aria-hidden="true" icon={icon} />}
           <Flex align="center" gap="sm" minWidth="0" width="100%">
             <Text truncate as="div" style={{ width: '100%', minWidth: 0 }}>
               {inputLabel}
@@ -73,26 +67,17 @@ export function SliderHeader({
         </Flex>
       </Text>
       <Flex align="center" gap="sm">
-        <span
-          style={{
-            cursor: disabled || !onChange ? 'default' : 'pointer',
-            textDecoration:
-              !disabled && onChange && isHovered ? 'underline' : 'none',
-            transition: 'all 0.2s ease'
-          }}
+        <Button
+          aria-label={`${inputLabel}: ${renderValue ? renderValue(value) : value}`}
+          disabled={disabled || !onChange}
+          namespace={false}
+          px="sm"
+          variant="plain"
           onClick={handleValueClick}
-          onMouseEnter={() => {
-            setIsHovered(true)
-          }}
-          onMouseLeave={() => {
-            setIsHovered(false)
-          }}
         >
           {renderValue ? renderValue(value) : value}
-        </span>
-        <Text color="muted" style={{ fontSize: '0.75rem' }}>
-          /{renderValue ? renderValue(max) : max}
-        </Text>
+        </Button>
+        <Text color="muted">/{renderValue ? renderValue(max) : max}</Text>
       </Flex>
     </Flex>
   )

@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 
+import { ModuleMetadataProvider } from '@lifeforge/federation'
+
 import { useModalStore } from '@/providers'
 import type { ModalInstance } from '@/providers/ModalProvider'
 
 import { ModalWrapper } from '../ModalWrapper'
+import { scheduleModalExit } from './modalExit'
 
 function FinalElement({
   item,
@@ -14,7 +17,11 @@ function FinalElement({
 }) {
   const { data, component: ModalComponent } = item
 
-  return <ModalComponent data={data} onClose={onClose} />
+  return (
+    <ModuleMetadataProvider value={item.metadata}>
+      <ModalComponent data={data} onClose={onClose} />
+    </ModuleMetadataProvider>
+  )
 }
 
 function StackModal({ item }: { item: ModalInstance }) {
@@ -31,6 +38,15 @@ function StackModal({ item }: { item: ModalInstance }) {
 
     return () => clearTimeout(timer)
   }, [])
+
+  useEffect(() => {
+    if (!isClosing) return
+
+    return scheduleModalExit(
+      () => remove(id),
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    )
+  }, [id, isClosing, remove])
 
   const isTopmost = useMemo(() => {
     const topmostIndex = stack.findLastIndex(modal => !modal.isClosing)

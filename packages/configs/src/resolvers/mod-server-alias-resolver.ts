@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import { builtinModules, createRequire } from 'node:module'
 import path from 'node:path'
-import { type Plugin } from 'vite'
+import { type Alias, type Plugin } from 'vite'
 
 import { findProjectRoot } from '../utils/projectRoot'
 
@@ -39,13 +39,42 @@ function getCoreDependencies(dirname: string): Set<string> {
  */
 const NODE_BUILT_INS = new Set(builtinModules)
 
+/** Export-map names are public specifiers, independent of the backing filename. */
+function hasPackageExportMap(
+  resolvedPath: string,
+  packageName: string
+): boolean {
+  for (
+    let directory = path.dirname(resolvedPath);
+    directory !== path.dirname(directory);
+    directory = path.dirname(directory)
+  ) {
+    const manifestPath = path.join(directory, 'package.json')
+
+    if (fs.existsSync(manifestPath)) {
+      try {
+        const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8')) as {
+          name?: unknown
+          exports?: unknown
+        }
+
+        if (manifest.name === packageName) return manifest.exports !== undefined
+      } catch {
+        // Preserve the existing extension fallback for unreadable manifests.
+      }
+    }
+  }
+
+  return false
+}
+
 /**
  * Custom resolution plugin that intercepts bare module imports and marks them as external,
  * appending correct extensions to subpath imports. Fully respects custom path aliases,
  * virtual modules, Node built-ins, and query/hash URL suffixes.
  */
 export function serverAliasResolver(dirname: string): Plugin {
-  let aliases: any[] = []
+  let aliases: Alias[] = []
 
   const coreDeps = getCoreDependencies(dirname)
 
@@ -53,7 +82,7 @@ export function serverAliasResolver(dirname: string): Plugin {
     name: 'externalize-node-modules',
     enforce: 'pre',
     configResolved(config) {
-      aliases = config.resolve.alias || []
+      aliases = config.resolve.alias
     },
     resolveId(source) {
       // 1. Skip Vite virtual modules
@@ -134,6 +163,9 @@ export function serverAliasResolver(dirname: string): Plugin {
           const resolvedPath = cjsRequire.resolve(cleanSource, {
             paths: [dirname]
           })
+
+          if (hasPackageExportMap(resolvedPath, packageName))
+            return { id: source, external: true }
 
           // Normalize Windows backslashes to forward slashes
           const normalizedPath = resolvedPath.replace(/\\/g, '/')

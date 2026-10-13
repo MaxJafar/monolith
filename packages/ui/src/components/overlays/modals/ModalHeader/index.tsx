@@ -38,9 +38,12 @@ export function ModalHeader({
   namespace?: string | false
   trailing?: React.ReactNode
 }) {
-  const { t } = useModuleTranslation(namespace ? [namespace] : [])
+  const { t } = useModuleTranslation(
+    namespace ? [namespace, 'common.buttons'] : ['common.buttons']
+  )
   // Add some delay to prevent the title and icon to become empty
   // when the modal is transitioned
+
   const innerTitle = useDebounce(title, 100)
   const innerIcon = useDebounce(icon, 100)
 
@@ -98,6 +101,7 @@ export function ModalHeader({
       <Flex align="center" gap="sm">
         {trailing}
         <Button
+          aria-label={t('common.buttons:close')}
           icon="tabler:x"
           style={{ padding: '0.75rem' }}
           variant="plain"

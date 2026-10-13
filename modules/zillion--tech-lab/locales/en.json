@@ -1,0 +1,202 @@
+{
+  "title": "Tech Lab",
+  "description": "Your homelab devices, services, and observed health.",
+  "navigation": "Tech Lab navigation",
+  "loading": "Loading your Tech Lab…",
+  "sections": {
+    "overview": "Overview",
+    "devices": "Devices",
+    "services": "Services",
+    "health": "Health",
+    "import": "Import & settings"
+  },
+  "items": {
+    "devices": "devices",
+    "services": "services"
+  },
+  "overview": {
+    "devices": "Devices",
+    "services": "Services & links",
+    "up": "Reachable",
+    "attention": "Needs attention",
+    "title": "Your homelab",
+    "collector": "Enabled monitors run in the background while the monolith API is running, even after you close the browser. They resume after an API restart. Visiting Tech Lab or saving an enabled monitor also registers checks.",
+    "updated": "Snapshot refreshed {{date}}"
+  },
+  "kinds": {
+    "service": "Hosted services",
+    "game": "Game servers",
+    "link": "Links & bookmarks"
+  },
+  "status": {
+    "up": "Reachable",
+    "down": "Unreachable",
+    "error": "Check error",
+    "stale": "Stale",
+    "disabled": "Disabled",
+    "unknown": "Unknown"
+  },
+  "monitors": {
+    "none": "No monitor",
+    "http": "HTTP reachability",
+    "tcp": "TCP connection",
+    "minecraft": "Minecraft status"
+  },
+  "inputs": {
+    "name": "Name",
+    "kind": "Type",
+    "host": "Host / IP",
+    "os": "Operating system",
+    "cpu": "CPU",
+    "gpu": "GPU",
+    "ram_gb": "RAM capacity (GB)",
+    "storage": "Storage",
+    "location": "Location",
+    "management_url": "Management URL",
+    "glances_url": "Glances API URL",
+    "notes": "Notes",
+    "tags": "Tags",
+    "category": "Category",
+    "device": "Hosted on device",
+    "service": "Service",
+    "url": "Web URL (HTTP / HTTPS)",
+    "address": "Other address (TCP / SMB / game)",
+    "description": "Description",
+    "monitor_kind": "Monitor protocol",
+    "monitor_target": "Monitor URL / host",
+    "monitor_port": "Monitor port",
+    "monitor_enabled": "Enable server monitoring",
+    "monitor_interval_seconds": "Check interval (seconds)",
+    "auto_refresh_seconds": "Page refresh interval (seconds)",
+    "stale_after_multiplier": "Stale after missed intervals",
+    "history_retention_days": "Check history retention (days)",
+    "format": "Source format",
+    "file": "Choose an inventory file",
+    "source": "Inventory source text"
+  },
+  "filters": {
+    "allKinds": "All types",
+    "allDevices": "All devices",
+    "unassigned": "No device assigned",
+    "allCategories": "All categories",
+    "allTags": "All tags",
+    "allStatuses": "All statuses",
+    "status": "Monitor status",
+    "results": "{{count}} of {{total}} entries"
+  },
+  "devices": {
+    "empty": "No devices yet. Add your first server, computer, NAS, or network device.",
+    "glancesHelp": "Use an HTTP or HTTPS Glances API URL without embedded credentials. Leave it blank to disable telemetry.",
+    "telemetry": "Live device telemetry",
+    "telemetryDisabled": "Telemetry is not configured",
+    "telemetryError": "Telemetry unavailable",
+    "utilization": "Current utilization",
+    "cpu": "CPU utilization",
+    "ram": "RAM utilization",
+    "memory": "Memory: {{used}} / {{total}}",
+    "uptime": "Device uptime: {{hours}} hours",
+    "filesystems": "Filesystem utilization",
+    "captured": "Measured {{date}}",
+    "openManagement": "Open management",
+    "linkedServices": "Hosted services ({{count}})",
+    "noServices": "No services are linked to this device."
+  },
+  "services": {
+    "empty": "No services yet. Add a hosted app, game server, or link."
+  },
+  "health": {
+    "title": "Observed monitor health",
+    "configuration": "Monitor configuration",
+    "monitorHelp": "Checks measure reachability, not authenticated application health. HTTP 401 and 403 count as reachable endpoints requiring authorization. Only explicitly enabled monitors are contacted.",
+    "latency": "Latest latency",
+    "observed24h": "Reachable checks · last 24h",
+    "samples": "{{count}} observed checks",
+    "lastChecked": "Last checked {{date}}",
+    "nextCheck": "Next scheduled check {{date}}",
+    "interval": "Every {{seconds}} seconds",
+    "range": "History range",
+    "ranges": {
+      "24": "Last 24 hours",
+      "168": "Last 7 days",
+      "720": "Last 30 days"
+    },
+    "failures": "Last 24h failures",
+    "failureCounts": "{{down}} unreachable · {{errors}} check errors",
+    "observedHelp": "This ratio is based on observed checks for the current monitor configuration, including errors. It is not continuous uptime. No samples means unknown.",
+    "players": "Players: {{online}} / {{max}}",
+    "latencyHistory": "Reachable-check latency",
+    "historyHelp": "Failed and errored checks leave gaps in the latency chart. History retains earlier monitor targets and revisions.",
+    "checkHistory": "Check history ({{count}})",
+    "noChecks": "No checks recorded in this range.",
+    "truncated": "This range exceeds the history result limit. A bounded subset is shown.",
+    "revision": "Monitor revision {{revision}}",
+    "viewHistory": "View check history",
+    "editMonitor": "Edit monitor"
+  },
+  "settings": {
+    "title": "Refresh & retention settings",
+    "help": "Page refresh is separate from each monitor’s check interval. Staleness is measured in missed monitor intervals. Retention controls stored checks."
+  },
+  "messages": {
+    "unsaved": "You have unsaved changes. Keep editing or discard them to leave.",
+    "discardChanges": "Discard your unsaved changes?",
+    "newerVersion": "This entry changed elsewhere. Your draft is retained; a stale save will be rejected. Cancel and reopen to load the latest version.",
+    "deleteDevice": "Delete “{{name}}”? Its services will stay in the inventory without a device assignment.",
+    "deleteService": "Delete “{{name}}”? Stored check snapshots are retained by the server.",
+    "notFound": "This entry is unavailable in your inventory.",
+    "noMatches": "No entries match these filters.",
+    "emptyInventory": "Build your inventory by adding services or reviewing a Homepage import.",
+    "failureHelp": "The operation failed. Existing inventory and editor drafts remain available. Retry or reopen the latest entry before saving again."
+  },
+  "import": {
+    "title": "Review an inventory import",
+    "help": "Upload or paste a native JSON inventory or Homepage services/bookmarks file. Preview before applying. Imports merge entries; existing entries are skipped. Source credentials and unsupported widgets are not imported.",
+    "formats": {
+      "native-json": "Native JSON inventory",
+      "homepage-services": "Homepage services (YAML / JSON)",
+      "homepage-bookmarks": "Homepage bookmarks (YAML / JSON)"
+    },
+    "tooLarge": "The source must be 1 MiB or smaller.",
+    "readFailed": "The file could not be read. Choose it again or paste its text.",
+    "review": "Review imported entries",
+    "counts": {
+      "devices": "Devices",
+      "services": "Services / games",
+      "bookmarks": "Links / bookmarks",
+      "duplicates": "Duplicate source entries"
+    },
+    "monitorsDisabled": "All imported monitors are disabled. Review each target and enable monitoring explicitly after import.",
+    "applied": "Added {{devices}} devices and {{services}} services / links.",
+    "skipped": "Skipped {{devices}} existing devices and {{services}} existing services / links.",
+    "export": "Export inventory",
+    "exportHelp": "Download your devices, services, monitor configuration and settings as JSON. Check history and credentials are excluded. Import merges inventory with monitoring disabled; it does not restore settings or check history."
+  },
+  "buttons": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "retry": "Retry",
+    "refresh": "Refresh",
+    "edit": "Edit",
+    "delete": "Delete",
+    "back": "Back",
+    "clear": "Clear",
+    "open": "Open",
+    "details": "Details",
+    "keepEditing": "Keep editing",
+    "discardChanges": "Discard changes",
+    "clearFilters": "Clear filters",
+    "addDevice": "Add device",
+    "editDevice": "Edit device",
+    "addService": "Add service",
+    "editService": "Edit service",
+    "checkNow": "Check now",
+    "previewImport": "Preview import",
+    "applyImport": "Apply reviewed import",
+    "exportInventory": "Download JSON inventory",
+    "copyAddress": "Copy address"
+  },
+  "addDevice": "Add device",
+  "editDevice": "Edit device",
+  "addService": "Add service",
+  "editService": "Edit service"
+}

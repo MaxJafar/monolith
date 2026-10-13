@@ -1,0 +1,47 @@
+{
+  "title": "Code Time",
+  "description": "See how much code magic you have created.",
+  "statisticType": {
+    "mostTimeSpent": "Most Time Spent",
+    "totalTimeSpent": "Total Time Spent",
+    "averageTimeSpent": "Average Time Spent",
+    "longestStreak": "Longest Streak",
+    "currentStreak": "Current Streak",
+    "timeSpentToday": "Time Spent Today"
+  },
+  "widgets": {
+    "statistics": "Statistics",
+    "activitiesCalendar": "Activities Calendar",
+    "projects": "Top Projects Worked On",
+    "projectsTimeGraph": "Projects Time Graph",
+    "languages": "Top Languages Used",
+    "languagesTimeGraph": "Languages Time Graph",
+    "dailyHourTrend": "Daily Hourly Trend",
+    "codeTime": {
+      "title": "Code Time",
+      "description": "Track and visualize your coding activities.",
+      "empty": {
+        "data": {
+          "title": "No Data",
+          "description": "No coding activities found."
+        }
+      }
+    }
+  },
+  "labels": {
+    "inThePast": "In the Past"
+  },
+  "units": {
+    "h": "h",
+    "m": "m",
+    "days": "Days",
+    "hours": "Hours",
+    "noTime": "No Time Recorded"
+  },
+  "empty": {
+    "activities": {
+      "title": "No Coding Activity Yet",
+      "description": "Start coding to see your activity here."
+    }
+  }
+}

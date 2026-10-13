@@ -69,7 +69,9 @@ for (const entry of modules) {
 
   const putBody = writeBody({
     message: 'chore: use dash-case repository name',
-    content: Buffer.from(JSON.stringify(pkg, null, 2) + '\n').toString('base64'),
+    content: Buffer.from(JSON.stringify(pkg, null, 2) + '\n').toString(
+      'base64'
+    ),
     sha: pj.sha
   })
 
@@ -107,12 +109,16 @@ for (const entry of modules) {
 
 const outputFile = writeBody({
   message: 'chore: dash-case repository names',
-  content: Buffer.from(JSON.stringify(modules, null, 2) + '\n').toString('base64'),
+  content: Buffer.from(JSON.stringify(modules, null, 2) + '\n').toString(
+    'base64'
+  ),
   sha: registryFile.sha
 })
 
 try {
-  gh(`api --method PUT repos/${REGISTRY_REPO}/contents/modules.json --input "${outputFile}"`)
+  gh(
+    `api --method PUT repos/${REGISTRY_REPO}/contents/modules.json --input "${outputFile}"`
+  )
 } finally {
   fs.rmSync(outputFile, { force: true })
 }

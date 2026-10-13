@@ -30,10 +30,12 @@ export function SidebarItemSubsection({
   return (
     <Transition>
       <Flex
+        aria-hidden={!subsectionExpanded}
         as="li"
         direction="column"
         flexShrink="0"
         gap="sm"
+        inert={!subsectionExpanded}
         maxHeight={subsectionExpanded ? '1000px' : '0'}
         overflow="hidden"
         pb={subsectionExpanded ? 'sm' : 'none'}
@@ -44,7 +46,7 @@ export function SidebarItemSubsection({
           align="center"
           as="ul"
           bg={
-            !sidebarExpanded && typeof subsection[0].callback === 'string'
+            !sidebarExpanded && typeof subsection.at(0)?.callback === 'string'
               ? { base: 'bg-100', dark: 'bg-800' }
               : undefined
           }

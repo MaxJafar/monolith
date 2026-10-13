@@ -70,7 +70,7 @@ aside .sidebar-item .bg-bg-200\/50 > svg:first-child {
   color: var(--color-custom-500) !important;
 }
 
-::global {
+:root {
   --toastify-color-light: var(--color-custom-500);
 }
 

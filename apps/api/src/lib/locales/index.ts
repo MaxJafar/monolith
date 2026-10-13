@@ -196,8 +196,10 @@ const listUnsupportedModules = forge
     },
     rateLimit: false
   })
-  .callback(async ({ db, response }) => {
-    const user = await db.query.users.findFirst()
+  .callback(async ({ res, db, response }) => {
+    const user = await db.query.users.findFirst({
+      where: { id: res.locals.userId as string }
+    })
     const userLanguage = user?.language
 
     if (!userLanguage) {

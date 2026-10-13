@@ -10,6 +10,7 @@ import {
 } from 'react'
 
 import type { InferOutput } from '..'
+import { withSessionRefreshLock } from '../client/refreshLock'
 import {
   clearAccessToken,
   getAccessToken,
@@ -91,7 +92,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return 'success: ' + userResponse.userData.name
       } catch (err) {
         if (!(err instanceof Error)) {
-          throw new Error('Unknown error')
+          throw new Error('Unknown error', { cause: err })
         }
 
         if (
@@ -108,6 +109,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   )
 
   const logout = useCallback(() => {
+    window.dispatchEvent(new Event('zillion-gym-sign-out'))
+
+    // A shared-device logout must remove the explicitly opted-in Gym cache.
+    try {
+      localStorage.removeItem('zillion-gym:offline:owner:v1')
+      localStorage.removeItem('zillion-gym:offline:snapshot:v1')
+    } catch {
+      /* Storage can be denied independently of signing out. */
+    }
+    if ('serviceWorker' in navigator)
+      navigator.serviceWorker
+        .getRegistration('/gym')
+        .then(registration => {
+          registration?.active?.postMessage({ type: 'GYM_OFFLINE_DISABLE' })
+          registration?.active?.postMessage({ type: 'GYM_SIGN_OUT' })
+        })
+        .catch(() => {})
     clearAccessToken()
     setAuth(false)
     setUserData(null)
@@ -221,8 +239,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     bootstrapped = true
     setAuthLoading(true)
 
-    forgeAPI.auth.refresh
-      .mutateRaw(undefined)
+    withSessionRefreshLock(() => forgeAPI.auth.refresh.mutateRaw(undefined))
       .then((data: { accessToken: string }) => {
         setAccessToken(data.accessToken)
 

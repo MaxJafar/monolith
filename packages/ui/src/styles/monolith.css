@@ -1,0 +1,181 @@
+/* Monolith: quiet surfaces, crisp type and deliberate, accessible motion. */
+:root {
+  --font-inter: 'Inter', sans-serif;
+  --font-space-grotesk: 'Inter', sans-serif;
+  --font-jetbrains-mono: 'JetBrains Mono', monospace;
+  --bg-primary: #ffffff;
+  --bg-surface: #ffffff;
+  --bg-lifted: #f1f1ef;
+  --bg-sidebar: #f7f7f5;
+  --text-primary: #252525;
+  --text-muted: #73736f;
+  --text-dim: #91918e;
+  --text-tertiary: var(--text-muted);
+  --accent-primary: #252525;
+  --interactive-primary: #252525;
+  --interactive-primary-hover: #404040;
+  --interactive-on-primary: #ffffff;
+  --accent-red: #c94a3c;
+  --accent-teal: var(--accent-primary);
+  --accent-amber: #c9944a;
+  --border-subtle: rgb(0 0 0 / 8%);
+  --border-medium: rgb(0 0 0 / 14%);
+  --md-sys-color-primary: var(--accent-teal);
+  --md-sys-color-primary-container: color-mix(
+    in srgb,
+    var(--accent-primary) 8%,
+    var(--bg-surface)
+  );
+  --md-sys-color-on-primary-container: var(--text-primary);
+  --md-sys-color-on-surface-variant: var(--text-muted);
+  --md-sys-color-surface-container: color-mix(
+    in srgb,
+    var(--text-primary) 5%,
+    var(--bg-surface)
+  );
+  --md-sys-color-surface-container-high: color-mix(
+    in srgb,
+    var(--text-primary) 9%,
+    var(--bg-surface)
+  );
+  --shape-sm: 4px;
+  --shape-md: 6px;
+  --shape-lg: 8px;
+  --shape-xl: 12px;
+  --shape-full: 9999px;
+  --motion-fast: 140ms;
+  --motion-standard: 220ms;
+  --motion-expressive: 320ms;
+  --motion-normal: var(--motion-standard);
+  --motion-slow: var(--motion-expressive);
+  --motion-ease: cubic-bezier(0.2, 0, 0, 1);
+  --motion-ease-expressive: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --radius-sm: var(--shape-sm);
+  --radius-md: var(--shape-md);
+  --radius-lg: var(--shape-lg);
+  --radius-xl: var(--shape-xl);
+  --radius-2xl: var(--shape-xl);
+  --radius-3xl: var(--shape-xl);
+  --spacing: 4px;
+  --custom-shadow: none;
+  --floating-shadow: 0 8px 32px #00000014, 0 2px 8px #0000000a;
+  --card-shadow: 0 1px 2px #00000008;
+}
+
+:root.dark {
+  --bg-primary: #191919;
+  --bg-surface: #202020;
+  --bg-lifted: #2c2c2c;
+  --bg-sidebar: #202020;
+  --text-primary: #eeeeec;
+  --text-muted: #a6a6a2;
+  --text-dim: #858582;
+  --accent-primary: #eeeeec;
+  --interactive-primary: #eeeeec;
+  --interactive-primary-hover: #ffffff;
+  --interactive-on-primary: #191919;
+  --border-subtle: rgb(255 255 255 / 6%);
+  --border-medium: rgb(255 255 255 / 10%);
+  --floating-shadow: 0 8px 32px #0005, 0 0 0 1px #ffffff0a;
+  --card-shadow: 0 1px 2px #0003;
+}
+
+body {
+  font-family: var(--font-inter);
+  --color-custom-500: var(--accent-teal) !important;
+  --color-custom-600: var(--accent-teal) !important;
+  --custom-shadow: none !important;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+}
+
+::selection {
+  background: var(--interactive-primary) !important;
+  color: var(--interactive-on-primary) !important;
+}
+
+* {
+  scrollbar-color: var(--border-medium) transparent;
+}
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-medium);
+  border-radius: 3px;
+}
+
+:where(
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  [role='button'],
+  [tabindex='0']
+):focus-visible {
+  outline: 2px solid var(--md-sys-color-primary) !important;
+  outline-offset: 3px;
+}
+:where(input, textarea):focus-visible {
+  outline-offset: 2px;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-inter);
+  letter-spacing: -0.025em;
+}
+.monolith-module-content h1 {
+  font-size: clamp(30px, 4vw, 40px);
+  line-height: 1.2;
+  letter-spacing: -0.035em;
+}
+.monolith-module-content h2 {
+  font-size: 24px;
+  letter-spacing: -0.03em;
+}
+
+:where(button, a, [role='button']) {
+  touch-action: manipulation;
+}
+
+:where([role='menu'], [role='listbox'])[data-state='open'] {
+  animation: monolith-menu-enter var(--motion-fast) var(--motion-ease);
+  transform-origin: var(--radix-dropdown-menu-content-transform-origin, top);
+  box-shadow: var(--floating-shadow);
+}
+
+@keyframes monolith-menu-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.monolith-module-content h3 {
+  font-size: 20px;
+  letter-spacing: -0.035em;
+}
+code,
+pre,
+kbd {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+@media (max-width: 700px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}

@@ -56,7 +56,14 @@ export function ModalWrapper({
         top="0"
         width="100%"
         zIndex={isOpen ? zIndex.toString() : '-1'}
-        onTransitionEnd={onExited}
+        onTransitionEnd={event => {
+          if (
+            !isOpen &&
+            event.target === event.currentTarget &&
+            event.propertyName === 'opacity'
+          )
+            onExited?.()
+        }}
       >
         <Transition easing="ease-out" property="transform">
           <Flex

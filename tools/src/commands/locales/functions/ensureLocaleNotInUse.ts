@@ -3,6 +3,7 @@ import postgres from 'postgres'
 
 async function ensureLocaleNotInUse(shortName: string) {
   const databaseUrl = process.env.DATABASE_URL
+
   if (!databaseUrl) return
 
   try {

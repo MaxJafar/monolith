@@ -1,10 +1,11 @@
-import { verify as argonVerify, hash } from 'argon2'
+import { hash } from 'argon2'
 import dayjs from 'dayjs'
 import { eq } from 'drizzle-orm'
 import z from 'zod'
 
 import { fileReferenceSchema } from '@lifeforge/file-storage'
 
+import { verifyPassword } from '../../auth/utils/password'
 import forge from '../forge'
 import { users } from '../schema.drizzle'
 
@@ -21,12 +22,14 @@ export const updateAvatar = forge
       OK: fileReferenceSchema
     }
   })
-  .callback(async ({ media: { file: rawFile }, db, core, response }) => {
+  .callback(async ({ res, media: { file: rawFile }, db, core, response }) => {
     if (!rawFile || typeof rawFile === 'string') {
       return response.badRequest('A valid avatar image must be uploaded')
     }
 
-    const user = await db.query.users.findFirst()
+    const user = await db.query.users.findFirst({
+      where: { id: res.locals.userId as string }
+    })
 
     if (!user) {
       return response.unauthorized()
@@ -58,8 +61,10 @@ export const deleteAvatar = forge
       NO_CONTENT: true
     }
   })
-  .callback(async ({ db, core, response }) => {
-    const user = await db.query.users.findFirst()
+  .callback(async ({ res, db, core, response }) => {
+    const user = await db.query.users.findFirst({
+      where: { id: res.locals.userId as string }
+    })
 
     if (!user) {
       return response.unauthorized()
@@ -100,8 +105,10 @@ export const updateProfile = forge
       NO_CONTENT: true
     }
   })
-  .callback(async ({ body: { data }, db, response }) => {
-    const user = await db.query.users.findFirst()
+  .callback(async ({ res, body: { data }, db, response }) => {
+    const user = await db.query.users.findFirst({
+      where: { id: res.locals.userId as string }
+    })
 
     if (!user) {
       return response.unauthorized()
@@ -150,8 +157,10 @@ export const updatePassword = forge
       NO_CONTENT: true
     }
   })
-  .callback(async ({ body: { oldPassword, password }, db, response }) => {
-    const user = await db.query.users.findFirst()
+  .callback(async ({ res, body: { oldPassword, password }, db, response }) => {
+    const user = await db.query.users.findFirst({
+      where: { id: res.locals.userId as string }
+    })
 
     if (!user) {
       return response.unauthorized()
@@ -163,7 +172,7 @@ export const updatePassword = forge
       return response.badRequest('User has no password set')
     }
 
-    const valid = await argonVerify(passwordHash, oldPassword)
+    const { valid } = await verifyPassword(passwordHash, oldPassword)
 
     if (!valid) {
       return response.badRequest('Incorrect old password')

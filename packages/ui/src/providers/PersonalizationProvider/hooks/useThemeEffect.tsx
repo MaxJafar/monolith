@@ -13,7 +13,7 @@ function useThemeEffect(
 ) {
   useEffect(() => {
     const isDark = theme === 'dark'
-    const bgColor = isDark ? '#09090b' : '#ffffff'
+    const bgColor = isDark ? '#191919' : '#ffffff'
 
     if (typeof document !== 'undefined') {
       document.documentElement.classList.toggle('dark', isDark)
@@ -23,7 +23,7 @@ function useThemeEffect(
 
     if (rootElement) {
       rootElement.classList.toggle('dark', isDark)
-      rootElement.style.backgroundColor = bgColor
+      rootElement.style.setProperty('background-color', bgColor)
     }
 
     clearCustomColorProperties(rootElement, 'theme')
@@ -36,7 +36,7 @@ function useThemeEffect(
     if (bgTemp.startsWith('#')) {
       interpolateColors(rootElement, bgTemp, 'bg')
     }
-  }, [theme])
+  }, [rootElement, theme, rawThemeColor, bgTemp])
 }
 
 export default useThemeEffect

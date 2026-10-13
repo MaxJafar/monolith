@@ -23,14 +23,14 @@ export function SidebarSubsectionItemLink({
   const { t } = useTranslation('common.sidebar')
 
   const isActive = useMemo(
-    () => location.pathname === path,
+    () => location.pathname.replace(/\/+$/, '') === path.replace(/\/+$/, ''),
     [path, location.pathname]
   )
   const handleClick = useCallback(() => {
     if (window.innerWidth < 1024) {
       toggleSidebar?.()
     }
-  }, [])
+  }, [toggleSidebar])
 
   return (
     <Transition>
@@ -58,7 +58,7 @@ export function SidebarSubsectionItemLink({
           r="lg"
           shadow={isActive ? true : undefined}
           style={{ gap: '0.75rem', height: '3.5rem' }}
-          to={`./${path.replace(/^\//, '')}`}
+          to={path}
           width="100%"
           onClick={handleClick}
         >

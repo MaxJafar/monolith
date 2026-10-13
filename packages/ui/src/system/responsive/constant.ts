@@ -2,11 +2,11 @@ import type { Breakpoint, PropDef } from './types'
 
 export const RESPONSIVE_CONDITIONS = {
   base: {},
-  sm: { '@media': '(min-width: 640px)' },
-  md: { '@media': '(min-width: 768px)' },
-  lg: { '@media': '(min-width: 1024px)' },
-  xl: { '@media': '(min-width: 1280px)' },
-  '2xl': { '@media': '(min-width: 1536px)' },
+  sm: { '@media': '(min-width: 700px)' },
+  md: { '@media': '(min-width: 700px)' },
+  lg: { '@media': '(min-width: 1000px)' },
+  xl: { '@media': '(min-width: 1000px)' },
+  '2xl': { '@media': '(min-width: 1000px)' },
   print: { '@media': 'print' }
 } as const satisfies Record<Breakpoint, object>
 

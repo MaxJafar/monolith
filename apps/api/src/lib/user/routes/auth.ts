@@ -40,7 +40,10 @@ export const createFirstUser = forge
         name,
         verified: true,
         auth_password_hash: passwordHash,
-        theme: 'system',
+        theme: 'light',
+        color: '#3b8a82',
+        bgTemp: 'zillion',
+        fontFamily: 'Inter',
         language: 'en',
         fontScale: 1.0,
         borderRadiusMultiplier: 1.0

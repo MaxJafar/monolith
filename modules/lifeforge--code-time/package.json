@@ -1,0 +1,40 @@
+{
+  "name": "@lifeforge/lifeforge--code-time",
+  "displayName": "Code Time",
+  "version": "0.0.1",
+  "type": "module",
+  "author": "Melvin Chia <melvinchia623600@gmail.com>",
+  "description": "See how much code magic you have created.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Lifeforge-app/lifeforge-module-code-time.git"
+  },
+  "scripts": {
+    "typecheck": "pnpm run typecheck:client && pnpm run typecheck:server",
+    "typecheck:client": "cd client && tsc",
+    "typecheck:server": "cd server && tsc",
+    "build": "pnpm run build:client && pnpm run build:server",
+    "build:client": "cd client && vite build",
+    "build:server": "cd server && vite build"
+  },
+  "dependencies": {
+    "chart.js": "^4.5.0",
+    "puppeteer-core": "^24.23.0",
+    "react-activity-calendar": "^2.7.14",
+    "recharts": "^2.15.0"
+  },
+  "devDependencies": {},
+  "lifeforge": {
+    "icon": "tabler:code",
+    "category": "Productivity"
+  },
+  "peerDependencies": {
+    "@lifeforge/api": "workspace:*",
+    "@lifeforge/configs": "workspace:*",
+    "@lifeforge/drizzle": "workspace:*",
+    "@lifeforge/federation": "workspace:*",
+    "@lifeforge/localization": "workspace:*",
+    "@lifeforge/server-utils": "workspace:*",
+    "@lifeforge/ui": "workspace:*"
+  }
+}

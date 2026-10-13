@@ -1,72 +1,67 @@
 import { globalStyle, style } from '@vanilla-extract/css'
 
-import { COLORS } from '@/system'
-
 export const track = style({
   position: 'relative',
-  height: '1rem',
-  borderRadius: '9999px',
-  width: '100%'
+  height: '44px',
+  width: '100%',
+  borderRadius: '9999px'
 })
-
+export const rail = style({
+  position: 'absolute',
+  top: '20px',
+  height: '4px',
+  width: '100%',
+  borderRadius: '9999px',
+  background: 'var(--border-medium)'
+})
 export const fill = style({
-  height: '1rem',
+  position: 'absolute',
+  top: '20px',
+  height: '4px',
   borderRadius: '9999px',
-  backgroundColor: COLORS['custom-500']
+  background: 'var(--accent-primary)',
+  pointerEvents: 'none',
+  transition: 'width 70ms linear'
 })
-
 export const input = style({
   width: '100%',
-  height: '100%',
+  height: '44px',
   appearance: 'none',
   WebkitAppearance: 'none',
   background: 'transparent',
   margin: 0,
   cursor: 'pointer',
-  accentColor: COLORS['custom-500'],
   position: 'absolute',
   inset: 0,
-  zIndex: 2
+  zIndex: 2,
+  borderRadius: '9999px'
 })
-
-export const inputDisabled = style({
-  opacity: 0.5,
-  pointerEvents: 'none',
-  cursor: 'not-allowed'
-})
-
-globalStyle(`${input}::-webkit-slider-thumb`, {
-  appearance: 'none',
-  WebkitAppearance: 'none',
-  height: '1em',
-  width: '1em',
-  borderRadius: '9999px',
-  background: COLORS['custom-500'],
-  borderWidth: '3px',
-  borderStyle: 'solid',
-  borderColor: COLORS['bg-50'],
-  boxShadow: 'var(--custom-shadow)',
-  cursor: 'pointer',
-  transition: 'transform 0.15s ease'
-})
-
-globalStyle(`${input}:hover::-webkit-slider-thumb`, {
-  transform: 'scale(1.25)'
-})
-
-globalStyle(`${input}::-moz-range-thumb`, {
-  height: '1em',
-  width: '1em',
-  borderRadius: '9999px',
-  background: COLORS['custom-500'],
-  borderWidth: '3px',
-  borderStyle: 'solid',
-  borderColor: COLORS['bg-50'],
-  boxShadow: 'var(--custom-shadow)',
-  cursor: 'pointer',
-  transition: 'transform 0.15s ease'
-})
-
-globalStyle(`${input}:hover::-moz-range-thumb`, {
-  transform: 'scale(1.25)'
+export const inputDisabled = style({ opacity: 0.45, cursor: 'not-allowed' })
+for (const pseudo of ['::-webkit-slider-thumb', '::-moz-range-thumb']) {
+  globalStyle(`${input}${pseudo}`, {
+    appearance: 'none',
+    WebkitAppearance: 'none',
+    height: '18px',
+    width: '18px',
+    borderRadius: '9999px',
+    background: 'var(--bg-surface)',
+    border: '2px solid var(--accent-primary)',
+    boxShadow: '0 1px 4px #0002',
+    cursor: 'grab',
+    transition:
+      'transform var(--motion-fast) var(--motion-ease), box-shadow var(--motion-fast) var(--motion-ease)'
+  })
+  globalStyle(`${input}:hover:not(:disabled)${pseudo}`, {
+    transform: 'scale(1.12)',
+    boxShadow: '0 0 0 5px var(--border-subtle)'
+  })
+  globalStyle(`${input}:active:not(:disabled)${pseudo}`, {
+    transform: 'scale(1.18)',
+    cursor: 'grabbing'
+  })
+  globalStyle(`${input}:disabled${pseudo}`, { cursor: 'not-allowed' })
+}
+globalStyle(`${input}::-moz-range-track`, {
+  background: 'transparent',
+  border: 0
 })

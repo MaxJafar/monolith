@@ -1,0 +1,78 @@
+{
+  "title": "模块管理器",
+  "description": "基于UI的monolith实例模块管理器",
+  "category": "分类",
+  "subsections": {
+    "modules": {
+      "title": "模块",
+      "description": "安装、更新和移除您monolith实例中的模块"
+    },
+    "categories": {
+      "title": "类别",
+      "description": "整理和重新排序侧边栏类别以自定义您的导航"
+    }
+  },
+  "buttons": {
+    "uninstall": "卸载",
+    "addTranslation": "添加翻译",
+    "addCategory": "添加分类",
+    "add category": "添加分类"
+  },
+  "items": {
+    "category": "类别"
+  },
+  "inputs": {
+    "categoryKey": "类别键",
+    "translationKey": "翻译键"
+  },
+  "empty": {
+    "category": {
+      "title": "未找到类别",
+      "description": "创建类别以开始"
+    },
+    "modules": {
+      "title": "未安装模块",
+      "description": "从注册表安装模块以扩展您的monolith"
+    }
+  },
+  "modals": {
+    "category": {
+      "create": "创建类别",
+      "update": "更新类别"
+    },
+    "uninstall": {
+      "title": "卸载 {{module}}？",
+      "description": "此模块将从您的系统中移除，但您的数据将被保留。您可以随时从注册表重新安装。"
+    },
+    "devMode": {
+      "enable": {
+        "title": "启用开发模式",
+        "description": "启用开发模式将直接从源代码加载此模块，而不是预构建的包。对模块代码的更改将即时热重载，无需重新构建。\n\n在积极开发或自定义此模块时使用此功能。"
+      },
+      "disable": {
+        "title": "禁用开发模式",
+        "description": "禁用开发模式将切换回从预构建包加载。请确保已重新构建模块以包含最新更改。"
+      }
+    },
+    "translationKey": {
+      "create": "创建翻译键",
+      "update": "更新翻译键"
+    }
+  },
+  "devMode": {
+    "label": "开发模式",
+    "enable": "启用开发模式",
+    "disable": "禁用开发模式",
+    "enabled": "{{module}} 已进入开发模式",
+    "disabled": "{{module}} 已退出开发模式"
+  },
+  "misc": {
+    "translations": "翻译"
+  },
+  "notBuilt": {
+    "label": "未构建"
+  },
+  "messages": {
+    "categoriesMissingTranslations": "{{count}} 个分类缺少翻译:"
+  }
+}

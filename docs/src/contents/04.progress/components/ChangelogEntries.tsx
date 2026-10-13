@@ -1,16 +1,16 @@
 /* eslint-disable react-compiler/react-compiler */
+import type { ComponentType } from 'react'
 import mdxListCounts from 'virtual:mdx-list-counts'
 
 import { components } from '@/components/MdxComponents'
 
 import Version from './Version'
 
-const compiledModules = import.meta.glob('../versions/**/*.mdx', {
+const compiledModules = import.meta.glob<{
+  default: ComponentType<{ components: typeof components }>
+}>('../versions/**/*.mdx', {
   eager: true
-}) as Record<
-  string,
-  { default: React.ComponentType<{ components: typeof components }> }
->
+})
 
 const entries = Object.entries(
   Object.groupBy(

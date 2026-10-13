@@ -1,23 +1,22 @@
-import _ from 'lodash'
 import { useEffect } from 'react'
 import { useLocation } from 'react-router'
 
 import { useFederation } from '@lifeforge/federation'
 
+import { modulePath, pathIsActive } from '../utils/navigation'
+
 function useTitleEffect() {
   const { moduleGroups } = useFederation()
-  const location = useLocation()
+  const { pathname } = useLocation()
 
   useEffect(() => {
-    const target =
-      moduleGroups
-        .flatMap(e => e.items)
-        .filter(item =>
-          location.pathname.slice(1).startsWith(_.kebabCase(item.name))
-        )[0]?.name ?? ''
-
-    document.title = `LifeForge. ${target !== '' ? '- ' + target : ''}`
-  }, [location, moduleGroups])
+    const target = moduleGroups
+      .flatMap(group => group.items)
+      .find(item => pathIsActive(pathname, modulePath(item.name)))
+    document.title = target?.rawModule
+      ? `${target.rawModule.displayName} · monolith`
+      : 'monolith'
+  }, [pathname, moduleGroups])
 }
 
 export default useTitleEffect

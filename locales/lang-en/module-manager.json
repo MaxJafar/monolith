@@ -1,11 +1,11 @@
 {
   "title": "Module Manager",
-  "description": "UI-based module manager for your LifeForge instance",
+  "description": "UI-based module manager for your monolith instance",
   "category": "Category",
   "subsections": {
     "modules": {
       "title": "Modules",
-      "description": "Install, update, and remove modules from your LifeForge instance"
+      "description": "Install, update, and remove modules from your monolith instance"
     },
     "categories": {
       "title": "Categories",
@@ -32,7 +32,7 @@
     },
     "modules": {
       "title": "No modules installed",
-      "description": "Install modules from the registry to extend your LifeForge"
+      "description": "Install modules from the registry to extend your monolith"
     }
   },
   "modals": {

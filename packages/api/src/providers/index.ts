@@ -7,3 +7,5 @@ export * from './AuthProvider'
 export * from './EncryptionProvider'
 
 export * from './SocketProvider'
+
+export * from './socketUrl'

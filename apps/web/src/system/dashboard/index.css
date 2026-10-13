@@ -1,5 +1,5 @@
 .react-grid-layout {
-  @apply isolate;
+  isolation: isolate;
 }
 
 .react-grid-item {
@@ -16,10 +16,12 @@
 
 .agent-response {
   & ul {
-    @apply list-disc pl-5;
+    list-style-type: disc;
+    padding-left: 1.25rem;
   }
 
   & ol {
-    @apply list-decimal pl-5;
+    list-style-type: decimal;
+    padding-left: 1.25rem;
   }
 }

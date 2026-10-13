@@ -35,7 +35,7 @@ export function SidebarSubsectionItemWithOnClick({
   const handleClick = useCallback(() => {
     setIsSidebarOpen(false)
     onClick()
-  }, [])
+  }, [onClick, setIsSidebarOpen])
 
   return (
     <Transition>

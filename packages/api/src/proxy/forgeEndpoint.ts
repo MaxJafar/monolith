@@ -290,7 +290,7 @@ export class ForgeEndpoint<T extends { __isForgeContract: true } = any> {
     }
 
     // If not encrypted (shouldn't happen with encrypted endpoints), return as-is
-    return response as unknown as InferRawOutput<T>
+    return response
   }
 
   /**
@@ -459,7 +459,7 @@ export class ForgeEndpoint<T extends { __isForgeContract: true } = any> {
     }
 
     // If not encrypted (shouldn't happen with encrypted endpoints), return as-is
-    return response as unknown as InferRawOutput<T>
+    return response
   }
 
   /**

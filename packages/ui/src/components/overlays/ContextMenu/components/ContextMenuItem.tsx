@@ -107,7 +107,9 @@ export function ContextMenuItem({
               }
               className={className}
               gap="md"
-              p="md"
+              px="md"
+              py="sm"
+              minHeight={{ base: '44px', md: '34px' }}
               style={{
                 cursor: disabled || loading ? 'not-allowed' : 'pointer'
               }}

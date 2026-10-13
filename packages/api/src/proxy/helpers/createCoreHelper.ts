@@ -30,5 +30,5 @@ export function createCoreHelper<T extends CoreHelperName>(
         never,
         z.infer<typeof _schema.input>
       >
-    >(apiHost, path).input(input as never)
+    >(apiHost, path).input(input)
 }

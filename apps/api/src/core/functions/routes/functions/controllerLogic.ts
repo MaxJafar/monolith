@@ -13,7 +13,7 @@
  * - `registerController`: Function to register a ForgeControllerBuilder with an Express router
  */
 import { encryptResponse } from '@functions/encryption'
-import { coreLogger } from '@functions/logging'
+import { sql } from 'drizzle-orm'
 import type { Request, Response, Router } from 'express'
 
 import { scopeDbForModule } from '@lifeforge/drizzle'
@@ -25,6 +25,7 @@ import {
   checkRecordExistence,
   getStatusMessage,
   mapDatabaseError,
+  observeMutation,
   serializeEndpointValue
 } from '@lifeforge/server-utils'
 
@@ -37,6 +38,26 @@ import { clientError, serverError, success } from '../utils/response'
 
 function isClientError(err: unknown): err is Error & { code: number } {
   return err instanceof Error && err.name === 'ClientError' && 'code' in err
+}
+
+class RejectedMutation extends Error {
+  constructor(
+    readonly status: number,
+    readonly payload: unknown
+  ) {
+    super('Request rejected')
+  }
+}
+
+function unpackResult(result: unknown): { status: number; payload: unknown } {
+  if (result && typeof result === 'object' && '$status' in result) {
+    return {
+      status: typeof result.$status === 'number' ? result.$status : 200,
+      payload: 'payload' in result ? result.payload : undefined
+    }
+  }
+
+  return { status: 200, payload: result }
 }
 
 /**
@@ -69,44 +90,81 @@ function createHandler(
 
       parseBodyPayload(req, media || {}, encrypted, input.body)
 
-      await checkRecordExistence({
-        db: req.db,
-        querySchema: input.query,
-        query: req.query,
-        bodySchema: input.body,
-        body: req.body
-      })
-
-      if (isDownloadable) {
-        res.setHeader('X-LifeForge-Downloadable', 'true')
-        res.setHeader(
-          'Access-Control-Expose-Headers',
-          'X-LifeForge-Downloadable'
-        )
-      }
-
-      if (!callback) {
-        throw new Error('No callback defined for this controller')
-      }
-
-      const result = await callback({
-        req,
-        res,
-        io: req.io,
-        db: scopeDbForModule(
-          req.db,
-          callerModule
-            ? ModuleRegistry.getModuleKeyMap(callerModule.id)
-            : undefined
-        ),
-        body: req.body,
-        query: req.query,
-        media: req.media || {},
-        core: createCoreContext({
-          module: callerModule as never,
-          db: req.db
+      const execute = async (database: typeof req.db) => {
+        await checkRecordExistence({
+          db: database,
+          querySchema: input.query,
+          query: req.query,
+          bodySchema: input.body,
+          body: req.body
         })
-      })
+
+        if (isDownloadable) {
+          res.setHeader('X-LifeForge-Downloadable', 'true')
+          res.setHeader(
+            'Access-Control-Expose-Headers',
+            'X-LifeForge-Downloadable'
+          )
+        }
+
+        return await callback({
+          req,
+          res,
+          io: req.io,
+          db: scopeDbForModule(
+            database,
+            callerModule
+              ? ModuleRegistry.getModuleKeyMap(callerModule.id)
+              : undefined
+          ),
+          body: req.body,
+          query: req.query,
+          media: req.media || {},
+          core: createCoreContext({
+            module: callerModule as never,
+            db: database
+          })
+        })
+      }
+
+      const userId = res.locals.userId as string | undefined
+      const result = userId
+        ? await req.db.transaction(async transaction => {
+            await transaction.execute(
+              sql`select set_config('zillion.user_id', ${userId}, true)`
+            )
+            const workspaceId =
+              typeof req.query.workspace_id === 'string'
+                ? req.query.workspace_id
+                : typeof req.body?.workspace_id === 'string'
+                  ? req.body.workspace_id
+                  : undefined
+            await observeMutation({
+              db: transaction,
+              userId,
+              moduleId: callerModule?.id,
+              phase: 'before',
+              workspaceId
+            })
+            const result = await execute(transaction)
+
+            const { status, payload } = unpackResult(result)
+
+            if (status >= 400) {
+              throw new RejectedMutation(status, payload)
+            }
+
+            if (config.method !== 'get')
+              await observeMutation({
+                db: transaction,
+                userId,
+                moduleId: callerModule?.id,
+                workspaceId
+              })
+
+            return result
+          })
+        : await execute(req.db)
 
       if (res.headersSent) {
         return
@@ -116,12 +174,7 @@ function createHandler(
         return
       }
 
-      const status = result?.$status ?? 200
-
-      const payload =
-        result && typeof result === 'object' && '$status' in result
-          ? result.payload
-          : result
+      const { status, payload } = unpackResult(result)
 
       if (status >= 400) {
         return clientError({
@@ -140,6 +193,15 @@ function createHandler(
         status
       )
     } catch (err) {
+      if (err instanceof RejectedMutation) {
+        return clientError({
+          res,
+          message: err.payload ?? getStatusMessage(err.status),
+          code: err.status,
+          moduleName: callerModuleId
+        })
+      }
+
       const databaseError = mapDatabaseError(err)
 
       if (databaseError) {
@@ -200,13 +262,6 @@ export function registerController(
   routeName: string = ''
 ): void {
   const config = controller.getValue()
-
-  if (!config.callback) {
-    coreLogger.error(
-      `Cannot register controller for route "${routeName}": No callback defined.`
-    )
-    process.exit(1)
-  }
 
   const handler = Object.assign(createHandler(config), {
     meta: {

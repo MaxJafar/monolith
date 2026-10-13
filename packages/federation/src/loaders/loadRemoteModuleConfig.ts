@@ -33,7 +33,7 @@ function getDevModeImport(
     )
 
     if (devModePkgs[pkgPath]?.name === moduleName) {
-      return importFn as () => Promise<{ default: ModuleConfig }>
+      return importFn
     }
   }
 

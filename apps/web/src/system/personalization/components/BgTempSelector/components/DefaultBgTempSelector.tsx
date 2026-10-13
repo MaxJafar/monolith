@@ -12,6 +12,7 @@ import {
 import { useUserPersonalization } from '@/core/providers/features/UserPersonalizationProvider'
 
 const COLORS = [
+  'bg-zillion',
   'bg-slate',
   'bg-gray',
   'bg-zinc',
@@ -54,7 +55,9 @@ function DefaultBgTempSelector({
           <Text truncate>
             {bgTemp.startsWith('#')
               ? 'Custom'
-              : _.startCase(bgTemp.replace('bg-', ''))}
+              : bgTemp === 'bg-zillion'
+                ? 'Monolith'
+                : _.startCase(bgTemp.replace('bg-', ''))}
           </Text>
         </Flex>
       )}
@@ -67,7 +70,11 @@ function DefaultBgTempSelector({
       {COLORS.map(color => (
         <ListboxOption
           key={color}
-          label={_.startCase(color.replace('bg-', ''))}
+          label={
+            color === 'bg-zillion'
+              ? 'Monolith'
+              : _.startCase(color.replace('bg-', ''))
+          }
           renderColorAndIcon={() => (
             <Box
               bg="bg-500"

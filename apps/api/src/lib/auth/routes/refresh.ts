@@ -54,7 +54,9 @@ export const refresh = forge
       return response.unauthorized()
     }
 
-    const user = await db.query.users.findFirst()
+    const user = await db.query.users.findFirst({
+      where: { id: record.userId }
+    })
 
     if (!user) {
       return response.unauthorized()
@@ -63,14 +65,21 @@ export const refresh = forge
     const accessToken = signAccessToken(user.id)
     const newRefreshToken = generateRefreshToken()
 
-    await rotateToken({
+    const rotated = await rotateToken({
       oldTokenHash: record.token_hash,
       newToken: newRefreshToken,
       ip,
       family: record.family
     })
 
+    if (!rotated) return response.unauthorized()
+
     res.cookie('refresh_token', newRefreshToken, getCookieOptions(req))
+    res.cookie('access_token', accessToken, {
+      ...getCookieOptions(req),
+      path: '/',
+      maxAge: 15 * 60 * 1000
+    })
 
     return response.ok({ accessToken })
   })

@@ -222,6 +222,84 @@ describe('serverAliasResolver', () => {
     })
   })
 
+  it.each(['registry', 'loader'])(
+    'preserves the exported module-runtime %s name instead of exposing its index file',
+    subpath => {
+      const manifest =
+        '/test/dir/node_modules/@lifeforge/module-runtime/package.json'
+      mockRequire.resolve.mockReturnValue(
+        `/test/dir/node_modules/@lifeforge/module-runtime/dist/${subpath}/index.js`
+      )
+      vi.mocked(fs.existsSync).mockImplementation(
+        file => norm(String(file)) === manifest
+      )
+      vi.mocked(fs.readFileSync).mockReturnValue(
+        JSON.stringify({
+          name: '@lifeforge/module-runtime',
+          exports: {
+            './registry': {
+              import: './dist/registry/index.js',
+              require: './dist/registry/index.js'
+            },
+            './loader': {
+              import: './dist/loader/index.js',
+              require: './dist/loader/index.js'
+            }
+          }
+        })
+      )
+
+      expect(plugin.resolveId(`@lifeforge/module-runtime/${subpath}`)).toEqual({
+        id: `@lifeforge/module-runtime/${subpath}`,
+        external: true
+      })
+      expect(
+        vi
+          .mocked(fs.readFileSync)
+          .mock.calls.map(([file, encoding]) => [norm(String(file)), encoding])
+      ).toContainEqual([manifest, 'utf8'])
+    }
+  )
+
+  it('preserves wildcard export-map subpaths and query/hash suffixes when backing files have different names', () => {
+    const manifest = '/test/dir/node_modules/@lifeforge/runtime/package.json'
+    mockRequire.resolve.mockReturnValue(
+      '/test/dir/node_modules/@lifeforge/runtime/dist/worker-compiled.js'
+    )
+    vi.mocked(fs.existsSync).mockImplementation(
+      file => norm(String(file)) === manifest
+    )
+    vi.mocked(fs.readFileSync).mockReturnValue(
+      JSON.stringify({
+        name: '@lifeforge/runtime',
+        exports: { './*': './dist/*-compiled.js' }
+      })
+    )
+
+    expect(plugin.resolveId('@lifeforge/runtime/worker?url#hash')).toEqual({
+      id: '@lifeforge/runtime/worker?url#hash',
+      external: true
+    })
+  })
+
+  it('keeps extension resolution for a legacy Day.js package without an exports map', () => {
+    const manifest = '/test/dir/node_modules/dayjs/package.json'
+    mockRequire.resolve.mockReturnValue(
+      '/test/dir/node_modules/dayjs/plugin/utc.js'
+    )
+    vi.mocked(fs.existsSync).mockImplementation(
+      file => norm(String(file)) === manifest
+    )
+    vi.mocked(fs.readFileSync).mockReturnValue(
+      JSON.stringify({ name: 'dayjs', main: 'dayjs.min.js' })
+    )
+
+    expect(plugin.resolveId('dayjs/plugin/utc')).toEqual({
+      id: 'dayjs/plugin/utc.js',
+      external: true
+    })
+  })
+
   it('falls back to bare specifier if resolution fails for core dependencies', () => {
     mockRequire.resolve.mockImplementation(() => {
       throw new Error('Module not found')

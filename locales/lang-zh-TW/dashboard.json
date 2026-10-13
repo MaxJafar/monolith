@@ -1,0 +1,45 @@
+{
+  "title": "你的工作空間",
+  "description": "在這裡管理專案、知識和關聯資料庫。",
+  "widgets": {},
+  "modals": {
+    "manageWidgets": "管理小部件"
+  },
+  "buttons": {
+    "manageCategories": "管理分類",
+    "unlockLayout": "解鎖佈局",
+    "manageWidgets": "管理小工具",
+    "lockLayout": "鎖定佈局"
+  },
+  "messages": {
+    "editingLayout": "您正在編輯儀表板佈局",
+    "editingLayoutHint": "透過拖動小工具來調整排列，或透過拖動每個小工具右下角的小三角形來調整小工具大小"
+  },
+  "empty": {
+    "welcome": {
+      "title": "歡迎來到 monolith！",
+      "description": "在 ForgeStore 安裝一些模組並開始使用吧。"
+    },
+    "notFound": {
+      "title": "未找到小工具",
+      "description": "您正在尋找的小工具不存在。請檢查您已安裝的模組。"
+    }
+  },
+  "loading": "正在加載儀表板...",
+  "test": "",
+  "overview": {
+    "heading": "讓工作更清晰。",
+    "description": "在同一個空間規劃專案、整理知識並連結工作。",
+    "databases": "開啟資料庫",
+    "tools": "你的工具",
+    "greeting": "準備開始了嗎，{{name}}？",
+    "documents": "文件",
+    "knowledge": "知識圖譜",
+    "agents": "智慧代理",
+    "quickAccess": "快速存取",
+    "documentsDescription": "撰寫並連結工作空間中的文件。",
+    "knowledgeDescription": "探索知識之間的關聯。",
+    "agentsDescription": "協調智慧代理並審核工作成果。",
+    "toolsDescription": "開啟支援日常工作的工具。"
+  }
+}

@@ -36,7 +36,7 @@ type ButtonOwnProps = {
   loading?: boolean
   /** Whether the button is disabled and non-interactive. */
   disabled?: boolean
-  /** Additional CSS class names to apply to the button. Use `!` suffix for Tailwind CSS class overrides. */
+  /** Additional plain CSS class names to apply to the button. */
   className?: string
   /** The visual style variant of the button. Defaults to 'primary'. */
   variant?: 'primary' | 'secondary' | 'tertiary' | 'plain'
@@ -92,15 +92,21 @@ export function Button<T extends ElementType = 'button'>({
   const { t } = useModuleTranslation(namespace === false ? [] : [namespace])
 
   return (
-    <Transition>
-      <Text
-        asChild
-        tabIndex={-1}
-        tracking="wide"
-        weight="medium"
-        whiteSpace="nowrap"
-      >
-        <Flex
+    <Transition
+      duration="var(--motion-fast, 140ms)"
+      easing="var(--motion-ease, ease)"
+      property={[
+        'color',
+        'background-color',
+        'border-color',
+        'border-radius',
+        'box-shadow',
+        'opacity',
+        'transform'
+      ]}
+    >
+      <Text asChild tracking="normal" weight="medium" whiteSpace="nowrap">
+        <Flex<ElementType>
           ref={ref}
           align="center"
           as={as ?? ('button' as ElementType)}
@@ -109,14 +115,40 @@ export function Button<T extends ElementType = 'button'>({
           flexShrink="0"
           gap="sm"
           justify="center"
+          minHeight={{ base: '44px', md: '34px' }}
           minWidth="0"
-          p="md"
-          r="lg"
+          position="relative"
+          px={props.p === undefined ? 'md' : undefined}
+          py={props.p === undefined ? 'sm' : undefined}
+          r="md"
           style={buttonStyle}
           type="button"
-          onClick={onClick}
           {...(restProps as any)}
+          aria-busy={loading || undefined}
+          aria-disabled={loading || disabled || undefined}
+          data-loading-without-icon={loading && !icon ? true : undefined}
+          onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+            if (loading || disabled) {
+              event.preventDefault()
+              event.stopPropagation()
+
+              return
+            }
+
+            return onClick?.(event)
+          }}
         >
+          {loading && !icon && (
+            <Flex
+              centered
+              aria-hidden="true"
+              data-loading-indicator="true"
+              inset="0"
+              position="absolute"
+            >
+              <ButtonIcon loading icon="svg-spinners:ring-resize" />
+            </Flex>
+          )}
           {icon && iconPosition === 'start' && (
             <ButtonIcon
               disabled={disabled}

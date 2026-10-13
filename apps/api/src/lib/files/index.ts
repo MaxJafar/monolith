@@ -16,7 +16,6 @@ const get = forge
     description: 'Retrieve a stored file or thumbnail',
     encrypted: false,
     rateLimit: false,
-    noAuth: true,
     input: {
       query: z.object({
         key: z.string(),
@@ -27,6 +26,14 @@ const get = forge
     output: 'custom'
   })
   .callback(async ({ db, query: { key, thumb, download }, res }) => {
+    const ownedFile = await db.query.files.findFirst({ where: { key } })
+
+    if (!ownedFile) {
+      res.status(404).json({ error: 'File not found' })
+
+      return
+    }
+
     const targetKey = thumb ? generateThumbKey(key, thumb) : key
     const fileStream = await storageProvider.get(targetKey)
 
@@ -42,7 +49,7 @@ const get = forge
       res.setHeader('Content-Length', fileStream.size)
     }
 
-    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
+    res.setHeader('Cache-Control', 'private, max-age=300')
 
     let downloadName = path.basename(targetKey)
 

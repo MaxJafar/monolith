@@ -35,7 +35,10 @@ export type TextInputProps = {
   inputRef?: React.RefObject<HTMLInputElement | null>
   onEnter?: () => void
   wrapperProps?: InputWrapperPassthrough
-} & Omit<React.HTMLAttributes<HTMLInputElement>, 'onChange'> &
+} & Omit<
+  React.InputHTMLAttributes<HTMLInputElement>,
+  'onChange' | 'size' | 'value'
+> &
   InputVariants<true>
 
 export function _TextInput({
@@ -69,7 +72,7 @@ export function _TextInput({
   const inputLabel = useInputLabel({ namespace, label: label ?? '' })
 
   const [actionButtonLoading, handleClick] = usePromiseLoading(
-    (actionButtonProps?.onClick as () => Promise<void>) ||
+    (actionButtonProps?.onClick as (() => Promise<void>) | undefined) ||
       (async (): Promise<void> => {})
   )
 
@@ -100,6 +103,7 @@ export function _TextInput({
           />
         )}
         <TextInputBox
+          aria-label={inputLabel || placeholder}
           autoFocus={autoFocus}
           disabled={disabled}
           inputMode={inputMode}

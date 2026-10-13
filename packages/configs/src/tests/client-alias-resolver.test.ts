@@ -114,6 +114,13 @@ describe('clientAliasResolver', () => {
     expect(norm(result!)).toBe(norm(expected))
   })
 
+  it('returns the same normalized module ID as Vite for shared contexts', () => {
+    const importer = path.join(WEB_SRC, 'core', 'routing', 'Sidebar.tsx')
+    const expected = path.join(WEB_SRC, 'core', 'providers', 'SettingsContext.ts')
+    mockExistsSync(expected)
+    expect(clientAliasResolver('@/core/providers/SettingsContext', importer)).toBe(norm(expected))
+  })
+
   it('resolves a ".ts" file when no ".tsx" variant exists', () => {
     const importer = path.join(CLIENT_SRC, 'index.tsx')
     const expected = path.join(CLIENT_SRC, 'utils', 'math.ts')

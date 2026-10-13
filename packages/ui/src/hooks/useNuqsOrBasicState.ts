@@ -42,6 +42,8 @@ function useNuqsOrBasicState<TValue extends string>({
         } else {
           controlled.setValue(value)
         }
+
+        return
       }
 
       return internalSetter(value)

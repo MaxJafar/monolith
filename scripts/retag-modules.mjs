@@ -23,7 +23,10 @@ function ghJson(command) {
 }
 
 function writeBody(obj) {
-  const file = path.join(os.tmpdir(), `forge-${Date.now()}-${Math.random().toString(36).slice(2)}.json`)
+  const file = path.join(
+    os.tmpdir(),
+    `forge-${Date.now()}-${Math.random().toString(36).slice(2)}.json`
+  )
 
   fs.writeFileSync(file, JSON.stringify(obj))
 
@@ -58,7 +61,9 @@ for (const entry of modules) {
 
       const body = writeBody({
         message: `chore: reset version to ${VERSION}`,
-        content: Buffer.from(JSON.stringify(pkg, null, 2) + '\n').toString('base64'),
+        content: Buffer.from(JSON.stringify(pkg, null, 2) + '\n').toString(
+          'base64'
+        ),
         sha: pj.sha,
         branch
       })
@@ -77,7 +82,9 @@ for (const entry of modules) {
     const tagBody = writeBody({ ref: `refs/tags/v${VERSION}`, sha: commitSha })
 
     try {
-      gh(`api --method POST repos/${repo}/git/refs --input "${tagBody}" 2>/dev/null`)
+      gh(
+        `api --method POST repos/${repo}/git/refs --input "${tagBody}" 2>/dev/null`
+      )
     } catch {
       // tag already exists
     } finally {
@@ -91,20 +98,28 @@ for (const entry of modules) {
     console.log(`${entry.id} -> ${repo}@${commitSha.slice(0, 8)}`)
   } catch (error) {
     failed++
-    console.error(`FAILED ${entry.id} (${repo}): ${String(error).split('\n')[0]}`)
+    console.error(
+      `FAILED ${entry.id} (${repo}): ${String(error).split('\n')[0]}`
+    )
   }
 }
 
 const outputFile = writeBody({
   message: `chore: reset module versions to ${VERSION}`,
-  content: Buffer.from(JSON.stringify(modules, null, 2) + '\n').toString('base64'),
+  content: Buffer.from(JSON.stringify(modules, null, 2) + '\n').toString(
+    'base64'
+  ),
   sha: registryFile.sha
 })
 
 try {
-  gh(`api --method PUT repos/${REGISTRY_REPO}/contents/modules.json --input "${outputFile}"`)
+  gh(
+    `api --method PUT repos/${REGISTRY_REPO}/contents/modules.json --input "${outputFile}"`
+  )
 } finally {
   fs.rmSync(outputFile, { force: true })
 }
 
-console.log(`\nDone: ${done} modules retagged, ${failed} failed. Registry updated.`)
+console.log(
+  `\nDone: ${done} modules retagged, ${failed} failed. Registry updated.`
+)

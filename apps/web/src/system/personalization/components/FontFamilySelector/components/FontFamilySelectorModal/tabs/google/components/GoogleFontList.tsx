@@ -72,7 +72,7 @@ function GoogleFontList({
             <Stack px="sm">
               <Pagination
                 page={page}
-                totalPages={Math.ceil(filteredFonts!.length / 10)}
+                totalPages={Math.ceil(filteredFonts.length / 10)}
                 onPageChange={page => {
                   setPage(page)
                   scrollableRef.current?.scrollToTop()
@@ -89,7 +89,7 @@ function GoogleFontList({
               ))}
               <Pagination
                 page={page}
-                totalPages={Math.ceil(filteredFonts!.length / 10)}
+                totalPages={Math.ceil(filteredFonts.length / 10)}
                 onPageChange={page => {
                   setPage(page)
                   scrollableRef.current?.scrollToTop()

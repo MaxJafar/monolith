@@ -1,0 +1,774 @@
+{
+  "buttons": {
+    "create": "创建",
+    "update": "更新",
+    "edit": "编辑",
+    "rename": "重命名",
+    "select": "选择",
+    "cancel": "取消",
+    "close": "关闭",
+    "delete": "删除",
+    "save": "保存",
+    "copy": "复制",
+    "copied": "已复制",
+    "previous": "上一页",
+    "next": "下一页",
+    "print": "打印",
+    "remove": "移除",
+    "upload": "上传",
+    "import": "导入",
+    "submit": "提交",
+    "new": "新增{{item}}",
+    "proceed": "继续",
+    "applyFilters": "应用筛选",
+    "retry": "重试",
+    "refresh": "刷新",
+    "pin": "固定",
+    "unpin": "取消固定",
+    "search": "搜索",
+    "favourite": "收藏",
+    "unfavourite": "取消收藏",
+    "archive": "归档",
+    "unarchive": "取消归档",
+    "download": "下载",
+    "stop": "停止",
+    "record": "录制",
+    "overwrite": "覆盖",
+    "adjust": "调整",
+    "downloading": "下载中 ...",
+    "generate": "生成",
+    "regenerate": "重新生成",
+    "confirm": "确认",
+    "goBack": "返回",
+    "moreActions": "更多操作"
+  },
+  "modals": {
+    "deleteConfirmation": {
+      "title": "您确定要删除{{itemName}}吗？",
+      "desc": "这将删除{{itemName}}及其所有相关内容。此操作不可逆！",
+      "inputs": {
+        "confirmation": {
+          "placeholder": "请键入 \"{{text}}\" 以确认删除",
+          "label": "确认删除"
+        }
+      },
+      "error": "删除项目时出错。请再试一次。"
+    },
+    "searchFilters": "搜索过滤器",
+    "datePicker": {
+      "title": "选择日期",
+      "titleWithTime": "选择日期时间",
+      "yearMonth": "选择年月"
+    },
+    "iconPicker": {
+      "title": "选择图标",
+      "items": {
+        "icon": "图标",
+        "iconSet": "图标集"
+      },
+      "empty": {
+        "icon": {
+          "title": "没有图标",
+          "description": "未找到图标，请尝试其他关键词。"
+        }
+      }
+    },
+    "imagePicker": {
+      "title": "选择文件",
+      "local": "上传本地图片",
+      "url": "图片网址",
+      "pixabay": "从Pixabay下载",
+      "orPasteLink": "或粘贴图片链接",
+      "inputs": {
+        "imageLink": "图片链接",
+        "imageType": "图片类型",
+        "imageCategory": "图片类别",
+        "imageColor": "图片颜色",
+        "editorsChoice": "编辑推荐",
+        "prompt": "AI提示文本"
+      },
+      "imageType": {
+        "all": "所有",
+        "photo": "照片",
+        "vector": "矢量图",
+        "illustration": "插图"
+      },
+      "items": {
+        "pixabay": "Pixabay"
+      },
+      "empty": {
+        "result": {
+          "title": "没有结果",
+          "description": "未找到图片，请尝试其他关键词。"
+        },
+        "pixabay": {
+          "title": "由Pixabay提供",
+          "description": "搜索超过1300万张高质量免费图片。"
+        },
+        "noAPIKey": {
+          "title": "Pixabay API密钥未配置",
+          "description": "请在API密钥库中设置您的Pixabay API密钥以使用此功能。"
+        },
+        "noOpenAIKey": {
+          "title": "OpenAI API密钥未配置",
+          "description": "请在API密钥库中设置您的OpenAI API密钥以使用此功能。"
+        }
+      },
+      "ai": "AI图像生成"
+    },
+    "colorPicker": {
+      "title": "选择颜色",
+      "modals": {
+        "morandiColorPalette": "莫兰迪色调",
+        "tailwindCssColorPalette": "Tailwind CSS色调",
+        "flatUiColors": "Flat UI Colors"
+      },
+      "buttons": {
+        "morandiColorPalette": "莫兰迪色调",
+        "tailwindCssColorPalette": "Tailwind CSS色调",
+        "flatUiColors": "Flat UI Colors"
+      }
+    },
+    "imagePreview": "图片预览",
+    "qrCodeScanner": "二维码扫描器",
+    "viewImage": "查看图片"
+  },
+  "misc": {
+    "alert": {
+      "note": "注意",
+      "warning": "警告",
+      "caution": "小心",
+      "tip": "提示",
+      "important": "重要"
+    },
+    "search": "搜索{{item}}...",
+    "notFound": {
+      "title": "糟糕！这里什么都没有",
+      "description": "找不到您正在寻找的页面。请检查网址并重试。"
+    },
+    "tipsAndTricks": "提示与技巧",
+    "loadingModule": "加载模块中...",
+    "deprecated": "不再支持",
+    "imageUpload": {
+      "local": "上传本地图片",
+      "url": "图片网址",
+      "pixabay": "从Pixabay下载",
+      "orPasteLink": "或粘贴图片链接",
+      "inputs": {
+        "imageLink": "图片链接",
+        "imageType": "图片类型",
+        "imageCategory": "图片类别",
+        "imageColor": "图片颜色",
+        "editorsChoice": "编辑推荐"
+      },
+      "imageType": {
+        "all": "所有",
+        "photo": "照片",
+        "vector": "矢量",
+        "illustration": "插图"
+      },
+      "items": {
+        "pixabay": "Pixabay"
+      },
+      "empty": {
+        "result": {
+          "title": "没有结果",
+          "description": "找不到图片, 请尝试其他关键字。"
+        },
+        "pixabay": {
+          "title": "由 Pixabay 提供",
+          "description": "搜索超过1300万张免费高质量图片。"
+        }
+      }
+    },
+    "dnd": {
+      "dropHere": "将项目拖放到这里",
+      "dragAndDropToUpload": "拖放或点击上传",
+      "or": "或",
+      "buttons": {
+        "pasteFromClipboard": "从剪贴板粘贴"
+      }
+    },
+    "buttons": {
+      "goBack": "返回",
+      "reportBug": "报告错误"
+    },
+    "colorPicker": {
+      "title": "选择颜色",
+      "modals": {
+        "morandiColorPalette": "莫兰迪色调",
+        "tailwindCssColorPalette": "Tailwind CSS色调"
+      },
+      "buttons": {
+        "morandiColorPalette": "莫兰迪色调",
+        "tailwindCssColorPalette": "Tailwind CSS色调"
+      }
+    },
+    "empty": {
+      "apiStatus": {
+        "title": "无法连接到API",
+        "description": "请检查您的网络连接并重试。如果您是开发人员，请检查服务器是否正常运行。"
+      }
+    },
+    "iconPicker": {
+      "items": {
+        "icon": "图标",
+        "iconSet": "图标集"
+      },
+      "empty": {
+        "icon": {
+          "title": "没有图标",
+          "description": "找不到图标, 请尝试其他关键字。"
+        }
+      }
+    },
+    "locationDisabled": {
+      "description": "位置输入当前不可用。请添加正确配置的Google Cloud API密钥以启用此功能。有关更多信息，请参阅",
+      "title": "不可用"
+    },
+    "dates": {
+      "months": {
+        "0": "一月",
+        "1": "二月",
+        "2": "三月",
+        "3": "四月",
+        "4": "五月",
+        "5": "六月",
+        "6": "七月",
+        "7": "八月",
+        "8": "九月",
+        "9": "十月",
+        "10": "十一月",
+        "11": "十二月"
+      },
+      "days": {
+        "0": "星期一",
+        "1": "星期二",
+        "2": "星期三",
+        "3": "星期四",
+        "4": "星期五",
+        "5": "星期六",
+        "6": "星期日"
+      }
+    },
+    "fieldRequired": "该字段是必填的。",
+    "invalidField": "无效字段。",
+    "invalidColor": "无效颜色。请输入有效的十六进制值，格式为#RRGGBB。",
+    "invalidIcon": "无效图标。必须是来自Iconify的有效图标标识符，格式为<icon-set>:<icon-name>。",
+    "loadingUserData": "正在加载用户数据...",
+    "invalidSelection": "无效选择。请从列表中选择一个有效的值。",
+    "fileInputSupportedFormat": "支持的格式：{{format}}",
+    "viewMode": "显示方式"
+  },
+  "sidebar": {
+    "categories": {},
+    "buttons": {
+      "signOut": "登出",
+      "accountSettings": "账户设置"
+    },
+    "items": {
+      "module": "模块"
+    },
+    "empty": {
+      "modules": {
+        "title": "未找到模块",
+        "description": "请调整模块搜索。"
+      }
+    },
+    "openNavigation": "打开导航",
+    "collapseNavigation": "收起导航"
+  },
+  "fetch": {
+    "error": "从服务器获取数据失败",
+    "success": "耶！成功{{action}}项目！",
+    "failure": "呃... {{action}}项目失败。请再试一次。",
+    "action": {
+      "create": "创建",
+      "update": "更新",
+      "delete": "删除",
+      "rename": "重命名",
+      "pin": "置顶",
+      "unpin": "取消置顶",
+      "archive": "归档",
+      "unarchive": "取消归档",
+      "remove": "移除",
+      "add": "添加",
+      "save": "保存",
+      "public": "公开",
+      "private": "设为私人",
+      "replace": "替换",
+      "clearMedium": "清除",
+      "thumbnail": "更新缩略图",
+      "generate": "生成",
+      "cleanedup": "清理",
+      "summarized": "总结",
+      "unlock": "解锁",
+      "download": "下载",
+      "NASFilesReady": " 文件已准备好下载。前往您的NAS。",
+      "addedToFavourites": "添加到收藏夹",
+      "removedFromFavourites": "从收藏夹中移除"
+    },
+    "redirected": "已重定向",
+    "redirecting": "重定向中...",
+    "unlock": "解锁"
+  },
+  "auth": {
+    "header": "欢迎回来",
+    "desc": "你的工作空间已就绪。",
+    "welcome": {
+      "header": "欢迎使用 monolith",
+      "desc": "创建你的个人工作空间。"
+    },
+    "sideImageDesc": {
+      "part1": "项目、知识以及它们之间的联系。",
+      "part2": "为重要的事留出空间。"
+    },
+    "or": "或",
+    "buttons": {
+      "signIn": "登录",
+      "proceed": "继续"
+    },
+    "inputs": {
+      "emailOrUsername": {
+        "label": "电子邮件或用户名",
+        "placeholder": "johndoe@gmail.com"
+      },
+      "email": {
+        "label": "电子邮件",
+        "placeholder": "johndoe@gmail.com"
+      },
+      "username": {
+        "label": "用户名",
+        "placeholder": "johndoe"
+      },
+      "name": {
+        "label": "显示名称",
+        "placeholder": "张三"
+      },
+      "password": {
+        "label": "密码",
+        "placeholder": "输入您的密码"
+      },
+      "confirmPassword": {
+        "label": "确认密码",
+        "placeholder": "再次输入密码"
+      }
+    },
+    "validation": {
+      "emailRequired": "电子邮件为必填项",
+      "emailInvalid": "请输入有效的电子邮件地址",
+      "usernameRequired": "用户名为必填项",
+      "usernameTooShort": "用户名至少需要3个字符",
+      "usernameInvalid": "用户名只能包含字母、数字和下划线",
+      "nameRequired": "姓名为必填项",
+      "passwordRequired": "密码为必填项",
+      "passwordTooShort": "密码至少需要8个字符",
+      "passwordMismatch": "两次输入的密码不一致"
+    },
+    "modals": {
+      "twoFA": {
+        "title": "双因素身份验证",
+        "description": "请在您之前注册的身份验证器应用程序中输入提供的 OTP。",
+        "buttons": {
+          "useEmailOtp": "使用邮件OTP",
+          "useAuthApp": "使用身份验证应用"
+        },
+        "emailDescription": "请输入与您的帐户关联的电子邮件地址。",
+        "inputs": {
+          "email": "电子邮件地址"
+        }
+      }
+    },
+    "orAuthenticateWith": "或用以下方式进行身份验证",
+    "messages": {
+      "otpSent": "如果该电子邮件地址与任何账户关联，您将收到一个一次性密码。",
+      "welcomeBack": "欢迎回来，{{name}}!",
+      "invalidCredentials": "无效的电子邮件或密码。请再试一次。",
+      "invalidFields": "无效字段。请填写有效的电子邮件地址和密码。",
+      "quotaExceeded": "最大尝试次数已达到。请稍后再试。",
+      "unknownError": "未知错误。请稍后再试。",
+      "userCreated": "账户创建成功！欢迎来到 monolith。",
+      "invalidLoginAttempt": "无效的登录尝试。请再试一次。"
+    },
+    "qrLogin": {
+      "title": "扫码登录",
+      "description": "使用其他设备登录您的账户。",
+      "expired": "二维码已过期",
+      "clickToRefresh": "点击刷新",
+      "approved": "登录已批准！正在跳转...",
+      "waiting": "等待批准中...",
+      "approvalTitle": "批准登录",
+      "approvalDescription": "一台设备正在请求登录您的账户",
+      "browserInfo": "设备信息",
+      "approve": "批准登录",
+      "deny": "拒绝",
+      "success": "登录已成功批准",
+      "scanQRCode": "扫描二维码登录",
+      "invalidQR": "无效的二维码",
+      "sessionNotFound": "会话未找到或已过期",
+      "alreadyApproved": "会话已被批准"
+    },
+    "workspaceNote": "一个工作空间，属于你的节奏。",
+    "forkAttribution": "monolith，基于 LifeForge 构建。",
+    "licenseAttribution": "LifeForge 由 <author>Melvin Chia</author> 创建，采用 <license>CC BY-NC-SA 4.0</license> 许可。"
+  },
+  "vault": {
+    "vault": {
+      "lockedMessage": "您的保险库已锁定",
+      "passwordRequired": "需要主密码来解密您的保险库。",
+      "unlocked": "保险库已解锁",
+      "failedToUnlock": "解锁保险库失败",
+      "buttons": {
+        "unlock": "解锁",
+        "recoverAccount": "恢复账户"
+      },
+      "createPassword": {
+        "title": "设置主密码",
+        "desc": "请设置一个主密码来保护您的保险库。"
+      },
+      "inputs": {
+        "newPassword": "新密码",
+        "confirmPassword": "确认密码",
+        "masterPassword": "主密码"
+      },
+      "confirmSetNewPassword": {
+        "title": "确保您记住您的主密码！",
+        "desc": "此主密码是不可更改的（目前）！如果您不小心忘记了密码，您将失去一切。此密码会被哈希并存储在您的用户资料中，且无法解密。它将用于加密和解密您存储在保险库中的数据。"
+      }
+    },
+    "otp": {
+      "buttons": {
+        "request": "请求一次性密码",
+        "resend": "重新发送一次性密码",
+        "verify": "验证一次性密码",
+        "authByQR": "通过二维码验证"
+      },
+      "messages": {
+        "success": "一次性密码已发送！请检查您的电子邮件。",
+        "failed": "请求一次性密码失败",
+        "invalid": "一次性密码必须是6位数字",
+        "cooldown": "请求过于频繁，请稍后再试",
+        "required": {
+          "title": "需要一次性密码来解锁",
+          "desc": "为了增加安全性，需要一次性密码来解锁此模块。请点击下面的按钮来请求一次性密码。"
+        },
+        "verify": {
+          "success": "一次性密码验证成功",
+          "failed": "一次性密码验证失败"
+        }
+      }
+    }
+  },
+  "recurring": {
+    "freqs": {
+      "yearly": "每年",
+      "monthly": "每月",
+      "weekly": "每周",
+      "daily": "每日",
+      "hourly": "每小时"
+    },
+    "onThe": {
+      "first": "第一个",
+      "second": "第二个",
+      "third": "第三个",
+      "fourth": "第四个",
+      "last": "最后一个"
+    },
+    "onTheDay": {
+      "weekday": "工作日",
+      "day": "天",
+      "weekendDay": "周末的日子"
+    },
+    "endTypes": {
+      "never": "从不",
+      "after": "在执行了",
+      "on": "在日期"
+    },
+    "inputs": {
+      "on": "日期",
+      "after": "数量",
+      "executions": "次后",
+      "durationUnit": "持续时间单位",
+      "durationAmount": "持续时间数量",
+      "frequency": "频率",
+      "yearly": {
+        "exactDate": {
+          "title": "在确切日期",
+          "inputs": {
+            "month": "月份",
+            "date": "日期"
+          }
+        },
+        "relativeDay": {
+          "title": "在相对日期",
+          "inputs": {
+            "onThe": "在",
+            "onTheDay": "天",
+            "ofTheMonth": "的月份"
+          }
+        }
+      },
+      "monthly": {
+        "inputs": {
+          "every": "每",
+          "months": "个月"
+        },
+        "exactDate": {
+          "title": "在确切日期",
+          "inputs": {
+            "date": "日期"
+          }
+        },
+        "relativeDay": {
+          "title": "在相对日期",
+          "inputs": {
+            "onThe": "在",
+            "onTheDay": "天"
+          }
+        }
+      },
+      "weekly": {
+        "inputs": {
+          "every": "每",
+          "weeks": "周",
+          "onDays": "在星期几"
+        }
+      },
+      "daily": {
+        "inputs": {
+          "every": "每",
+          "days": "天"
+        }
+      },
+      "hourly": {
+        "inputs": {
+          "every": "每",
+          "hours": "小时"
+        }
+      },
+      "endType": "结束"
+    },
+    "durationUnits": {
+      "minute": "分钟",
+      "hour": "小时",
+      "day": "天",
+      "week": "周",
+      "month": "个月",
+      "year": "年"
+    }
+  },
+  "blocks": {
+    "editor": "文档内容",
+    "toolbar": "格式和内容块",
+    "placeholder": "开始写作，或输入 / 选择内容块…",
+    "loading": "正在打开编辑器…",
+    "add": "内容块",
+    "bold": "粗体",
+    "italic": "斜体",
+    "code": "行内代码",
+    "linkPage": "链接页面",
+    "searchPages": "查找页面",
+    "noPages": "没有匹配的页面。请先创建文档、笔记或记录。",
+    "undo": "撤销",
+    "redo": "重做",
+    "moveUp": "上移内容块",
+    "moveDown": "下移内容块",
+    "duplicate": "复制内容块",
+    "delete": "删除内容块",
+    "unavailable": "此页面不可用",
+    "hint": "输入 / 选择内容块。使用 [[页面标题]] 或“链接页面”连接想法。选中内容块即可移动或复制。",
+    "types": {
+      "paragraph": "文本",
+      "heading1": "标题 1",
+      "heading2": "标题 2",
+      "heading3": "标题 3",
+      "bulletList": "无序列表",
+      "orderedList": "编号列表",
+      "taskList": "任务清单",
+      "blockquote": "引用",
+      "codeBlock": "代码",
+      "horizontalRule": "分隔线"
+    }
+  },
+  "graph": {
+    "map": "知识图谱",
+    "count": "{{nodes}} 个页面 · {{edges}} 条连接",
+    "zoomIn": "放大",
+    "zoomOut": "缩小",
+    "fit": "适应图谱",
+    "hint": "拖动可平移或移动节点，滚动可缩放。按 Tab 和 Enter 选择页面；图谱支持 +、− 和方向键。",
+    "empty": "相互连接的想法将在这里显示。",
+    "kinds": {
+      "document": "文档",
+      "record": "记录",
+      "note": "笔记"
+    }
+  },
+  "appBar": {
+    "navigation": "工作区导航",
+    "workspace": "工作区",
+    "databases": "数据库",
+    "techLab": "Tech Lab",
+    "calendar": "日历",
+    "agents": "智能体",
+    "modules": "模块",
+    "account": "账户设置",
+    "lightTheme": "切换浅色主题",
+    "darkTheme": "切换深色主题",
+    "page": "页面",
+    "openSidebar": "打开页面树",
+    "closeSidebar": "关闭页面树"
+  },
+  "canvas": {
+    "home": "首页",
+    "quickAccess": "快捷访问",
+    "projects": "项目",
+    "documents": "文档与数据库",
+    "homelab": "家庭实验室",
+    "financialOverview": "财务概览",
+    "notes": "笔记",
+    "pageTitle": "页面标题",
+    "pages": "页面",
+    "newPage": "新建页面",
+    "untitled": "未命名",
+    "document": "文档块",
+    "editPage": "编辑页面",
+    "savePage": "保存页面",
+    "saveFailed": "无法保存页面，草稿仍然可用。",
+    "loadFailed": "无法加载此页面。",
+    "loading": "加载中…",
+    "retry": "重试",
+    "cancel": "取消",
+    "unsaved": "更改尚未保存",
+    "keepEditing": "继续编辑",
+    "discard": "放弃更改",
+    "addBlock": "添加块",
+    "liveBlocks": "连接的数据块",
+    "newButton": "打开页面",
+    "blockTitle": "块标题",
+    "optionalTitle": "可选标题",
+    "buttonUrl": "按钮地址",
+    "content": "内容",
+    "connectedArea": "领域仪表板 · 连接现有数据",
+    "connectedWidget": "实时组件 · 保存后恢复实时数据",
+    "unavailableWidget": "此数据块不可用，请在编辑页面中选择已安装的组件。",
+    "unsafeLink": "请输入安全的网址或工作区页面路径。",
+    "fullWidth": "全宽",
+    "standardWidth": "标准宽度",
+    "dragBlock": "拖动块",
+    "moveUp": "上移块",
+    "moveDown": "下移块",
+    "removeBlock": "移除块",
+    "width": {
+      "full": "全宽",
+      "half": "1/2",
+      "third": "1/3"
+    },
+    "types": {
+      "document": "文本与文档",
+      "heading": "标题",
+      "callout": "提示",
+      "button": "按钮",
+      "divider": "分隔线",
+      "native": "领域仪表板",
+      "widget": "实时组件",
+      "database": "关联数据库"
+    },
+    "filter": "内容筛选",
+    "filterHelp": "可选的服务、设备或项目名称",
+    "labHealth": "实验室状态",
+    "deviceResources": "设备资源",
+    "widgets": {
+      "projectOverview": "项目看板",
+      "techLabServices": "服务启动器",
+      "techLabHealth": "监控状态",
+      "techLabDevice": "设备资源",
+      "assetsBalance": "资产余额"
+    },
+    "saving": "正在保存…",
+    "saved": "所有更改已保存",
+    "readOnly": "只读页面",
+    "noDatabases": "创建工作区数据库后，即可在此嵌入。",
+    "changeView": "切换数据库视图",
+    "linkSettings": "编辑快捷链接",
+    "workspace": "工作区",
+    "newWorkspace": "新建工作区",
+    "workspaceSettings": "工作区设置",
+    "workspaceName": "工作区名称",
+    "workspaceProfile": "工作区类型",
+    "createWorkspace": "创建工作区",
+    "newChildPage": "新建子页面",
+    "profiles": {
+      "personal": "个人",
+      "collaborative": "协作",
+      "agents": "仅智能体"
+    },
+    "areaTitles": {
+      "page": "页面",
+      "task": "待办清单",
+      "note": "笔记",
+      "project": "项目",
+      "event": "日历",
+      "post": "博客"
+    },
+    "reloadSaved": "重新加载已保存版本",
+    "reloadConfirm": "放弃未保存的页面更改并加载已保存版本？",
+    "refreshFailed": "页面已保存。导航刷新失败，请重试。"
+  },
+  "systemSearch": {
+    "title": "搜索全部内容",
+    "subtitle": "搜索 Monolith 工作区，在来源中查证答案。",
+    "scope": "工作区",
+    "allWorkspaces": "所有可访问工作区和个人模块",
+    "module": "模块",
+    "allModules": "所有模块",
+    "queryLabel": "您在寻找什么？",
+    "placeholder": "提问、描述图片或搜索短语…",
+    "search": "搜索",
+    "keyword": "仅关键词",
+    "generate": "生成带引用的答案",
+    "coverage": "已索引 {{ready}} / {{total}} 个来源",
+    "loading": "正在加载索引状态…",
+    "checkingHost": "正在检查 Mac mini…",
+    "hostReady": "Mac mini 已连接 · 嵌入、视觉、LLM 和 Laya",
+    "hostOffline": "Mac mini 不可用 · 仍可搜索关键词",
+    "indexing": "正在索引 {{source}}…",
+    "index": "更新索引",
+    "stop": "完成本批次后停止",
+    "retryHost": "重试连接",
+    "indexHelp": "索引会从已完成的批次继续。内容更改后请更新。工作区范围包含页面、记录和导入知识；个人模块文件包含在所有工作区范围内。",
+    "failed": "搜索失败，请重试。",
+    "answer": "来自您的来源的答案",
+    "answerHelp": "AI 生成的解读。使用前请核对链接的证据。",
+    "evidence": "证据（{{count}}）",
+    "empty": "没有匹配的证据。请更换关键词或更新索引以启用语义搜索。",
+    "visionLabel": "AI 图片解读",
+    "relevance": "Laya 相关度 {{score}}% · 置信度 {{confidence}}%",
+    "open": "打开来源",
+    "citation": "证据 {{id}}",
+    "stages": {
+      "keyword": "关键词",
+      "embedding": "嵌入",
+      "laya": "Laya",
+      "llm": "答案"
+    },
+    "warnings": {
+      "general": "部分内容未能完整索引。",
+      "file-too-large": "文件超过 12 MiB 索引限制；可搜索其元数据。",
+      "unsupported-file": "此文件格式目前仅支持元数据搜索。",
+      "missing-file": "文件内容不可用。",
+      "file-partial": "仅索引了前 80 页或 100,000 个字符。",
+      "scanned-pdf": "此 PDF 可提取文本较少；暂不支持扫描页面搜索。",
+      "embedding-unavailable": "嵌入 API 不可用，显示关键词匹配。",
+      "index-pending": "部分来源需要索引，其当前文本仍支持关键词搜索。",
+      "laya-unavailable": "Laya 不可用，按检索顺序显示。",
+      "answer-unavailable": "答案生成不可用或验证未通过，显示来源证据。",
+      "sources-changed": "搜索期间来源发生变化，请重新搜索以生成最新答案。",
+      "unreadable-file": "文件无法安全解码；仅索引其元数据。"
+    },
+    "clearIndex": "清除我的搜索索引"
+  },
+  "inputs": {
+    "rangeValue": "数值"
+  }
+}

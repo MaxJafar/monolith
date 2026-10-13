@@ -1,0 +1,77 @@
+.zillion-knowledge-graph {
+  display: block;
+  width: 100%;
+  min-height: 20rem;
+  max-height: 38rem;
+  touch-action: none;
+  cursor: grab;
+  background-image: radial-gradient(
+    var(--color-bg-500) 0.6px,
+    transparent 0.6px
+  );
+  background-size: 24px 24px;
+}
+.zillion-knowledge-graph:active {
+  cursor: grabbing;
+}
+.zillion-knowledge-graph:focus-visible {
+  outline: 2px solid var(--color-custom-500);
+  outline-offset: -2px;
+}
+.zillion-graph-edge {
+  stroke: var(--color-bg-500);
+  stroke-opacity: 0.4;
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+  transition: stroke-opacity var(--motion-normal, 220ms);
+}
+.zillion-graph-edge[data-kind='parent'] {
+  stroke-dasharray: 5 5;
+}
+.zillion-graph-edge[data-active='true'] {
+  stroke: var(--color-custom-500);
+  stroke-opacity: 0.9;
+  stroke-width: 2;
+}
+.zillion-graph-node {
+  cursor: pointer;
+  transition: opacity var(--motion-normal, 220ms);
+  outline: none;
+}
+.zillion-graph-node circle {
+  fill: var(--color-custom-500);
+  stroke: transparent;
+  stroke-width: 5;
+  transition: stroke var(--motion-fast, 140ms);
+}
+.zillion-graph-node[data-kind='record'] circle {
+  fill: var(--color-blue-500, #60a5fa);
+}
+.zillion-graph-node[data-kind='note'] circle {
+  fill: var(--color-green-500, #4ade80);
+}
+.zillion-graph-node[data-selected='true'] circle,
+.zillion-graph-node:focus-visible circle {
+  stroke: var(--color-custom-500);
+  stroke-opacity: 0.35;
+}
+.zillion-graph-node[data-dimmed='true'] {
+  opacity: 0.3;
+}
+.zillion-graph-node text {
+  fill: var(--color-bg-700);
+  font-family: 'Inter', sans-serif;
+  font-size: var(--graph-label-size, 13px);
+  user-select: none;
+  pointer-events: none;
+}
+.dark .zillion-graph-node text {
+  fill: var(--color-bg-200);
+}
+@media (prefers-reduced-motion: reduce) {
+  .zillion-graph-node,
+  .zillion-graph-node circle,
+  .zillion-graph-edge {
+    transition: none;
+  }
+}

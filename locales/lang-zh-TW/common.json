@@ -1,0 +1,774 @@
+{
+  "buttons": {
+    "create": "創建",
+    "update": "更新",
+    "edit": "編輯",
+    "rename": "重命名",
+    "select": "選擇",
+    "cancel": "取消",
+    "close": "關閉",
+    "delete": "刪除",
+    "save": "保存",
+    "copy": "複製",
+    "copied": "已複製",
+    "previous": "上一頁",
+    "next": "下一頁",
+    "print": "打印",
+    "remove": "移除",
+    "upload": "上傳",
+    "import": "導入",
+    "submit": "提交",
+    "new": "新增{{item}}",
+    "proceed": "繼續",
+    "applyFilters": "應用篩選",
+    "retry": "重試",
+    "refresh": "刷新",
+    "pin": "固定",
+    "unpin": "取消固定",
+    "search": "搜索",
+    "favourite": "收藏",
+    "unfavourite": "取消收藏",
+    "archive": "歸檔",
+    "unarchive": "取消歸檔",
+    "download": "下載",
+    "stop": "停止",
+    "record": "錄製",
+    "overwrite": "覆蓋",
+    "adjust": "調整",
+    "downloading": "下載中 ...",
+    "generate": "生成",
+    "regenerate": "重新生成",
+    "confirm": "確認",
+    "goBack": "返回",
+    "moreActions": "更多操作"
+  },
+  "modals": {
+    "deleteConfirmation": {
+      "title": "您確定要刪除{{itemName}}嗎？",
+      "desc": "這將刪除{{itemName}}及其所有相關內容。此操作不可逆！",
+      "inputs": {
+        "confirmation": {
+          "placeholder": "請輸入 \"{{text}}\" 以確認刪除",
+          "label": "確認刪除"
+        }
+      },
+      "error": "刪除項目時出錯。請再試一次。"
+    },
+    "searchFilters": "搜索過濾器",
+    "datePicker": {
+      "title": "選擇日期",
+      "titleWithTime": "選擇日期時間",
+      "yearMonth": "選擇年月"
+    },
+    "iconPicker": {
+      "title": "選擇圖標",
+      "items": {
+        "icon": "圖標",
+        "iconSet": "圖標集"
+      },
+      "empty": {
+        "icon": {
+          "title": "沒有圖標",
+          "description": "未找到圖標，請嘗試其他關鍵詞。"
+        }
+      }
+    },
+    "imagePicker": {
+      "title": "選擇文件",
+      "local": "上傳本地圖片",
+      "url": "圖片網址",
+      "pixabay": "從Pixabay下載",
+      "orPasteLink": "或粘貼圖片鏈接",
+      "inputs": {
+        "imageLink": "圖片鏈接",
+        "imageType": "圖片類型",
+        "imageCategory": "圖片類別",
+        "imageColor": "圖片顏色",
+        "editorsChoice": "編輯推薦",
+        "prompt": "AI提示文本"
+      },
+      "imageType": {
+        "all": "所有",
+        "photo": "照片",
+        "vector": "矢量圖",
+        "illustration": "插圖"
+      },
+      "items": {
+        "pixabay": "Pixabay"
+      },
+      "empty": {
+        "result": {
+          "title": "沒有結果",
+          "description": "未找到圖片，請嘗試其他關鍵詞。"
+        },
+        "pixabay": {
+          "title": "由Pixabay提供",
+          "description": "搜索超過1300萬張高質量免費圖片。"
+        },
+        "noAPIKey": {
+          "title": "Pixabay API密鑰未配置",
+          "description": "請在API密鑰庫中設置您的Pixabay API密鑰以使用此功能。"
+        },
+        "noOpenAIKey": {
+          "title": "OpenAI API密鑰未配置",
+          "description": "請在API密鑰庫中設置您的OpenAI API密鑰以使用此功能。"
+        }
+      },
+      "ai": "AI影像生成"
+    },
+    "colorPicker": {
+      "title": "選擇顏色",
+      "modals": {
+        "morandiColorPalette": "莫蘭迪色調",
+        "tailwindCssColorPalette": "Tailwind CSS色調",
+        "flatUiColors": "Flat UI Colors"
+      },
+      "buttons": {
+        "morandiColorPalette": "莫蘭迪色調",
+        "tailwindCssColorPalette": "Tailwind CSS色調",
+        "flatUiColors": "Flat UI Colors"
+      }
+    },
+    "imagePreview": "圖片預覽",
+    "qrCodeScanner": "二維碼掃描器",
+    "viewImage": "查看圖片"
+  },
+  "misc": {
+    "alert": {
+      "note": "注意",
+      "warning": "警告",
+      "caution": "小心",
+      "tip": "提示",
+      "important": "重要"
+    },
+    "search": "搜索{{item}}...",
+    "notFound": {
+      "title": "糟糕！這裡什麼都沒有",
+      "description": "找不到您正在尋找的頁面。請檢查網址並重試。"
+    },
+    "tipsAndTricks": "提示與技巧",
+    "loadingModule": "加載模塊中...",
+    "deprecated": "不再支持",
+    "imageUpload": {
+      "local": "上傳本地圖片",
+      "url": "圖片網址",
+      "pixabay": "從Pixabay下載",
+      "orPasteLink": "或粘貼圖片鏈接",
+      "inputs": {
+        "imageLink": "圖片鏈接",
+        "imageType": "圖片類型",
+        "imageCategory": "圖片類別",
+        "imageColor": "圖片顏色",
+        "editorsChoice": "編輯推薦"
+      },
+      "imageType": {
+        "all": "所有",
+        "photo": "照片",
+        "vector": "矢量",
+        "illustration": "插圖"
+      },
+      "items": {
+        "pixabay": "Pixabay"
+      },
+      "empty": {
+        "result": {
+          "title": "沒有結果",
+          "description": "找不到圖片, 請嘗試其他關鍵字。"
+        },
+        "pixabay": {
+          "title": "由 Pixabay 提供",
+          "description": "搜索超過1300萬張免費高質量圖片。"
+        }
+      }
+    },
+    "dnd": {
+      "dropHere": "將項目拖放到這裡",
+      "dragAndDropToUpload": "拖放或點擊上傳",
+      "or": "或",
+      "buttons": {
+        "pasteFromClipboard": "從剪貼簿貼上"
+      }
+    },
+    "buttons": {
+      "goBack": "返回",
+      "reportBug": "報告錯誤"
+    },
+    "colorPicker": {
+      "title": "選擇顏色",
+      "modals": {
+        "morandiColorPalette": "莫蘭迪色調",
+        "tailwindCssColorPalette": "Tailwind CSS色調"
+      },
+      "buttons": {
+        "morandiColorPalette": "莫蘭迪色調",
+        "tailwindCssColorPalette": "Tailwind CSS色調"
+      }
+    },
+    "empty": {
+      "apiStatus": {
+        "title": "無法連結到API",
+        "description": "請檢查您的網絡連接並重試。如果您是開發人員，請檢查伺服器是否正常運行。"
+      }
+    },
+    "iconPicker": {
+      "items": {
+        "icon": "圖標",
+        "iconSet": "圖標集"
+      },
+      "empty": {
+        "icon": {
+          "title": "沒有圖標",
+          "description": "找不到圖標, 請嘗試其他關鍵字。"
+        }
+      }
+    },
+    "locationDisabled": {
+      "description": "位置輸入目前不可用。請添加正確配置的Google Cloud API金鑰以啟用此功能。欲了解更多資訊，請參閱",
+      "title": "不適用"
+    },
+    "dates": {
+      "months": {
+        "0": "一月",
+        "1": "二月",
+        "2": "三月",
+        "3": "四月",
+        "4": "五月",
+        "5": "六月",
+        "6": "七月",
+        "7": "八月",
+        "8": "九月",
+        "9": "十月",
+        "10": "十一月",
+        "11": "十二月"
+      },
+      "days": {
+        "0": "星期一",
+        "1": "星期二",
+        "2": "星期三",
+        "3": "星期四",
+        "4": "星期五",
+        "5": "星期六",
+        "6": "星期日"
+      }
+    },
+    "fieldRequired": "此欄位為必填。",
+    "invalidField": "無效欄位。",
+    "invalidColor": "無效顏色。請輸入有效的十六進制值，格式為#RRGGBB。",
+    "invalidIcon": "無效圖標。必須是來自Iconify的有效圖標識別符，格式為<icon-set>:<icon-name>。",
+    "loadingUserData": "正在加載用戶數據...",
+    "invalidSelection": "無效選擇。請從清單中選擇一個有效的值。",
+    "fileInputSupportedFormat": "支持的格式：{{format}}",
+    "viewMode": "顯示方式"
+  },
+  "sidebar": {
+    "categories": {},
+    "buttons": {
+      "signOut": "登出",
+      "accountSettings": "帳戶設置"
+    },
+    "items": {
+      "module": "模組"
+    },
+    "empty": {
+      "modules": {
+        "title": "未找到模組",
+        "description": "請調整模組搜索。"
+      }
+    },
+    "openNavigation": "開啟導覽",
+    "collapseNavigation": "收起導覽"
+  },
+  "fetch": {
+    "error": "從伺服器獲取數據失敗",
+    "success": "耶！成功{{action}}項目！",
+    "failure": "呃... {{action}}項目失敗。請再試一次。",
+    "action": {
+      "create": "創建",
+      "update": "更新",
+      "delete": "刪除",
+      "rename": "重命名",
+      "pin": "置頂",
+      "unpin": "取消置頂",
+      "archive": "歸檔",
+      "unarchive": "取消歸檔",
+      "remove": "移除",
+      "add": "添加",
+      "save": "保存",
+      "public": "公開",
+      "private": "設為私人",
+      "replace": "替換",
+      "clearMedium": "清除",
+      "thumbnail": "更新縮略圖",
+      "generate": "生成",
+      "cleanedup": "清理",
+      "summarized": "總結",
+      "unlock": "解鎖",
+      "download": "下載",
+      "NASFilesReady": " 文件已準備好下載。前往您的NAS。",
+      "addedToFavourites": "添加到收藏夾",
+      "removedFromFavourites": "從收藏夾中移除"
+    },
+    "redirected": "已重定向",
+    "redirecting": "重定向中...",
+    "unlock": "解鎖"
+  },
+  "auth": {
+    "header": "歡迎回來",
+    "desc": "你的工作空間已就緒。",
+    "welcome": {
+      "header": "歡迎使用 monolith",
+      "desc": "建立你的個人工作空間。"
+    },
+    "sideImageDesc": {
+      "part1": "專案、知識以及它們之間的連結。",
+      "part2": "為重要的事留出空間。"
+    },
+    "or": "或",
+    "buttons": {
+      "signIn": "登入",
+      "proceed": "繼續"
+    },
+    "inputs": {
+      "emailOrUsername": {
+        "label": "電子郵件或用戶名",
+        "placeholder": "johndoe@gmail.com"
+      },
+      "email": {
+        "label": "電子郵件",
+        "placeholder": "johndoe@gmail.com"
+      },
+      "username": {
+        "label": "用戶名",
+        "placeholder": "johndoe"
+      },
+      "name": {
+        "label": "顯示名稱",
+        "placeholder": "張三"
+      },
+      "password": {
+        "label": "密碼",
+        "placeholder": "輸入您的密碼"
+      },
+      "confirmPassword": {
+        "label": "確認密碼",
+        "placeholder": "再次輸入密碼"
+      }
+    },
+    "validation": {
+      "emailRequired": "電子郵件為必填項",
+      "emailInvalid": "請輸入有效的電子郵件地址",
+      "usernameRequired": "用戶名為必填項",
+      "usernameTooShort": "用戶名至少需要3個字元",
+      "usernameInvalid": "用戶名只能包含字母、數字和下劃線",
+      "nameRequired": "姓名為必填項",
+      "passwordRequired": "密碼為必填項",
+      "passwordTooShort": "密碼至少需要8個字元",
+      "passwordMismatch": "兩次輸入的密碼不一致"
+    },
+    "modals": {
+      "twoFA": {
+        "title": "雙因素身份驗證",
+        "description": "請在您之前註冊的身份驗證器應用程式中輸入提供的 OTP。",
+        "buttons": {
+          "useEmailOtp": "使用電子郵件OTP",
+          "useAuthApp": "使用身份驗證應用程式"
+        },
+        "emailDescription": "請輸入與您的帳戶相關聯的電子郵件地址。",
+        "inputs": {
+          "email": "電子郵件地址"
+        }
+      }
+    },
+    "orAuthenticateWith": "或以以下方式進行身份驗證",
+    "messages": {
+      "otpSent": "如果該電子郵件地址與任何帳戶相關聯，您將收到一次性密碼。",
+      "welcomeBack": "歡迎回來，{{name}}!",
+      "invalidCredentials": "無效的電子郵件或密碼。請再試一次。",
+      "invalidFields": "無效欄位。請填寫有效的電子郵件地址和密碼。",
+      "quotaExceeded": "最大嘗試次數已達到。請稍後再試。",
+      "unknownError": "未知錯誤。請稍後再試。",
+      "invalidLoginAttempt": "無效的登入嘗試。請再試一次。",
+      "userCreated": "帳戶創建成功！歡迎來到 monolith。"
+    },
+    "qrLogin": {
+      "title": "掃碼登入",
+      "description": "使用其他設備登入您的帳戶。",
+      "expired": "二維碼已過期",
+      "clickToRefresh": "點擊刷新",
+      "approved": "登入已批准！正在跳轉...",
+      "waiting": "等待批准中...",
+      "approvalTitle": "批准登入",
+      "approvalDescription": "一台裝置正在請求登入您的帳戶",
+      "browserInfo": "裝置資訊",
+      "approve": "批准登入",
+      "deny": "拒絕",
+      "success": "登入已成功批准",
+      "scanQRCode": "掃描二維碼登入",
+      "invalidQR": "無效的二維碼",
+      "sessionNotFound": "會話未找到或已過期",
+      "alreadyApproved": "會話已被批准"
+    },
+    "workspaceNote": "一個工作空間，屬於你的節奏。",
+    "forkAttribution": "monolith，基於 LifeForge 建構。",
+    "licenseAttribution": "LifeForge 由 <author>Melvin Chia</author> 建立，採用 <license>CC BY-NC-SA 4.0</license> 授權。"
+  },
+  "vault": {
+    "vault": {
+      "lockedMessage": "您的保險庫已鎖定",
+      "passwordRequired": "需要主密碼來解密您的保險庫。",
+      "unlocked": "保險庫已解鎖",
+      "failedToUnlock": "解鎖保險庫失敗",
+      "buttons": {
+        "unlock": "解鎖",
+        "recoverAccount": "恢復帳戶"
+      },
+      "createPassword": {
+        "title": "設置主密碼",
+        "desc": "請設置一個主密碼來保護您的保險庫。"
+      },
+      "inputs": {
+        "newPassword": "新密碼",
+        "confirmPassword": "確認密碼",
+        "masterPassword": "主密碼"
+      },
+      "confirmSetNewPassword": {
+        "title": "確保您記住您的主密碼！",
+        "desc": "此主密碼是不可更改的（目前）！如果您不小心忘記了密碼，您將失去一切。此密碼會被哈希並存儲在您的用戶資料中，且無法解密。它將用於加密和解密您存儲在保險庫中的數據。"
+      }
+    },
+    "otp": {
+      "buttons": {
+        "request": "請求一次性密碼",
+        "resend": "重新發送一次性密碼",
+        "verify": "驗證一次性密碼",
+        "authByQR": "通過 QR 碼驗證"
+      },
+      "messages": {
+        "success": "一次性密碼已發送！請檢查您的電子郵件。",
+        "failed": "請求一次性密碼失敗",
+        "invalid": "一次性密碼必須是6位數字",
+        "cooldown": "請求過於頻繁，請稍後再試",
+        "required": {
+          "title": "需要一次性密碼來解鎖",
+          "desc": "為了增加安全性，需要一次性密碼來解鎖此模塊。請點擊下面的按鈕來請求一次性密碼。"
+        },
+        "verify": {
+          "success": "一次性密碼驗證成功",
+          "failed": "一次性密碼驗證失敗"
+        }
+      }
+    }
+  },
+  "recurring": {
+    "freqs": {
+      "yearly": "每年",
+      "monthly": "每月",
+      "weekly": "每週",
+      "daily": "每日",
+      "hourly": "每小時"
+    },
+    "onThe": {
+      "first": "第一個",
+      "second": "第二個",
+      "third": "第三個",
+      "fourth": "第四個",
+      "last": "最後一個"
+    },
+    "onTheDay": {
+      "weekday": "工作日",
+      "day": "天",
+      "weekendDay": "週末的日子"
+    },
+    "endTypes": {
+      "never": "從不",
+      "after": "在執行了",
+      "on": "在日期"
+    },
+    "inputs": {
+      "on": "日期",
+      "after": "數量",
+      "executions": "次後",
+      "durationUnit": "持續時間單位",
+      "durationAmount": "持續時間數量",
+      "frequency": "頻率",
+      "yearly": {
+        "exactDate": {
+          "title": "在確切日期",
+          "inputs": {
+            "month": "月份",
+            "date": "日期"
+          }
+        },
+        "relativeDay": {
+          "title": "在相對日期",
+          "inputs": {
+            "onThe": "在",
+            "onTheDay": "天",
+            "ofTheMonth": "的月份"
+          }
+        }
+      },
+      "monthly": {
+        "inputs": {
+          "every": "每",
+          "months": "個月"
+        },
+        "exactDate": {
+          "title": "在確切日期",
+          "inputs": {
+            "date": "日期"
+          }
+        },
+        "relativeDay": {
+          "title": "在相對日期",
+          "inputs": {
+            "onThe": "在",
+            "onTheDay": "天"
+          }
+        }
+      },
+      "weekly": {
+        "inputs": {
+          "every": "每",
+          "weeks": "週",
+          "onDays": "在星期幾"
+        }
+      },
+      "daily": {
+        "inputs": {
+          "every": "每",
+          "days": "天"
+        }
+      },
+      "hourly": {
+        "inputs": {
+          "every": "每",
+          "hours": "小時"
+        }
+      },
+      "endType": "結束"
+    },
+    "durationUnits": {
+      "minute": "分鐘",
+      "hour": "小時",
+      "day": "天",
+      "week": "週",
+      "month": "月份",
+      "year": "年"
+    }
+  },
+  "blocks": {
+    "editor": "文件內容",
+    "toolbar": "格式和內容區塊",
+    "placeholder": "開始写作，或輸入 / 選擇內容區塊…",
+    "loading": "正在開啟編輯器…",
+    "add": "內容區塊",
+    "bold": "粗体",
+    "italic": "斜体",
+    "code": "行内程式碼",
+    "linkPage": "連結頁面",
+    "searchPages": "查找頁面",
+    "noPages": "沒有符合的頁面。請先建立文件、筆記或記錄。",
+    "undo": "復原",
+    "redo": "重做",
+    "moveUp": "上移內容區塊",
+    "moveDown": "下移內容區塊",
+    "duplicate": "複製內容區塊",
+    "delete": "刪除內容區塊",
+    "unavailable": "此頁面不可用",
+    "hint": "輸入 / 選擇內容區塊。使用 [[頁面標題]] 或“連結頁面”連接想法。选中內容區塊即可移動或複製。",
+    "types": {
+      "paragraph": "文本",
+      "heading1": "標題 1",
+      "heading2": "標題 2",
+      "heading3": "標題 3",
+      "bulletList": "項目符號清單",
+      "orderedList": "編號清單",
+      "taskList": "任務清單",
+      "blockquote": "引用",
+      "codeBlock": "程式碼",
+      "horizontalRule": "分隔線"
+    }
+  },
+  "graph": {
+    "map": "知識圖譜",
+    "count": "{{nodes}} 個頁面 · {{edges}} 條連接",
+    "zoomIn": "放大",
+    "zoomOut": "縮小",
+    "fit": "符合圖譜",
+    "hint": "拖動可平移或移動節點，捲動可縮放。按 Tab 和 Enter 選擇頁面；圖譜支持 +、− 和方向键。",
+    "empty": "相互連接的想法將在這裡顯示。",
+    "kinds": {
+      "document": "文件",
+      "record": "記錄",
+      "note": "筆記"
+    }
+  },
+  "appBar": {
+    "navigation": "工作區導覽",
+    "workspace": "工作區",
+    "databases": "資料庫",
+    "techLab": "Tech Lab",
+    "calendar": "日曆",
+    "agents": "智慧代理",
+    "modules": "模組",
+    "account": "帳戶設定",
+    "lightTheme": "切換淺色主題",
+    "darkTheme": "切換深色主題",
+    "page": "頁面",
+    "openSidebar": "開啟頁面樹",
+    "closeSidebar": "關閉頁面樹"
+  },
+  "canvas": {
+    "home": "首頁",
+    "quickAccess": "快速存取",
+    "projects": "專案",
+    "documents": "文件與資料庫",
+    "homelab": "家庭實驗室",
+    "financialOverview": "財務概覽",
+    "notes": "筆記",
+    "pageTitle": "頁面標題",
+    "pages": "頁面",
+    "newPage": "新增頁面",
+    "untitled": "未命名",
+    "document": "文件區塊",
+    "editPage": "編輯頁面",
+    "savePage": "儲存頁面",
+    "saveFailed": "無法儲存頁面，草稿仍然可用。",
+    "loadFailed": "無法載入此頁面。",
+    "loading": "載入中…",
+    "retry": "重试",
+    "cancel": "取消",
+    "unsaved": "變更尚未儲存",
+    "keepEditing": "繼續編輯",
+    "discard": "捨棄變更",
+    "addBlock": "新增區塊",
+    "liveBlocks": "已連接的資料區塊",
+    "newButton": "開啟頁面",
+    "blockTitle": "區塊標題",
+    "optionalTitle": "選填標題",
+    "buttonUrl": "按鈕位址",
+    "content": "內容",
+    "connectedArea": "領域儀表板 · 連接現有資料",
+    "connectedWidget": "即時元件 · 儲存後恢復即時資料",
+    "unavailableWidget": "此資料區塊不可用，請在編輯頁面中選擇已安裝的元件。",
+    "unsafeLink": "請輸入安全的網址或工作區頁面路徑。",
+    "fullWidth": "全宽",
+    "standardWidth": "标准宽度",
+    "dragBlock": "拖曳區塊",
+    "moveUp": "上移區塊",
+    "moveDown": "下移區塊",
+    "removeBlock": "移除區塊",
+    "width": {
+      "full": "全宽",
+      "half": "1/2",
+      "third": "1/3"
+    },
+    "types": {
+      "document": "文字與文件",
+      "heading": "標題",
+      "callout": "提示",
+      "button": "按鈕",
+      "divider": "分隔線",
+      "native": "領域儀表板",
+      "widget": "即時元件",
+      "database": "關聯資料庫"
+    },
+    "filter": "內容篩選",
+    "filterHelp": "選填的服務、裝置或專案名稱",
+    "labHealth": "實驗室狀態",
+    "deviceResources": "裝置資源",
+    "widgets": {
+      "projectOverview": "專案看板",
+      "techLabServices": "服務啟動器",
+      "techLabHealth": "監控狀態",
+      "techLabDevice": "裝置資源",
+      "assetsBalance": "資產餘額"
+    },
+    "saving": "正在儲存…",
+    "saved": "所有變更已儲存",
+    "readOnly": "唯讀頁面",
+    "noDatabases": "建立工作區資料庫後，即可在此嵌入。",
+    "changeView": "切換資料庫檢視",
+    "linkSettings": "編輯快捷連結",
+    "workspace": "工作區",
+    "newWorkspace": "新增工作區",
+    "workspaceSettings": "工作區設定",
+    "workspaceName": "工作區名稱",
+    "workspaceProfile": "工作區類型",
+    "createWorkspace": "建立工作區",
+    "newChildPage": "新增子頁面",
+    "profiles": {
+      "personal": "個人",
+      "collaborative": "協作",
+      "agents": "僅智慧代理"
+    },
+    "areaTitles": {
+      "page": "頁面",
+      "task": "待辦清單",
+      "note": "筆記",
+      "project": "專案",
+      "event": "日曆",
+      "post": "部落格"
+    },
+    "reloadSaved": "重新載入已儲存版本",
+    "reloadConfirm": "放棄未儲存的頁面變更並載入已儲存版本？",
+    "refreshFailed": "頁面已儲存。導覽重新整理失敗，請重試。"
+  },
+  "systemSearch": {
+    "title": "搜尋全部內容",
+    "subtitle": "搜尋 Monolith 工作區，在來源中查證答案。",
+    "scope": "工作區",
+    "allWorkspaces": "所有可存取工作區和個人模組",
+    "module": "模組",
+    "allModules": "所有模組",
+    "queryLabel": "您在尋找什麼？",
+    "placeholder": "提問、描述圖片或搜尋短語…",
+    "search": "搜尋",
+    "keyword": "僅關鍵字",
+    "generate": "產生帶引用的答案",
+    "coverage": "已索引 {{ready}} / {{total}} 個來源",
+    "loading": "正在載入索引狀態…",
+    "checkingHost": "正在檢查 Mac mini…",
+    "hostReady": "Mac mini 已連線 · 嵌入、視覺、LLM 和 Laya",
+    "hostOffline": "Mac mini 無法使用 · 仍可搜尋關鍵字",
+    "indexing": "正在索引 {{source}}…",
+    "index": "更新索引",
+    "stop": "完成本批次後停止",
+    "retryHost": "重試連線",
+    "indexHelp": "索引會從已完成的批次繼續。內容變更後請更新。工作區範圍包含頁面、記錄和匯入知識；個人模組檔案包含在所有工作區範圍內。",
+    "failed": "搜尋失敗，請重試。",
+    "answer": "來自您的來源的答案",
+    "answerHelp": "AI 產生的解讀。使用前請核對連結的證據。",
+    "evidence": "證據（{{count}}）",
+    "empty": "沒有匹配的證據。請更換關鍵字或更新索引以啟用語義搜尋。",
+    "visionLabel": "AI 圖片解讀",
+    "relevance": "Laya 相關度 {{score}}% · 信心度 {{confidence}}%",
+    "open": "開啟來源",
+    "citation": "證據 {{id}}",
+    "stages": {
+      "keyword": "關鍵字",
+      "embedding": "嵌入",
+      "laya": "Laya",
+      "llm": "答案"
+    },
+    "warnings": {
+      "general": "部分內容未能完整索引。",
+      "file-too-large": "檔案超過 12 MiB 索引限制；可搜尋其中繼資料。",
+      "unsupported-file": "此檔案格式目前僅支援中繼資料搜尋。",
+      "missing-file": "檔案內容無法使用。",
+      "file-partial": "僅索引了前 80 頁或 100,000 個字元。",
+      "scanned-pdf": "此 PDF 可擷取文字較少；暫不支援掃描頁面搜尋。",
+      "embedding-unavailable": "嵌入 API 無法使用，顯示關鍵字匹配。",
+      "index-pending": "部分來源需要索引，其目前文字仍支援關鍵字搜尋。",
+      "laya-unavailable": "Laya 無法使用，按檢索順序顯示。",
+      "answer-unavailable": "答案產生無法使用或驗證未通過，顯示來源證據。",
+      "sources-changed": "搜尋期間來源發生變更，請重新搜尋以產生最新答案。",
+      "unreadable-file": "檔案無法安全解碼；僅索引其中繼資料。"
+    },
+    "clearIndex": "清除我的搜尋索引"
+  },
+  "inputs": {
+    "rangeValue": "數值"
+  }
+}

@@ -1,6 +1,5 @@
 import fs from 'node:fs'
 import path from 'node:path'
-
 import { defineConfig } from 'vite'
 
 import { serverAliasResolver } from '../resolvers/mod-server-alias-resolver'
@@ -54,10 +53,12 @@ export function defineModuleServerConfig(dirname: string) {
   const entityInputs = getEntityInputs(dirname)
 
   const schemaInput = getSchemaInput(dirname)
+  const eventsInput = path.join(dirname, 'events.ts')
 
   const input: Record<string, string> = {
-    index: `${dirname}/index.ts`,
+    index: path.join(dirname, 'index.ts'),
     ...(schemaInput ? { schema: schemaInput } : {}),
+    ...(fs.existsSync(eventsInput) ? { events: eventsInput } : {}),
     ...entityInputs
   }
 
@@ -72,7 +73,7 @@ export function defineModuleServerConfig(dirname: string) {
     build: {
       minify: false,
       ssr: true,
-      outDir: `${dirname}/dist`,
+      outDir: path.join(dirname, 'dist'),
       target: 'node22',
       rollupOptions: {
         input,
@@ -88,6 +89,7 @@ export function defineModuleServerConfig(dirname: string) {
             if (chunk.name === 'index') return 'index.js'
             if (chunk.name === 'schema') return 'schema.js'
             if (chunk.name === 'entity') return 'entity.js'
+            if (chunk.name === 'events') return 'events.js'
             return `schemas/${chunk.name}.js`
           }
         }

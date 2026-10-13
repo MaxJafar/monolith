@@ -1,8 +1,6 @@
 import { Switch as HeadlessSwitch } from '@headlessui/react'
 
 import { Box, Flex, Transition } from '@/components/primitives'
-import { usePersonalization } from '@/providers'
-import { COLORS } from '@/system'
 
 interface SwitchProps {
   /** Whether the switch is currently checked (on) or unchecked (off). */
@@ -11,14 +9,19 @@ interface SwitchProps {
   onChange: (value: boolean) => void
   /** Whether the switch is disabled and non-interactive. */
   disabled?: boolean
+  /** Accessible name for switches without a separate visible label. */
+  'aria-label'?: string
 }
 
 /**
  * A switch component for toggling between two states.
  */
-export function Switch({ value, onChange, disabled }: SwitchProps) {
-  const { derivedTheme, getMostReadableColor } = usePersonalization()
-
+export function Switch({
+  value,
+  onChange,
+  disabled,
+  'aria-label': ariaLabel
+}: SwitchProps) {
   return (
     <Transition duration={200} property="background-color">
       <Flex
@@ -51,10 +54,16 @@ export function Switch({ value, onChange, disabled }: SwitchProps) {
         width="3em"
       >
         <HeadlessSwitch
+          aria-label={ariaLabel}
           checked={value}
+          disabled={disabled}
           onChange={!disabled ? onChange : undefined}
         >
-          <Transition duration={100} easing="ease-in-out" property="transform">
+          <Transition
+            duration="var(--motion-standard)"
+            easing="var(--motion-ease-expressive)"
+            property={['transform', 'background-color']}
+          >
             <Box
               as="span"
               display="inline-block"
@@ -64,10 +73,10 @@ export function Switch({ value, onChange, disabled }: SwitchProps) {
                 transform: value
                   ? 'translateX(calc(100% - var(--spacing)))'
                   : 'translateX(calc(-100% + var(--spacing)))',
-                backgroundColor:
-                  derivedTheme === 'dark' && value
-                    ? getMostReadableColor()
-                    : COLORS['bg-100']
+                backgroundColor: value
+                  ? 'var(--interactive-on-primary)'
+                  : 'var(--bg-surface)',
+                boxShadow: '0 1px 3px #0003'
               }}
               width="1em"
             />

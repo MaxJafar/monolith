@@ -3,11 +3,8 @@ import _ from 'lodash'
 import { useModuleMetadata } from '@lifeforge/federation'
 import { useModuleTranslation } from '@lifeforge/localization'
 
-import { Button } from '@/components/inputs'
 import { Box, Flex, Icon, Text } from '@/components/primitives'
 import { colorWithOpacity } from '@/system'
-
-import { useMainSidebarState } from '../../../providers'
 
 function getTKeys(
   namespace: string | undefined,
@@ -52,52 +49,40 @@ export function ModuleHeader({
   icon = icon ?? innerIcon
 
   const { t } = useModuleTranslation(
-    typeof namespace === 'string' ? [namespace] : []
+    typeof namespace === 'string'
+      ? [namespace, 'common.sidebar']
+      : ['common.sidebar']
   )
-
-  const { toggleSidebar, sidebarExpanded } = useMainSidebarState()
 
   return (
     <Flex
-      align="center"
+      data-module-header
+      align={{ base: 'start', sm: 'center' }}
       as="header"
-      gap="xl"
+      direction={{ base: 'column', sm: 'row' }}
+      gap="md"
       justify="between"
       mb="lg"
       minWidth="0"
       width="100%"
     >
       <Flex align="center" gap="md" minWidth="0" width="100%">
-        {!sidebarExpanded && (
-          <Box asChild display={{ base: 'block', sm: 'none' }}>
-            <Button
-              icon="tabler:menu"
-              variant="plain"
-              onClick={toggleSidebar}
-            />
-          </Box>
-        )}
         <Flex
           align="center"
-          bg={colorWithOpacity('custom-500', '20%')}
+          bg={colorWithOpacity('custom-500', '10%')}
           flexShrink="0"
-          height={{
-            base: '3.5em',
-            sm: '4em'
-          }}
+          height="2.75em"
           justify="center"
-          r="lg"
-          width={{
-            base: '3.5em',
-            sm: '4em'
-          }}
+          r="md"
+          width="2.75em"
         >
-          <Icon color="primary" icon={icon} size="2rem" />
+          <Icon color="primary" icon={icon} size="1.25rem" />
         </Flex>
         <Flex direction="column" gap="xs" minWidth="0" width="100%">
           <Text
             asChild
-            size={{ base: '2xl', sm: '3xl' }}
+            size="3xl"
+            tracking="tight"
             weight="semibold"
             whiteSpace="nowrap"
           >
@@ -117,10 +102,9 @@ export function ModuleHeader({
           </Text>
           <Box asChild minWidth="0" width="100%">
             <Text
-              truncate
               color="muted"
-              size={{ base: 'sm', sm: 'base' }}
-              whiteSpace="nowrap"
+              size="sm"
+              whiteSpace={{ base: 'normal', sm: 'nowrap' }}
             >
               {namespace === false
                 ? `Description for ${title}`

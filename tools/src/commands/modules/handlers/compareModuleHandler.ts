@@ -140,9 +140,7 @@ function printDiff(moduleName: string, diff: FileDiff): boolean {
     }
 
     if (diff.modified.length > 5) {
-      log.message(
-        chalk.dim(`        ... and ${diff.modified.length - 5} more`)
-      )
+      log.message(chalk.dim(`        ... and ${diff.modified.length - 5} more`))
     }
   }
 

@@ -1,0 +1,78 @@
+{
+  "title": "Pengurus Modul",
+  "description": "Pengurus modul berasaskan UI untuk instans monolith anda",
+  "category": "Kategori",
+  "subsections": {
+    "modules": {
+      "title": "Modul",
+      "description": "Pasang, kemas kini, dan buang modul daripada instans monolith anda"
+    },
+    "categories": {
+      "title": "Kategori",
+      "description": "Susun dan susun semula kategori bar sisi untuk menyesuaikan navigasi anda"
+    }
+  },
+  "buttons": {
+    "uninstall": "Nyahpasang",
+    "addTranslation": "Tambah Terjemahan",
+    "addCategory": "Tambah Kategori",
+    "add category": "Tambah Kategori"
+  },
+  "items": {
+    "category": "Kategori"
+  },
+  "inputs": {
+    "categoryKey": "Kunci Kategori",
+    "translationKey": "Kunci Terjemahan"
+  },
+  "empty": {
+    "category": {
+      "title": "Tiada kategori dijumpai",
+      "description": "Cipta kategori untuk memulakan"
+    },
+    "modules": {
+      "title": "Tiada modul dipasang",
+      "description": "Pasang modul dari registry untuk memperluaskan monolith anda"
+    }
+  },
+  "modals": {
+    "category": {
+      "create": "Cipta Kategori",
+      "update": "Kemas Kini Kategori"
+    },
+    "uninstall": {
+      "title": "Nyahpasang {{module}}?",
+      "description": "Modul ini akan dikeluarkan dari sistem anda tetapi data anda akan dipelihara. Anda boleh memasangnya semula pada bila-bila masa dari registri."
+    },
+    "devMode": {
+      "enable": {
+        "title": "Aktifkan Mod Pembangunan",
+        "description": "Mengaktifkan mod pembangunan akan memuatkan modul ini terus dari sumber dan bukan dari binaan pra-bina. Perubahan pada kod modul akan dimuat semula serta-merta tanpa perlu membina semula.\n\nGunakan ini semasa aktif membangunkan atau menyesuaikan modul ini."
+      },
+      "disable": {
+        "title": "Nyahaktifkan Mod Pembangunan",
+        "description": "Menyahaktifkan mod pembangunan akan bertukar semula kepada pemuatan dari binaan pra-bina. Pastikan anda telah membina semula modul untuk memasukkan perubahan terkini."
+      }
+    },
+    "translationKey": {
+      "create": "Cipta Kunci Terjemahan",
+      "update": "Kemas Kini Kunci Terjemahan"
+    }
+  },
+  "devMode": {
+    "label": "Mod Pembangunan",
+    "enable": "Aktifkan Mod Pembangunan",
+    "disable": "Nyahaktifkan Mod Pembangunan",
+    "enabled": "{{module}} kini dalam mod pembangunan",
+    "disabled": "{{module}} tidak lagi dalam mod pembangunan"
+  },
+  "misc": {
+    "translations": "Terjemahan"
+  },
+  "notBuilt": {
+    "label": "Tidak Dibina"
+  },
+  "messages": {
+    "categoriesMissingTranslations": "{{count}} kategori tiada terjemahan:"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "title": "你的工作空间",
+  "description": "在这里管理项目、知识和关联数据库。",
+  "widgets": {},
+  "modals": {
+    "manageWidgets": "管理小部件"
+  },
+  "buttons": {
+    "manageCategories": "管理分类",
+    "unlockLayout": "解锁布局",
+    "manageWidgets": "管理小工具",
+    "lockLayout": "锁定布局"
+  },
+  "messages": {
+    "editingLayout": "您正在编辑仪表板布局",
+    "editingLayoutHint": "通过拖动小部件来调整排列，或通过拖动每个小部件右下角的小三角形来调整小部件大小"
+  },
+  "empty": {
+    "welcome": {
+      "title": "欢迎来到 monolith！",
+      "description": "在 ForgeStore 安装一些模块并开始使用吧。"
+    },
+    "notFound": {
+      "title": "未找到小工具",
+      "description": "您正在寻找的小工具不存在。请检查您已安装的模块。"
+    }
+  },
+  "loading": "仪表盘加载中...",
+  "test": "",
+  "overview": {
+    "heading": "让工作更清晰。",
+    "description": "在同一个空间规划项目、整理知识并关联工作。",
+    "databases": "打开数据库",
+    "tools": "你的工具",
+    "greeting": "准备开始了吗，{{name}}？",
+    "documents": "文档",
+    "knowledge": "知识图谱",
+    "agents": "智能体",
+    "quickAccess": "快捷访问",
+    "documentsDescription": "撰写并关联工作空间中的文档。",
+    "knowledgeDescription": "探索知识之间的联系。",
+    "agentsDescription": "协调智能体并审核工作成果。",
+    "toolsDescription": "打开支持日常工作的工具。"
+  }
+}

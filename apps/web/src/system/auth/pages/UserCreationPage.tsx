@@ -2,16 +2,9 @@ import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import {
-  Button,
-  Flex,
-  Icon,
-  Stack,
-  Text,
-  TextInput,
-  toast
-} from '@lifeforge/ui'
+import { Button, Flex, Stack, Text, TextInput, toast } from '@lifeforge/ui'
 
+import MonolithLogo from '@/core/components/MonolithLogo'
 import forgeAPI from '@/core/utils/forgeAPI'
 
 function UserCreationPage() {
@@ -98,20 +91,15 @@ function UserCreationPage() {
     <Flex centered direction="column" px="xl" width="100%">
       <Flex asChild centered gap="sm" mb="xl">
         <Text as="h1" size="3xl" weight="semibold" whiteSpace="nowrap">
-          <Icon color="primary" icon="tabler:hammer" />
-          <div>
-            LifeForge
-            <Text color="primary" size="4xl">
-              .
-            </Text>
-          </div>
+          <MonolithLogo size={40} />
+          <Text tracking="tight">monolith</Text>
         </Text>
       </Flex>
       <Text
         align="center"
         as="h2"
         size={{ base: '4xl', sm: '5xl' }}
-        tracking="wide"
+        tracking="tight"
         weight="semibold"
       >
         {t('welcome.header')}

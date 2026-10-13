@@ -92,7 +92,7 @@ function createForgeProxyInternal<T>(
         return typeof value === 'function' ? value.bind(endpoint) : value
       }
 
-      return createForgeProxyInternal(contract, [...pathArray, prop as string])
+      return createForgeProxyInternal(contract, [...pathArray, prop])
     },
 
     apply: () => {

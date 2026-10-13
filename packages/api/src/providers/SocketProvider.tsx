@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import { Socket, io } from 'socket.io-client'
 
 import { useAPIEndpoint } from './APIEndpointProvider'
+import { resolveSocketUrl } from './socketUrl'
 
 const SocketContext = createContext<Socket | null>(null)
 
@@ -23,7 +24,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   const [socket, setSocket] = useState<Socket | null>(null)
 
   useEffect(() => {
-    const newSocket = io(apiHost, {
+    const newSocket = io(resolveSocketUrl(apiHost, window.location.origin), {
       auth: {
         token: localStorage.getItem('session')
       }
@@ -35,7 +36,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
       newSocket.disconnect()
       setSocket(null)
     }
-  }, [])
+  }, [apiHost])
 
   return <SocketContext value={socket}>{children}</SocketContext>
 }

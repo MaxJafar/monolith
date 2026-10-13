@@ -84,7 +84,7 @@ export function SidebarItem({
   subsection
 }: SidebarItemProps) {
   const { setIsSidebarOpen } = useModuleSidebarState()
-  const [subsectionExpanded, setSubsectionExpanded] = useState(active ?? false)
+  const [subsectionExpanded, setSubsectionExpanded] = useState(active)
 
   const handleNavigation = useCallback(() => {
     if (onClick === 'expand' && subsection?.length) {
@@ -109,6 +109,7 @@ export function SidebarItem({
       <SidebarItemWrapper
         active={active}
         className={classNames?.wrapper}
+        expanded={subsection ? subsectionExpanded : undefined}
         onClick={handleNavigation}
       >
         {sideStripColor !== undefined && (

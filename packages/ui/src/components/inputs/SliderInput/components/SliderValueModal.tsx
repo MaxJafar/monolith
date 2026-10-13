@@ -93,7 +93,10 @@ export function SliderValueModal({
           name="value"
           namespace={false}
           onEnter={() => {
-            form.handleSubmit(handleSubmit)().then(onClose)
+            void form.handleSubmit(values => {
+              handleSubmit(values)
+              onClose()
+            })()
           }}
         />
       </FormModal>

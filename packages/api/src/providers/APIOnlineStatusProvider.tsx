@@ -7,34 +7,7 @@ import {
 } from 'react'
 
 import { useAPIEndpoint } from './APIEndpointProvider'
-
-async function checkAPIStatus(
-  apiEndpoint: string
-): Promise<'production' | 'development' | false> {
-  const controller = new AbortController()
-
-  const timeoutId = setTimeout(() => {
-    controller.abort()
-  }, 5000)
-
-  try {
-    const res = await fetch(`${apiEndpoint}/status`, {
-      signal: controller.signal
-    })
-
-    if (res.ok) {
-      const data: any = await res.json()
-
-      return data.data.environment
-    }
-
-    return false
-  } catch (err) {
-    return false
-  } finally {
-    clearTimeout(timeoutId)
-  }
-}
+import { checkAPIStatus } from './apiStatus'
 
 interface IAPIOnlineStatus {
   isOnline: boolean | 'loading'
@@ -62,21 +35,25 @@ export function APIOnlineStatusProvider({
   const [environment, setEnvironment] = useState<
     'production' | 'development' | null
   >(null)
+
+  const [attempt, setAttempt] = useState(0)
+
   const handleRetry = useCallback(() => {
-    setIsOnline('loading')
-    checkAPIStatus(apiEndpoint)
-      .then(status => {
-        setEnvironment(status === false ? null : status)
-        setIsOnline(status !== false)
-      })
-      .catch(err => {
-        console.error(err)
-        setIsOnline(false)
-      })
-  }, [apiEndpoint])
-  useEffect(() => {
-    handleRetry()
+    setAttempt(current => current + 1)
   }, [])
+  useEffect(() => {
+    let active = true
+    setIsOnline('loading')
+    void checkAPIStatus(apiEndpoint).then(status => {
+      if (!active) return
+      setEnvironment(status === false ? null : status)
+      setIsOnline(status !== false)
+    })
+
+    return () => {
+      active = false
+    }
+  }, [apiEndpoint, attempt])
 
   return (
     <APIOnlineStatusContext

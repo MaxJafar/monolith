@@ -137,3 +137,17 @@
   --color-bg-900: rgb(0 0 0);
   --color-bg-950: rgb(0 0 0);
 }
+
+.bg-zillion {
+  --color-bg-50: #ffffff;
+  --color-bg-100: #f7f7f5;
+  --color-bg-200: #ebebe8;
+  --color-bg-300: #d4d4d0;
+  --color-bg-400: #a6a6a2;
+  --color-bg-500: #858582;
+  --color-bg-600: #73736f;
+  --color-bg-700: #373735;
+  --color-bg-800: #2c2c2c;
+  --color-bg-900: #202020;
+  --color-bg-950: #191919;
+}

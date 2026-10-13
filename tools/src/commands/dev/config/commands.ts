@@ -2,11 +2,7 @@ import { log } from '@clack/prompts'
 import fs from 'fs'
 
 import executeCommand from '@/utils/commands'
-import {
-  checkPortInUse,
-  delay,
-  killExistingProcess
-} from '@/utils/helpers'
+import { checkPortInUse } from '@/utils/helpers'
 
 /**
  * Service command configurations
@@ -20,12 +16,6 @@ interface ServiceConfig {
 export const SERVICE_COMMANDS: Record<string, ServiceConfig> = {
   server: {
     command: async () => {
-      const killedProcess = killExistingProcess('tsx.*apps/api.*src/index.ts')
-
-      if (killedProcess) {
-        await delay(2000)
-      }
-
       const PORT = process.env.PORT || '3636'
 
       if (await checkPortInUse(Number(PORT))) {
@@ -39,16 +29,12 @@ export const SERVICE_COMMANDS: Record<string, ServiceConfig> = {
   },
   docs: {
     command: () => {
-      killExistingProcess('vite.*docs')
-
       return 'pnpm run dev'
     },
     cwd: 'docs'
   },
   client: {
     command: () => {
-      killExistingProcess('vite.*apps/web')
-
       if (!fs.existsSync('packages/ui/dist')) {
         executeCommand('pnpm forge build ui')
       }
@@ -59,8 +45,6 @@ export const SERVICE_COMMANDS: Record<string, ServiceConfig> = {
   },
   ui: {
     command: () => {
-      killExistingProcess('storybook.*packages/ui')
-
       return 'pnpm run dev'
     },
     cwd: 'packages/ui'

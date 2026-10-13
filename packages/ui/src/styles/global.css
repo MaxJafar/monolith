@@ -1,6 +1,10 @@
 :root {
   interpolate-size: allow-keywords;
   font-size: 14px;
+  --motion-fast: 160ms;
+  --motion-normal: 240ms;
+  --motion-slow: 360ms;
+  --motion-ease: cubic-bezier(0.2, 0, 0, 1);
 }
 
 * {
@@ -9,7 +13,7 @@
   scrollbar-color: transparent transparent;
   scrollbar-width: thin;
   interpolate-size: allow-keywords;
-  user-select: none;
+  user-select: text;
 
   &:disabled {
     cursor: not-allowed;
@@ -67,4 +71,47 @@ code {
 #app {
   font-size: var(--text-base);
   vertical-align: bottom;
+}
+
+/* Visible keyboard focus, selectable content and reduced motion. */
+:where(a, button, input, select, textarea, [role='button']):focus-visible {
+  outline: 2px solid var(--color-custom-500) !important;
+  outline-offset: 4px;
+}
+h1,
+h2,
+h3,
+h4 {
+  font-family: 'Inter', sans-serif;
+}
+code,
+pre,
+kbd {
+  font-family: 'JetBrains Mono', monospace;
+}
+p,
+[contenteditable='true'] {
+  user-select: text;
+}
+.zillion-route-enter > * {
+  animation: zillion-route-enter var(--motion-normal) var(--motion-ease) both;
+}
+@keyframes zillion-route-enter {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
 }

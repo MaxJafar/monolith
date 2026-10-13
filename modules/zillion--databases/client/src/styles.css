@@ -1,0 +1,113 @@
+/* Section labels must override the shared module-content h2 display sizing. */
+h2.zillion-database-collection-heading {
+  font-size: 14px !important;
+  line-height: 20px !important;
+}
+
+/* Native table layout and cell borders have no corresponding UI primitive. */
+.monolith-library-wrap {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.monolith-library-excerpt {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+h2.monolith-library-title {
+  font-size: 24px !important;
+  line-height: 32px !important;
+  overflow-wrap: anywhere;
+}
+.monolith-library-import textarea {
+  max-height: 24rem;
+  overflow-y: auto;
+}
+.zillion-database-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+.zillion-database-table th,
+.zillion-database-table td {
+  min-width: 8rem;
+  max-width: 24rem;
+  padding: 0.25rem 0.5rem;
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--color-bg-500) 18%, transparent);
+  overflow-wrap: anywhere;
+  vertical-align: middle;
+}
+.zillion-database-table thead {
+  background: color-mix(in srgb, var(--color-bg-500) 6%, transparent);
+}
+.zillion-database-table th:first-child,
+.zillion-database-table td:first-child {
+  min-width: 15rem;
+}
+.zillion-database-table td[data-kind='number'] {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.zillion-database-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.zillion-database-table tbody tr:hover,
+.zillion-database-table tbody tr:focus-within {
+  background: color-mix(in srgb, var(--color-custom-500) 4%, transparent);
+}
+.zillion-database-table tbody tr {
+  transition: background-color var(--motion-fast, 140ms)
+    var(--motion-ease, ease);
+}
+.zillion-database-type {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.25rem 0.5rem;
+  border: 0;
+  border-radius: var(--radius-sm, 12px);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.zillion-database-type:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-bg-500) 9%, transparent);
+}
+.zillion-database-type:focus-visible {
+  outline: 2px solid var(--color-custom-500);
+  outline-offset: 2px;
+}
+.zillion-database-type:disabled {
+  cursor: default;
+}
+.zillion-database-type option {
+  background: var(--color-bg-50);
+  color: var(--color-bg-950);
+}
+@media (min-width: 768px) {
+  .zillion-database-type {
+    min-height: 32px;
+  }
+}
+.zillion-workspace-enter {
+  animation: zillion-workspace-enter var(--motion-normal, 220ms)
+    var(--motion-ease, ease) both;
+}
+@keyframes zillion-workspace-enter {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .zillion-workspace-enter {
+    animation: none;
+  }
+  .zillion-database-table tbody tr {
+    transition: none;
+  }
+}

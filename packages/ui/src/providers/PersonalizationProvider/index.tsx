@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { createContext, useContext, useMemo, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import tinycolor from 'tinycolor2'
 
 import { useLanguageEffect } from '@lifeforge/localization'
@@ -24,17 +24,17 @@ import { getColorPalette } from './utils/themeColors'
 
 const DEFAULT_VALUE: IPersonalizationData = {
   rootElement: typeof document !== 'undefined' ? document.body : null,
-  fontFamily: 'Onest',
+  fontFamily: 'Inter',
   fontScale: 1,
   borderRadiusMultiplier: 1,
   bordered: false,
-  theme: 'system',
-  derivedTheme: 'dark',
-  rawThemeColor: 'theme-lime',
-  derivedThemeColor: THEME_COLOR_HEX['lime'],
+  theme: 'light',
+  derivedTheme: 'light',
+  rawThemeColor: '#252525',
+  derivedThemeColor: '#252525',
   getMostReadableColor: () => '#000000',
-  bgTemp: 'bg-neutral',
-  bgTempPalette: BG_THEME['zinc'],
+  bgTemp: 'bg-zillion',
+  bgTempPalette: BG_THEME['zillion'],
   bgImage: '',
   backdropFilters: {
     blur: 'none',
@@ -89,9 +89,16 @@ export function PersonalizationProvider({
 
   const [bordered, setBordered] = useState<boolean>(defaultValue.bordered)
 
-  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>(
-    defaultValue.theme
-  )
+  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>(() => {
+    try {
+      const saved = localStorage.getItem('monolith.theme')
+      if (saved === 'light' || saved === 'dark' || saved === 'system')
+        return saved
+    } catch {
+      /* Storage is optional. */
+    }
+    return defaultValue.theme
+  })
 
   const [rawThemeColor, setRawThemeColor] = useState(defaultValue.rawThemeColor)
 
@@ -117,15 +124,33 @@ export function PersonalizationProvider({
   const [backdropFilters, setBackdropFilters] = useState<IBackdropFilters>(
     defaultValue.backdropFilters
   )
+  const [systemDark, setSystemDark] = useState(
+    () => window.matchMedia('(prefers-color-scheme: dark)').matches
+  )
+
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-color-scheme: dark)')
+    const update = () => setSystemDark(media.matches)
+    media.addEventListener('change', update)
+    update()
+    return () => media.removeEventListener('change', update)
+  }, [])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('monolith.theme', theme)
+    } catch {
+      /* Optional storage. */
+    }
+  }, [theme])
+
   const derivedTheme = useMemo(() => {
     if (theme === 'system') {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches
-        ? 'dark'
-        : 'light'
+      return systemDark ? 'dark' : 'light'
     }
 
     return theme
-  }, [theme])
+  }, [theme, systemDark])
   const themeColor = useMemo(
     () =>
       !rawThemeColor.startsWith('#')
@@ -164,7 +189,7 @@ export function PersonalizationProvider({
   ])
 
   useLanguageEffect(language)
-  useMetaEffect(themeColor)
+  useMetaEffect()
   useBorderRadiusEffect(borderRadiusMultiplier)
   useBorderedEffect(rootElement, bordered)
 
@@ -206,6 +231,7 @@ export function PersonalizationProvider({
       bordered,
       theme,
       rawThemeColor,
+      derivedTheme,
       themeColor,
       getMostReadableColor,
       bgTemp,
@@ -219,7 +245,10 @@ export function PersonalizationProvider({
 
   return (
     <PersonalizationContext value={value}>
-      <meta content="#09090b" name="theme-color" />
+      <meta
+        content={derivedTheme === 'dark' ? '#191919' : '#ffffff'}
+        name="theme-color"
+      />
       {children}
     </PersonalizationContext>
   )

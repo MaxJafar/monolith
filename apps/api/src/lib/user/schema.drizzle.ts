@@ -2,12 +2,15 @@ import { type RelationsBuilder } from 'drizzle-orm'
 import {
   boolean,
   json,
+  jsonb,
   pgTable,
   real,
   timestamp,
   uuid,
   varchar
 } from 'drizzle-orm/pg-core'
+
+import type { CanvasPage } from '@lifeforge/blocks'
 
 export const users = pgTable('users', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -25,6 +28,7 @@ export const users = pgTable('users', {
   backdropFilters: json('backdrop_filters').$type<Record<string, unknown>>(),
   fontFamily: varchar('font_family', { length: 255 }),
   dashboardLayout: json('dashboard_layout').$type<Record<string, unknown>>(),
+  workspacePages: jsonb('workspace_pages').$type<Record<string,CanvasPage>>().notNull().default({}),
   APIKeysMasterPasswordHash: varchar('api_keys_master_password_hash', {
     length: 255
   }),
@@ -41,4 +45,5 @@ export const users = pgTable('users', {
 })
 
 export const tables = { users }
+
 export const relations = (_r: RelationsBuilder<typeof tables>) => ({})

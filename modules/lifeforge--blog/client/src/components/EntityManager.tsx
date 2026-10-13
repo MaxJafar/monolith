@@ -1,0 +1,347 @@
+import { type ReactNode, useState } from 'react'
+
+import { useModuleTranslation } from '@lifeforge/localization'
+import {
+  BlockEditor,
+  Box,
+  Button,
+  Card,
+  Flex,
+  Stack,
+  Text,
+  TextInput,
+  useCanvasWidgets
+} from '@lifeforge/ui'
+
+import FieldControl from './FieldControl'
+
+export type FieldValue = string | number | boolean | string[] | null
+
+export type Draft = Record<string, FieldValue>
+
+export type Item = { id: string } & Record<string, unknown>
+
+export type Field = {
+  name: string
+  kind: 'text' | 'area' | 'blocks' | 'number' | 'boolean' | 'select' | 'multi'
+  required?: boolean
+  default?: string
+  options?: { value: string; label: string }[]
+}
+
+function initialDraft(fields: Field[], item?: Item): Draft {
+  return Object.fromEntries(
+    fields.map(field => {
+      const value = item?.[field.name]
+
+      if (
+        typeof value === 'string' ||
+        typeof value === 'number' ||
+        typeof value === 'boolean' ||
+        value === null ||
+        (Array.isArray(value) && value.every(v => typeof v === 'string'))
+      )
+        return [field.name, value]
+
+      return [
+        field.name,
+        field.kind === 'number'
+          ? 0
+          : field.kind === 'boolean'
+            ? false
+            : field.kind === 'multi'
+              ? []
+              : field.default ||
+                (field.kind === 'select'
+                  ? field.required
+                    ? field.options?.[0]?.value || ''
+                    : null
+                  : '')
+      ]
+    })
+  )
+}
+
+export default function EntityManager({
+  entity,
+  fields,
+  items,
+  loading,
+  error,
+  retry,
+  onSave,
+  onRemove,
+  extra
+}: {
+  entity: string
+  fields: Field[]
+  items: Item[]
+  loading: boolean
+  error: Error | null
+  retry: () => void
+  onSave: (id: string | undefined, draft: Draft) => Promise<void>
+  onRemove: (id: string) => Promise<void>
+  extra?: (item: Item) => ReactNode
+}) {
+  const { t } = useModuleTranslation()
+  const [editing, setEditing] = useState<string | null | undefined>(undefined)
+  const [draft, setDraft] = useState<Draft>({})
+  const [search, setSearch] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [formError, setFormError] = useState('')
+  const [pendingDelete, setPendingDelete] = useState<string | null>(null)
+  const [validity, setValidity] = useState<Record<string, boolean>>({})
+  const canvas = useCanvasWidgets()
+
+  const valid = Object.values(validity).every(Boolean)
+
+  const visible = items.filter(item =>
+    JSON.stringify(item)
+      .toLocaleLowerCase()
+      .includes(search.toLocaleLowerCase())
+  )
+
+  async function save() {
+    if (busy || !valid) return
+    setBusy(true)
+    setFormError('')
+
+    try {
+      await onSave(editing || undefined, draft)
+      setEditing(undefined)
+    } catch (failure) {
+      setFormError(failure instanceof Error ? failure.message : t('saveFailed'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function remove(id: string) {
+    setBusy(true)
+    setFormError('')
+
+    try {
+      await onRemove(id)
+      setPendingDelete(null)
+    } catch (failure) {
+      setFormError(failure instanceof Error ? failure.message : t('saveFailed'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Stack gap="lg" minWidth="0">
+      <Flex align="center" gap="md" justify="between" wrap="wrap">
+        <Text as="h2" size="xl" weight="semibold">
+          {t('entities.' + entity)} · {items.length}
+        </Text>
+        <Button
+          disabled={busy}
+          icon="tabler:plus"
+          namespace={false}
+          onClick={() => {
+            setDraft(initialDraft(fields))
+            setValidity({})
+            setFormError('')
+            setEditing(null)
+          }}
+        >
+          {t('create')}
+        </Button>
+      </Flex>
+      <TextInput
+        icon="tabler:search"
+        label="inputs.search"
+        placeholder={t('inputs.search')}
+        value={search}
+        onChange={setSearch}
+      />
+      {loading && (
+        <Text color="muted" role="status">
+          {t('loading')}
+        </Text>
+      )}
+      {error && (
+        <Card>
+          <Stack gap="md">
+            <Text role="alert">{error.message}</Text>
+            <Button icon="tabler:refresh" namespace={false} onClick={retry}>
+              {t('retry')}
+            </Button>
+          </Stack>
+        </Card>
+      )}
+      {formError && (
+        <Text color="dangerous" role="alert">
+          {formError}
+        </Text>
+      )}
+      {editing !== undefined && (
+        <Card>
+          <Stack
+            as="form"
+            gap="md"
+            onSubmit={event => {
+              event.preventDefault()
+              void save()
+            }}
+          >
+            <Text as="h3" size="lg" weight="semibold">
+              {t(editing ? 'edit' : 'create')}
+            </Text>
+            {fields.map(field => (
+              <FieldControl
+                key={field.name}
+                disabled={busy}
+                field={field}
+                value={draft[field.name] ?? null}
+                onChange={value =>
+                  setDraft(previous => ({ ...previous, [field.name]: value }))
+                }
+                onValidity={valid =>
+                  setValidity(previous =>
+                    previous[field.name] === valid
+                      ? previous
+                      : { ...previous, [field.name]: valid }
+                  )
+                }
+              />
+            ))}
+            <Flex gap="sm" wrap="wrap">
+              <Button
+                disabled={!valid}
+                icon="tabler:check"
+                loading={busy}
+                namespace={false}
+                type="submit"
+              >
+                {t('save')}
+              </Button>
+              <Button
+                disabled={busy}
+                namespace={false}
+                variant="secondary"
+                onClick={() => setEditing(undefined)}
+              >
+                {t('cancel')}
+              </Button>
+            </Flex>
+          </Stack>
+        </Card>
+      )}
+      {!loading && !error && visible.length === 0 && (
+        <Card>
+          <Text color="muted">{t(items.length ? 'noResults' : 'empty')}</Text>
+        </Card>
+      )}
+      {visible.map(item => (
+        <Card key={item.id}>
+          <Stack gap="md">
+            <Text as="h3" size="lg" weight="semibold">
+              {String(item.name || item.title || item.question || item.id)}
+            </Text>
+            {fields
+              .filter(
+                field =>
+                  !['name', 'title', 'question', 'icon', 'color'].includes(
+                    field.name
+                  )
+              )
+              .map(field => {
+                const value = item[field.name]
+                const formatted = field.options
+                  ? Array.isArray(value)
+                    ? value
+                        .map(
+                          id =>
+                            field.options?.find(option => option.value === id)
+                              ?.label
+                        )
+                        .filter(Boolean)
+                        .join(', ')
+                    : field.options.find(option => option.value === value)
+                        ?.label
+                  : typeof value === 'boolean'
+                    ? t(value ? 'yes' : 'no')
+                    : typeof value === 'string' || typeof value === 'number'
+                      ? String(value)
+                      : ''
+
+                return formatted ? (
+                  <Box key={field.name}>
+                    <Text color="muted">{t('inputs.' + field.name)}</Text>
+                    {field.kind === 'blocks' && typeof value === 'string' ? (
+                      <BlockEditor
+                        readOnly
+                        pages={canvas.pages}
+                        value={value}
+                        onOpenPage={canvas.openPage}
+                      />
+                    ) : (
+                      <Text
+                        as="p"
+                        overflowWrap="anywhere"
+                        whiteSpace="pre-wrap"
+                      >
+                        {formatted}
+                      </Text>
+                    )}
+                  </Box>
+                ) : null
+              })}
+            {extra?.(item)}
+            <Flex gap="sm" wrap="wrap">
+              <Button
+                disabled={busy}
+                icon="tabler:pencil"
+                namespace={false}
+                variant="secondary"
+                onClick={() => {
+                  setDraft(initialDraft(fields, item))
+                  setValidity({})
+                  setEditing(item.id)
+                  setFormError('')
+                }}
+              >
+                {t('edit')}
+              </Button>
+              {pendingDelete === item.id ? (
+                <>
+                  <Text>{t('confirmDelete')}</Text>
+                  <Button
+                    dangerous
+                    icon="tabler:trash"
+                    loading={busy}
+                    namespace={false}
+                    onClick={() => remove(item.id)}
+                  >
+                    {t('delete')}
+                  </Button>
+                  <Button
+                    namespace={false}
+                    variant="secondary"
+                    onClick={() => setPendingDelete(null)}
+                  >
+                    {t('cancel')}
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  dangerous
+                  disabled={busy}
+                  icon="tabler:trash"
+                  namespace={false}
+                  variant="tertiary"
+                  onClick={() => setPendingDelete(item.id)}
+                >
+                  {t('delete')}
+                </Button>
+              )}
+            </Flex>
+          </Stack>
+        </Card>
+      ))}
+    </Stack>
+  )
+}

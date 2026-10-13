@@ -1,14 +1,11 @@
-import { COLORS, colorWithOpacity, shadowClass } from '@/system'
+import { COLORS, colorWithOpacity } from '@/system'
 
 export const secondary = {
-  borderWidth: '1.6px',
-  borderStyle: 'solid',
-  borderColor: COLORS['custom-500'],
-  boxShadow: shadowClass,
-  color: COLORS['custom-500'],
+  backgroundColor: COLORS['surface-container'],
+  color: COLORS['text-primary'],
   selectors: {
     '&:hover:not(:disabled)': {
-      backgroundColor: colorWithOpacity('custom-500', '10%').toString()
+      backgroundColor: COLORS['surface-container-high']
     },
     '&:disabled': {
       borderColor: COLORS['bg-300'],

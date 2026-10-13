@@ -7,6 +7,8 @@ packages:
   - './locales/*'
   - './tools'
 
+verifyDepsBeforeRun: false
+
 allowBuilds:
   argon2: true
   core-js: true
@@ -20,3 +22,6 @@ allowBuilds:
 minimumReleaseAgeExclude:
   - '@aws-sdk/lib-storage@3.1145.0'
   - '@aws-sdk/s3-request-presigner@3.1145.0'
+
+patchedDependencies:
+  drizzle-kit@1.0.0-rc.4: patches/drizzle-kit@1.0.0-rc.4.patch

@@ -103,7 +103,9 @@ for (const owner of OWNERS) {
       modules.push(entry)
     }
 
-    console.log(`${isLocale ? 'locale ' : 'module '} ${shortId} -> ${slug}@${commit.slice(0, 8)}`)
+    console.log(
+      `${isLocale ? 'locale ' : 'module '} ${shortId} -> ${slug}@${commit.slice(0, 8)}`
+    )
   }
 }
 
@@ -120,4 +122,6 @@ fs.writeFileSync(
   JSON.stringify(locales, null, 2) + '\n'
 )
 
-console.log(`\nWrote ${modules.length} modules, ${locales.length} locales to ${outputDir}/`)
+console.log(
+  `\nWrote ${modules.length} modules, ${locales.length} locales to ${outputDir}/`
+)

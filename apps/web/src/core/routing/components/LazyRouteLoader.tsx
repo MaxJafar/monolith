@@ -1,16 +1,17 @@
 import { useEffect, useState } from 'react'
 import { useRoutes } from 'react-router'
 
-import type { ModuleGroup } from '@lifeforge/configs'
+import type { ModuleConfig, ModuleGroup } from '@lifeforge/configs'
 import {
   type FederatedModule,
   loadRemoteModuleConfig
 } from '@lifeforge/federation'
-import { ErrorScreen, LoadingScreen } from '@lifeforge/ui'
+import { ErrorScreen } from '@lifeforge/ui'
 
 import { devModeImports, devModePkgs } from '@/core/utils/devModeImports'
 
 import { buildChildRoutes } from '../utils/routeBuilder'
+import RouteLoadingScreen from './RouteLoadingScreen'
 
 export default function LazyRouteLoader({
   item,
@@ -19,10 +20,9 @@ export default function LazyRouteLoader({
   item: ModuleGroup['items'][number] & { rawModule?: FederatedModule }
   loadingMessage: string
 }) {
-  const [resolvedRoutes, setResolvedRoutes] = useState<Record<
-    string,
-    any
-  > | null>(null)
+  const [resolvedRoutes, setResolvedRoutes] = useState<
+    ModuleConfig['routes'] | null
+  >(null)
 
   const [error, setError] = useState<string | null>(null)
 
@@ -41,7 +41,7 @@ export default function LazyRouteLoader({
 
         if (!active) return
 
-        setResolvedRoutes(unwrapped.routes || {})
+        setResolvedRoutes(unwrapped.routes)
       } catch (err) {
         if (!active) return
 
@@ -76,7 +76,7 @@ export default function LazyRouteLoader({
   }
 
   if (!resolvedRoutes) {
-    return <LoadingScreen message={loadingMessage} />
+    return <RouteLoadingScreen message={loadingMessage} />
   }
 
   return routesElement

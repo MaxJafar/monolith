@@ -1,0 +1,45 @@
+{
+  "title": "Ruang kerja anda",
+  "description": "Projek, pengetahuan dan pangkalan data yang saling berkaitan.",
+  "widgets": {},
+  "modals": {
+    "manageWidgets": "Urus Widget"
+  },
+  "buttons": {
+    "manageCategories": "Urus Kategori",
+    "unlockLayout": "Buka Kunci Susun Atur",
+    "manageWidgets": "Urus Widget",
+    "lockLayout": "Kunci Susun Atur"
+  },
+  "messages": {
+    "editingLayout": "Anda sedang menyunting susun atur papan pemuka",
+    "editingLayoutHint": "Laraskan susunan widget dengan menyeret widget atau laraskan saiz widget dengan menyeret segi tiga kecil di sudut kanan bawah setiap widget"
+  },
+  "empty": {
+    "welcome": {
+      "title": "Selamat Datang ke monolith!",
+      "description": "Mulakan dengan memasang beberapa modul dari ForgeStore."
+    },
+    "notFound": {
+      "title": "Widget Tidak Ditemui",
+      "description": "Widget yang anda cari tidak wujud. Sila semak modul yang dipasang."
+    }
+  },
+  "loading": "Memuatkan papan pemuka...",
+  "test": "",
+  "overview": {
+    "heading": "Kerja anda, lebih jelas.",
+    "description": "Rancang projek, susun pengetahuan dan hubungkan kerja anda di satu tempat.",
+    "databases": "Buka pangkalan data",
+    "tools": "Alat anda",
+    "greeting": "Sedia untuk bermula, {{name}}?",
+    "documents": "Dokumen",
+    "knowledge": "Peta pengetahuan",
+    "agents": "Ejen",
+    "quickAccess": "Akses pantas",
+    "documentsDescription": "Tulis dan hubungkan dokumen ruang kerja anda.",
+    "knowledgeDescription": "Terokai hubungan antara pengetahuan anda.",
+    "agentsDescription": "Selaraskan ejen dan semak hasil kerja mereka.",
+    "toolsDescription": "Buka alat yang menyokong kerja harian anda."
+  }
+}

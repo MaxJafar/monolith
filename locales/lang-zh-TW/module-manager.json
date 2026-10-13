@@ -1,0 +1,78 @@
+{
+  "title": "模組管理器",
+  "description": "基於UI的monolith實例模組管理器",
+  "category": "分類",
+  "subsections": {
+    "modules": {
+      "title": "模組",
+      "description": "安裝、更新和移除您monolith實例中的模組"
+    },
+    "categories": {
+      "title": "類別",
+      "description": "整理和重新排序側邊欄類別以自訂您的導覽"
+    }
+  },
+  "buttons": {
+    "uninstall": "解除安裝",
+    "addTranslation": "新增翻譯",
+    "addCategory": "添加分類",
+    "add category": "添加分類"
+  },
+  "items": {
+    "category": "類別"
+  },
+  "inputs": {
+    "categoryKey": "類別鍵",
+    "translationKey": "翻譯鍵"
+  },
+  "empty": {
+    "category": {
+      "title": "未找到類別",
+      "description": "建立類別以開始"
+    },
+    "modules": {
+      "title": "未安裝模組",
+      "description": "從註冊表安裝模組以擴展您的monolith"
+    }
+  },
+  "modals": {
+    "category": {
+      "create": "建立類別",
+      "update": "更新類別"
+    },
+    "uninstall": {
+      "title": "解除安裝 {{module}}？",
+      "description": "此模組將從您的系統中移除，但您的資料將被保留。您可以隨時從註冊表重新安裝。"
+    },
+    "devMode": {
+      "enable": {
+        "title": "啟用開發模式",
+        "description": "啟用開發模式將直接從原始碼載入此模組，而非預先建置的套件。對模組程式碼的變更將即時熱重載，無需重新建置。\n\n在積極開發或自訂此模組時使用此功能。"
+      },
+      "disable": {
+        "title": "停用開發模式",
+        "description": "停用開發模式將切換回從預先建置的套件載入。請確保已重新建置模組以包含最新變更。"
+      }
+    },
+    "translationKey": {
+      "create": "建立翻譯鍵",
+      "update": "更新翻譯鍵"
+    }
+  },
+  "devMode": {
+    "label": "開發模式",
+    "enable": "啟用開發模式",
+    "disable": "停用開發模式",
+    "enabled": "{{module}} 已進入開發模式",
+    "disabled": "{{module}} 已退出開發模式"
+  },
+  "misc": {
+    "translations": "翻譯"
+  },
+  "notBuilt": {
+    "label": "未建置"
+  },
+  "messages": {
+    "categoriesMissingTranslations": "{{count}} 個分類缺少翻譯:"
+  }
+}

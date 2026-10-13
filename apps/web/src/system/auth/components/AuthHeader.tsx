@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next'
 
-import { Box, Flex, Icon, Text } from '@lifeforge/ui'
+import { Flex, Text } from '@lifeforge/ui'
+
+import MonolithLogo from '@/core/components/MonolithLogo'
 
 function AuthHeader() {
   const { t } = useTranslation('common.auth')
@@ -9,20 +11,15 @@ function AuthHeader() {
     <>
       <Flex asChild align="center" gap="sm" mb="lg">
         <Text as="h1" size="3xl" weight="semibold" whiteSpace="nowrap">
-          <Icon color="primary" icon="tabler:hammer" />
-          <Box>
-            LifeForge
-            <Text color="primary" size="4xl">
-              .
-            </Text>
-          </Box>
+          <MonolithLogo size={40} />
+          <Text tracking="tight">monolith</Text>
         </Text>
       </Flex>
       <Text
         align="center"
         as="h2"
         size={{ base: '4xl', sm: '5xl' }}
-        tracking="wide"
+        tracking="tight"
         weight="semibold"
       >
         {t('header')}

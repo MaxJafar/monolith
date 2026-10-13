@@ -15,7 +15,7 @@ export function WithQuery<T>({
   notFoundFallback,
   onNotFound
 }: {
-  query: UseQueryResult<T, Error>
+  query: UseQueryResult<T>
   children: (data: T) => React.ReactNode
   showLoading?: boolean
   showRetryButton?: boolean

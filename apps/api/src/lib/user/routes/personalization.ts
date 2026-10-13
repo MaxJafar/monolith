@@ -19,12 +19,14 @@ export const updateBgImage = forge
       OK: fileReferenceSchema
     }
   })
-  .callback(async ({ db, media: { file }, core, response }) => {
+  .callback(async ({ res, db, media: { file }, core, response }) => {
     if (typeof file === 'string') {
       return response.badRequest('A valid background image must be uploaded')
     }
 
-    const user = await db.query.users.findFirst()
+    const user = await db.query.users.findFirst({
+      where: { id: res.locals.userId as string }
+    })
 
     if (!user) {
       return response.unauthorized()
@@ -65,8 +67,10 @@ export const deleteBgImage = forge
       NO_CONTENT: true
     }
   })
-  .callback(async ({ db, core, response }) => {
-    const user = await db.query.users.findFirst()
+  .callback(async ({ res, db, core, response }) => {
+    const user = await db.query.users.findFirst({
+      where: { id: res.locals.userId as string }
+    })
 
     if (!user) {
       return response.unauthorized()
@@ -110,8 +114,10 @@ export const updatePersonalization = forge
       NO_CONTENT: true
     }
   })
-  .callback(async ({ db, body: { data }, response }) => {
-    const user = await db.query.users.findFirst()
+  .callback(async ({ res, db, body: { data }, response }) => {
+    const user = await db.query.users.findFirst({
+      where: { id: res.locals.userId as string }
+    })
 
     if (!user) {
       return response.unauthorized()

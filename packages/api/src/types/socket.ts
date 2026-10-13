@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-empty-object-type */
 import type {
   ZodIntersection,
@@ -62,7 +61,7 @@ export type InferRawOutput<T> = T extends {
 /**
  * Extracts the input schema type from a `ForgeEndpoint` instance.
  */
-export type InferInput<T extends ForgeEndpoint<any>> = T['__type'] extends {
+export type InferInput<T extends ForgeEndpoint> = T['__type'] extends {
   __isForgeContract: true
   __input: infer I
   __media: infer M
@@ -97,7 +96,7 @@ export type InferInput<T extends ForgeEndpoint<any>> = T['__type'] extends {
 /**
  * Extracts the output (response) type from a `ForgeEndpoint` instance.
  */
-export type InferOutput<T extends ForgeEndpoint<any>> = T['__type'] extends {
+export type InferOutput<T extends ForgeEndpoint> = T['__type'] extends {
   __isForgeContract: true
   __output: infer O
 }

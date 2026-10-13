@@ -1,0 +1,34 @@
+{
+  "name": "@lifeforge/lifeforge--flashcards",
+  "displayName": "Flashcards",
+  "version": "0.0.1",
+  "type": "module",
+  "description": "Flashcards for Monolith",
+  "license": "CC-BY-NC-SA-4.0",
+  "scripts": {
+    "typecheck": "pnpm run typecheck:client && pnpm run typecheck:server",
+    "typecheck:client": "cd client && tsc",
+    "typecheck:server": "cd server && tsc",
+    "build": "pnpm run build:client && pnpm run build:server",
+    "build:client": "cd client && vite build",
+    "build:server": "cd server && vite build"
+  },
+  "peerDependencies": {
+    "@lifeforge/api": "workspace:*",
+    "@lifeforge/configs": "workspace:*",
+    "@lifeforge/drizzle": "workspace:*",
+    "@lifeforge/federation": "workspace:*",
+    "@lifeforge/localization": "workspace:*",
+    "@lifeforge/server-utils": "workspace:*",
+    "@lifeforge/ui": "workspace:*"
+  },
+  "lifeforge": {
+    "icon": "tabler:cards",
+    "category": "Productivity"
+  },
+  "author": "LifeForge contributors; Zillion OS port",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Lifeforge-app/lifeforge-modules.git"
+  }
+}

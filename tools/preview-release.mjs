@@ -186,9 +186,11 @@ export async function prepare(root, command, target) {
         id => `monolith--${id}`
       )
     )
-    const expected = (await fs.readdir(path.join(root, 'modules'))).filter(
-      id => !core.has(id)
+    const expected = (
+      await fs.readdir(path.join(root, 'modules'), { withFileTypes: true })
     )
+      .filter(entry => entry.isDirectory() && !core.has(entry.name))
+      .map(entry => entry.name)
     if (
       catalog.releases.length !== expected.length ||
       expected.some(

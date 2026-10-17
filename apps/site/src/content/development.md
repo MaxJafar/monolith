@@ -7,7 +7,7 @@ order: 32
 
 Monolith uses a pnpm workspace for the browser, API, native shells, shared packages and optional tools. Start with [installation](/docs/installation) for a local workspace.
 
-Read [Architecture](/docs/architecture) for request flow, document persistence and the boundaries between native features, addons and widgets. The current public docs describe the development workspace; check [release availability](/docs/availability) before assuming the published application source includes every command below.
+Read [Architecture](/docs/architecture) for request flow, document persistence and the boundaries between native features, addons and widgets. The public repository contains the maintained application source. Check [release availability](/docs/availability) for the current distribution status.
 
 ## Repository map
 

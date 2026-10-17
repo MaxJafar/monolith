@@ -17,6 +17,8 @@ overrides:
 
 allowBuilds:
   argon2: true
+  edgedriver: false
+  geckodriver: false
   core-js: true
   es5-ext: true
   esbuild: true

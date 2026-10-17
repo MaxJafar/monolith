@@ -7,6 +7,8 @@ order: 31
 
 Monolith’s Windows client, universal macOS client and single-host Linux Docker deployment have update support built around signed GitHub Releases. This requires release signing and an updater-enabled installation; it is not activated by publishing this website.
 
+The first public preview uses manual installation. Its unsigned Windows and unnotarized Mac downloads do not enable automatic application updates. See [release availability](/docs/availability) for the current distribution status.
+
 ## See available updates
 
 Open **Settings → Updates** to see the installed version, release notes, downloaded bytes and installation or recovery state. Notifications appear when a release is available or an installation needs attention. Desktop onboarding also has an Updates button.

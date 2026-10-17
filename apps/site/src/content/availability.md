@@ -1,40 +1,41 @@
 ---
 title: Release availability
-description: Understand the development build, client downloads and optional services.
+description: Public source, preview downloads and supported installation paths.
 section: Start here
 order: 8
 ---
 
-Monolith is in active development. The source tree used for these guides is version **0.0.0**. This website does not offer a managed Monolith workspace or a separate account service.
+Monolith's current source is public on [GitHub](https://github.com/MaxJafar/monolith). The website and these docs are publicly accessible without a Vercel account. The website contains product information; your workspace runs on your own Monolith host.
 
-These guides describe the current development workspace. The GitHub README and website documentation are published separately from the application rewrite. The published application source still predates some features, including the latest release and agent tooling; use a matching development checkout before following those commands.
+## First preview
 
-The repository and Releases were checked on **17 October 2026**: the repository was private and no releases were published. Updating this website or the README does not publish an installer, an addon catalog or a new application version.
+Version **0.1.0-preview.1** is being built and verified for the first public distribution. The release workflow publishes the complete download set only after every platform and package check passes. Check [GitHub Releases](https://github.com/MaxJafar/monolith/releases) for published downloads.
 
-## Ways to use Monolith
+| Distribution | Installation path |
+| --- | --- |
+| Browser | Build from public source and open your configured host. |
+| Windows x64 | Preview installer for Tauri/WebView2. |
+| macOS | Universal disk image for Apple Silicon and Intel. |
+| Linux host | amd64 or arm64 Docker image plus the server setup kit. |
+| MCP and CLI | Node.js package for external agent clients. |
+| Addons and widgets | Independently versioned packages and a signed catalog. |
 
-| Distribution | Current path                                                                                     |
-| ------------ | ------------------------------------------------------------------------------------------------ |
-| Browser      | Build from source and open your local or self-hosted gateway.                                    |
-| Windows      | Build the Tauri/WebView2 shell on Windows, or use a signed release when one is published.        |
-| macOS        | Build the AppKit/WKWebView shell on a Mac, or use a signed and notarized release when available. |
-| Linux host   | Run the documented Docker Compose stack behind your HTTPS ingress.                               |
-| MCP and CLI  | Build the agent tools package and connect to an updated gateway/API.                             |
+This is a **manual-install preview**. Windows installers are unsigned; macOS applications have an ad-hoc signature and are not notarized. Operating systems may block these downloads. Desktop clients require a separately hosted server. See the [preview installation instructions](https://github.com/MaxJafar/monolith/blob/main/release/INSTALL.md).
 
-Check the actual [GitHub Releases](https://github.com/MaxJafar/monolith/releases) before downloading. A release builder or update screen in the source does not mean a signed public artifact has already been published. This site links to Releases instead of inventing download URLs.
+Signed automatic application updates are not enabled in this preview. Their signing and platform verification requirements remain in place for production releases.
 
 ## Optional services
 
 AI providers, weather, market data, coding activity, OAuth integrations and relay services need the appropriate host configuration or credentials. Scheduled automations need their worker. The Agents addon needs a configured execution worker.
 
-The addon shop uses a catalog configured by the host administrator. It does not assume a public catalog exists by default.
+The addon shop uses a signed catalog configured by the host administrator. A published catalog supplies downloads; the host still checks compatibility and migration approval before installation.
 
 ## Current boundaries
 
-Monolith does not promise general offline synchronization or simultaneous live document co-editing. Native draft and conflict recovery are specific safeguards, not a complete offline sync system. Automatic server rollback restores a compatible runtime; it does not reverse database migrations.
+Monolith does not promise general offline synchronization or simultaneous live document co-editing. Native draft and conflict recovery are specific safeguards. Automatic server rollback restores a compatible runtime; it does not reverse database migrations.
 
 Review the [update guide](/docs/updates), test with your installed addons and keep backups before adopting a new version for important work.
 
 ## Source and licenses
 
-The source repository is on [GitHub](https://github.com/MaxJafar/monolith) and is currently private while the release is being prepared. Repository and release links require access. The repository’s LICENSE, third-party notices and package-specific licenses govern distribution and reuse. The Monolith mark and cover are project assets.
+The source repository, issues and releases are public on [GitHub](https://github.com/MaxJafar/monolith). The repository's LICENSE, third-party notices and package-specific licenses govern distribution and reuse. The Monolith mark and cover are project assets.

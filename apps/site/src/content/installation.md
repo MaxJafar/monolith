@@ -18,9 +18,7 @@ Set `POSTGRES_BIN` to the PostgreSQL `bin` directory if it is not discovered. Ty
 
 ## Get the source
 
-The repository is currently private while the release is being prepared. Cloning it and opening source links requires GitHub access to the repository.
-
-Use a checkout containing the current Monolith changes. The published default branch may lag behind this development documentation; see [release availability](/docs/availability) before expecting the latest addons, updater or agent tools in a fresh clone.
+The maintained Monolith source is public. Clone it without a GitHub account, or choose a published preview from [GitHub Releases](https://github.com/MaxJafar/monolith/releases). See [release availability](/docs/availability) for platform and signing details.
 
 ```sh
 git clone https://github.com/MaxJafar/monolith.git

@@ -51,7 +51,7 @@ Create an Ed25519 keypair using your key-management process. Keep the private PE
 Configure the host:
 
 ```dotenv
-MONOLITH_ADDON_CATALOG_URL=https://github.com/YOUR_ORG/YOUR_REPO/releases/latest/download/addon-catalog.signed.json
+MONOLITH_ADDON_CATALOG_URL=https://github.com/YOUR_ORG/YOUR_REPO/releases/download/vHOST_VERSION/addon-catalog.signed.json
 MONOLITH_ADDON_CATALOG_PUBLIC_KEY=PUBLIC_PEM_WITH_ESCAPED_NEWLINES
 MONOLITH_ADDON_ADMIN_IDS=HOST_ADMIN_USER_UUID
 MONOLITH_CORE_ONLY=1
@@ -59,7 +59,7 @@ MONOLITH_CORE_ONLY=1
 
 `MONOLITH_ADDON_ADMIN_IDS` is a comma-separated list of explicit host administrators. Workspace ownership does not grant executable-code installation rights. Workspace owners enable installed packages for their own workspace; viewers can browse and personalize their own sidebar.
 
-For offline development, `MONOLITH_ADDON_CATALOG_FILE` can point to a host-controlled unsigned catalog. Do not configure it alongside the network URL in a published deployment: the local file takes precedence. There is no default public shop and no fake download button for an unpublished package.
+For offline development, `MONOLITH_ADDON_CATALOG_FILE` can point to a host-controlled unsigned catalog. Do not configure it alongside the network URL in a published deployment: the local file takes precedence. Set the exact release URL matching the host version. Preview releases are not served through GitHub’s latest-stable download alias.
 
 Packages are stored under `<root>/storage/addons`, with immutable version slots and an atomic `installed.json` pointer. `MONOLITH_ADDON_STATE_ROOT` can select a separate persistent root. Back up that directory with the application database and uploaded files. Use a single API writer for package activation; this implementation does not coordinate a multi-instance deployment.
 

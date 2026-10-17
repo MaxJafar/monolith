@@ -1,11 +1,19 @@
 ---
 title: Installation
-description: Build the current source and open your first Monolith workspace.
+description: Download a preview installer or build from source and open your first Monolith workspace.
 section: Start here
 order: 2
 ---
 
-The current checkout is a development build. You can run it from source today. For a shared host behind HTTPS, use the [container setup](/docs/self-hosting).
+Download **0.1.0-preview.1** from [release downloads](/docs/availability), or build the public source using the steps below.
+
+## Install the preview
+
+Windows and macOS installers connect to your Monolith host. To create a host, download the Linux image for your server architecture and the server setup kit from the same release. The kit includes Compose configuration, a private environment template and step-by-step instructions.
+
+Follow the [preview installation guide](https://github.com/MaxJafar/monolith/blob/main/release/INSTALL.md) to load the image, configure your secrets and HTTPS proxy, and create your first account. The browser client is served by that host. This preview is installed manually; review its [signing and update limits](/docs/availability).
+
+For building a shared host from source, use the [container setup](/docs/self-hosting).
 
 ## What you need
 

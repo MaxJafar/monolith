@@ -9,18 +9,20 @@ Monolith's current source is public on [GitHub](https://github.com/MaxJafar/mono
 
 ## First preview
 
-Version **0.1.0-preview.1** is being built and verified for the first public distribution. The release workflow publishes the complete download set only after every platform and package check passes. Check [GitHub Releases](https://github.com/MaxJafar/monolith/releases) for published downloads.
+Version **0.1.0-preview.1** is available from [GitHub Releases](https://github.com/MaxJafar/monolith/releases/tag/v0.1.0-preview.1). The complete download set passed its platform builds, package verification and fresh-database server startup checks.
 
-| Distribution | Installation path |
-| --- | --- |
-| Browser | Build from public source and open your configured host. |
-| Windows x64 | Preview installer for Tauri/WebView2. |
-| macOS | Universal disk image for Apple Silicon and Intel. |
-| Linux host | amd64 or arm64 Docker image plus the server setup kit. |
-| MCP and CLI | Node.js package for external agent clients. |
-| Addons and widgets | Independently versioned packages and a signed catalog. |
+| Download                                                                                                                                  | Platform or purpose                                                        |
+| ----------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| [Windows installer](https://github.com/MaxJafar/monolith/releases/download/v0.1.0-preview.1/monolith-0.1.0-preview.1-windows-amd64.exe)   | Windows x64, Tauri and WebView2.                                           |
+| [macOS disk image](https://github.com/MaxJafar/monolith/releases/download/v0.1.0-preview.1/monolith-0.1.0-preview.1-darwin-universal.dmg) | Universal application for Apple Silicon and Intel.                         |
+| [Linux x64 image](https://github.com/MaxJafar/monolith/releases/download/v0.1.0-preview.1/monolith-0.1.0-preview.1-linux-amd64.tar.gz)    | Docker server image for amd64 hosts.                                       |
+| [Linux ARM64 image](https://github.com/MaxJafar/monolith/releases/download/v0.1.0-preview.1/monolith-0.1.0-preview.1-linux-arm64.tar.gz)  | Docker server image for arm64 hosts.                                       |
+| [Server setup kit](https://github.com/MaxJafar/monolith/releases/download/v0.1.0-preview.1/monolith-0.1.0-preview.1-server-kit.zip)       | Compose configuration, environment template and installation instructions. |
+| [MCP and CLI package](https://github.com/MaxJafar/monolith/releases/download/v0.1.0-preview.1/monolith-agent-tools-0.1.0-preview.1.tgz)   | Node.js bridge for external agent clients.                                 |
+| [Addons and widgets](https://github.com/MaxJafar/monolith/releases/tag/v0.1.0-preview.1)                                                  | 14 independently versioned packages with a signed catalog.                 |
+| [SHA256SUMS](https://github.com/MaxJafar/monolith/releases/download/v0.1.0-preview.1/SHA256SUMS)                                          | Checksums for the complete download set.                                   |
 
-This is a **manual-install preview**. Windows installers are unsigned; macOS applications have an ad-hoc signature and are not notarized. Operating systems may block these downloads. Desktop clients require a separately hosted server. See the [preview installation instructions](https://github.com/MaxJafar/monolith/blob/main/release/INSTALL.md).
+This is a **manual-install preview**. Windows installers are unsigned; macOS applications have an ad-hoc signature and are not notarized. Operating systems may block these downloads. Desktop clients require a separately hosted server. The browser client is included in the server image. See the [preview installation instructions](https://github.com/MaxJafar/monolith/blob/main/release/INSTALL.md).
 
 Signed automatic application updates are not enabled in this preview. Their signing and platform verification requirements remain in place for production releases.
 

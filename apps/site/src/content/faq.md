@@ -15,7 +15,7 @@ Use [Installation](/docs/installation) to set up a development host, then follow
 
 ## Where do I download the desktop clients?
 
-Check [GitHub Releases](https://github.com/MaxJafar/monolith/releases) for published artifacts. The current source is a development version, and signed public desktop releases require configured distribution credentials and verification. You can build the source on the appropriate platform. See [release availability](/docs/availability).
+Download the Windows x64 installer or universal macOS disk image from [release downloads](/docs/availability). Version **0.1.0-preview.1** is a manual-install preview: Windows is unsigned, and macOS is ad-hoc signed and not notarized. Both clients connect to a separately hosted Monolith server. You can also build the public source.
 
 ## Do I need every addon?
 

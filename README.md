@@ -89,10 +89,10 @@ Build and sign in before generating configuration. Follow the **[MCP and CLI gui
 ## Get started
 
 - **Browser** — Run a local development workspace or connect to your configured host.
-- **Desktop** — Build the Windows or macOS shell on its supported platform. Check [Releases](https://github.com/MaxJafar/monolith/releases) for published installers.
-- **Self-host** — Run the API, Go gateway and PostgreSQL with the [container guide](https://monolith-site-maxjafars-projects.vercel.app/docs/self-hosting).
+- **Desktop** — Download the [Windows x64 installer](https://github.com/MaxJafar/monolith/releases/download/v0.1.0-preview.1/monolith-0.1.0-preview.1-windows-amd64.exe) or [universal macOS disk image](https://github.com/MaxJafar/monolith/releases/download/v0.1.0-preview.1/monolith-0.1.0-preview.1-darwin-universal.dmg).
+- **Self-host** — Download a Linux server image and the [setup kit](https://github.com/MaxJafar/monolith/releases/download/v0.1.0-preview.1/monolith-0.1.0-preview.1-server-kit.zip) from the [preview release](https://github.com/MaxJafar/monolith/releases/tag/v0.1.0-preview.1), then follow the [installation guide](release/INSTALL.md).
 
-> **Preview 0.1.0-preview.1:** this is the maintained Monolith source tree. Platform downloads are published together after their build and verification checks pass. See [Releases](https://github.com/MaxJafar/monolith/releases) for available downloads and [installation instructions](release/INSTALL.md) for the manual preview.
+> **[Download 0.1.0-preview.1](https://github.com/MaxJafar/monolith/releases/tag/v0.1.0-preview.1):** Windows, macOS, Linux x64/ARM64, 14 addon and widget packages, and the CLI/MCP bridge. This is a manual-install preview: Windows is unsigned and macOS is not notarized. See [installation instructions](release/INSTALL.md) and [checksums](https://github.com/MaxJafar/monolith/releases/download/v0.1.0-preview.1/SHA256SUMS).
 
 <details>
 <summary><strong>Run the development workspace from source</strong></summary>

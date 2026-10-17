@@ -17,6 +17,7 @@ export default function ModifyOAuthProviderModal({
 }) {
   const { t } = useTranslation('common.account-settings')
   const cache = useQueryClient()
+
   const creating = data.type === 'create'
   const schema = z
     .object({
@@ -32,6 +33,7 @@ export default function ModifyOAuthProviderModal({
             message: t('validation.required')
           })
       }
+
       if (!creating && !value.clientId && !value.clientSecret) {
         context.addIssue({
           code: 'custom',
@@ -48,12 +50,6 @@ export default function ModifyOAuthProviderModal({
   return (
     <FormModal
       form={form}
-      uiConfig={{
-        title: 'oauthProvider.' + data.type,
-        icon: 'tabler:login',
-        namespace: 'common.account-settings',
-        onClose
-      }}
       submissionConfig={{
         template: data.type,
         handler: async values => {
@@ -67,6 +63,12 @@ export default function ModifyOAuthProviderModal({
           toast.success(t('messages.oauth.saved'))
         }
       }}
+      uiConfig={{
+        title: 'oauthProvider.' + data.type,
+        icon: 'tabler:login',
+        namespace: 'common.account-settings',
+        onClose
+      }}
     >
       <Text as="h3" weight="medium">
         {data.provider}
@@ -75,25 +77,25 @@ export default function ModifyOAuthProviderModal({
         <Alert type="caution">{t('messages.oauth.keepBlank')}</Alert>
       )}
       <TextField
+        autoComplete="off"
         control={form.control}
-        name="clientId"
+        disabled={form.formState.isSubmitting}
         icon="tabler:key"
         label="oauthProvider.clientId"
-        required={creating}
+        name="clientId"
         placeholder=""
-        autoComplete="off"
-        disabled={form.formState.isSubmitting}
+        required={creating}
       />
       <TextField
+        isPassword
+        autoComplete="new-password"
         control={form.control}
-        name="clientSecret"
+        disabled={form.formState.isSubmitting}
         icon="tabler:lock"
         label="oauthProvider.clientSecret"
-        required={creating}
+        name="clientSecret"
         placeholder=""
-        autoComplete="new-password"
-        isPassword
-        disabled={form.formState.isSubmitting}
+        required={creating}
       />
     </FormModal>
   )

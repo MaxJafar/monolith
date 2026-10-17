@@ -18,6 +18,7 @@ export default function ModifyModal({
 }) {
   const { userData, setUserData } = useAuth()
   const { t } = useTranslation('common.account-settings')
+
   const field = profileFields.find(item => item.id === id)!
   const raw = userData?.[id]
   const form = useForm({
@@ -37,12 +38,6 @@ export default function ModifyModal({
   return (
     <FormModal
       form={form}
-      uiConfig={{
-        title: field.label + '.update',
-        icon: field.icon,
-        namespace: 'common.account-settings',
-        onClose
-      }}
       submissionConfig={{
         template: 'update',
         handler: async ({ value }) => {
@@ -55,17 +50,23 @@ export default function ModifyModal({
           toast.success(t('messages.profileSaved'))
         }
       }}
+      uiConfig={{
+        title: field.label + '.update',
+        icon: field.icon,
+        namespace: 'common.account-settings',
+        onClose
+      }}
     >
       <TextField
-        control={form.control}
-        name="value"
-        label={field.label}
-        icon={field.icon}
-        type={field.type}
         required
-        placeholder=""
         autoComplete={id === 'dateOfBirth' ? 'bday' : id}
+        control={form.control}
         disabled={form.formState.isSubmitting}
+        icon={field.icon}
+        label={field.label}
+        name="value"
+        placeholder=""
+        type={field.type}
       />
     </FormModal>
   )

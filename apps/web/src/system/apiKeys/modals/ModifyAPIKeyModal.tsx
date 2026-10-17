@@ -25,6 +25,7 @@ export default function ModifyAPIKeyModal({
 }) {
   const { t } = useTranslation('common.api-keys')
   const cache = useQueryClient()
+
   const creating = data.type === 'create'
   const initial = data.initialData
   const form = useForm({
@@ -43,17 +44,12 @@ export default function ModifyAPIKeyModal({
       })
     )
   })
+
   const replacing = useWatch({ control: form.control, name: 'overrideKey' })
 
   return (
     <FormModal
       form={form}
-      uiConfig={{
-        title: 'apiKey.' + data.type,
-        namespace: 'common.api-keys',
-        icon: 'tabler:key',
-        onClose
-      }}
       submissionConfig={{
         template: data.type,
         handler: async values => {
@@ -74,53 +70,59 @@ export default function ModifyAPIKeyModal({
           toast.success(t('messages.saved'))
         }
       }}
+      uiConfig={{
+        title: 'apiKey.' + data.type,
+        namespace: 'common.api-keys',
+        icon: 'tabler:key',
+        onClose
+      }}
     >
       <TextField
+        required
+        autoComplete="off"
         control={form.control}
-        name="keyId"
+        disabled={form.formState.isSubmitting}
         icon="tabler:id"
         label="keyId"
+        name="keyId"
         placeholder=""
-        required
-        disabled={form.formState.isSubmitting}
-        autoComplete="off"
       />
       <TextField
+        required
         control={form.control}
-        name="name"
+        disabled={form.formState.isSubmitting}
         icon="tabler:key"
         label="keyName"
+        name="name"
         placeholder=""
-        required
-        disabled={form.formState.isSubmitting}
       />
-      <IconField control={form.control} name="icon" label="keyIcon" required />
+      <IconField required control={form.control} label="keyIcon" name="icon" />
       {!creating && (
         <CheckboxField
           control={form.control}
-          name="overrideKey"
           icon="tabler:refresh"
           label="overrideKey"
+          name="overrideKey"
         />
       )}
       {(creating || replacing) && (
         <TextField
+          isPassword
+          required
+          autoComplete="new-password"
           control={form.control}
-          name="key"
+          disabled={form.formState.isSubmitting}
           icon="tabler:lock"
           label="apiKey"
+          name="key"
           placeholder=""
-          required
-          isPassword
-          autoComplete="new-password"
-          disabled={form.formState.isSubmitting}
         />
       )}
       <CheckboxField
         control={form.control}
-        name="exposable"
         icon="tabler:world"
         label="isExposable"
+        name="exposable"
       />
     </FormModal>
   )

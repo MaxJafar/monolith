@@ -27,6 +27,7 @@ export default function AvatarColumn() {
     if (!userData || locked.current || (!remove && !file)) return
     locked.current = true
     setBusy(true)
+
     try {
       const avatar = remove
         ? (await workspaceAPI.user.settings.deleteAvatar.mutateRaw(undefined),
@@ -55,48 +56,48 @@ export default function AvatarColumn() {
 
   return (
     <OptionsColumn
+      description={t('settings.desc.profilePicture')}
       icon="tabler:camera"
       title={t('settings.title.profilePicture')}
-      description={t('settings.desc.profilePicture')}
     >
       <Flex align="center" gap="md" width="100%">
         <Flex
           centered
-          width="56px"
-          height="56px"
-          r="full"
-          overflow="hidden"
-          flexShrink="0"
           bg={{ base: 'bg-100', dark: 'bg-800' }}
+          flexShrink="0"
+          height="56px"
+          overflow="hidden"
+          r="full"
+          width="56px"
         >
           {userData?.avatar ? (
             <Box
               asChild
-              width="100%"
               height="100%"
               style={{ objectFit: 'cover' }}
+              width="100%"
             >
               <img alt="" src={getAvatarURL()} />
             </Box>
           ) : (
-            <Icon icon="tabler:user" color="muted" size="1.5em" />
+            <Icon color="muted" icon="tabler:user" size="1.5em" />
           )}
         </Flex>
         <Button
-          icon="tabler:photo"
-          variant="secondary"
-          loading={busy}
           disabled={!userData}
+          icon="tabler:photo"
+          loading={busy}
+          variant="secondary"
           onClick={choose}
         >
           select
         </Button>
         {userData?.avatar && (
           <Button
-            icon="tabler:trash"
             dangerous
-            variant="plain"
             disabled={busy}
+            icon="tabler:trash"
+            variant="plain"
             onClick={() =>
               open(ConfirmationModal, {
                 title: t('actions.removeAvatar'),

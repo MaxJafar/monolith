@@ -27,14 +27,17 @@ export interface S3ProviderConfig {
 
 function missingObject(error: unknown) {
   if (!error || typeof error !== 'object') return false
+
   const failure = error as {
     name?: string
     $metadata?: { httpStatusCode?: number }
   }
+
   return (
     failure.name === 'NoSuchKey' || failure.$metadata?.httpStatusCode === 404
   )
 }
+
 function objectType(key: string) {
   return mime.lookup(key) || 'application/octet-stream'
 }
@@ -50,6 +53,7 @@ export class S3StorageProvider implements StorageProvider {
     ...connection
   }: S3ProviderConfig) {
     if (!bucket.trim()) throw new Error('An object-storage bucket is required')
+
     if (Boolean(accessKeyId) !== Boolean(secretAccessKey)) {
       throw new Error(
         'Object-storage credentials must include both key and secret'
@@ -83,7 +87,9 @@ export class S3StorageProvider implements StorageProvider {
       const object = await this.client.send(
         new GetObjectCommand({ Bucket: this.bucket, Key: key })
       )
+
       if (!object.Body) return null
+
       const stream =
         object.Body instanceof Readable
           ? object.Body
@@ -92,6 +98,7 @@ export class S3StorageProvider implements StorageProvider {
                 typeof Readable.fromWeb
               >[0]
             )
+
       return {
         stream,
         mimeType: object.ContentType ?? objectType(key),
@@ -113,7 +120,9 @@ export class S3StorageProvider implements StorageProvider {
     const prefix =
       (extension ? key.slice(0, -extension.length) : key) + '-thumb-'
     const visited = new Set<string>()
+
     let token: string | undefined
+
     do {
       const page = await this.client.send(
         new ListObjectsV2Command({
@@ -125,6 +134,7 @@ export class S3StorageProvider implements StorageProvider {
       const objects = (page.Contents ?? []).flatMap(object =>
         object.Key?.startsWith(prefix) ? [{ Key: object.Key }] : []
       )
+
       if (objects.length) {
         const result = await this.client.send(
           new DeleteObjectsCommand({
@@ -132,6 +142,7 @@ export class S3StorageProvider implements StorageProvider {
             Delete: { Objects: objects, Quiet: true }
           })
         )
+
         if (result.Errors?.length) {
           throw new Error(
             'Object storage could not remove ' +
@@ -145,6 +156,7 @@ export class S3StorageProvider implements StorageProvider {
         throw new Error(
           'Object storage returned an incomplete thumbnail listing'
         )
+
       if (token) {
         if (visited.has(token))
           throw new Error(

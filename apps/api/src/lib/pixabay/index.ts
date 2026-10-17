@@ -91,8 +91,11 @@ const searchImages = createMonolith({ moduleId: 'pixabay' })
   })
   .callback(async ({ query, core, response }) => {
     const key = await core.api.getAPIKey('pixabay').catch(() => null)
+
     if (!key) return response.badRequest('Pixabay API key is not set')
+
     const url = new URL('https://pixabay.com/api/')
+
     for (const [name, value] of Object.entries({
       ...query,
       key,
@@ -101,8 +104,10 @@ const searchImages = createMonolith({ moduleId: 'pixabay' })
     })) {
       if (value != null && name !== 'type') url.searchParams.set(name, value)
     }
+
     try {
       const result = await serviceJSON('Image catalog', url, providerResult)
+
       return response.ok({
         total: result.totalHits,
         hits: result.hits.map(image => ({

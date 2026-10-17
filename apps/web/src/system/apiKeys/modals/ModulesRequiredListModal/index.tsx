@@ -14,14 +14,15 @@ export default function ModulesRequiredListModal({
 }) {
   const { moduleGroups } = useFederation()
   const { t, i18n } = useTranslation('common.api-keys')
+
   const consumers = credentialUsers(moduleGroups, keyId)
 
   return (
-    <Stack width="520px" maxWidth="100%" gap="md">
+    <Stack gap="md" maxWidth="100%" width="520px">
       <ModalHeader
+        icon="tabler:apps"
         namespace="common.api-keys"
         title="modulesRequired.title"
-        icon="tabler:apps"
         onClose={onClose}
       />
       <Text color="muted">
@@ -29,13 +30,14 @@ export default function ModulesRequiredListModal({
           count: consumers.length
         })}
       </Text>
-      <Stack role="list" gap="sm">
+      <Stack gap="sm" role="list">
         {consumers.map(addon => {
           const access = addon.APIKeyAccess![keyId]!
+
           return (
-            <Card key={addon.name} role="listitem" gap="sm">
+            <Card key={addon.name} gap="sm" role="listitem">
               <Flex align="center" gap="sm">
-                <Icon icon={addon.icon} color="muted" />
+                <Icon color="muted" icon={addon.icon} />
                 <Text weight="medium">
                   {i18n.t('title', {
                     ns: 'apps.' + addon.name,

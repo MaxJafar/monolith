@@ -19,6 +19,7 @@ export default function LoginPage() {
   const { verifyOAuth } = useAuth()
   const { t } = useTranslation('common.auth')
   const [parameters, setParameters] = useSearchParams()
+
   const callback = useRef<{
     identity: string
     result: Promise<string | false>
@@ -34,7 +35,9 @@ export default function LoginPage() {
   useEffect(() => {
     if ((!code || !state) && !providerError) return
     let active = true
+
     const identity = JSON.stringify([code, state, providerError])
+
     if (callback.current?.identity !== identity) {
       callback.current = {
         identity,
@@ -51,8 +54,10 @@ export default function LoginPage() {
         setParameters(
           previous => {
             const next = new URLSearchParams(previous)
+
             for (const key of ['code', 'state', 'error', 'error_description'])
               next.delete(key)
+
             return next
           },
           { replace: true }
@@ -66,6 +71,7 @@ export default function LoginPage() {
           )
         } else toast.error(t('messages.invalidLoginAttempt'))
       })
+
     return () => {
       active = false
     }

@@ -29,6 +29,7 @@ export function WithDivide({
     className: [divideVariants[axis], className].filter(Boolean).join(' '),
     style: style ?? {}
   })
+
   return (
     <Slot {...element} {...decoration}>
       {children}

@@ -24,6 +24,7 @@ export default function APIKeys() {
   const { t } = useTranslation('common.api-keys')
   const { open } = useModalStore()
   const query = useQuery(workspaceAPI.apiKeys.entries.list.queryOptions())
+
   const create = () => open(ModifyAPIKeyModal, { type: 'create' })
 
   return (
@@ -43,7 +44,7 @@ export default function APIKeys() {
       <WithQuery query={query}>
         {entries =>
           entries.length ? (
-            <Stack gap="sm" role="list" aria-label={t('title')}>
+            <Stack aria-label={t('title')} gap="sm" role="list">
               {entries.map(entry => (
                 <EntryItem key={entry.id} entry={entry} />
               ))}

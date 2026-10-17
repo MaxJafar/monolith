@@ -27,6 +27,7 @@ export default function AccountAndSecurityTab() {
   const { t } = useTranslation('common.account-settings')
   const { t: authText } = useTranslation('common.auth')
   const { open } = useModalStore()
+
   const providers = useQuery(
     workspaceAPI.auth.oauth.providers.listOptions.queryOptions()
   )
@@ -39,6 +40,7 @@ export default function AccountAndSecurityTab() {
       onScanned: scannedData => {
         if (!readQRLoginPayload(scannedData)) {
           toast.error(authText('qrLogin.invalidQR'))
+
           return
         }
         open(QRLoginApprovalModal, { scannedData })
@@ -49,25 +51,25 @@ export default function AccountAndSecurityTab() {
   return (
     <>
       <OptionsColumn
-        title={t('settings.title.password')}
         description={t('settings.desc.password')}
         icon="tabler:key"
+        title={t('settings.title.password')}
       >
         <Button
           icon="tabler:key"
-          variant="secondary"
           namespace="common.account-settings"
+          variant="secondary"
           onClick={() => open(ChangePasswordModal, {})}
         >
           changePassword
         </Button>
       </OptionsColumn>
       <OptionsColumn
-        title={t('settings.title.twoFA')}
         description={t('settings.desc.twoFA')}
         icon="tabler:shield-lock"
+        title={t('settings.title.twoFA')}
       >
-        <Flex align="center" justify="between" gap="md" width="100%">
+        <Flex align="center" gap="md" justify="between" width="100%">
           <Text color="muted">
             {t(userData?.twoFAEnabled ? 'misc.enabled' : 'misc.disabled')}
           </Text>
@@ -84,16 +86,16 @@ export default function AccountAndSecurityTab() {
         </Flex>
       </OptionsColumn>
       <OptionsColumn
-        title={t('settings.title.oauth')}
         description={t('settings.desc.oauth')}
         icon="tabler:login"
+        title={t('settings.title.oauth')}
       >
         <Flex
           align="center"
           gap="md"
-          wrap="wrap"
-          width="100%"
           justify="between"
+          width="100%"
+          wrap="wrap"
         >
           <Text color="muted">
             {providers.isError
@@ -105,8 +107,8 @@ export default function AccountAndSecurityTab() {
                 })}
           </Text>
           <Button
-            namespace="common.account-settings"
             icon="tabler:settings"
+            namespace="common.account-settings"
             variant="secondary"
             onClick={() => open(OAuthConfigModal, {})}
           >
@@ -115,9 +117,9 @@ export default function AccountAndSecurityTab() {
         </Flex>
       </OptionsColumn>
       <OptionsColumn
-        title={authText('qrLogin.scanQRCode')}
         description={authText('qrLogin.description')}
         icon="tabler:qrcode"
+        title={authText('qrLogin.scanQRCode')}
       >
         <Button
           icon="tabler:scan"

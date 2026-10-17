@@ -21,6 +21,7 @@ export const list = endpoints
   })
   .callback(async ({ core, response }) => {
     const stored = new core.tempFile(file, 'object').read<unknown>()
+
     return response.ok(catalog.parse(stored))
   })
 
@@ -32,9 +33,11 @@ export const update = endpoints
   })
   .callback(async ({ core, body, response }) => {
     const payload = JSON.stringify(body.data)
+
     if (Buffer.byteLength(payload) > 1024 * 1024)
       return response.badRequest('Category configuration is too large')
     new core.tempFile(file).write(payload)
+
     return response.ok({ success: true })
   })
 
@@ -70,5 +73,6 @@ export const aiTranslate = endpoints
         }
       ]
     })
+
     return response.ok(result)
   })

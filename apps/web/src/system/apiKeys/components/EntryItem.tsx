@@ -30,16 +30,19 @@ export default function EntryItem({ entry }: { entry: APIKeyEntry }) {
   const cache = useQueryClient()
   const [busy, setBusy] = useState(false)
   const locked = useRef(false)
+
   const consumers = credentialUsers(moduleGroups, entry.keyId)
 
   async function copySecret() {
     if (!entry.exposable || locked.current) return
     locked.current = true
     setBusy(true)
+
     try {
       const secret = await workspaceAPI.apiKeys.entries.get
         .input({ keyId: entry.keyId })
         .query()
+
       if (!secret || !copy(secret)) throw new Error('Clipboard unavailable')
       toast.success(t('messages.copied'))
     } catch {
@@ -71,30 +74,30 @@ export default function EntryItem({ entry }: { entry: APIKeyEntry }) {
   }
 
   return (
-    <Card role="listitem" gap="md">
-      <Flex align="start" justify="between" gap="md" wrap="wrap">
+    <Card gap="md" role="listitem">
+      <Flex align="start" gap="md" justify="between" wrap="wrap">
         <Flex align="start" gap="md" minWidth="0">
-          <Icon icon={entry.icon} size="1.75em" color="muted" />
+          <Icon color="muted" icon={entry.icon} size="1.75em" />
           <Stack gap="xs" minWidth="0">
-            <Text weight="semibold" style={{ overflowWrap: 'anywhere' }}>
+            <Text style={{ overflowWrap: 'anywhere' }} weight="semibold">
               {entry.name}
             </Text>
-            <Text as="code" size="sm" color="muted">
+            <Text as="code" color="muted" size="sm">
               {entry.keyId}
             </Text>
           </Stack>
         </Flex>
         <Flex align="center" gap="xs">
           <Icon
-            icon={entry.exposable ? 'tabler:world' : 'tabler:lock'}
             color="muted"
+            icon={entry.exposable ? 'tabler:world' : 'tabler:lock'}
           />
           <Text color="muted" size="sm">
             {t(entry.exposable ? 'misc.exposable' : 'misc.internalOnly')}
           </Text>
         </Flex>
       </Flex>
-      <Flex gap="md" align="center" wrap="wrap" justify="between">
+      <Flex align="center" gap="md" justify="between" wrap="wrap">
         <Stack gap="xs">
           <Text as="code">{'•••• •••• ' + entry.key}</Text>
           <Text color="muted" size="sm">
@@ -110,8 +113,8 @@ export default function EntryItem({ entry }: { entry: APIKeyEntry }) {
           {consumers.length > 0 && (
             <Button
               icon="tabler:apps"
-              variant="plain"
               namespace={false}
+              variant="plain"
               onClick={() =>
                 open(ModulesRequiredListModal, { keyId: entry.keyId })
               }
@@ -122,17 +125,17 @@ export default function EntryItem({ entry }: { entry: APIKeyEntry }) {
           {entry.exposable && (
             <Button
               icon="tabler:copy"
-              variant="plain"
               loading={busy}
+              variant="plain"
               onClick={copySecret}
             >
               copy
             </Button>
           )}
           <Button
+            disabled={busy}
             icon="tabler:pencil"
             variant="plain"
-            disabled={busy}
             onClick={() =>
               open(ModifyAPIKeyModal, { type: 'update', initialData: entry })
             }
@@ -140,10 +143,10 @@ export default function EntryItem({ entry }: { entry: APIKeyEntry }) {
             edit
           </Button>
           <Button
-            icon="tabler:trash"
-            variant="plain"
             dangerous
             disabled={busy}
+            icon="tabler:trash"
+            variant="plain"
             onClick={remove}
           >
             delete

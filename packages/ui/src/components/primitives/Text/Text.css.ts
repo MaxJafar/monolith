@@ -61,9 +61,11 @@ const typography = defineProperties({
     }
   }
 })
+
 export const textSprinkles = createSprinkles(
   typography,
   tokenizedSpacingProperties,
   tokenizedLayoutProperties
 )
+
 export type TextSprinkles = Parameters<typeof textSprinkles>[0]

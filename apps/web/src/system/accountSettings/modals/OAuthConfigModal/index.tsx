@@ -6,11 +6,11 @@ import ProviderItem from './components/ProviderItem'
 
 export default function OAuthConfigModal({ onClose }: { onClose: () => void }) {
   return (
-    <Stack width="560px" maxWidth="100%" gap="md">
+    <Stack gap="md" maxWidth="100%" width="560px">
       <ModalHeader
-        title="oauthConfig"
-        namespace="common.account-settings"
         icon="tabler:login"
+        namespace="common.account-settings"
+        title="oauthConfig"
         onClose={onClose}
       />
       <WithQueryData contract={workspaceAPI.auth.oauth.providers.listOptions}>

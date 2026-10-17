@@ -51,12 +51,14 @@ function InstalledProvider({
         }
       }
     )
+
     return () => {
       cancelled = true
     }
   }, [module, identity])
 
   const Provider = loaded?.identity === identity ? loaded.component : Fragment
+
   return <Provider>{children}</Provider>
 }
 
@@ -66,11 +68,15 @@ export default function ExternalModuleProviders({
   children: ReactNode
 }) {
   const { moduleGroups, globalProviders } = useFederation()
+
   let tree = children
+
   for (const group of moduleGroups) {
     for (const item of group.items) {
       const module = item.rawModule
+
       if (!module?.hasProvider) continue
+
       const identity = JSON.stringify([
         module.id,
         module.remoteId,
@@ -85,5 +91,6 @@ export default function ExternalModuleProviders({
     }
   }
   for (const Provider of globalProviders) tree = <Provider>{tree}</Provider>
+
   return tree
 }

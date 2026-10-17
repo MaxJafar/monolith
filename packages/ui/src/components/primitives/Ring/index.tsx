@@ -21,6 +21,7 @@ interface RingOwnProps<T extends ElementType> extends SurfaceOwnProps<
   ringColor?: ThemeConditionProp<ColorValue>
   ringOffsetWidth?: ResponsiveProp<string>
 }
+
 export type RingProps<T extends ElementType = 'div'> = SurfaceProps<
   T,
   RingOwnProps<T>
@@ -42,7 +43,8 @@ export function Ring<T extends ElementType = 'div'>({
       style: style ?? {}
     }
   )
+
   // Rest destructuring loses the element-specific prop relation in TypeScript 7.
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+
   return <Box<T> {...(surface as BoxProps<T>)} {...resolved} />
 }

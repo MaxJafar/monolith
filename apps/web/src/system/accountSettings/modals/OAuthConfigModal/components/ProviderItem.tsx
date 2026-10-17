@@ -37,6 +37,7 @@ export default function ProviderItem({
     if (!entry.id || locked.current) return
     locked.current = true
     setBusy(true)
+
     try {
       await workspaceAPI.auth.oauth.providers[operation]
         .input({ id: entry.id })
@@ -52,10 +53,10 @@ export default function ProviderItem({
   }
 
   return (
-    <Card role="listitem" gap="md">
+    <Card gap="md" role="listitem">
       <Flex align="center" gap="md" justify="between" wrap="wrap">
         <Flex align="center" gap="md">
-          <Icon icon={entry.icon} size="1.75em" color="muted" />
+          <Icon color="muted" icon={entry.icon} size="1.75em" />
           <Stack gap="xs">
             <Text weight="medium">{entry.name}</Text>
             {entry.updated && (
@@ -81,9 +82,9 @@ export default function ProviderItem({
       </Flex>
       <Flex gap="sm" justify="end">
         <Button
-          variant="plain"
           disabled={busy}
           icon={entry.configured ? 'tabler:pencil' : 'tabler:plus'}
+          variant="plain"
           onClick={() =>
             open(ModifyOAuthProviderModal, {
               type: entry.configured ? 'update' : 'create',
@@ -96,9 +97,9 @@ export default function ProviderItem({
         {entry.configured && (
           <Button
             dangerous
-            variant="plain"
-            icon="tabler:trash"
             disabled={busy}
+            icon="tabler:trash"
+            variant="plain"
             onClick={() =>
               open(ConfirmationModal, {
                 title: t('actions.removeProvider', { provider: entry.name }),

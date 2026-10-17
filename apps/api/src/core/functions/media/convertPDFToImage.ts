@@ -11,9 +11,12 @@ const convertPDFToImage: ConvertPDFToImageFunc = async source => {
     preserveAspectRatio: true
   })
   const page = await render(1, { responseType: 'buffer' })
+
   if (!page.buffer) return undefined
+
   // Copy exactly the visible bytes, including Buffer views with a nonzero offset.
   const bytes = Uint8Array.from(page.buffer)
+
   return new File([bytes], 'receipt.png', { type: 'image/png' })
 }
 

@@ -12,12 +12,13 @@ function ApprovalPanel({
   onClose: () => void
 }) {
   const { t } = useTranslation('common.auth')
+
   const { step, browserInfo, errorMessage, loading, onApprove } =
     useQRLoginApproval(scannedData)
   const confirm = step === 'confirm'
 
   return (
-    <Stack width="440px" maxWidth="100%" gap="lg" aria-busy={loading}>
+    <Stack aria-busy={loading} gap="lg" maxWidth="100%" width="440px">
       <ModalHeader
         icon="tabler:device-laptop"
         namespace="common.auth"
@@ -26,9 +27,9 @@ function ApprovalPanel({
           if (!loading) onClose()
         }}
       />
-      <Flex gap="md" align="start" role={step === 'error' ? 'alert' : 'status'}>
+      <Flex align="start" gap="md" role={step === 'error' ? 'alert' : 'status'}>
         <Icon
-          size="2em"
+          color={step === 'error' ? 'dangerous' : 'primary'}
           icon={
             confirm
               ? 'tabler:qrcode'
@@ -36,7 +37,7 @@ function ApprovalPanel({
                 ? 'tabler:circle-check'
                 : 'tabler:alert-circle'
           }
-          color={step === 'error' ? 'dangerous' : 'primary'}
+          size="2em"
         />
         <Stack gap="sm">
           <Text>
@@ -56,8 +57,8 @@ function ApprovalPanel({
       <Flex gap="sm" justify="end" wrap="wrap">
         <Button
           disabled={loading}
-          variant="secondary"
           namespace={confirm ? 'common.auth' : undefined}
+          variant="secondary"
           onClick={onClose}
         >
           {confirm ? 'qrLogin.deny' : 'close'}
@@ -65,8 +66,8 @@ function ApprovalPanel({
         {confirm && (
           <Button
             icon="tabler:check"
-            namespace="common.auth"
             loading={loading}
+            namespace="common.auth"
             onClick={onApprove}
           >
             qrLogin.approve

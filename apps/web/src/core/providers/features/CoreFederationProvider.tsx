@@ -11,6 +11,7 @@ export default function CoreFederationProvider({
   children: React.ReactNode
 }) {
   const { auth } = useAuth()
+
   const {
     setModuleGroups,
     setGlobalProviders,
@@ -19,24 +20,30 @@ export default function CoreFederationProvider({
     setError,
     refetch
   } = useFederation()
+
   const generation = useRef(0)
+
   const authenticated = Boolean(auth)
 
   const refresh = useCallback(async () => {
     const request = ++generation.current
+
     if (!authenticated) return
     setLoading(true)
     setError(null)
+
     try {
       if (import.meta.env.DEV) {
         const { registerDevelopmentShares } =
           await import('./developmentShares')
         await registerDevelopmentShares()
       }
+
       const result = await bootstrapModules(
         import.meta.env.VITE_API_HOST || '',
         CORE_MODULES
       )
+
       if (request !== generation.current) return
       setModuleGroups(result.moduleGroups)
       setGlobalProviders(result.globalProviders)
@@ -61,6 +68,7 @@ export default function CoreFederationProvider({
 
   useEffect(() => {
     refetch.current = refresh
+
     if (authenticated) void refresh()
     else {
       setModuleGroups([])
@@ -69,8 +77,10 @@ export default function CoreFederationProvider({
       setError(null)
       setLoading(false)
     }
+
     return () => {
       ++generation.current
+
       refetch.current = async () => {}
     }
   }, [

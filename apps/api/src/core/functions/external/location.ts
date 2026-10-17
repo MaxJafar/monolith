@@ -22,6 +22,7 @@ export default async function searchLocations(
   query: string
 ) {
   if (!query.trim()) return []
+
   const result = await serviceJSON(
     'Google Places',
     'https://places.googleapis.com/v1/places:searchText',
@@ -37,6 +38,7 @@ export default async function searchLocations(
       body: JSON.stringify({ textQuery: query.trim() })
     }
   )
+
   return (result.places ?? []).map(({ displayName, ...place }) => ({
     ...place,
     name: displayName.text

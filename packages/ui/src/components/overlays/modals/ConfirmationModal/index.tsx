@@ -35,6 +35,7 @@ export function ConfirmationModal({
   const [pending, setPending] = useState(false)
   const locked = useRef(false)
   const active = useRef(false)
+
   const specification = data.confirmationButton ?? 'confirm'
   const action =
     typeof specification === 'string'
@@ -48,6 +49,7 @@ export function ConfirmationModal({
 
   useEffect(() => {
     active.current = true
+
     return () => {
       active.current = false
     }
@@ -64,6 +66,7 @@ export function ConfirmationModal({
     locked.current = true
     setPending(true)
     setError('')
+
     try {
       await data.onConfirm?.()
       if (active.current) onClose()
@@ -85,12 +88,12 @@ export function ConfirmationModal({
 
   return (
     <Stack
-      width="440px"
-      maxWidth="100%"
-      gap="md"
-      role="dialog"
-      aria-labelledby={titleId}
       aria-busy={pending}
+      aria-labelledby={titleId}
+      gap="md"
+      maxWidth="100%"
+      role="dialog"
+      width="440px"
     >
       <Text as="h1" id={titleId} size="xl" weight="semibold">
         {data.title}
@@ -98,8 +101,6 @@ export function ConfirmationModal({
       <Text color="muted">{data.description}</Text>
       {data.confirmationPrompt && (
         <TextInput
-          value={text}
-          onChange={setText}
           disabled={pending}
           icon="tabler:alert-triangle"
           label="deleteConfirmation.inputs.confirmation.label"
@@ -107,6 +108,8 @@ export function ConfirmationModal({
           placeholder={t('deleteConfirmation.inputs.confirmation.placeholder', {
             text: data.confirmationPrompt
           })}
+          value={text}
+          onChange={setText}
         />
       )}
       {error && (
@@ -118,13 +121,13 @@ export function ConfirmationModal({
         data.renderChildren(cancel)
       ) : (
         <Flex gap="sm" justify="end" wrap="wrap">
-          <Button variant="secondary" disabled={pending} onClick={cancel}>
+          <Button disabled={pending} variant="secondary" onClick={cancel}>
             cancel
           </Button>
           <Button
             {...action}
-            loading={pending}
             disabled={pending || !matches || action.disabled}
+            loading={pending}
             onClick={confirm}
           />
         </Flex>

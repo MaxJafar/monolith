@@ -1,4 +1,5 @@
 const storageKey = 'monolith-qr-login-session'
+
 export interface QRSession {
   sessionId: string
   qrData: string
@@ -7,7 +8,9 @@ export interface QRSession {
 
 function valid(value: unknown): value is QRSession {
   if (!value || typeof value !== 'object') return false
+
   const session = value as Partial<QRSession>
+
   if (
     typeof session.sessionId !== 'string' ||
     !/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(session.sessionId)
@@ -19,8 +22,10 @@ function valid(value: unknown): value is QRSession {
   )
     return false
   if (typeof session.qrData !== 'string') return false
+
   try {
     const data: unknown = JSON.parse(session.qrData)
+
     return Boolean(
       data &&
       typeof data === 'object' &&
@@ -43,20 +48,25 @@ export function clearStoredSession() {
     /* Browser storage may be disabled. */
   }
 }
+
 export function getStoredSession(): QRSession | null {
   try {
     const value: unknown = JSON.parse(
       sessionStorage.getItem(storageKey) ?? 'null'
     )
+
     if (valid(value)) return value
   } catch {
     /* Treat unavailable or malformed storage as a new session. */
   }
   clearStoredSession()
+
   return null
 }
+
 export function storeSession(session: QRSession) {
   if (!valid(session)) throw new Error('Invalid QR sign-in session')
+
   try {
     sessionStorage.setItem(storageKey, JSON.stringify(session))
   } catch {

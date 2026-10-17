@@ -37,16 +37,20 @@ export default function createFetchAI(
   ) => {
     if (!caller)
       throw new Error('A caller identity is required to access AI providers')
+
     const provider = getProvider(request.provider)
+
     if (!provider)
       throw new ClientError('Unknown AI provider: ' + request.provider)
     let apiKey: string | undefined
+
     if (provider.requireAPIKey) {
       await validateCallerAccess(caller, provider.name)
       apiKey = await getAPIKeyFactory(database, caller)(provider.name)
       if (!apiKey)
         throw new ClientError('Missing credential for ' + provider.name)
     }
+
     return provider.fetch({ ...request, apiKey })
   }
 }

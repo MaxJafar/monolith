@@ -14,6 +14,7 @@ export default function ChangePasswordModal({
   onClose: () => void
 }) {
   const { t } = useTranslation('common.account-settings')
+
   const form = useForm({
     defaultValues: { oldPassword: '', password: '', passwordConfirm: '' },
     resolver: zodResolver(
@@ -48,12 +49,6 @@ export default function ChangePasswordModal({
   return (
     <FormModal
       form={form}
-      uiConfig={{
-        title: 'changePassword.title',
-        icon: 'tabler:key',
-        namespace: 'common.account-settings',
-        onClose
-      }}
       submissionConfig={{
         template: 'update',
         handler: async values => {
@@ -62,19 +57,25 @@ export default function ChangePasswordModal({
           toast.success(t('messages.passwordSaved'))
         }
       }}
+      uiConfig={{
+        title: 'changePassword.title',
+        icon: 'tabler:key',
+        namespace: 'common.account-settings',
+        onClose
+      }}
     >
       {fields.map(field => (
         <TextField
           key={field.name}
-          control={form.control}
-          name={field.name}
-          label={field.label}
-          icon={field.icon}
-          autoComplete={field.autocomplete}
-          placeholder=""
-          required
           isPassword
+          required
+          autoComplete={field.autocomplete}
+          control={form.control}
           disabled={form.formState.isSubmitting}
+          icon={field.icon}
+          label={field.label}
+          name={field.name}
+          placeholder=""
         />
       ))}
     </FormModal>

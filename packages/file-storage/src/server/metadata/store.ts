@@ -23,6 +23,7 @@ export function createFileMetadataStore<S extends TablesRelationalConfig>(
         .from(files)
         .where(eq(files.key, key))
         .limit(1)
+
       return result.at(0) ?? null
     },
     async upsert(reference) {

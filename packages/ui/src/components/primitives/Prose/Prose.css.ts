@@ -27,6 +27,7 @@ export const root = style({
     }
   }
 })
+
 const rule = (selector: string, declaration: GlobalStyleRule) =>
   globalStyle(root + ' ' + selector, declaration)
 

@@ -14,6 +14,7 @@ export const list = endpoints
       .select({ family: pins.family })
       .from(pins)
       .orderBy(pins.created, pins.family)
+
     return response.ok(rows.map(({ family }) => family))
   })
 
@@ -34,11 +35,13 @@ export const toggle = endpoints
       .from(pins)
       .where(key)
       .limit(1)
+
     if (existing) await db.delete(pins).where(key)
     else
       await db
         .insert(pins)
         .values({ family: body.family })
         .onConflictDoNothing()
+
     return response.noContent()
   })

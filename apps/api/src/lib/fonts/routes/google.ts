@@ -13,6 +13,7 @@ export const list = endpoints
   })
   .callback(async ({ core, response }) => {
     const credential = await core.api.getAPIKey('gcloud').catch(() => null)
+
     return response.ok(await readCatalog(credential))
   })
 
@@ -24,5 +25,6 @@ export const get = endpoints
   })
   .callback(async ({ core, query, response }) => {
     const credential = await core.api.getAPIKey('gcloud').catch(() => null)
+
     return response.ok(await readCatalog(credential, query.family))
   })

@@ -32,6 +32,7 @@ type Options = {
   initialKeys?: string[]
   onSubmit(categories: Category[]): Promise<void> | void
 }
+
 const namespace = 'common.module-manager'
 
 function CategoryFields({
@@ -46,6 +47,7 @@ function CategoryFields({
   remove(): void
 }) {
   const { t } = useTranslation(namespace)
+
   const {
     fields,
     append,
@@ -57,29 +59,36 @@ function CategoryFields({
   const available = useQuery(
     workspaceAPI.checkAPIKeys({ keys: 'deepseek' }).queryOptions()
   )
+
   const [translating, setTranslating] = useState(false)
   const active = useRef(true)
   const generation = useRef(0)
+
   useEffect(() => {
     generation.current++
   }, [index])
   useEffect(() => {
     active.current = true
+
     return () => {
       active.current = false
     }
   }, [])
   const disabled = form.formState.isSubmitting || translating
+
   async function translate() {
     const snapshot = structuredClone(form.getValues(`categories.${index}`))
+
     if (!snapshot.key.trim() || !snapshot.translations.length) return
     setTranslating(true)
     const requestGeneration = generation.current
+
     try {
       const result = await workspaceAPI.modules.categories.aiTranslate.mutate({
         key: snapshot.key,
         languages: snapshot.translations.map(row => row.language)
       })
+
       if (!result) throw new Error(t('categoryEditor.translationFailed'))
       if (
         !active.current ||
@@ -88,8 +97,10 @@ function CategoryFields({
           JSON.stringify(snapshot)
       )
         return
+
       for (let row = 0; row < snapshot.translations.length; row++) {
         const language = snapshot.translations[row]!.language
+
         if (typeof result[language] === 'string')
           form.setValue(
             `categories.${index}.translations.${row}.label`,
@@ -108,17 +119,12 @@ function CategoryFields({
       if (active.current) setTranslating(false)
     }
   }
+
   return (
     <Stack gap="sm">
-      <Flex gap="sm" align="center">
+      <Flex align="center" gap="sm">
         <TextField
-          control={form.control}
-          name={`categories.${index}.key`}
-          label="categoryKey"
-          placeholder="work"
           required
-          disabled={disabled}
-          icon="tabler:category"
           actionButtonProps={
             available.data
               ? {
@@ -130,55 +136,61 @@ function CategoryFields({
                 }
               : undefined
           }
+          control={form.control}
+          disabled={disabled}
+          icon="tabler:category"
+          label="categoryKey"
+          name={`categories.${index}.key`}
+          placeholder="work"
         />
         {canRemove && (
           <Button
-            variant="plain"
             dangerous
-            icon="tabler:trash"
-            disabled={disabled}
-            onClick={remove}
             aria-label={t('categoryEditor.removeEntry')}
+            disabled={disabled}
+            icon="tabler:trash"
+            variant="plain"
+            onClick={remove}
           />
         )}
       </Flex>
       {fields.map((field, row) => (
-        <Flex key={field.id} gap="xs" align="center" wrap="wrap">
+        <Flex key={field.id} align="center" gap="xs" wrap="wrap">
           <Box width="7em">
             <TextField
-              control={form.control}
-              name={`categories.${index}.translations.${row}.language`}
-              label="translationKey"
-              placeholder="en"
-              disabled={disabled}
               required
+              control={form.control}
+              disabled={disabled}
+              label="translationKey"
+              name={`categories.${index}.translations.${row}.language`}
+              placeholder="en"
             />
           </Box>
           <Box flex="1" minWidth="10em">
             <TextField
-              control={form.control}
-              name={`categories.${index}.translations.${row}.label`}
-              label="translationLabel"
-              placeholder=""
-              disabled={disabled}
               required
+              control={form.control}
+              disabled={disabled}
+              label="translationLabel"
+              name={`categories.${index}.translations.${row}.label`}
+              placeholder=""
             />
           </Box>
           <Button
-            variant="plain"
             dangerous
-            icon="tabler:x"
-            disabled={disabled}
-            onClick={() => removeTranslation(row)}
             aria-label={t('categoryEditor.removeTranslation')}
+            disabled={disabled}
+            icon="tabler:x"
+            variant="plain"
+            onClick={() => removeTranslation(row)}
           />
         </Flex>
       ))}
       <Button
+        disabled={disabled}
+        icon="tabler:plus"
         namespace={namespace}
         variant="plain"
-        icon="tabler:plus"
-        disabled={disabled}
         onClick={() => append({ language: '', label: '' })}
       >
         addTranslation
@@ -197,6 +209,7 @@ function CategoryEditor({
   onClose(): void
 }) {
   const { t } = useTranslation(namespace)
+
   const required = t('categoryEditor.required')
   const schema = z
     .object({
@@ -268,15 +281,10 @@ function CategoryEditor({
     control: form.control,
     name: 'categories'
   })
+
   return (
     <FormModal
       form={form}
-      uiConfig={{
-        namespace,
-        icon: 'tabler:category',
-        title: `category.${data.openType}`,
-        onClose
-      }}
       submissionConfig={{
         template: data.openType,
         handler: values =>
@@ -289,23 +297,29 @@ function CategoryEditor({
             }))
           )
       }}
+      uiConfig={{
+        namespace,
+        icon: 'tabler:category',
+        title: `category.${data.openType}`,
+        onClose
+      }}
     >
       <Stack gap="lg">
         {fields.map((field, index) => (
           <CategoryFields
             key={field.id}
+            canRemove={fields.length > 1}
             form={form}
             index={index}
-            canRemove={fields.length > 1}
             remove={() => remove(index)}
           />
         ))}
         {data.openType === 'create' && (
           <Button
+            disabled={form.formState.isSubmitting}
+            icon="tabler:plus"
             namespace={namespace}
             variant="secondary"
-            icon="tabler:plus"
-            disabled={form.formState.isSubmitting}
             onClick={() => append(makeEntry())}
           >
             addCategory
@@ -321,6 +335,7 @@ export default function ModifyCategoryModal(props: {
   data: Options
 }) {
   const languages = useQuery(workspaceAPI.locales.listLanguages.queryOptions())
+
   return (
     <WithQuery query={languages}>
       {rows => (

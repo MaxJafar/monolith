@@ -32,18 +32,19 @@ export default function DisableTwoFAModal({
       .finally(() => {
         inFlight.current = null
       })
+
     return inFlight.current
   }
 
   return (
     <ConfirmationModal
-      onClose={onClose}
       data={{
         title: t('modals.disable2FA.title'),
         description: t('modals.disable2FA.description'),
         confirmationButton: 'confirm',
         onConfirm: disable
       }}
+      onClose={onClose}
     />
   )
 }

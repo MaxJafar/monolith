@@ -2,12 +2,14 @@ import type OpenAI from 'openai'
 import type { ZodType, output } from 'zod'
 
 export type CompletionValue<T> = T extends ZodType ? output<T> : string
+
 export interface CompletionRequest<T extends ZodType | undefined = undefined> {
   model: string
   messages: OpenAI.ChatCompletionMessageParam[]
   apiKey?: string
   structure?: T
 }
+
 export interface AIProvider {
   name: string
   requireAPIKey: boolean

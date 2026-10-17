@@ -19,6 +19,7 @@ export default function AuthForm({ providers }: { providers: string[] }) {
   const [password, setPassword] = useState('')
   const [pending, setPending] = useState<string | null>(null)
   const lock = useRef(false)
+
   const returning = Boolean(parameters.get('code') && parameters.get('state'))
   const disabled = auth || returning || pending !== null
 
@@ -27,6 +28,7 @@ export default function AuthForm({ providers }: { providers: string[] }) {
     lock.current = true
     setPending(kind)
     let navigating = false
+
     try {
       navigating = (await action()) === true
     } catch {
@@ -41,12 +43,15 @@ export default function AuthForm({ providers }: { providers: string[] }) {
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+
     if (!identity.trim() || !password) {
       toast.error(t('messages.invalidFields'))
+
       return
     }
     void run('password', async () => {
       const result = await authenticate({ email: identity.trim(), password })
+
       if (result === '2fa_required') open(TwoFAModal, {})
       else if (result === 'invalid')
         toast.error(t('messages.invalidCredentials'))
@@ -66,19 +71,21 @@ export default function AuthForm({ providers }: { providers: string[] }) {
         .input({ provider })
         .queryRaw()
       const destination = new URL(authorization.url)
+
       if (!['https:', 'http:'].includes(destination.protocol))
         throw new Error('Invalid authorization address')
       sessionStorage.setItem('oauthState', authorization.state)
       sessionStorage.setItem('oauthProvider', provider)
       window.location.assign(destination.href)
+
       return true
     })
   }
 
   return (
     <Stack
-      as="form"
       aria-busy={pending !== null}
+      as="form"
       maxWidth={{ sm: '70%' }}
       mt={{ base: 'lg', sm: '2xl' }}
       onSubmit={submit}

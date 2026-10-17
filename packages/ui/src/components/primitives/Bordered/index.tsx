@@ -13,7 +13,9 @@ import type { SurfaceOwnProps, SurfaceProps } from '../surface'
 
 export type BorderSide =
   'all' | 'top' | 'right' | 'bottom' | 'left' | 'x' | 'y' | 'none'
+
 export type BorderStyleValue = 'solid' | 'dashed' | 'dotted' | 'double' | 'none'
+
 export interface BorderedOwnProps<
   T extends ElementType = 'div'
 > extends SurfaceOwnProps<
@@ -26,6 +28,7 @@ export interface BorderedOwnProps<
   borderSide?: BorderSide
   borderWidth?: string
 }
+
 export type BorderedProps<T extends ElementType = 'div'> = SurfaceProps<
   T,
   BorderedOwnProps<T>
@@ -48,6 +51,7 @@ export function computeBorderStyles(
   style: BorderStyleValue
 ): CSSProperties {
   if (side === 'all') return { borderWidth: width, borderStyle: style }
+
   return {
     borderStyle: 'none',
     ...Object.fromEntries(
@@ -80,7 +84,8 @@ export function Bordered<T extends ElementType = 'div'>({
       }
     }
   )
+
   // Rest destructuring loses the element-specific prop relation in TypeScript 7.
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+
   return <Box<T> {...(surface as BoxProps<T>)} {...resolved} />
 }

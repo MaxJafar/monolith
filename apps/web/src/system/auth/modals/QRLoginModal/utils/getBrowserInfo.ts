@@ -14,6 +14,7 @@ export default function getBrowserInfo(agent = navigator.userAgent): string {
     ['macOS', /Macintosh|Mac OS/],
     ['Linux', /Linux/]
   ] as const
+
   return (
     (browser.find(([, pattern]) => pattern.test(agent))?.[0] ?? 'Browser') +
     ' on ' +

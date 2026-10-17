@@ -9,6 +9,7 @@ import {
 import searchLocations from '../../core/functions/external/location'
 
 const api = createMonolith({ moduleId: 'locations' })
+
 export default defineRoutes({
   search: api
     .query({
@@ -18,10 +19,12 @@ export default defineRoutes({
     })
     .callback(async ({ core, query, response }) => {
       const credential = await core.api.getAPIKey('gcloud')
+
       if (!credential)
         return response.badRequest(
           'Configure a Google Places API key to search'
         )
+
       return response.ok(await searchLocations(credential, query.q))
     })
 })

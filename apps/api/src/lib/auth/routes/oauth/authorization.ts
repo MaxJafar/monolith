@@ -28,11 +28,16 @@ export const authorize = endpoints
   })
   .callback(async ({ query, req, response }) => {
     const origin = req.headers.origin
+
     if (!originAllowed(origin)) return response.badRequest('Invalid origin')
+
     const adapter = await getProvider(query.provider, origin)
+
     if (!adapter)
       return response.badRequest('Provider not supported or not configured')
+
     const challenge = challenges.issue(query.provider, origin)
+
     return response.ok({
       url: adapter.client
         .authorize(challenge.state, challenge.verifier)
@@ -62,13 +67,19 @@ export const verify = endpoints
   })
   .callback(async ({ body, db, req, res, response }) => {
     const origin = req.headers.origin
+
     if (!originAllowed(origin)) return response.badRequest('Invalid origin')
+
     const challenge = challenges.consume(body.state, body.provider, origin)
+
     if (!challenge) return response.badRequest('Invalid or expired state')
+
     const adapter = await getProvider(body.provider, origin)
+
     if (!adapter)
       return response.badRequest('Provider not supported or not configured')
     let email: string | null
+
     try {
       const tokens = await adapter.client.exchange(
         body.code,
@@ -79,7 +90,9 @@ export const verify = endpoints
       return response.unauthorized()
     }
     if (!email) return response.unauthorized()
+
     const account = await db.query.users.findFirst({ where: { email } })
+
     if (!account) return response.unauthorized()
     if (account.twoFASecret)
       return response.ok({
@@ -102,5 +115,6 @@ export const verify = endpoints
       path: '/',
       maxAge: 900_000
     })
+
     return response.ok({ accessToken })
   })

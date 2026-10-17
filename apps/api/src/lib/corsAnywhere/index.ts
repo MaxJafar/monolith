@@ -5,6 +5,7 @@ import { createMonolith } from '@monolith/server-utils'
 
 const target = z.url().refine(value => {
   const url = new URL(value)
+
   return (
     ['http:', 'https:'].includes(url.protocol) && !url.username && !url.password
   )
@@ -25,6 +26,7 @@ export default createMonolith({ moduleId: 'cors_anywhere' })
         }
       })
       const mediaType = remote.contentType.split(';')[0]?.trim().toLowerCase()
+
       return response.ok(
         mediaType === 'application/json' || mediaType?.endsWith('+json')
           ? (JSON.parse(remote.text) as unknown)

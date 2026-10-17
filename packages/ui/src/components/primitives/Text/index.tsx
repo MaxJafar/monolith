@@ -62,6 +62,7 @@ interface Typography<T extends ElementType>
   truncate?: boolean
   lineClamp?: number
 }
+
 export type TextProps<T extends ElementType = 'span'> = Typography<T> &
   Omit<ComponentPropsWithRef<T>, keyof Typography<T>>
 
@@ -100,22 +101,25 @@ export function Text<T extends ElementType = 'span'>({
   const space: Record<string, unknown> = {}
   const placement: Record<string, unknown> = {}
   const native: Record<string, unknown> = {}
+
   for (const [name, value] of Object.entries(properties)) {
     if (Object.prototype.hasOwnProperty.call(typography, name)) {
       tokens[typography[name as keyof typeof typography]] =
-        normalizeResponsiveProp(value as never)
+        normalizeResponsiveProp(value)
     } else if (spacing.has(name)) space[name] = value
     else if (layout.has(name)) placement[name] = value
     else native[name] = value
   }
   tokens.lineHeight ??= tokens.fontSize
   const clipping: CSSProperties = {}
+
   if (truncate)
     Object.assign(clipping, {
       overflow: 'hidden',
       textOverflow: 'ellipsis',
       whiteSpace: 'nowrap'
     })
+
   if (lineClamp !== undefined && Number.isFinite(lineClamp) && lineClamp >= 1) {
     Object.assign(clipping, {
       display: '-webkit-box',
@@ -125,6 +129,7 @@ export function Text<T extends ElementType = 'span'>({
       whiteSpace: 'normal'
     })
   }
+
   const resolved = resolveStyles({
     sprinkles: textSprinkles,
     sprinkleProps: {
@@ -137,6 +142,7 @@ export function Text<T extends ElementType = 'span'>({
     style: { ...style, ...clipping }
   })
   const Element = asChild ? Slot : (as ?? 'span')
+
   return (
     <Element {...native} {...resolved} ref={ref as Ref<never>}>
       {children}

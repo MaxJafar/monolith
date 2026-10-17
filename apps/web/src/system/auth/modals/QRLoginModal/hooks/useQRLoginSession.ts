@@ -53,7 +53,9 @@ export default function useQRLoginSession({
   }, [t, onSuccess])
   useEffect(() => {
     let disposed = false
+
     const isDisposed = () => disposed
+
     let completed = false
     let claimedToken: string | undefined
     let socket: Socket | undefined

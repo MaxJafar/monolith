@@ -40,6 +40,7 @@ export const list = endpoints
     const rows = await db.query.fontsFontFamilyUpload.findMany({
       orderBy: { created: 'asc' }
     })
+
     return response.ok(
       await Promise.all(rows.map(row => describeFont(row, core.storage)))
     )
@@ -55,6 +56,7 @@ export const get = endpoints
     const row = await db.query.fontsFontFamilyUpload.findFirst({
       where: { id: query.id }
     })
+
     return row
       ? response.ok(await describeFont(row, core.storage))
       : response.notFound()
@@ -69,23 +71,28 @@ export const upload = endpoints
   })
   .callback(async ({ db, core, query, body, media, response }) => {
     const file = media.file
+
     if (
       !file ||
       typeof file === 'string' ||
       !extensions.has(extname(file.originalName).toLowerCase())
     )
       return response.badRequest('Upload a TTF, OTF, WOFF or WOFF2 font file')
+
     const previous = query.id
       ? await db.query.fontsFontFamilyUpload.findFirst({
           where: { id: query.id }
         })
       : undefined
+
     if (query.id && !previous) return response.notFound()
 
     // Keep the previous object until the new row is successfully written.
     const saved = await core.storage.save({ file })
+
     if (!saved) return response.badRequest('Unable to store this font')
     let row: typeof uploads.$inferSelect | undefined
+
     try {
       const values = { ...body, file: saved.key }
       const rows = previous
@@ -103,6 +110,7 @@ export const upload = endpoints
     }
     if (previous?.file && previous.file !== saved.key)
       await core.storage.delete(previous.file)
+
     return response.ok({ ...row, file: saved })
   })
 
@@ -117,7 +125,9 @@ export const remove = endpoints
       .delete(uploads)
       .where(eq(uploads.id, query.id))
       .returning()
+
     if (!row) return response.notFound()
     if (row.file) await core.storage.delete(row.file)
+
     return response.noContent()
   })

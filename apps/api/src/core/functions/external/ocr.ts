@@ -9,8 +9,10 @@ const parseOCR: ParseOCRFunc = async source => {
     cacheMethod: 'readOnly',
     gzip: false
   })
+
   try {
     const { data } = await worker.recognize(source)
+
     return data.text
   } finally {
     await worker.terminate()

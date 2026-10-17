@@ -127,14 +127,12 @@ export class FileStorage {
       }
       await this.store.upsert({ ...record, moduleId: this.moduleId })
     } catch (error) {
-      await this.provider
-        .delete(key)
-        .catch(cleanup =>
-          this.logger?.warn('Upload cleanup failed', {
-            key,
-            error: String(cleanup)
-          })
-        )
+      await this.provider.delete(key).catch(cleanup =>
+        this.logger?.warn('Upload cleanup failed', {
+          key,
+          error: String(cleanup)
+        })
+      )
       throw error
     }
 

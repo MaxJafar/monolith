@@ -17,6 +17,7 @@ const providerLabel = z.object({
 })
 const label = (provider: string) => {
   const metadata = oauthProvider(provider)!
+
   return { provider, icon: metadata.icon, name: metadata.name }
 }
 
@@ -31,6 +32,7 @@ export const listEnabled = endpoints
     const rows = await db.query.authOAuthProviders.findMany({
       where: { enabled: true }
     })
+
     return response.ok(
       rows
         .filter(
@@ -58,9 +60,11 @@ export const listOptions = endpoints
   .callback(async ({ db, response }) => {
     const rows = await db.query.authOAuthProviders.findMany()
     const saved = new Map(rows.map(row => [row.provider, row]))
+
     return response.ok(
       Object.keys(OAUTH_PROVIDER_CONFIGS).map(provider => {
         const row = saved.get(provider)
+
         return {
           ...label(provider),
           id: row?.id ?? null,
@@ -87,8 +91,11 @@ export const upsert = endpoints
   .callback(async ({ db, query, body, response }) => {
     if (!oauthProvider(query.provider))
       return response.badRequest('Unsupported provider')
+
     const masterKey = process.env.MASTER_KEY
+
     if (!masterKey) throw new Error('MASTER_KEY must be configured')
+
     const previous = await db.query.authOAuthProviders.findFirst({
       where: { provider: query.provider }
     })
@@ -98,6 +105,7 @@ export const upsert = endpoints
     const client_secret = body.clientSecret
       ? seal(body.clientSecret)
       : previous?.client_secret
+
     if (!client_id || !client_secret)
       return response.badRequest('Client ID and secret are required')
     await db
@@ -112,6 +120,7 @@ export const upsert = endpoints
         target: providers.provider,
         set: { client_id, client_secret, enabled: true, updated: new Date() }
       })
+
     return response.noContent()
   })
 
@@ -125,6 +134,7 @@ export const toggle = endpoints
     const row = await db.query.authOAuthProviders.findFirst({
       where: { id: query.id }
     })
+
     if (!row) return response.notFound()
     if (
       !row.enabled &&
@@ -140,6 +150,7 @@ export const toggle = endpoints
         updated: new Date()
       })
       .where(eq(providers.id, query.id))
+
     return response.noContent()
   })
 
@@ -154,5 +165,6 @@ export const remove = endpoints
       .delete(providers)
       .where(eq(providers.id, query.id))
       .returning({ id: providers.id })
+
     return removed.length ? response.noContent() : response.notFound()
   })

@@ -13,12 +13,15 @@ export default function TwoFAModal({ onClose }: { onClose: () => void }) {
 
   async function verify(code: string) {
     if (lock.current) return
+
     if (!/^\d{6}$/.test(code)) {
       toast.error(t('messages.otpLength'))
+
       return
     }
     lock.current = true
     setPending(true)
+
     try {
       const name = await authenticateWith2FA(code)
       tid.current = ''

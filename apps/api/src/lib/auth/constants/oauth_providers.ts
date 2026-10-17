@@ -7,6 +7,7 @@ export interface OAuthClient {
   authorize(state: string, verifier: string): URL
   exchange(code: string, verifier: string): Promise<OAuth2Tokens>
 }
+
 export interface ProviderConfig {
   name: string
   icon: string
@@ -39,6 +40,7 @@ export const OAUTH_PROVIDER_CONFIGS: Readonly<Record<string, ProviderConfig>> =
       icon: 'tabler:brand-google',
       create(id, secret, redirect) {
         const sdk = new Google(id, secret, redirect)
+
         return {
           authorize: (state, verifier) =>
             sdk.createAuthorizationURL(state, verifier, [
@@ -57,6 +59,7 @@ export const OAUTH_PROVIDER_CONFIGS: Readonly<Record<string, ProviderConfig>> =
           googleIdentity,
           bearer(token)
         )
+
         return identity.email_verified ? identity.email : null
       }
     },
@@ -65,6 +68,7 @@ export const OAUTH_PROVIDER_CONFIGS: Readonly<Record<string, ProviderConfig>> =
       icon: 'tabler:brand-github',
       create(id, secret, redirect) {
         const sdk = new GitHub(id, secret, redirect)
+
         return {
           authorize: state => sdk.createAuthorizationURL(state, ['user:email']),
           exchange: code => sdk.validateAuthorizationCode(code)
@@ -83,6 +87,7 @@ export const OAUTH_PROVIDER_CONFIGS: Readonly<Record<string, ProviderConfig>> =
             }
           }
         )
+
         return (
           addresses.find(address => address.primary && address.verified)
             ?.email ?? null

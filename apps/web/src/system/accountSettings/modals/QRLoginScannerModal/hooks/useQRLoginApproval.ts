@@ -11,7 +11,9 @@ type Result = { input: string } & (
 
 export default function useQRLoginApproval(scannedData: string) {
   const { t } = useTranslation('common.auth')
+
   const payload = readQRLoginPayload(scannedData)
+
   const [result, setResult] = useState<Result | null>(null)
   const [loading, setLoading] = useState(false)
   const epoch = useRef(0)
@@ -26,13 +28,16 @@ export default function useQRLoginApproval(scannedData: string) {
 
   async function onApprove() {
     if (!payload || pending.current) return
+
     const version = ++epoch.current
     pending.current = true
     setLoading(true)
+
     try {
       const response = await workspaceAPI.auth.qrLogin.approve.mutateRaw({
         sessionId: payload.sessionId
       })
+
       if (epoch.current === version)
         setResult({
           input: scannedData,
@@ -56,6 +61,7 @@ export default function useQRLoginApproval(scannedData: string) {
   }
 
   const current = result?.input === scannedData ? result : null
+
   return {
     step: !payload
       ? ('error' as const)

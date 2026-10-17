@@ -15,6 +15,7 @@ import { Bordered, Flex, Stack } from '@/components/primitives'
 import { toast } from '@/providers'
 
 const NamespaceContext = createContext<string | false | undefined>(undefined)
+
 export const useNamespace = () => useContext(NamespaceContext)
 
 const actions = {
@@ -49,6 +50,7 @@ export function FormModal<T extends FieldValues>({
   const locked = useRef(false)
   const active = useRef(false)
   const [pending, setPending] = useState(false)
+
   const action =
     'template' in submissionConfig
       ? actions[submissionConfig.template]
@@ -56,6 +58,7 @@ export function FormModal<T extends FieldValues>({
   const unavailable = pending || !!uiConfig.loading
   useEffect(() => {
     active.current = true
+
     return () => {
       active.current = false
     }
@@ -71,6 +74,7 @@ export function FormModal<T extends FieldValues>({
     if (locked.current || uiConfig.loading || submissionConfig.disabled) return
     locked.current = true
     setPending(true)
+
     try {
       await form.handleSubmit(async values => {
         await submissionConfig.handler(values)
@@ -90,22 +94,22 @@ export function FormModal<T extends FieldValues>({
   return (
     <NamespaceContext value={uiConfig.namespace}>
       <Stack
-        width="440px"
+        aria-busy={unavailable}
+        aria-labelledby={titleId}
+        className="monolith-form-dialog"
+        data-dirty={form.formState.isDirty}
+        gap="sm"
         maxWidth="100%"
         minWidth="0"
-        gap="sm"
-        className="monolith-form-dialog"
         role="dialog"
-        aria-labelledby={titleId}
-        aria-busy={unavailable}
-        data-dirty={form.formState.isDirty}
         tabIndex={-1}
+        width="440px"
       >
         <ModalHeader
-          titleId={titleId}
-          title={uiConfig.title}
           icon={uiConfig.icon}
           namespace={uiConfig.namespace}
+          title={uiConfig.title}
+          titleId={titleId}
           trailing={uiConfig.headerActions}
           onClose={close}
         />
@@ -117,11 +121,11 @@ export function FormModal<T extends FieldValues>({
           <form noValidate onSubmit={submit}>
             <Bordered
               as="fieldset"
-              disabled={pending}
               borderSide="none"
-              p="none"
+              disabled={pending}
               m="none"
               minWidth="0"
+              p="none"
             >
               <Stack gap="sm">{children}</Stack>
             </Bordered>
@@ -129,23 +133,23 @@ export function FormModal<T extends FieldValues>({
               className="monolith-form-actions"
               gap="sm"
               justify="end"
-              wrap="wrap"
               mt="md"
               pt="sm"
+              wrap="wrap"
             >
               <Button
+                disabled={unavailable}
                 type="button"
                 variant="plain"
-                disabled={unavailable}
                 onClick={close}
               >
                 cancel
               </Button>
               <Button
-                type="submit"
+                disabled={submissionConfig.disabled}
                 icon={action.icon}
                 loading={pending}
-                disabled={submissionConfig.disabled}
+                type="submit"
               >
                 {action.label}
               </Button>

@@ -1,3 +1,13 @@
+<!-- monolith-product-links -->
+<p align="center">
+  <a href="https://monolith-site-maxjafars-projects.vercel.app"><strong>Monolith website ↗</strong></a> ·
+  <a href="https://monolith-site-maxjafars-projects.vercel.app/docs"><strong>Documentation ↗</strong></a> ·
+  <a href="https://monolith-site-maxjafars-projects.vercel.app/addons"><strong>Addons and Widgets ↗</strong></a>
+</p>
+
+The product site documents the current development workspace; the default branch may lag behind those features. See [release availability](https://monolith-site-maxjafars-projects.vercel.app/docs/availability).
+<!-- /monolith-product-links -->
+
 # monolith
 
 A personal workspace built on LifeForge, with twelve personal tools, connected databases, block documents, a visual knowledge map and an agent team. Monolith uses a black and white identity, quiet surfaces, compact controls and an original geometric M mark. Light and dark themes share a Notion-inspired page tree, canvas and board experience.

@@ -1,23 +1,20 @@
 import { defineRelations, eq, sql } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/postgres-js'
 import express from 'express'
-import { createHash, randomUUID } from 'node:crypto'
+import { randomUUID } from 'node:crypto'
 import { createServer } from 'node:http'
 import postgres from 'postgres'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
-import type { ForgeContract } from '@lifeforge/server-utils'
+import { resolveAddonIdentity } from '@monolith/configs/node'
+import type { EndpointContract } from '@monolith/server-utils'
 
-import {
-  entries as projects,
-  tasks
-} from '../../../../modules/lifeforge--projects/server/schema.drizzle'
 import {
   authenticateAgent,
   hashSecret
-} from '../../../../modules/zillion--agents/server/auth'
-import * as routes from '../../../../modules/zillion--agents/server/routes'
-import * as runtime from '../../../../modules/zillion--agents/server/runtime'
+} from '../../../../modules/monolith--agents/server/auth'
+import * as routes from '../../../../modules/monolith--agents/server/routes'
+import * as runtime from '../../../../modules/monolith--agents/server/runtime'
 import {
   activity,
   assignments,
@@ -30,22 +27,26 @@ import {
   runs,
   tables,
   usageRecords
-} from '../../../../modules/zillion--agents/server/schema.drizzle'
-import type { Database } from '../../../../modules/zillion--agents/server/store'
+} from '../../../../modules/monolith--agents/server/schema.drizzle'
+import type { Database } from '../../../../modules/monolith--agents/server/store'
 import type {
   AgentSnapshot,
   Principal,
   Run
-} from '../../../../modules/zillion--agents/shared'
-import { documents } from '../../../../modules/zillion--databases/server/schema.drizzle'
+} from '../../../../modules/monolith--agents/shared'
+import { documents } from '../../../../modules/monolith--databases/server/schema.drizzle'
+import {
+  entries as projects,
+  tasks
+} from '../../../../modules/monolith--projects/server/schema.drizzle'
 import {
   AgentRuntimeClient,
   type ClaimedWork,
   WorkerExecutionError,
   openAIProvider,
   runWorkerOnce
-} from '../../../../tools/src/zillion/agentWorker'
-import { registerRoutes } from '../core/functions/routes/functions/forgeRouter'
+} from '../../../../tools/src/monolith/agentWorker'
+import { registerRoutes } from '../core/functions/routes/compileRoutes'
 import authMiddleware from '../core/middlewares/authMiddleware'
 
 const enabled = process.env.ZILLION_INTEGRATION === '1',
@@ -62,7 +63,7 @@ if (enabled) {
     !/^\/(zillion_dev|zillion_test(?:_[a-z0-9]+)?)$/.test(target.pathname)
   )
     throw new Error(
-      'Agent tests require an isolated local Zillion database on port 55432'
+      'Agent tests require an isolated local Monolith database on port 55432'
     )
 }
 
@@ -74,7 +75,9 @@ const db = drizzle({ client, relations: defineRelations(tables, relations) })
 const owner: string = randomUUID(),
   other: string = randomUUID()
 
-type Context = Parameters<ReturnType<ForgeContract['getValue']>['callback']>[0]
+type Context = Parameters<
+  ReturnType<EndpointContract['getValue']>['callback']
+>[0]
 type Identity = { principalId: string; credentialId: string }
 
 async function owned<T>(
@@ -89,7 +92,7 @@ async function owned<T>(
 }
 
 async function invoke<T>(
-  route: ForgeContract,
+  route: EndpointContract,
   body?: unknown,
   query: Record<string, string> = {},
   user = owner,
@@ -263,10 +266,10 @@ app.use((req, _res, next) => {
   req.db = db
   next()
 })
-app.use('/modules/zillion--agents/runtime', registerRoutes(runtime))
+app.use('/modules/monolith--agents/runtime', registerRoutes(runtime))
 app.use(
   '/modules/' +
-    createHash('sha256').update('@lifeforge/zillion--agents').digest('hex') +
+    resolveAddonIdentity({ name: '@monolith/agents' }).remoteId +
     '/runtime',
   registerRoutes(runtime)
 )
@@ -274,7 +277,7 @@ app.use('/user/me', authMiddleware(false), (_req, res) =>
   res.json({ state: 'success', data: {} })
 )
 app.use(
-  '/modules/zillion--agents/accessKeys/create',
+  '/modules/monolith--agents/accessKeys/create',
   authMiddleware(false),
   (_req, res) => res.json({ state: 'success', data: {} })
 )
@@ -861,7 +864,7 @@ describe.skipIf(!enabled)(
 
       for (const endpoint of [
         '/user/me',
-        '/modules/zillion--agents/accessKeys/create'
+        '/modules/monolith--agents/accessKeys/create'
       ]) {
         const response = await fetch(origin + endpoint, {
           method: endpoint.endsWith('create') ? 'POST' : 'GET',
@@ -918,7 +921,7 @@ describe.skipIf(!enabled)(
       )
       await expect(machine.request('me')).rejects.toThrow('401')
     })
-    it('connects the portable worker to the running Zillion API and its installed module router', async () => {
+    it('connects the portable worker to the running Monolith API and its installed module router', async () => {
       const f = await fixture(),
         r = await enqueue(f)
       const machine = new AgentRuntimeClient(

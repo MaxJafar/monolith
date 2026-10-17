@@ -1,24 +1,50 @@
-import { ModuleHeader, Stack } from '@lifeforge/ui'
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
-import { TabbedView } from './tabs'
+import { ModuleHeader, Stack, Tabs } from '@monolith/ui'
+
 import AccountAndSecurityTab from './tabs/AccountAndSecurityTab'
 import PersonalInfoTab from './tabs/PersonalInfoTab'
 
-function AccountSettings() {
+export default function AccountSettings() {
+  const { t } = useTranslation('common.account-settings')
+  const [section, setSection] = useState<
+    'personal-info' | 'account-and-security'
+  >('personal-info')
+  const sections = [
+    {
+      id: 'personal-info',
+      name: t('tabs.personalInformation'),
+      icon: 'tabler:user'
+    },
+    {
+      id: 'account-and-security',
+      name: t('tabs.accountAndSecurity'),
+      icon: 'tabler:shield-lock'
+    }
+  ] as const
+
   return (
-    <TabbedView.Root>
+    <Stack gap="lg">
       <ModuleHeader namespace="common.account-settings" />
-      <TabbedView.Selector />
-      <Stack mb="xl" mt="md">
-        <TabbedView.When tabId="personal-info">
+      <Tabs
+        enabled={sections.map(item => item.id)}
+        items={sections}
+        currentTab={section}
+        onTabChange={setSection}
+      />
+      <Stack
+        key={section}
+        gap="md"
+        pb="xl"
+        aria-label={sections.find(item => item.id === section)?.name}
+      >
+        {section === 'personal-info' ? (
           <PersonalInfoTab />
-        </TabbedView.When>
-        <TabbedView.When tabId="account-and-security">
+        ) : (
           <AccountAndSecurityTab />
-        </TabbedView.When>
+        )}
       </Stack>
-    </TabbedView.Root>
+    </Stack>
   )
 }
-
-export default AccountSettings

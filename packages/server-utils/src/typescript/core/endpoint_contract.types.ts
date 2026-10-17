@@ -1,0 +1,63 @@
+import { type AnyRelations } from 'drizzle-orm'
+import { type PostgresJsDatabase } from 'drizzle-orm/postgres-js'
+import type { Request, RequestHandler, Response } from 'express'
+import type { Server } from 'socket.io'
+import type { z } from 'zod'
+
+import { OutputDefinition, OutputHelpers } from '../../response'
+import { ConvertMedia, MediaConfig } from '../standalone/media.types'
+import { CoreContext } from './core_context.types'
+
+export interface RequestContext<TSchema extends AnyRelations = any> {
+  req: Request
+  res: Response
+  io: Server
+  db: PostgresJsDatabase<TSchema>
+  body: unknown
+  query: unknown
+  media: unknown
+  core: CoreContext
+}
+
+export interface EndpointContract {
+  readonly __isEndpointContract: true
+  readonly modulePathAlias?: string
+  getValue(): {
+    method: 'get' | 'post'
+    middlewares: RequestHandler[]
+    schema: {
+      query: z.ZodTypeAny | undefined
+      body: z.ZodTypeAny | undefined
+    }
+    output: OutputDefinition | 'custom'
+    noDefaultResponse: boolean
+    description: string
+    isDownloadable: boolean
+    media: MediaConfig | null
+    noAuth: boolean
+    encrypted: boolean
+    rateLimit: boolean
+    callback: (
+      context: RequestContext
+    ) => Promise<{ $status: number; payload?: unknown }>
+    callerModule?: { source: string; id: string }
+  }
+}
+
+export type EndpointContext<
+  TQuery extends z.ZodTypeAny | undefined,
+  TBody extends z.ZodTypeAny | undefined,
+  TOutput extends OutputDefinition | 'custom',
+  TMedia extends MediaConfig | null,
+  TSchema extends AnyRelations = any
+> = {
+  response: OutputHelpers<TOutput>
+  body: TBody extends z.ZodTypeAny ? z.infer<TBody> : undefined
+  query: TQuery extends z.ZodTypeAny ? z.infer<TQuery> : undefined
+  media: ConvertMedia<TMedia>
+  req: Request
+  res: Response
+  io: Server
+  db: PostgresJsDatabase<TSchema>
+  core: CoreContext
+}

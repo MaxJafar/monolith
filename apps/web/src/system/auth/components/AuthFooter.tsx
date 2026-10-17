@@ -1,59 +1,24 @@
-import { Trans, useTranslation } from 'react-i18next'
+import { useTranslation } from 'react-i18next'
 
-import { Flex, Icon, Stack, Text } from '@lifeforge/ui'
+import { Stack, Text } from '@monolith/ui'
 
-function AuthFooter() {
+export default function AuthFooter() {
   const { t } = useTranslation('common.auth')
-
   return (
-    <Stack centered as="footer" mt="xl">
-      <Flex centered gap="sm">
-        {[
-          'creative-commons',
-          'creative-commons-by',
-          'creative-commons-nc',
-          'creative-commons-sa'
-        ].map(icon => (
-          <Icon key={icon} color="muted" icon={`tabler:${icon}`} size="1.5em" />
-        ))}
-      </Flex>
+    <Stack centered as="footer" mt="xl" gap="sm">
       <Text align="center" color="muted" size="sm">
-        {t('forkAttribution')}
+        {t('productDescription')}
       </Text>
-      <Text align="center" color="muted" size="sm">
-        <Trans
-          components={{
-            author: (
-              <Text
-                as="a"
-                color="primary"
-                href="https://melvinchia.dev"
-                rel="noreferrer"
-                style={{
-                  textDecoration: 'underline'
-                }}
-                target="_blank"
-              />
-            ),
-            license: (
-              <Text
-                as="a"
-                color="primary"
-                href="https://creativecommons.org/licenses/by-nc-sa/4.0/"
-                rel="noreferrer"
-                style={{
-                  textDecoration: 'underline'
-                }}
-                target="_blank"
-              />
-            )
-          }}
-          i18nKey="licenseAttribution"
-          ns="common.auth"
-        />
+      <Text
+        as="a"
+        href="https://github.com/MaxJafar/monolith/blob/main/THIRD_PARTY_NOTICES.md"
+        target="_blank"
+        rel="noreferrer"
+        color="muted"
+        size="xs"
+      >
+        {t('thirdPartyNotices')}
       </Text>
     </Stack>
   )
 }
-
-export default AuthFooter

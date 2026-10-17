@@ -1,204 +1,155 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import copy from 'copy-to-clipboard'
-import dayjs from 'dayjs'
-import relativeTime from 'dayjs/plugin/relativeTime.js'
-import { useCallback, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { useFederation } from '@lifeforge/federation'
+import { useFederation } from '@monolith/federation'
 import {
-  Box,
   Button,
+  Card,
   ConfirmationModal,
-  ContextMenu,
-  ContextMenuItem,
   Flex,
   Icon,
-  OptionsColumn,
-  TAILWIND_PALETTE,
-  TagChip,
+  Stack,
   Text,
   toast,
   useModalStore
-} from '@lifeforge/ui'
+} from '@monolith/ui'
 
-import forgeAPI from '@/core/utils/forgeAPI'
+import workspaceAPI from '@/core/utils/workspaceAPI'
 
 import type { APIKeyEntry } from '..'
 import ModifyAPIKeyModal from '../modals/ModifyAPIKeyModal'
 import ModulesRequiredListModal from '../modals/ModulesRequiredListModal'
+import { credentialUsers } from '../model'
 
-dayjs.extend(relativeTime)
-
-function EntryItem({ entry }: { entry: APIKeyEntry }) {
-  const { t } = useTranslation('common.api-keys')
+export default function EntryItem({ entry }: { entry: APIKeyEntry }) {
+  const { t, i18n } = useTranslation('common.api-keys')
   const { moduleGroups } = useFederation()
-  const queryClient = useQueryClient()
   const { open } = useModalStore()
-  const [isCopying, setIsCopying] = useState(false)
+  const cache = useQueryClient()
+  const [busy, setBusy] = useState(false)
+  const locked = useRef(false)
+  const consumers = credentialUsers(moduleGroups, entry.keyId)
 
-  const deleteMutation = useMutation(
-    forgeAPI.apiKeys.entries.remove
-      .input({
-        id: entry.id
-      })
-      .mutationOptions({
-        onSuccess: () => {
-          queryClient.invalidateQueries({
-            queryKey: ['apiKeys']
-          })
-          toast.success('API Key deleted successfully')
-        },
-        onError: () => {
-          toast.error('Failed to delete API Key')
-        }
-      })
-  )
-
-  const modulesRequiredCount = moduleGroups
-    .flatMap(cat => cat.items)
-    .filter(item => item.APIKeyAccess?.[entry.keyId]).length
-
-  async function copyKey() {
-    setIsCopying(true)
-
+  async function copySecret() {
+    if (!entry.exposable || locked.current) return
+    locked.current = true
+    setBusy(true)
     try {
-      const key = await forgeAPI.apiKeys.entries.get
-        .input({
-          keyId: entry.keyId
-        })
+      const secret = await workspaceAPI.apiKeys.entries.get
+        .input({ keyId: entry.keyId })
         .query()
-
-      if (!key) {
-        throw new Error()
-      }
-
-      copy(key)
-      toast.success('Key copied to clipboard')
-    } catch (err) {
-      console.error(err)
-      toast.error('Failed to fetch key')
+      if (!secret || !copy(secret)) throw new Error('Clipboard unavailable')
+      toast.success(t('messages.copied'))
+    } catch {
+      toast.error(t('messages.copyFailed'))
     } finally {
-      setIsCopying(false)
+      locked.current = false
+      setBusy(false)
     }
   }
 
-  const handleUpdateEntry = useCallback(async () => {
-    try {
-      open(ModifyAPIKeyModal, {
-        type: 'update',
-        initialData: {
-          ...entry
-        }
-      })
-    } catch {
-      toast.error('Failed to fetch API Key')
-    }
-  }, [entry])
-
-  const handleDeleteEntry = () =>
+  function remove() {
     open(ConfirmationModal, {
-      title: 'Delete API Key',
-      description: `Are you sure you want to delete the API Key "${entry.name}"? This action cannot be undone.`,
+      title: t('actions.remove', { name: entry.name }),
+      description: t('messages.removeDescription'),
       confirmationButton: 'delete',
       onConfirm: async () => {
-        await deleteMutation.mutateAsync(undefined)
+        try {
+          await workspaceAPI.apiKeys.entries.remove
+            .input({ id: entry.id })
+            .mutateRaw(undefined)
+          await cache.invalidateQueries({ queryKey: workspaceAPI.apiKeys.key })
+          toast.success(t('messages.removed'))
+        } catch (error) {
+          toast.error(t('messages.removeFailed'))
+          throw error
+        }
       }
     })
+  }
 
   return (
-    <OptionsColumn
-      key={entry.id}
-      description={
-        modulesRequiredCount > 0 && (
-          <Box mt="sm">
-            <Flex align="center" gap="sm">
-              <Text color="muted">
-                {t('misc.requiredBy', { count: modulesRequiredCount })}
-              </Text>
-              <Button
-                icon="tabler:info-circle"
-                p="xs"
-                variant="plain"
-                onClick={() =>
-                  open(ModulesRequiredListModal, {
-                    keyId: entry.keyId
-                  })
-                }
-              />
-            </Flex>
-          </Box>
-        )
-      }
-      icon={entry.icon}
-      title={
-        <>
-          <Text>
-            {entry.name}
-            <Box asChild ml="sm">
-              <Text as="code" color="muted" size="sm">
-                ({entry.keyId})
-              </Text>
-            </Box>
-          </Text>
-          <TagChip
-            color={
-              entry.exposable
-                ? TAILWIND_PALETTE.green['500']
-                : TAILWIND_PALETTE.red['500']
-            }
+    <Card role="listitem" gap="md">
+      <Flex align="start" justify="between" gap="md" wrap="wrap">
+        <Flex align="start" gap="md" minWidth="0">
+          <Icon icon={entry.icon} size="1.75em" color="muted" />
+          <Stack gap="xs" minWidth="0">
+            <Text weight="semibold" style={{ overflowWrap: 'anywhere' }}>
+              {entry.name}
+            </Text>
+            <Text as="code" size="sm" color="muted">
+              {entry.keyId}
+            </Text>
+          </Stack>
+        </Flex>
+        <Flex align="center" gap="xs">
+          <Icon
             icon={entry.exposable ? 'tabler:world' : 'tabler:lock'}
-            label={
-              entry.exposable ? t('misc.exposable') : t('misc.internalOnly')
-            }
-            ml="sm"
-            size="sm"
+            color="muted"
           />
-        </>
-      }
-    >
-      <Flex align="center" gap="lg" justify="between" width="100%">
-        <Box mr="sm">
-          <Flex align="center" gap="sm" justify={{ base: 'start', md: 'end' }}>
-            {Array(12)
-              .fill(0)
-              .map((_, i) => (
-                <Icon key={i} icon="tabler:circle-filled" size="4px" />
-              ))}
-            <Text size="lg">{entry.key}</Text>
-          </Flex>
-          <Text as="code" color="muted">
-            {t('misc.lastUpdated', { time: dayjs(entry.updated).fromNow() })}
+          <Text color="muted" size="sm">
+            {t(entry.exposable ? 'misc.exposable' : 'misc.internalOnly')}
           </Text>
-        </Box>
-        <Flex>
+        </Flex>
+      </Flex>
+      <Flex gap="md" align="center" wrap="wrap" justify="between">
+        <Stack gap="xs">
+          <Text as="code">{'•••• •••• ' + entry.key}</Text>
+          <Text color="muted" size="sm">
+            {t('misc.lastUpdated', {
+              time: new Intl.DateTimeFormat(i18n.resolvedLanguage, {
+                dateStyle: 'medium',
+                timeStyle: 'short'
+              }).format(new Date(entry.updated))
+            })}
+          </Text>
+        </Stack>
+        <Flex gap="xs" wrap="wrap">
+          {consumers.length > 0 && (
+            <Button
+              icon="tabler:apps"
+              variant="plain"
+              namespace={false}
+              onClick={() =>
+                open(ModulesRequiredListModal, { keyId: entry.keyId })
+              }
+            >
+              {t('misc.requiredBy', { count: consumers.length })}
+            </Button>
+          )}
           {entry.exposable && (
             <Button
               icon="tabler:copy"
-              loading={isCopying}
               variant="plain"
-              onClick={() => {
-                copyKey().catch(console.error)
-              }}
-            />
+              loading={busy}
+              onClick={copySecret}
+            >
+              copy
+            </Button>
           )}
-          <ContextMenu>
-            <ContextMenuItem
-              icon="tabler:pencil"
-              label="edit"
-              onClick={handleUpdateEntry}
-            />
-            <ContextMenuItem
-              dangerous
-              icon="tabler:trash"
-              label="delete"
-              onClick={handleDeleteEntry}
-            />
-          </ContextMenu>
+          <Button
+            icon="tabler:pencil"
+            variant="plain"
+            disabled={busy}
+            onClick={() =>
+              open(ModifyAPIKeyModal, { type: 'update', initialData: entry })
+            }
+          >
+            edit
+          </Button>
+          <Button
+            icon="tabler:trash"
+            variant="plain"
+            dangerous
+            disabled={busy}
+            onClick={remove}
+          >
+            delete
+          </Button>
         </Flex>
       </Flex>
-    </OptionsColumn>
+    </Card>
   )
 }
-
-export default EntryItem

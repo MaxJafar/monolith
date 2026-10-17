@@ -5,7 +5,7 @@ import { act, createElement, useEffect } from 'react'
 import { type Root, createRoot } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import useDatabaseCalendar from '../../../../modules/lifeforge--calendar/client/src/hooks/useDatabaseCalendar'
+import useDatabaseCalendar from '../../../../modules/monolith--calendar/client/src/hooks/useDatabaseCalendar'
 
 const fixture = vi.hoisted(() => ({
   groups: [] as unknown[],
@@ -22,10 +22,10 @@ vi.mock('../../../../packages/federation/dist/index.js', () => ({
   }),
   loadRemoteModuleConfig: fixture.load
 }))
-vi.mock('@lifeforge/api', () => ({
+vi.mock('@monolith/api', () => ({
   contract: {},
   globalProxyRegistry: { set: vi.fn() },
-  createForgeProxy: (contract: unknown) => {
+  createApiClient: (contract: unknown) => {
     fixture.proxy(contract)
     const feed = {
       input: () => feed,
@@ -48,9 +48,9 @@ vi.mock('@lifeforge/api', () => ({
 }))
 
 const raw = {
-  id: 'zillion--databases',
+  id: 'monolith--databases',
   remoteId: 'database-remote',
-  name: '@lifeforge/zillion--databases'
+  name: '@monolith/databases'
 }
 const contract = { calendarFeed: { method: 'get' }, people: { method: 'get' } }
 
@@ -128,12 +128,12 @@ describe('Calendar database federation on a cold direct URL', () => {
     )
     const [, imports, packages] = fixture.load.mock.calls[0]!
     expect(Object.keys(imports)).toEqual([
-      '../../../../zillion--databases/client/manifest.ts'
+      '../../../../monolith--databases/client/manifest.ts'
     ])
     expect(Object.keys(packages)).toEqual([
-      '../../../../zillion--databases/package.json'
+      '../../../../monolith--databases/package.json'
     ])
-    expect(packages['../../../../zillion--databases/package.json'].name).toBe(
+    expect(packages['../../../../monolith--databases/package.json'].name).toBe(
       raw.name
     )
     expect(current).toMatchObject({

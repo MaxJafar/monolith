@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 
-import { usePersonalization } from '@lifeforge/ui'
+import { usePersonalization } from '@monolith/ui'
 
 function getBreakpointFromWidth(width: number) {
   if (width >= 1200) {

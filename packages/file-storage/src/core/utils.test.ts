@@ -5,8 +5,8 @@ import { generateKey, generateThumbKey, resizeImage } from './utils'
 
 describe('generateKey', () => {
   it('should generate an opaque key scoped to the module', () => {
-    const key = generateKey('lifeforge--books-library', 'epub')
-    expect(key).toMatch(/^lifeforge--books-library\/[0-9a-f-]{36}\.epub$/)
+    const key = generateKey('monolith--books-library', 'epub')
+    expect(key).toMatch(/^monolith--books-library\/[0-9a-f-]{36}\.epub$/)
   })
 
   it('should strip leading dot from extension if present', () => {
@@ -30,10 +30,10 @@ describe('generateKey', () => {
 describe('generateThumbKey', () => {
   it('should generate valid thumbnail key with extension', () => {
     const thumbKey = generateThumbKey(
-      'lifeforge--books-library/123.epub',
+      'monolith--books-library/123.epub',
       '200x0'
     )
-    expect(thumbKey).toBe('lifeforge--books-library/123-thumb-200x0.epub')
+    expect(thumbKey).toBe('monolith--books-library/123-thumb-200x0.epub')
   })
 
   it('should generate thumbnail key when key has no extension', () => {

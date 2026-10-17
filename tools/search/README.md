@@ -1,4 +1,4 @@
-# LifeForge system search
+# Monolith system search
 
 The core `/search` feature uses the backend-only shared Mac mini inference client.
 No inference credentials are shipped to browsers. Existing Golden Retriever
@@ -34,7 +34,7 @@ pnpm exec node --import tsx tools/search/migrate.mjs
 
 On this Windows PC, `local:setup` restarts the active Windows cluster in
 `.temp/monolith-review-postgres/data` on port 55432. If that cluster is absent, it
-initializes `.temp/lifeforge-postgres-windows/data`. The previous Mac cluster in
+initializes `.temp/monolith-postgres-windows/data`. The previous Mac cluster in
 `.temp/zillion-postgres/data` is retained separately. The portable PostgreSQL 17
 runtime lives in `.temp/search-verification/pgsql/bin`; `POSTGRES_BIN` can override
 it. Both database roles use the existing private `env/.env.local` credentials.
@@ -77,4 +77,4 @@ pnpm exec node --import tsx ../../tools/search/verify.mjs
 ```
 
 The runner creates a fresh database and restricted application role and removes
-both in `finally`. It never connects to the configured LifeForge database.
+both in `finally`. It never connects to the configured Monolith database.

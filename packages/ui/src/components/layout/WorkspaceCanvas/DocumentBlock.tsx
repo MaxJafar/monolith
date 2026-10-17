@@ -2,12 +2,12 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 
-import { useAuth } from '@lifeforge/api'
-import type { CanvasBlock, PageTarget } from '@lifeforge/blocks'
+import { useAuth } from '@monolith/api'
+import type { CanvasBlock, PageTarget } from '@monolith/blocks'
 
 import { BlockEditor } from '@/components/display/BlockEditor'
 import { Box, Stack, Text } from '@/components/primitives'
-import { forgeAPI } from '@/utils/forgeAPI'
+import { workspaceAPI } from '@/utils/workspaceAPI'
 
 import { useCanvasWidgets } from './CanvasWidgets'
 
@@ -15,19 +15,21 @@ export function CanvasDocumentBlock({
   block,
   editing,
   onChange,
-  onValidity
+  onValidity,
+  onInsertBlock
 }: {
   block: CanvasBlock
   editing: boolean
   onChange: (block: CanvasBlock) => void
   onValidity: (valid: boolean) => void
+  onInsertBlock?: (kind: string, anchor: DOMRect) => void
 }) {
   const { t } = useTranslation('common.canvas')
   const { userData } = useAuth()
   const navigate = useNavigate()
   const { pages: workspacePages, openPage } = useCanvasWidgets()
 
-  const options = forgeAPI.user.pages.list.queryOptions()
+  const options = workspaceAPI.user.pages.list.queryOptions()
 
   const query = useQuery({
     ...options,
@@ -66,6 +68,7 @@ export function CanvasDocumentBlock({
           <Text as="h2">{block.title}</Text>
         ))}
       <BlockEditor
+        onInsertBlock={onInsertBlock}
         label={t('document')}
         pages={pages}
         readOnly={!editing}

@@ -1,7 +1,7 @@
 {
-  "name": "@lifeforge/log",
+  "name": "@monolith/log",
   "version": "0.1.0",
-  "description": "Unified logging package for LifeForge ecosystem",
+  "description": "Unified logging package for Monolith ecosystem",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -25,7 +25,8 @@
     "chalk": "^5.4.0"
   },
   "devDependencies": {
-    "@lifeforge/configs": "workspace:*",
+    "@monolith/configs": "workspace:*",
     "@types/node": "^25.0.6"
-  }
+  },
+  "author": "Monolith contributors"
 }

@@ -1,19 +1,21 @@
-import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router'
-
 import {
   Box,
   Button,
   Flex,
+  FloatingPopover,
   Icon,
   Listbox,
   ListboxOption,
   Stack,
   Text,
   surface
-} from '@lifeforge/ui'
+} from '@monolith/ui'
+import { useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
+import { useAppAppearance } from '@/core/appearance/AppearanceContext'
+
+import { navigationSchema } from '../../../../../modules/monolith--databases/navigationShared'
 import { useWorkspace } from './WorkspaceProvider'
 import { workspaceAPI } from './workspaceAPI'
 
@@ -47,6 +49,10 @@ export default function WorkspaceSwitcher() {
     loading,
     error: loadError
   } = useWorkspace()
+
+  const appearance = useAppAppearance()
+  const createAnchor = useRef<HTMLButtonElement>(null)
+
   const [creating, setCreating] = useState(false),
     [name, setName] = useState(''),
     [profile, setProfile] = useState<'personal' | 'collaborative' | 'agents'>(
@@ -99,7 +105,13 @@ export default function WorkspaceSwitcher() {
           renderContent={() => (
             <Flex align="center" gap="sm" minWidth="0">
               <Box flexShrink="0">
-                <Icon icon={active?.icon || 'lucide:layers'} size="1rem" />
+                <Icon
+                  icon={
+                    appearance.workspace.icon || active?.icon || 'lucide:layers'
+                  }
+                  preserveStyle={!!appearance.workspace.icon}
+                  size="1rem"
+                />
               </Box>
               <Text truncate align="left" size="sm" weight="semibold">
                 {active?.name || t('workspace')}
@@ -112,13 +124,21 @@ export default function WorkspaceSwitcher() {
           {workspaces.map(workspace => (
             <ListboxOption
               key={workspace.id}
-              icon={workspace.icon || 'lucide:layers'}
+              icon={
+                (workspace.id === active?.id
+                  ? appearance.workspace.icon
+                  : navigationSchema.safeParse(workspace.navigation).data
+                      ?.appearance?.icon) ||
+                workspace.icon ||
+                'lucide:layers'
+              }
               label={workspace.name}
               value={workspace.id}
             />
           ))}
         </Listbox>
         <Button
+          ref={createAnchor}
           aria-controls={creating ? 'monolith-workspace-create' : undefined}
           aria-expanded={creating}
           aria-label={t('newWorkspace')}
@@ -131,107 +151,106 @@ export default function WorkspaceSwitcher() {
           variant="plain"
           onClick={() => setCreating(!creating)}
         />
-        {active && (
-          <Button
-            aria-label={t('workspaceSettings')}
-            as={Link}
-            className="monolith-navigation-action"
-            icon="lucide:settings"
-            namespace={false}
-            p="xs"
-            title={t('workspaceSettings')}
-            to={`/databases?workspace=${active.id}&section=workspace`}
-            variant="plain"
-          />
-        )}
       </Flex>
       {creating && (
-        <Stack
-          as="form"
-          bg={surface.light}
-          gap="sm"
-          id="monolith-workspace-create"
-          maxHeight="min(24rem, 50dvh)"
-          overflowY="auto"
-          p="sm"
-          r="sm"
-          onSubmit={event => {
-            event.preventDefault()
-            void create()
+        <FloatingPopover
+          anchor={createAnchor.current}
+          label={t('newWorkspace')}
+          width={300}
+          onClose={() => {
+            if (!pending) setCreating(false)
           }}
         >
-          <Text
-            as="label"
-            htmlFor="monolith-workspace-name"
-            size="sm"
-            weight="medium"
-          >
-            {t('workspaceName')}
-          </Text>
-          <Box
-            autoFocus
-            aria-label={t('workspaceName')}
-            as="input"
-            bg={surface.default}
-            className="monolith-workspace-input"
-            disabled={pending}
-            id="monolith-workspace-name"
-            minHeight="44px"
-            p="sm"
-            placeholder={t('workspaceName')}
-            r="sm"
-            value={name}
-            width="100%"
-            onChange={event => setName(event.target.value)}
-          />
-          <Listbox
-            aria-label={t('workspaceProfile')}
-            bg={surface.default}
-            disabled={pending}
+          <Stack
+            as="form"
             gap="sm"
-            minHeight="44px"
+            id="monolith-workspace-create"
             p="sm"
             r="sm"
-            renderContent={() => (
-              <Text truncate align="left" size="sm">
-                {t(`profiles.${profile}`)}
+            onSubmit={event => {
+              event.preventDefault()
+              void create()
+            }}
+          >
+            <Text
+              as="label"
+              htmlFor="monolith-workspace-name"
+              size="sm"
+              weight="medium"
+            >
+              {t('workspaceName')}
+            </Text>
+            <Box
+              autoFocus
+              aria-label={t('workspaceName')}
+              as="input"
+              bg={surface.default}
+              className="monolith-workspace-input"
+              disabled={pending}
+              id="monolith-workspace-name"
+              minHeight="32px"
+              p="sm"
+              placeholder={t('workspaceName')}
+              r="sm"
+              value={name}
+              width="100%"
+              onChange={event => setName(event.target.value)}
+            />
+            <Listbox
+              aria-label={t('workspaceProfile')}
+              bg={surface.default}
+              disabled={pending}
+              gap="sm"
+              minHeight="32px"
+              p="sm"
+              r="sm"
+              renderContent={() => (
+                <Text truncate align="left" size="sm">
+                  {t(`profiles.${profile}`)}
+                </Text>
+              )}
+              value={profile}
+              onChange={setProfile}
+            >
+              {(['personal', 'collaborative', 'agents'] as const).map(value => (
+                <ListboxOption
+                  key={value}
+                  label={t(`profiles.${value}`)}
+                  value={value}
+                />
+              ))}
+            </Listbox>
+            {error && (
+              <Text color="dangerous" role="alert" size="sm">
+                {error}
               </Text>
             )}
-            value={profile}
-            onChange={setProfile}
-          >
-            {(['personal', 'collaborative', 'agents'] as const).map(value => (
-              <ListboxOption
-                key={value}
-                label={t(`profiles.${value}`)}
-                value={value}
-              />
-            ))}
-          </Listbox>
-          <Button
-            disabled={!name.trim()}
-            loading={pending}
-            namespace={false}
-            p="sm"
-            type="submit"
-          >
-            {t('createWorkspace')}
-          </Button>
-          <Button
-            disabled={pending}
-            namespace={false}
-            p="sm"
-            type="button"
-            variant="plain"
-            onClick={() => setCreating(false)}
-          >
-            {t('common.buttons:cancel')}
-          </Button>
-        </Stack>
+            <Flex justify="end" gap="xs">
+              <Button
+                disabled={pending}
+                namespace={false}
+                type="button"
+                variant="plain"
+                onClick={() => setCreating(false)}
+              >
+                {t('common.buttons:cancel')}
+              </Button>
+              <Button
+                disabled={!name.trim()}
+                loading={pending}
+                namespace={false}
+                p="sm"
+                type="submit"
+              >
+                {t('createWorkspace')}
+              </Button>
+            </Flex>
+          </Stack>
+        </FloatingPopover>
       )}
-      {(error || loadError) && (
+      {loadError && (
         <Text color="dangerous" role="alert" size="sm">
-          {error || loadError}
+          {loadError}
         </Text>
       )}
     </Stack>

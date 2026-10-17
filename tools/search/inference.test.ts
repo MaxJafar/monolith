@@ -7,7 +7,7 @@ import test from 'node:test'
 import { answer, embed, rank } from '../../apps/api/src/lib/search/inference'
 
 test('inference rejects duplicate embedding IDs, forged relevance IDs and invalid citations', async () => {
-  const dir = await mkdtemp(path.join(os.tmpdir(), 'lifeforge-search-test-'))
+  const dir = await mkdtemp(path.join(os.tmpdir(), 'monolith-search-test-'))
   const token = path.join(dir, 'token')
   await writeFile(token, 'a'.repeat(40))
   const savedFetch = globalThis.fetch

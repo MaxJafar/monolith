@@ -2,7 +2,7 @@ import z from 'zod'
 
 import { GetGoogleFontResponseSchema } from '../../types/fonts'
 import type { UntypedEndpointType } from '../../types/proxy'
-import type { ForgeEndpoint } from '../forgeEndpoint'
+import type { EndpointClient } from '../endpointClient'
 
 /**
  * Configuration map for core server helper methods.
@@ -10,7 +10,7 @@ import type { ForgeEndpoint } from '../forgeEndpoint'
  * These helpers provide convenient access to frequently-used core server endpoints
  * (like API key checking, CORS proxy, Google Fonts) without needing the full route path.
  *
- * Available on all forgeAPI client instances regardless of the current path.
+ * Available on all workspaceAPI client instances regardless of the current path.
  */
 export const CORE_HELPERS = {
   checkAPIKeys: {
@@ -56,20 +56,20 @@ export type CoreHelperName = keyof typeof CORE_HELPERS
 /**
  * Mapped type that generates the correct function signature for each core helper.
  *
- * Each helper is a function that takes the schema input and returns a ForgeEndpoint
+ * Each helper is a function that takes the schema input and returns a EndpointClient
  * configured for that specific core server route.
  *
  * @example
  * ```typescript
- * forgeAPI.checkAPIKeys({ keys: 'smtp-user,smtp-pass' }).queryOptions()
- * forgeAPI.corsAnywhere({ url: 'https://external-api.com' }).query()
- * forgeAPI.getGoogleFont({ family: 'Roboto' }).query()
+ * workspaceAPI.checkAPIKeys({ keys: 'smtp-user,smtp-pass' }).queryOptions()
+ * workspaceAPI.corsAnywhere({ url: 'https://external-api.com' }).query()
+ * workspaceAPI.getGoogleFont({ family: 'Roboto' }).query()
  * ```
  */
 export type CoreHelperReturnTypes = {
   [K in CoreHelperName]: (
     input: z.infer<(typeof CORE_HELPERS)[K]['schema']['input']>
-  ) => ForgeEndpoint<
+  ) => EndpointClient<
     UntypedEndpointType<
       z.infer<(typeof CORE_HELPERS)[K]['schema']['output']>,
       never,

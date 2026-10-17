@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useRoutes } from 'react-router'
 
-import type { ModuleConfig, ModuleGroup } from '@lifeforge/configs'
+import type { ModuleConfig, ModuleGroup } from '@monolith/configs'
 import {
   type FederatedModule,
   loadRemoteModuleConfig
-} from '@lifeforge/federation'
-import { ErrorScreen } from '@lifeforge/ui'
+} from '@monolith/federation'
+import { ErrorScreen } from '@monolith/ui'
 
 import { devModeImports, devModePkgs } from '@/core/utils/devModeImports'
 
@@ -15,16 +15,19 @@ import RouteLoadingScreen from './RouteLoadingScreen'
 
 export default function LazyRouteLoader({
   item,
-  loadingMessage
+  loadingMessage,
+  systemView = false
 }: {
   item: ModuleGroup['items'][number] & { rawModule?: FederatedModule }
   loadingMessage: string
+  systemView?: boolean
 }) {
   const [resolvedRoutes, setResolvedRoutes] = useState<
     ModuleConfig['routes'] | null
   >(null)
 
   const [error, setError] = useState<string | null>(null)
+  const [canvas, setCanvas] = useState(true)
 
   useEffect(() => {
     let active = true
@@ -42,6 +45,7 @@ export default function LazyRouteLoader({
         if (!active) return
 
         setResolvedRoutes(unwrapped.routes)
+        setCanvas(unwrapped.canvas ?? true)
       } catch (err) {
         if (!active) return
 
@@ -56,6 +60,7 @@ export default function LazyRouteLoader({
   }, [item])
 
   const config = {
+    canvas: !systemView && canvas,
     name: item.name || '',
     title: item.name,
     icon: item.icon,

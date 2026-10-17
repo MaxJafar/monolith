@@ -1,14 +1,14 @@
 {
-  "name": "@lifeforge/client",
-  "version": "0.0.0",
+  "name": "@monolith/client",
+  "version": "0.1.0-preview.1",
   "private": true,
   "description": "Monolith workspace client",
   "license": "MIT",
-  "author": "LifeForge (https://github.com/LifeForge-app)",
+  "author": "Monolith contributors",
   "repository": {
     "type": "git",
     "url": "https://github.com/MaxJafar/monolith.git",
-    "directory": "client"
+    "directory": "apps/web"
   },
   "type": "module",
   "scripts": {
@@ -22,12 +22,12 @@
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
-    "@lifeforge/api": "workspace:*",
-    "@lifeforge/blocks": "workspace:*",
-    "@lifeforge/configs": "workspace:*",
-    "@lifeforge/federation": "workspace:*",
-    "@lifeforge/localization": "workspace:*",
-    "@lifeforge/ui": "workspace:*",
+    "@monolith/api": "workspace:*",
+    "@monolith/blocks": "workspace:*",
+    "@monolith/configs": "workspace:*",
+    "@monolith/federation": "workspace:*",
+    "@monolith/localization": "workspace:*",
+    "@monolith/ui": "workspace:*",
     "@types/react-virtualized": "^9.22.3",
     "babel-plugin-react-compiler": "^1.0.0",
     "copy-to-clipboard": "^3.3.3",

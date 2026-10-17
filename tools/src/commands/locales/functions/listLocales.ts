@@ -35,7 +35,7 @@ export function listLocalesWithMeta(): {
 
     installedLocales.push({
       name: locale,
-      displayName: packageJson.lifeforge?.displayName || locale,
+      displayName: packageJson.monolith?.displayName || locale,
       version: packageJson.version
     })
   })

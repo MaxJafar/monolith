@@ -33,7 +33,7 @@ export type TextAreaInputProps = {
   autoFocus?: boolean
   /** Additional CSS class names to apply to the textarea element. Use `!` suffix for Tailwind CSS class overrides. */
   className?: string
-  /** The i18n namespace for internationalization. See the [main documentation](https://docs.lifeforge.melvinchia.dev) for more details. */
+  /** The i18n namespace for internationalization. See the [main documentation](https://github.com/MaxJafar/monolith/tree/main/docs) for more details. */
   namespace?: string | false
   /** Error message to display when the input is invalid. */
   errorMsg?: string
@@ -115,6 +115,9 @@ export function TextAreaInput({
             <Text asChild tracking="wide">
               <textarea
                 ref={autoFocusableRef(autoFocus, ref)}
+                aria-label={inputLabel || placeholder}
+                disabled={disabled}
+                required={required}
                 placeholder={placeholder}
                 style={{
                   resize: 'none'

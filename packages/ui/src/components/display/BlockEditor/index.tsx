@@ -1,3 +1,9 @@
+import {
+  type PageTarget,
+  pageKey,
+  parseContent,
+  serializeDocument
+} from '@monolith/blocks'
 import Placeholder from '@tiptap/extension-placeholder'
 import TaskItem from '@tiptap/extension-task-item'
 import TaskList from '@tiptap/extension-task-list'
@@ -11,16 +17,18 @@ import StarterKit from '@tiptap/starter-kit'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import {
-  type PageTarget,
-  pageKey,
-  parseContent,
-  serializeDocument
-} from '@lifeforge/blocks'
-
 import { Button, TextInput } from '@/components/inputs'
+import { type InlineDatabaseMode, useCanvasWidgets } from '@/components/layout/WorkspaceCanvas/CanvasWidgets'
+import { InlineDatabasePicker } from '@/components/layout/WorkspaceCanvas/InlineDatabasePicker'
+import { FloatingPopover } from '@/components/overlays/FloatingPopover'
 import { Box, Flex, Stack, Text } from '@/components/primitives'
 
+import { BlockGrips } from './BlockGrips'
+import {
+  CalloutBlock,
+  LinkedDatabaseBlock,
+  pageBlockExtension
+} from './EmbeddedBlocks'
 import './editor.css'
 import { BlockIds, pageLinkExtension } from './extensions'
 
@@ -32,6 +40,8 @@ export type BlockEditorProps = {
   onOpenPage?: (page: Pick<PageTarget, 'id' | 'kind'>) => void
   readOnly?: boolean
   label?: string
+  onInsertBlock?: (kind: string, anchor: DOMRect) => void
+  onCreatePage?: (title: string) => Promise<PageTarget | undefined>
 }
 
 function slashAtSelection(editor: Editor) {
@@ -61,9 +71,12 @@ export function BlockEditor({
   pages = [],
   onOpenPage,
   readOnly = false,
-  label
+  label,
+  onInsertBlock,
+  onCreatePage
 }: BlockEditorProps) {
   const { t } = useTranslation('common')
+  const catalog = useCanvasWidgets()
   const callbacks = useRef({ onChange, onOpenPage, onValidityChange })
 
   callbacks.current = { onChange, onOpenPage, onValidityChange }
@@ -83,6 +96,11 @@ export function BlockEditor({
   const [selected, setSelected] = useState(0)
   const [actions, setActions] = useState(false)
   const [anchor, setAnchor] = useState({ left: 0, top: 0 })
+  const [databaseAnchor, setDatabaseAnchor] = useState<DOMRect | null>(null)
+  const [databaseMode, setDatabaseMode] = useState<InlineDatabaseMode>('table')
+  const insertPosition = useRef(0)
+  const [linkAsBlock, setLinkAsBlock] = useState(false)
+  const [creatingPage, setCreatingPage] = useState(false)
 
   function syncSlash(current: Editor) {
     const next = readOnlyRef.current ? null : slashAtSelection(current)
@@ -128,6 +146,9 @@ export function BlockEditor({
       TaskList,
       TaskItem.configure({ nested: true }),
       BlockIds,
+      LinkedDatabaseBlock,
+      CalloutBlock,
+      pageBlockExtension(page => callbacks.current.onOpenPage?.(page)),
       Placeholder.configure({ placeholder: t('blocks.placeholder') }),
       pageLinkExtension(page => callbacks.current.onOpenPage?.(page))
     ],
@@ -245,6 +266,33 @@ export function BlockEditor({
       chain = chain.deleteRange(slash)
     }
     slashRef.current = null
+    if (kind === 'database' || kind.startsWith('database:')) {
+      const cursor = editor.view.coordsAtPos(editor.state.selection.from)
+      chain.run()
+      insertPosition.current = editor.state.selection.from
+      setMenu(null)
+      setSlash(null)
+      setDatabaseMode((kind.split(':')[1] ?? 'table') as InlineDatabaseMode)
+      setDatabaseAnchor(new DOMRect(cursor.left, cursor.bottom, 1, 1))
+      return
+    }
+    if (kind === 'page') {
+      chain.run()
+      insertPosition.current = editor.state.selection.from
+      setSlash(null)
+      setSearch('')
+      setLinkAsBlock(true)
+      setMenu('links')
+      return
+    }
+    if (['database', 'callout', 'divider'].includes(kind) && onInsertBlock) {
+      const cursor = editor.view.coordsAtPos(editor.state.selection.from)
+      chain.run()
+      setMenu(null)
+      setSlash(null)
+      onInsertBlock(kind, new DOMRect(cursor.left, cursor.bottom, 1, 1))
+      return
+    }
     if (kind === 'paragraph') chain.clearNodes().setParagraph().run()
     if (kind.startsWith('heading'))
       chain
@@ -257,6 +305,7 @@ export function BlockEditor({
     if (kind === 'blockquote') chain.toggleBlockquote().run()
     if (kind === 'codeBlock') chain.toggleCodeBlock().run()
     if (kind === 'horizontalRule') chain.setHorizontalRule().run()
+    if (kind === 'callout') chain.wrapIn('callout').run()
     setMenu(null)
     setSlash(null)
   }
@@ -306,6 +355,9 @@ export function BlockEditor({
 
   const choices = [
     'paragraph',
+    ...(catalog.createDatabase || catalog.databases?.length
+      ? ['database', 'database:table', 'database:kanban', 'database:gallery', 'database:list', 'database:calendar']
+      : []),
     'heading1',
     'heading2',
     'heading3',
@@ -314,8 +366,18 @@ export function BlockEditor({
     'taskList',
     'blockquote',
     'codeBlock',
-    'horizontalRule'
+    'horizontalRule',
+    'page',
+    'callout'
   ]
+  const choiceLabel = (kind: string) =>
+    t(kind === 'database'
+      ? 'inlineDatabase.title'
+      : kind.startsWith('database:')
+        ? `inlineDatabase.modes.${kind.split(':')[1]}`
+        : ['callout', 'divider'].includes(kind)
+          ? `canvas.types.${kind}`
+          : `blocks.types.${kind}`)
   const filteredPages = pages
     .filter(page =>
       `${page.title} ${page.context ?? ''}`
@@ -325,9 +387,11 @@ export function BlockEditor({
     .slice(0, 40)
   const filteredChoices = choices.filter(
     kind =>
-      t(`blocks.types.${kind}`)
+      choiceLabel(kind)
         .toLocaleLowerCase()
         .includes(blockSearch.toLocaleLowerCase()) ||
+      (kind === 'database:kanban' && 'board'.includes(blockSearch.toLowerCase())) ||
+      (kind === 'database' && 'inline database'.includes(blockSearch.toLowerCase())) ||
       kind.toLowerCase().includes(blockSearch.toLowerCase())
   )
 
@@ -380,7 +444,9 @@ export function BlockEditor({
           align="center"
           aria-label={t('blocks.toolbar')}
           className="monolith-editor-toolbar"
-          data-focused={active?.focused || menu !== null || actions}
+          data-focused={
+            (active?.focused && !active?.empty) || menu === 'links' || actions
+          }
           data-selection={!active?.empty}
           gap="xs"
           role="toolbar"
@@ -444,6 +510,7 @@ export function BlockEditor({
             onClick={() => {
               setMenu(menu === 'links' ? null : 'links')
               setSearch('')
+              setLinkAsBlock(false)
             }}
           >
             {t('blocks.linkPage')}
@@ -510,22 +577,20 @@ export function BlockEditor({
         </Flex>
       )}
       {menu === 'blocks' && !readOnly && (
-        <Box
-          aria-label={t('blocks.add')}
-          bg={{ base: 'bg-100', dark: 'bg-800' }}
-          className="zillion-editor-menu"
-          p="sm"
-          r="lg"
-          role="listbox"
-          style={{
-            position: 'fixed',
-            left: anchor.left,
-            top: Math.max(12, anchor.top),
-            zIndex: 110,
-            width: 'min(280px,calc(100vw - 24px))',
-            maxHeight: '300px',
-            overflowY: 'auto'
+        <FloatingPopover
+          label={t('blocks.add')}
+          anchor={{
+            getBoundingClientRect: () =>
+              new DOMRect(anchor.left, anchor.top - 6, 1, 1)
           }}
+          autoFocus={false}
+          onClose={() => {
+            setMenu(null)
+            setSlash(null)
+          }}
+          width={280}
+          className="zillion-editor-menu"
+          role="listbox"
         >
           <Flex direction="column" gap="xs">
             {filteredChoices.map((kind, index) => (
@@ -539,19 +604,22 @@ export function BlockEditor({
                 onClick={() => insert(kind)}
                 onMouseDown={event => event.preventDefault()}
               >
-                {t(`blocks.types.${kind}`)}
+                {choiceLabel(kind)}
               </Button>
             ))}
           </Flex>
-        </Box>
+        </FloatingPopover>
       )}
       {menu === 'links' && !readOnly && (
-        <Stack
-          bg={{ base: 'bg-100', dark: 'bg-800' }}
+        <FloatingPopover
+          label={t('blocks.linkPage')}
+          anchor={{
+            getBoundingClientRect: () =>
+              new DOMRect(anchor.left, anchor.top, 1, 1)
+          }}
+          onClose={() => setMenu(null)}
+          width={300}
           className="zillion-editor-menu"
-          gap="sm"
-          p="md"
-          r="lg"
         >
           <TextInput
             icon="tabler:search"
@@ -572,15 +640,19 @@ export function BlockEditor({
                   editor
                     .chain()
                     .focus()
-                    .insertContent({
-                      type: 'pageLink',
-                      attrs: {
-                        kind: page.kind,
-                        targetId: page.id,
-                        label: page.title
+                    .insertContentAt(
+                      linkAsBlock
+                        ? insertPosition.current
+                        : editor.state.selection.from,
+                      {
+                        type: linkAsBlock ? 'pageEmbed' : 'pageLink',
+                        attrs: {
+                          kind: page.kind,
+                          targetId: page.id,
+                          label: page.title
+                        }
                       }
-                    })
-                    .insertContent(' ')
+                    )
                     .run()
                   setMenu(null)
                 }}
@@ -591,10 +663,68 @@ export function BlockEditor({
             {!filteredPages.length && (
               <Text color="muted">{t('blocks.noPages')}</Text>
             )}
+            {linkAsBlock && onCreatePage && (
+              <Button
+                namespace={false}
+                variant="plain"
+                icon="lucide:plus"
+                disabled={creatingPage}
+                onClick={() => {
+                  setCreatingPage(true)
+                  void onCreatePage(search.trim() || t('blocks.newPage'))
+                    .then(page => {
+                      if (!page || editor.isDestroyed) return
+                      editor
+                        .chain()
+                        .focus()
+                        .insertContentAt(insertPosition.current, {
+                          type: 'pageEmbed',
+                          attrs: {
+                            kind: page.kind,
+                            targetId: page.id,
+                            label: page.title
+                          }
+                        })
+                        .run()
+                      setMenu(null)
+                    })
+                    .catch(cause => setError(String(cause)))
+                    .finally(() => setCreatingPage(false))
+                }}
+              >
+                {t('blocks.newPage')}
+              </Button>
+            )}
           </Stack>
-        </Stack>
+        </FloatingPopover>
+      )}
+      {databaseAnchor && !readOnly && (
+        <FloatingPopover
+          anchor={{ getBoundingClientRect: () => databaseAnchor }}
+          label={t('inlineDatabase.title')}
+          width={420}
+          onClose={() => setDatabaseAnchor(null)}
+        >
+          <InlineDatabasePicker
+            initialMode={databaseMode}
+            onCancel={() => setDatabaseAnchor(null)}
+            onInsert={(reference, title) => {
+              if (!editor.isDestroyed)
+                editor
+                  .chain()
+                  .focus()
+                  .insertContentAt(insertPosition.current, {
+                    type: 'linkedDatabase',
+                    attrs: { ...reference, title, height: 0 }
+                  })
+                  .run()
+              setDatabaseAnchor(null)
+            }}
+          />
+        </FloatingPopover>
       )}
       <EditorContent editor={editor} />
+      {!readOnly && <BlockGrips editor={editor} />}
       {error && (
         <Text color="dangerous" role="alert">
           {error}

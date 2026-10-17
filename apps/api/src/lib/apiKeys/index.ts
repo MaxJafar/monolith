@@ -1,7 +1,7 @@
-import { forgeRouter } from '@lifeforge/server-utils'
+import { defineRoutes } from '@monolith/server-utils'
 
 import entriesRouter from './routes/entries'
 
-export default forgeRouter({
+export default defineRoutes({
   entries: entriesRouter
 })

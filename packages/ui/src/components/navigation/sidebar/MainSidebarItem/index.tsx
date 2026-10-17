@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router'
 
-import { useModuleTranslation } from '@lifeforge/localization'
+import { useModuleTranslation } from '@monolith/localization'
 
 import { SidebarItemContent } from '../SidebarItem/components/SidebarItemContent'
 import { SidebarItemIcon } from '../SidebarItem/components/SidebarItemIcon'

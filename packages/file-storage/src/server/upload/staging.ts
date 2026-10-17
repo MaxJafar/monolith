@@ -4,7 +4,7 @@ import path from 'node:path'
 import { Readable, Transform } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
 
-import { findProjectRoot } from '@lifeforge/configs/node'
+import { findProjectRoot } from '@monolith/configs/node'
 
 import type { StagedFile } from '../../core/types'
 

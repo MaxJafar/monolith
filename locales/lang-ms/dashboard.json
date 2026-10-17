@@ -18,11 +18,11 @@
   "empty": {
     "welcome": {
       "title": "Selamat Datang ke monolith!",
-      "description": "Mulakan dengan memasang beberapa modul dari ForgeStore."
+      "description": "Cipta halaman, rancang tindakan atau aktifkan addon untuk bermula."
     },
     "notFound": {
       "title": "Widget Tidak Ditemui",
-      "description": "Widget yang anda cari tidak wujud. Sila semak modul yang dipasang."
+      "description": "Widget yang anda cari tidak wujud. Sila semak addon yang dipasang."
     }
   },
   "loading": "Memuatkan papan pemuka...",

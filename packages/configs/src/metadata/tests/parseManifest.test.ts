@@ -44,7 +44,7 @@ describe('parseManifest AST parser', () => {
     })
   })
 
-  it('returns empty result if createForgeModule is not found', () => {
+  it('returns empty result if defineAddon is not found', () => {
     if (!fs.existsSync(tempDir)) {
       fs.mkdirSync(tempDir, { recursive: true })
     }
@@ -70,8 +70,8 @@ describe('parseManifest AST parser', () => {
     fs.writeFileSync(
       tempFilePath,
       `
-      import { createForgeModule } from '@lifeforge/federation'
-      const manifest = createForgeModule('invalid')
+      import { defineAddon } from '@monolith/federation'
+      const manifest = defineAddon('invalid')
       export default manifest
     `
     )
@@ -89,8 +89,8 @@ describe('parseManifest AST parser', () => {
     fs.writeFileSync(
       tempFilePath,
       `
-      import { createForgeModule } from '@lifeforge/federation'
-      const manifest = createForgeModule({
+      import { defineAddon } from '@monolith/federation'
+      const manifest = defineAddon({
         provider: () => import('@/providers/ModuleProvider'),
         hidden: true,
         subsection: [
@@ -125,8 +125,8 @@ describe('parseManifest AST parser', () => {
     fs.writeFileSync(
       tempFilePath,
       `
-      import { createForgeModule } from '@lifeforge/federation'
-      const manifest = createForgeModule({
+      import { defineAddon } from '@monolith/federation'
+      const manifest = defineAddon({
         widgets: [
           () => import('@/widgets/ISS')
         ],
@@ -179,12 +179,12 @@ describe('extractModuleMetadata', () => {
   const packageJSONPath = path.join(moduleDir, 'package.json')
 
   const packageJSON = {
-    name: '@lifeforge/lifeforge--iss',
+    name: '@monolith/monolith--iss',
     displayName: 'ISS Tracker',
     version: '1.2.3',
     description: 'Track the ISS',
-    author: 'lifeforge',
-    lifeforge: {
+    author: 'monolith',
+    monolith: {
       icon: 'tabler:satellite',
       category: 'Fun'
     }
@@ -201,8 +201,8 @@ describe('extractModuleMetadata', () => {
     fs.writeFileSync(
       manifestPath,
       `
-      import { createForgeModule } from '@lifeforge/federation'
-      const manifest = createForgeModule({
+      import { defineAddon } from '@monolith/federation'
+      const manifest = defineAddon({
         hidden: true,
         subsection: [{ label: 'Dashboard', icon: 'tabler:dashboard', path: '' }],
         widgets: [() => import('@/widgets/ISS')],

@@ -31,9 +31,12 @@ export function watchModules(
 
   const watcher = watch(modulesDir, {
     ignoreInitial: true,
-    // Never descend into per-module dependencies or git data; watching those
-    // exhausts file descriptors (EMFILE).
-    ignored: [/[\\/]node_modules[\\/]/, /[\\/]\.git[\\/]/],
+    // Match directory roots as well as children. Windows dependency junctions
+    // and transient build directories must never enter the watcher.
+    ignored: [
+      /[\\/](?:node_modules|\.git|\.turbo|dist|dist-docker)(?:[\\/]|$)/
+    ],
+    followSymlinks: false,
     awaitWriteFinish: {
       stabilityThreshold: 300,
       pollInterval: 100

@@ -1,0 +1,102 @@
+{
+  "description": "Historical source references. Licenses and retained author attribution are in THIRD_PARTY_NOTICES.md and the applicable package LICENSE and NOTICE files. Product branding does not change the terms attached to retained material.",
+  "coreBaseline": {
+    "repository": "https://github.com/Lifeforge-app/lifeforge",
+    "commit": "4d7fc15802229c52b8d2ad5383c5a8d4f9b664e9"
+  },
+  "sources": [
+    {
+      "id": "lifeforge--achievements",
+      "repo": "Lifeforge-app/lifeforge-module-achievements",
+      "latest": "0.0.1",
+      "versions": {
+        "0.0.1": "fe6b91a3b848866770eb05a17b13a3d28434f425"
+      },
+      "monolithPackage": "@monolith/achievements"
+    },
+    {
+      "repo": "Lifeforge-app/lifeforge-module-blog",
+      "commit": "6c41eb0182aa78eb048fb51ac2c7120ce1af5821",
+      "port": "Adapted for Monolith PostgreSQL, contracts and React 19; the pinned repository and commit identify the source reference.",
+      "monolithPackage": "@monolith/blog"
+    },
+    {
+      "id": "lifeforge--calendar",
+      "repo": "Lifeforge-app/lifeforge-module-calendar",
+      "latest": "0.0.1",
+      "versions": {
+        "0.0.1": "c6bc850bf15fe222cdab84e2fbd9fda4442d3c8b"
+      },
+      "monolithPackage": "@monolith/calendar"
+    },
+    {
+      "id": "lifeforge--code-time",
+      "repo": "Lifeforge-app/lifeforge-module-code-time",
+      "latest": "0.0.1",
+      "versions": {
+        "0.0.1": "e2f727d6af91d2f06bd2521400d8782500bdcd59"
+      },
+      "monolithPackage": "@monolith/code-time"
+    },
+    {
+      "repo": "Lifeforge-app/lifeforge-modules",
+      "commit": "ef45982f8cff053fb1add6163777ea8f4858311c",
+      "port": "Adapted for Monolith PostgreSQL, contracts and React 19; the pinned repository and commit identify the source reference.",
+      "monolithPackage": "@monolith/flashcards"
+    },
+    {
+      "id": "lifeforge--idea-box",
+      "repo": "Lifeforge-app/lifeforge-module-idea-box",
+      "latest": "0.0.1",
+      "versions": {
+        "0.0.1": "69975f816156c6d0eb14d9612e0f8856942910bb"
+      },
+      "monolithPackage": "@monolith/idea-box"
+    },
+    {
+      "repo": "Lifeforge-app/lifeforge-modules",
+      "commit": "ef45982f8cff053fb1add6163777ea8f4858311c",
+      "port": "Adapted for Monolith PostgreSQL, contracts and React 19; the pinned repository and commit identify the source reference.",
+      "monolithPackage": "@monolith/notes"
+    },
+    {
+      "id": "lifeforge--pomodoro-timer",
+      "repo": "Lifeforge-app/lifeforge-module-pomodoro-timer",
+      "latest": "0.0.1",
+      "versions": {
+        "0.0.1": "9d5182692b0d737835747b51a75bab38d14060b6"
+      },
+      "monolithPackage": "@monolith/pomodoro-timer"
+    },
+    {
+      "repo": "Lifeforge-app/lifeforge-modules",
+      "commit": "ef45982f8cff053fb1add6163777ea8f4858311c",
+      "port": "Adapted for Monolith PostgreSQL, contracts and React 19; the pinned repository and commit identify the source reference.",
+      "monolithPackage": "@monolith/projects"
+    },
+    {
+      "id": "lifeforge--todo-list",
+      "repo": "Lifeforge-app/lifeforge-module-todo-list",
+      "latest": "0.0.1",
+      "versions": {
+        "0.0.1": "bb844614098783b0cba69fa0ff8c3c6c0932c6ee"
+      },
+      "monolithPackage": "@monolith/todo-list"
+    },
+    {
+      "id": "lifeforge--wallet",
+      "repo": "Lifeforge-app/lifeforge-module-wallet",
+      "latest": "0.0.1",
+      "versions": {
+        "0.0.1": "98fbfa39886cc20c62e182842937ea327c3c9526"
+      },
+      "monolithPackage": "@monolith/wallet"
+    },
+    {
+      "repo": "Lifeforge-app/lifeforge-module-wishlist",
+      "commit": "5dbf0ebb83cdcc7bbf7229404896a93ba2ddbb6a",
+      "port": "Adapted for Monolith PostgreSQL, contracts and React 19; the pinned repository and commit identify the source reference.",
+      "monolithPackage": "@monolith/wishlist"
+    }
+  ]
+}

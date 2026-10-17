@@ -3,16 +3,16 @@ import type { AxiosResponse } from 'axios'
 import {
   type ResponseWrapper,
   contract,
-  createForgeProxy,
+  createApiClient,
   globalProxyRegistry
-} from '@lifeforge/api'
+} from '@monolith/api'
 
 globalProxyRegistry.set(contract, {
   remoteId: '',
   apiHost: 'http://localhost:3636'
 })
 
-export const forgeAPI = createForgeProxy(contract)
+export const workspaceAPI = createApiClient(contract)
 
 export function extractCookies(
   setCookie: string | string[] | null | undefined

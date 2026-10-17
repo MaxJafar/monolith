@@ -1,0 +1,49 @@
+.appearance-cover {
+  height: clamp(140px, 20vw, 240px);
+  max-width: 1480px;
+  margin-inline: auto;
+}
+.appearance-cover-image {
+  object-fit: cover;
+}
+.appearance-cover-action {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+.cover-dialog {
+  width: min(480px, calc(100vw - 48px));
+}
+.cover-swatch {
+  height: 62px;
+  border: 2px solid transparent;
+  border-radius: var(--shape-sm);
+  cursor: pointer;
+}
+.cover-swatch[aria-pressed='true'],
+.cover-swatch:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+.cover-link {
+  min-width: 0;
+  flex: 1;
+  font: inherit;
+  color: inherit;
+  background: var(--bg-lifted);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--shape-sm);
+  padding: 8px;
+}
+.cover-picker input[type='range'] {
+  width: 100%;
+  accent-color: var(--accent-primary);
+}
+.cover-picker input[type='file'] {
+  max-width: 100%;
+  font: inherit;
+  color: var(--text-muted);
+}
+.cover-picker [role='tab'] {
+  min-height: 32px;
+  padding: 4px 12px;
+}

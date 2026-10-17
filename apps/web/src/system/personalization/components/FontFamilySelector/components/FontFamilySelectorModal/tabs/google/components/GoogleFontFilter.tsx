@@ -6,7 +6,7 @@ import {
   ListboxOption,
   SearchInput,
   surface
-} from '@lifeforge/ui'
+} from '@monolith/ui'
 
 import { useGoogleFont } from '../contexts/GoogleFontContext'
 

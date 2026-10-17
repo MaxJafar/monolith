@@ -2,10 +2,10 @@ import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Button, Flex, Stack, Text, TextInput, toast } from '@lifeforge/ui'
+import { Button, Flex, Stack, Text, TextInput, toast } from '@monolith/ui'
 
 import MonolithLogo from '@/core/components/MonolithLogo'
-import forgeAPI from '@/core/utils/forgeAPI'
+import workspaceAPI from '@/core/utils/workspaceAPI'
 
 function UserCreationPage() {
   const { t } = useTranslation('common.auth')
@@ -21,7 +21,7 @@ function UserCreationPage() {
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const createUserMutation = useMutation(
-    forgeAPI.user.auth.createFirstUser.mutationOptions({
+    workspaceAPI.user.auth.createFirstUser.mutationOptions({
       onSuccess: () => {
         toast.success(t('messages.userCreated'))
         setTimeout(() => {

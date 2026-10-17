@@ -1,21 +1,21 @@
 import jwt from 'jsonwebtoken'
-import crypto from 'node:crypto'
+import { createHash, randomBytes, randomUUID } from 'node:crypto'
 
-export const JWT_SECRET = process.env.JWT_SIGNING_KEY!
-
-if (!JWT_SECRET) {
-  throw new Error(
-    'No JWT_SECRET_KEY found. Please make sure it is set in environment variable.'
-  )
+function signingKey(): string {
+  const value = process.env.JWT_SIGNING_KEY
+  if (!value)
+    throw new Error(
+      'JWT_SIGNING_KEY is required to issue and verify Monolith sessions'
+    )
+  return value
 }
 
-export const ACCESS_TOKEN_DURATION = 15 * 60 // 15 minutes in seconds
-
-export const REFRESH_TOKEN_BYTES = 64 // 512-bit
-
-export const REFRESH_TOKEN_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
-
-export const MAX_SESSION_AGE_MS = 60 * 24 * 60 * 60 * 1000 // 60 days
+export const JWT_SECRET = signingKey()
+export const ACCESS_TOKEN_DURATION = 900
+export const REFRESH_TOKEN_BYTES = 64
+const DAY = 86_400_000
+export const REFRESH_TOKEN_EXPIRY_MS = 7 * DAY
+export const MAX_SESSION_AGE_MS = 60 * DAY
 
 export interface AccessTokenPayload {
   sub: string
@@ -25,34 +25,34 @@ export interface AccessTokenPayload {
 }
 
 export function signAccessToken(userId: string): string {
-  return jwt.sign({ sub: userId, jti: crypto.randomUUID() }, JWT_SECRET, {
+  if (!userId) throw new TypeError('A session requires a user ID')
+  return jwt.sign({ jti: randomUUID() }, JWT_SECRET, {
+    subject: userId,
     algorithm: 'HS512',
     expiresIn: ACCESS_TOKEN_DURATION
   })
 }
 
-export function verifyAccessToken(token: string): AccessTokenPayload {
-  return jwt.verify(token, JWT_SECRET, {
-    algorithms: ['HS512']
-  }) as AccessTokenPayload
+export function verifyAccessToken(encoded: string): AccessTokenPayload {
+  const claims = jwt.verify(encoded, JWT_SECRET, { algorithms: ['HS512'] })
+  if (
+    typeof claims === 'string' ||
+    typeof claims.sub !== 'string' ||
+    !claims.sub ||
+    typeof claims.jti !== 'string' ||
+    !claims.jti ||
+    !Number.isSafeInteger(claims.iat) ||
+    !Number.isSafeInteger(claims.exp)
+  )
+    throw new jwt.JsonWebTokenError('Session token has invalid claims')
+  return claims as AccessTokenPayload
 }
 
-export function generateRefreshToken(): string {
-  return crypto.randomBytes(REFRESH_TOKEN_BYTES).toString('base64url')
-}
-
-export function generateFamily(): string {
-  return crypto.randomUUID()
-}
-
-export function hashToken(token: string): string {
-  return crypto.createHash('sha256').update(token).digest('hex')
-}
-
-export function getRefreshTokenExpiry(): number {
-  return Date.now() + REFRESH_TOKEN_EXPIRY_MS
-}
-
-export function getMaxSessionExpiry(): number {
-  return Date.now() + MAX_SESSION_AGE_MS
-}
+export const generateFamily = (): string => randomUUID()
+export const generateRefreshToken = (): string =>
+  randomBytes(REFRESH_TOKEN_BYTES).toString('base64url')
+export const hashToken = (value: string): string =>
+  createHash('sha256').update(value).digest('hex')
+export const getRefreshTokenExpiry = (): number =>
+  Date.now() + REFRESH_TOKEN_EXPIRY_MS
+export const getMaxSessionExpiry = (): number => Date.now() + MAX_SESSION_AGE_MS

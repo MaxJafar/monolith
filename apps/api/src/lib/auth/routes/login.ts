@@ -3,7 +3,7 @@ import z from 'zod'
 
 import { users } from '../../user/schema.drizzle'
 import { getCookieOptions } from '../constants/cookie'
-import forge from '../forge'
+import endpoints from '../endpoints'
 import { create2FASession } from '../utils/2fa'
 import {
   checkLoginRateLimit,
@@ -18,7 +18,7 @@ import {
   signAccessToken
 } from '../utils/tokens'
 
-export const login = forge
+export const login = endpoints
   .mutation({
     description: 'Authenticate user with email and password',
     noAuth: true,

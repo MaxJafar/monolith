@@ -1,0 +1,459 @@
+{
+  "title": "Redraw",
+  "description": "Ruang kecil untuk idea besar anda yang seterusnya.",
+  "loading": "Membuka studio anda…",
+  "modes": {
+    "blackboard": "Blackboard",
+    "canvas": "Canvas"
+  },
+  "dashboard": {
+    "blackboardDescription": "Hubungkan idea, petakan rancangan dan susun pemikiran anda.",
+    "canvasDescription": "Reka antara muka dan gubahan visual yang menarik.",
+    "startWith": "Mulakan dengan templat",
+    "templateHint": "Jadikan milik anda",
+    "projects": "Projek anda",
+    "archive": "Projek diarkibkan",
+    "untitled": "{{mode}} tanpa tajuk",
+    "imported": "Projek diimport",
+    "copy": "(salinan)",
+    "objects": "{{count}} objek",
+    "star": "Bintangkan {{name}}",
+    "unstar": "Nyahbintang {{name}}",
+    "duplicate": "Gandakan {{name}}",
+    "restore": "Pulihkan {{name}}",
+    "archiveProject": "Arkibkan {{name}}",
+    "empty": "Idea seterusnya bermula di sini",
+    "emptyHint": "Cipta Blackboard atau Canvas, atau cuba templat di atas.",
+    "noResults": "Tiada projek ditemui",
+    "changeSearch": "Cuba carian lain atau kosongkan penapis."
+  },
+  "templates": {
+    "mindmap": "Peta minda",
+    "workshop": "Bengkel idea",
+    "website": "Halaman utama",
+    "social": "Siaran sosial"
+  },
+  "samples": {
+    "bigIdea": "Idea utama",
+    "discover": "Terokai",
+    "design": "Reka",
+    "deliver": "Sampaikan",
+    "working": "Apa yang berkesan?",
+    "questions": "Soalan terbuka",
+    "nextSteps": "Langkah seterusnya",
+    "addIdea": "Tambah idea anda di sini",
+    "newIdea": "Idea baharu",
+    "makeSpace": "Buka ruang\nuntuk kemungkinan.",
+    "startSomething": "Mulakan sesuatu yang bermakna.",
+    "explore": "Terokai kemungkinan"
+  },
+  "save": {
+    "saved": "Semua perubahan disimpan",
+    "saving": "Menyimpan…",
+    "unsaved": "Perubahan belum disimpan",
+    "error": "Gagal menyimpan",
+    "readOnly": "Baca sahaja"
+  },
+  "editor": {
+    "back": "Kembali ke projek",
+    "undo": "Buat asal",
+    "redo": "Buat semula",
+    "tools": "Alat melukis",
+    "grid": "Togol grid",
+    "snap": "Lekat pada grid",
+    "layers": "Lapisan",
+    "pages": "Halaman",
+    "addPage": "Tambah halaman",
+    "emptyLayers": "Pilih alat dan lukis objek pertama.",
+    "show": "Tunjukkan {{name}}",
+    "hide": "Sembunyikan {{name}}",
+    "lock": "Kunci {{name}}",
+    "unlock": "Buka kunci {{name}}",
+    "shortcuts": "V pilih · H gerak · R segi empat · T teks · P pen. Shift-klik untuk pilihan berganda. Anak panah mengalih; Shift 10px. Ctrl/⌘ Z buat asal, D gandakan, G kumpulkan. Enter tambah cabang. 0 muat paparan.",
+    "properties": "Sifat",
+    "palette": "Palet warna",
+    "bold": "Teks tebal",
+    "alignleft": "Jajar teks kiri",
+    "aligncenter": "Teks di tengah",
+    "alignright": "Jajar teks kanan",
+    "selected": "{{count}} objek dipilih",
+    "selectHint": "Pilih objek untuk menyunting. Seret bucu untuk ubah saiz.",
+    "surface": "Ruang lukisan Redraw",
+    "connectTarget": "Pilih objek untuk disambungkan",
+    "zoomOut": "Zum keluar",
+    "zoomIn": "Zum masuk",
+    "fit": "Muat kandungan",
+    "unsavedLeave": "Projek ini mempunyai perubahan belum disimpan. Simpan atau eksport draf sebelum keluar."
+  },
+  "errors": {
+    "loadFailed": "Projek gagal dimuatkan. Cuba lagi.",
+    "projectUnavailable": "Projek tidak tersedia dalam ruang kerja ini.",
+    "workspaceUnavailable": "Pilih ruang kerja yang boleh diakses untuk menggunakan Redraw.",
+    "titleRequired": "Namakan projek sebelum menyimpan.",
+    "pageLimit": "Projek boleh mengandungi sehingga 40 halaman.",
+    "fileTooLarge": "Fail Redraw mestilah kurang daripada 4 MB.",
+    "imageTooLarge": "Pilih imej kurang daripada 1.4 MB.",
+    "imageFormat": "Pilih imej PNG, JPEG atau WebP.",
+    "importFailed": "Fail gagal diimport. Gunakan fail JSON Redraw yang sah.",
+    "exportFailed": "Eksport gagal. Cuba eksport projek sebagai JSON.",
+    "unsavedSignOut": "Simpan perubahan Redraw atau eksport draf sebelum log keluar.",
+    "invalidDocument": "Perubahan ini melebihi had dokumen atau menghasilkan hierarki tidak sah.",
+    "nativeLimit": "Fail melebihi had import (32 MB input, 96 MB selepas diekstrak, 40 halaman, 6,000 objek), atau penyahkodan terlalu lama.",
+    "invalidNativeFile": "Fail ini tidak dapat dinyahkod. Eksport fail .penpot atau .fig baharu dan cuba lagi.",
+    "legacyPenpot": "Fail binari Penpot lama perlu dibuka dan dieksport semula dengan versi Penpot semasa.",
+    "importCancelled": "Import dibatalkan.",
+    "copyFailed": "Pautan tidak dapat disalin. Salin daripada bar alamat.",
+    "invalidPath": "Laluan ini tidak dapat ditukar kepada nod boleh edit."
+  },
+  "buttons": {
+    "newBlackboard": "Blackboard baharu",
+    "newCanvas": "Canvas baharu",
+    "blackboard": "Blackboard",
+    "canvas": "Canvas",
+    "save": "Simpan",
+    "export": "Eksport",
+    "exportJson": "Fail Redraw (.json)",
+    "arrange": "Susun",
+    "addBranch": "Tambah cabang",
+    "toggleCurve": "Penyambung melengkung",
+    "toggleArrow": "Kepala anak panah",
+    "group": "Kumpulkan",
+    "ungroup": "Nyahkumpul",
+    "deletePage": "Buang halaman",
+    "duplicate": "Gandakan",
+    "unlock": "Buka kunci",
+    "lock": "Kunci",
+    "bringFront": "Bawa ke hadapan",
+    "sendBack": "Hantar ke belakang",
+    "deleteSelection": "Padam pilihan",
+    "importProject": "Import projek",
+    "dismiss": "Tutup",
+    "archive": "Arkib",
+    "all": "Semua projek",
+    "starred": "Berbintang",
+    "retry": "Cuba lagi",
+    "clearFilters": "Kosongkan penapis",
+    "keepEditing": "Terus menyunting",
+    "saveAndLeave": "Simpan dan keluar",
+    "discardChanges": "Keluar tanpa menyimpan",
+    "exportDraft": "Eksport draf",
+    "layers": "Lapisan",
+    "properties": "Sifat",
+    "back": "Kembali ke projek",
+    "createComponent": "Cipta komponen",
+    "removeComponent": "Buang daripada pustaka",
+    "updateComponent": "Kemas kini komponen utama",
+    "resetComponent": "Tetapkan semula ubah suai",
+    "detachComponent": "Nyahpaut instans",
+    "wrapLayout": "Balut dengan susun atur automatik",
+    "enableLayout": "Aktifkan susun atur automatik",
+    "removeLayout": "Buang susun atur automatik",
+    "toggleWrap": "Balut objek anak",
+    "confirmImport": "Import ke ruang kerja",
+    "cancelImport": "Batal import",
+    "comments": "Komen",
+    "present": "Pratonton prototaip",
+    "fullscreen": "Buka skrin penuh",
+    "exitFullscreen": "Keluar skrin penuh",
+    "editVector": "Edit nod vektor",
+    "finishVector": "Selesai mengedit nod",
+    "splitSegment": "Tambah nod pada segmen seterusnya",
+    "openPath": "Buka laluan",
+    "closePath": "Tutup laluan",
+    "deleteNode": "Padam nod",
+    "closePanel": "Tutup panel",
+    "pinComment": "Letak pin komen",
+    "hideResolved": "Sembunyikan yang selesai",
+    "showResolved": "Tunjukkan yang selesai",
+    "deleteComment": "Padam komen",
+    "reopenThread": "Buka semula perbincangan",
+    "resolveThread": "Selesaikan perbincangan",
+    "replyComment": "Balas",
+    "postComment": "Hantar komen",
+    "setPrototypeStart": "Tetapkan sebagai skrin mula",
+    "restartPrototype": "Mula semula",
+    "closePreview": "Tutup pratonton",
+    "addTag": "Tambah tag"
+  },
+  "inputs": {
+    "projectTitle": {
+      "label": "Tajuk projek",
+      "placeholder": "Tajuk projek"
+    },
+    "name": {
+      "label": "Nama",
+      "placeholder": "Nama"
+    },
+    "x": {
+      "label": "X",
+      "placeholder": "X"
+    },
+    "y": {
+      "label": "Y",
+      "placeholder": "Y"
+    },
+    "width": {
+      "label": "Lebar",
+      "placeholder": "Lebar"
+    },
+    "height": {
+      "label": "Tinggi",
+      "placeholder": "Tinggi"
+    },
+    "rotation": {
+      "label": "Putaran",
+      "placeholder": "Putaran"
+    },
+    "radius": {
+      "label": "Jejari",
+      "placeholder": "Jejari"
+    },
+    "fill": {
+      "label": "Isian",
+      "placeholder": "Isian"
+    },
+    "stroke": {
+      "label": "Garis",
+      "placeholder": "Garis"
+    },
+    "strokeWidth": {
+      "label": "Lebar garis",
+      "placeholder": "Lebar garis"
+    },
+    "opacity": {
+      "label": "Kelegapan %",
+      "placeholder": "Kelegapan %"
+    },
+    "text": {
+      "label": "Teks",
+      "placeholder": "Teks"
+    },
+    "fontSize": {
+      "label": "Saiz fon",
+      "placeholder": "Saiz fon"
+    },
+    "textColor": {
+      "label": "Warna teks",
+      "placeholder": "Warna teks"
+    },
+    "connectionLabel": {
+      "label": "Label sambungan",
+      "placeholder": "Label sambungan"
+    },
+    "pageName": {
+      "label": "Nama halaman",
+      "placeholder": "Nama halaman"
+    },
+    "background": {
+      "label": "Latar belakang",
+      "placeholder": "Latar belakang"
+    },
+    "search": {
+      "label": "Cari projek…",
+      "placeholder": "Cari projek…"
+    },
+    "componentName": {
+      "label": "Nama komponen",
+      "placeholder": "Nama komponen"
+    },
+    "parentFrame": {
+      "label": "Bingkai induk",
+      "placeholder": "Bingkai induk"
+    },
+    "widthMode": {
+      "label": "Saiz lebar",
+      "placeholder": "Saiz lebar"
+    },
+    "heightMode": {
+      "label": "Saiz tinggi",
+      "placeholder": "Saiz tinggi"
+    },
+    "layoutDirection": {
+      "label": "Arah",
+      "placeholder": "Arah"
+    },
+    "layoutAlign": {
+      "label": "Penjajaran paksi silang",
+      "placeholder": "Penjajaran paksi silang"
+    },
+    "layoutJustify": {
+      "label": "Pengagihan",
+      "placeholder": "Pengagihan"
+    },
+    "layoutGap": {
+      "label": "Jarak",
+      "placeholder": "Jarak"
+    },
+    "paddingTop": {
+      "label": "Pelapik atas",
+      "placeholder": "Pelapik atas"
+    },
+    "paddingRight": {
+      "label": "Pelapik kanan",
+      "placeholder": "Pelapik kanan"
+    },
+    "paddingBottom": {
+      "label": "Pelapik bawah",
+      "placeholder": "Pelapik bawah"
+    },
+    "paddingLeft": {
+      "label": "Pelapik kiri",
+      "placeholder": "Pelapik kiri"
+    },
+    "comment": {
+      "label": "Komen",
+      "placeholder": "Komen"
+    },
+    "fileTag": {
+      "label": "Tag fail",
+      "placeholder": "Tag fail"
+    },
+    "prototypeAction": {
+      "label": "Tindakan",
+      "placeholder": "Tindakan"
+    },
+    "prototypeTrigger": {
+      "label": "Pencetus",
+      "placeholder": "Pencetus"
+    },
+    "prototypeTarget": {
+      "label": "Destinasi",
+      "placeholder": "Destinasi"
+    },
+    "prototypeTransition": {
+      "label": "Peralihan",
+      "placeholder": "Peralihan"
+    },
+    "prototypeDuration": {
+      "label": "Tempoh (ms)",
+      "placeholder": "Tempoh (ms)"
+    }
+  },
+  "tools": {
+    "select": "Pilih",
+    "hand": "Gerak",
+    "node": "Nod peta minda",
+    "sticky": "Nota lekat",
+    "connect": "Penyambung",
+    "frame": "Bingkai",
+    "rectangle": "Segi empat",
+    "ellipse": "Elips",
+    "diamond": "Berlian",
+    "text": "Teks",
+    "path": "Pen",
+    "image": "Imej",
+    "pen": "Pen vektor"
+  },
+  "hints": {
+    "select": "Seret untuk alih · Shift untuk pilihan berganda · Tatal untuk gerak",
+    "hand": "Seret untuk gerak · Ctrl/⌘ + tatal untuk zum",
+    "connect": "Pilih dua objek untuk disambungkan",
+    "node": "Klik untuk tambah · Seret untuk lukis · Escape untuk batal",
+    "sticky": "Klik untuk tambah · Seret untuk lukis · Escape untuk batal",
+    "frame": "Klik untuk tambah · Seret untuk lukis · Escape untuk batal",
+    "rectangle": "Klik untuk tambah · Seret untuk lukis · Escape untuk batal",
+    "ellipse": "Klik untuk tambah · Seret untuk lukis · Escape untuk batal",
+    "diamond": "Klik untuk tambah · Seret untuk lukis · Escape untuk batal",
+    "text": "Klik untuk tambah · Seret untuk lukis · Escape untuk batal",
+    "path": "Klik untuk tambah · Seret untuk lukis · Escape untuk batal",
+    "image": "Klik untuk tambah · Seret untuk lukis · Escape untuk batal",
+    "pen": "Klik untuk menambah titik. Klik titik pertama untuk menutup; Enter selesai.",
+    "comment": "Klik untuk meletakkan pin komen."
+  },
+  "align": {
+    "left": "Kiri",
+    "center": "Tengah",
+    "right": "Kanan",
+    "top": "Atas",
+    "middle": "Pertengahan",
+    "bottom": "Bawah"
+  },
+  "components": {
+    "library": "Komponen",
+    "nameHint": "Namakan komponen ini",
+    "empty": "Pilih objek untuk mencipta komponen boleh guna semula.",
+    "insert": "Sisipkan {{name}}",
+    "remove": "Buang {{name}} daripada pustaka",
+    "instance": "Instans terpaut",
+    "overrideHint": "Alt-klik objek atau klik dua kali lapisannya untuk mengubah instans. Kemas kini komponen mengekalkan ubah suai instans lain."
+  },
+  "layout": {
+    "title": "Susun atur automatik",
+    "frame": "Bingkai susun atur automatik",
+    "none": "Tiada bingkai induk",
+    "fixed": "Tetap",
+    "hug": "Ikut kandungan",
+    "fill": "Penuhi bekas",
+    "horizontal": "Mendatar",
+    "vertical": "Menegak",
+    "start": "Mula",
+    "center": "Tengah",
+    "end": "Akhir",
+    "stretch": "Regang",
+    "space-between": "Jarak antara"
+  },
+  "collaboration": {
+    "people": "Pengguna dalam projek ini",
+    "connecting": "Menyambung…",
+    "live": "Langsung",
+    "offline": "Menyambung semula · draf disimpan",
+    "share": "Salin pautan projek",
+    "copied": "Pautan disalin",
+    "shareHint": "Ahli ruang kerja yang mempunyai akses boleh menyertai. Urus keahlian dalam tetapan ruang kerja.",
+    "owner": "Pemilik",
+    "editor": "Penyunting",
+    "viewer": "Pemerhati"
+  },
+  "imports": {
+    "review": "Semak import",
+    "summary": "{{pages}} halaman · {{shapes}} objek · {{components}} komponen",
+    "changed": "Semak perbezaan penukaran ini sebelum mengimport"
+  },
+  "importWarnings": {
+    "effects": "{{count}} objek: kesan tidak disertakan.",
+    "prototypes": "{{count}} objek: interaksi prototaip yang tidak disokong ditinggalkan atau dipermudah.",
+    "masks": "{{count}} objek: topeng bentuk ditinggalkan.",
+    "paints": "{{count}} objek: isian kompleks dipermudahkan.",
+    "richText": "{{count}} objek: gaya teks bercampur menggunakan satu gaya.",
+    "paths": "{{count}} laluan tidak dapat ditukar sepenuhnya.",
+    "images": "{{count}} imej tidak tersedia, tidak disokong atau melebihi 1.4 MB.",
+    "layout": "{{count}} susun atur dianggarkan atau dikekalkan sebagai geometri tetap.",
+    "components": "{{count}} instans komponen dikembangkan; pautan pustaka asal tidak dikekalkan.",
+    "transforms": "{{count}} transformasi dianggarkan tanpa condong atau pantulan.",
+    "unsupported": "{{count}} objek yang tidak disokong tidak disertakan.",
+    "fonts": "{{count}} objek: keluarga fon dikekalkan; fon yang tidak tersedia diganti dengan fon sistem."
+  },
+  "vector": {
+    "title": "Suntingan vektor",
+    "hint": "Pilih nod untuk mengedit pemegangnya. Seret atau gunakan kekunci anak panah; Enter selesai, Escape membatalkan seretan.",
+    "corner": "Sudut",
+    "smooth": "Licin",
+    "symmetric": "Simetri"
+  },
+  "comments": {
+    "title": "Komen",
+    "openThread": "Buka komen oleh {{name}}",
+    "loadFailed": "Komen tidak dapat dimuatkan.",
+    "empty": "Belum ada komen. Letakkan pin pada lukisan untuk memulakan perbincangan.",
+    "pinHint": "Klik objek atau titik pada lukisan untuk meletakkan komen."
+  },
+  "prototype": {
+    "title": "Prototaip",
+    "preview": "Pratonton prototaip",
+    "none": "Tiada interaksi",
+    "navigate": "Pergi ke skrin",
+    "overlay": "Buka tindanan",
+    "back": "Kembali",
+    "close": "Tutup tindanan",
+    "click": "Apabila diklik",
+    "hover": "Apabila dituding",
+    "chooseTarget": "Pilih halaman atau bingkai",
+    "instant": "Serta-merta",
+    "dissolve": "Pudar"
+  },
+  "tags": {
+    "title": "Tag fail",
+    "hint": "Cari fail ini mengikut tag dalam Redraw dan sebutan halaman ruang kerja.",
+    "remove": "Buang #{{tag}}"
+  }
+}

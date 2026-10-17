@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 
-import { Flex, LoadingScreen } from '@lifeforge/ui'
+import { Flex, LoadingScreen } from '@monolith/ui'
 
 export default function RouteLoadingScreen({ message }: { message: string }) {
   const { t } = useTranslation('common.misc')

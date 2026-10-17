@@ -1,5 +1,5 @@
 {
-  "extends": "@lifeforge/configs/tsconfig/base.json",
+  "extends": "@monolith/configs/tsconfig/base.json",
   "compilerOptions": {
     "lib": ["ESNext", "DOM"],
     "target": "ESNext",

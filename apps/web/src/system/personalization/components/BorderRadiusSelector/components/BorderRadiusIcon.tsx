@@ -1,4 +1,4 @@
-import { Box } from '@lifeforge/ui'
+import { Box } from '@monolith/ui'
 
 interface BorderRadiusIconProps {
   radius: number

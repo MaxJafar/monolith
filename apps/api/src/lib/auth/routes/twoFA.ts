@@ -6,7 +6,7 @@ import z from 'zod'
 
 import { users } from '../../user/schema.drizzle'
 import { getCookieOptions } from '../constants/cookie'
-import forge from '../forge'
+import endpoints from '../endpoints'
 import { pending2FASessions, pendingTOTPSetups } from '../utils/2fa'
 import { storeRefreshToken } from '../utils/refreshTokenStore'
 import {
@@ -17,7 +17,7 @@ import {
 
 const MASTER_KEY = process.env.MASTER_KEY!
 
-export const generate = forge
+export const generate = endpoints
   .mutation({
     description: 'Generate 2FA authenticator app setup link',
     encrypted: false,
@@ -41,14 +41,14 @@ export const generate = forge
     const secret = speakeasy.generateSecret({
       name: user.email,
       length: 32,
-      issuer: 'ZillionOS'
+      issuer: 'Monolith'
     }).base32
 
     const tid = v4()
 
     pendingTOTPSetups.set(tid, { secret, userId: user.id })
 
-    const otpauthUrl = `otpauth://totp/${encodeURIComponent(user.email)}?secret=${secret}&issuer=ZillionOS`
+    const otpauthUrl = `otpauth://totp/${encodeURIComponent(user.email)}?secret=${secret}&issuer=Monolith`
 
     return response.ok({
       tid,
@@ -56,7 +56,7 @@ export const generate = forge
     })
   })
 
-export const enable = forge
+export const enable = endpoints
   .mutation({
     description: 'Verify OTP and enable two-factor authentication',
     encrypted: false,
@@ -113,7 +113,7 @@ export const enable = forge
     return response.noContent()
   })
 
-export const disable = forge
+export const disable = endpoints
   .mutation({
     description: 'Disable two-factor authentication',
     encrypted: false,
@@ -139,7 +139,7 @@ export const disable = forge
     return response.noContent()
   })
 
-export const verify = forge
+export const verify = endpoints
   .mutation({
     description: 'Verify two-factor authentication code during login',
     noAuth: true,

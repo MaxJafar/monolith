@@ -5,7 +5,7 @@
   "arrowParens": "avoid",
   "endOfLine": "auto",
   "plugins": ["@trivago/prettier-plugin-sort-imports"],
-  "importOrder": ["^@lifeforge/(.*)$", "^@/(.*)$", "^[./]"],
+  "importOrder": ["^@monolith/(.*)$", "^@/(.*)$", "^[./]"],
   "importOrderSeparation": true,
   "importOrderSortSpecifiers": true,
   "tabWidth": 2,

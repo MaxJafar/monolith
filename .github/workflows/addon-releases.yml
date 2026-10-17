@@ -1,0 +1,35 @@
+name: Prepare addon releases
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  packages:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @monolith/module-runtime test
+      - run: pnpm --filter @monolith/server exec vitest run src/tests/addon-shop.test.ts
+      - run: pnpm release:addons
+      - name: Sign release catalog
+        env:
+          MONOLITH_RELEASE_PRIVATE_KEY: ${{ secrets.MONOLITH_RELEASE_PRIVATE_KEY }}
+        run: |
+          pnpm exec node -e "if (!process.env.MONOLITH_RELEASE_PRIVATE_KEY) throw Error('Configure the Ed25519 catalog signing secret before preparing a network release')"
+          pnpm release:pack
+      - uses: actions/upload-artifact@v4
+        with:
+          name: monolith-addon-releases-${{ github.sha }}
+          path: dist/releases/
+          if-no-files-found: error
+          retention-days: 14

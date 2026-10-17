@@ -1,8 +1,15 @@
+import {
+  AnimatedCollapse,
+  Box,
+  Button,
+  Flex,
+  Stack,
+  Text,
+  colorWithOpacity
+} from '@monolith/ui'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
-
-import { Box, Button, Flex, Stack, Text, colorWithOpacity } from '@lifeforge/ui'
 
 type Page = {
   id: string
@@ -61,8 +68,8 @@ export default function PageBranch({
             aria-controls={childrenId}
             aria-expanded={isOpen}
             aria-label={page.title}
-            className="monolith-navigation-action"
-            icon={isOpen ? 'lucide:chevron-down' : 'lucide:chevron-right'}
+            className="monolith-navigation-action monolith-disclosure"
+            icon="lucide:chevron-right"
             iconProps={{ size: '1rem' }}
             namespace={false}
             p="xs"
@@ -112,17 +119,9 @@ export default function PageBranch({
         )}
       </Flex>
       {children.length > 0 && depth < 20 && (
-        <Stack
-          as="ul"
-          className="monolith-page-list"
-          display={isOpen ? 'flex' : 'none'}
-          gap="none"
-          id={childrenId}
-          inert={!isOpen}
-          pl="sm"
-        >
-          {isOpen &&
-            children.map(child => (
+        <AnimatedCollapse open={isOpen} id={childrenId}>
+          <Stack as="ul" className="monolith-page-list" gap="none" pl="sm">
+            {children.map(child => (
               <PageBranch
                 key={child.id}
                 activeAncestors={activeAncestors}
@@ -135,7 +134,8 @@ export default function PageBranch({
                 pending={pending}
               />
             ))}
-        </Stack>
+          </Stack>
+        </AnimatedCollapse>
       )}
     </Box>
   )

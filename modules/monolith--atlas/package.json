@@ -1,0 +1,38 @@
+{
+  "name": "@monolith/atlas",
+  "displayName": "Atlas",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "A connected knowledge space for Monolith: maps, backlinks and discovery.",
+  "author": "Monolith contributors",
+  "scripts": {
+    "build": "pnpm build:server && pnpm build:client",
+    "build:server": "vite build --config server/vite.config.ts",
+    "build:client": "vite build --config client/vite.config.ts",
+    "typecheck": "tsc -p client/tsconfig.json && tsc -p server/tsconfig.json",
+    "test": "vitest run client/src/model.test.ts"
+  },
+  "peerDependencies": {
+    "@monolith/ui": "workspace:*",
+    "@monolith/api": "workspace:*",
+    "@monolith/blocks": "workspace:*",
+    "@monolith/federation": "workspace:*",
+    "@monolith/server-utils": "workspace:*",
+    "@monolith/drizzle": "workspace:*",
+    "@monolith/configs": "workspace:*",
+    "@monolith/localization": "workspace:*",
+    "react": "^19.2.0"
+  },
+  "monolith": {
+    "icon": "lucide:orbit",
+    "category": "Knowledge",
+    "id": "monolith--atlas",
+    "routeId": "57d8aff38fe5dd8f5b5ace7e149a9f5537ee28d9c561bfab5bb5bf22798dfbf2",
+    "experience": {
+      "kind": "dashboard",
+      "surfaces": [
+        "page"
+      ]
+    }
+  }
+}

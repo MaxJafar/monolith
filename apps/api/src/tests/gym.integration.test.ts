@@ -4,10 +4,10 @@ import { randomUUID } from 'node:crypto'
 import postgres from 'postgres'
 import { afterAll, describe, expect, it } from 'vitest'
 
-import type { ForgeContract } from '@lifeforge/server-utils'
+import type { EndpointContract } from '@monolith/server-utils'
 
-import getEvents from '../../../../modules/zillion--gym/server/events'
-import * as routes from '../../../../modules/zillion--gym/server/routes'
+import getEvents from '../../../../modules/monolith--gym/server/events'
+import * as routes from '../../../../modules/monolith--gym/server/routes'
 import {
   bodyweight,
   commands,
@@ -19,7 +19,7 @@ import {
   settings,
   tables,
   workouts
-} from '../../../../modules/zillion--gym/server/schema.drizzle'
+} from '../../../../modules/monolith--gym/server/schema.drizzle'
 import {
   type Bodyweight,
   type Exercise,
@@ -34,9 +34,11 @@ import {
   prescriptionSchema,
   scheduledRoutine,
   workoutUpdateSchema
-} from '../../../../modules/zillion--gym/shared'
+} from '../../../../modules/monolith--gym/shared'
 
-type Context = Parameters<ReturnType<ForgeContract['getValue']>['callback']>[0]
+type Context = Parameters<
+  ReturnType<EndpointContract['getValue']>['callback']
+>[0]
 
 const enabled = process.env.ZILLION_INTEGRATION === '1'
 const connection = process.env.DATABASE_URL || ''
@@ -75,7 +77,7 @@ function newOwner() {
 }
 
 async function invoke<T>(
-  route: ForgeContract,
+  route: EndpointContract,
   owner: string | undefined,
   body?: unknown,
   query: Record<string, string> = {},
@@ -177,7 +179,7 @@ const log = (current: Workout, weight = 100, reps = 10) =>
     }))
   }))
 
-describe.skipIf(!enabled)('Zillion OS native Gym persistence', () => {
+describe.skipIf(!enabled)('Monolith native Gym persistence', () => {
   afterAll(async () => {
     for (const owner of owners)
       await db.transaction(async tx => {

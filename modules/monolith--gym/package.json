@@ -1,0 +1,50 @@
+{
+  "name": "@monolith/gym",
+  "displayName": "Gym",
+  "version": "0.0.1",
+  "type": "module",
+  "author": "Monolith contributors",
+  "description": "Native training plans, workouts and strength history.",
+  "scripts": {
+    "build": "pnpm run build:client && pnpm run build:server",
+    "build:client": "vite build --config client/vite.config.ts",
+    "build:server": "vite build --config server/vite.config.ts",
+    "typecheck": "pnpm run typecheck:client && pnpm run typecheck:server",
+    "typecheck:client": "tsc -p client/tsconfig.json",
+    "typecheck:server": "tsc -p server/tsconfig.json",
+    "test": "vitest run server/model.test.ts server/catalog.test.ts server/coaching.test.ts server/push.test.ts importers.test.ts client/src/utils/recovery.test.ts client/src/utils/workout.test.ts client/src/utils/reminders.test.ts client/src/utils/analytics.test.ts client/src/utils/historyCalendar.test.ts client/src/utils/notifications.test.ts client/src/utils/gymWorker.test.ts client/src/utils/offline.test.ts client/src/utils/offlinePage.test.js client/src/utils/cacheWorker.test.ts client/src/utils/ownerQueries.test.ts client/src/utils/visibleClock.test.ts client/src/utils/navigation.test.ts client/src/utils/exerciseSearch.test.ts"
+  },
+  "peerDependencies": {
+    "@monolith/api": "workspace:*",
+    "@monolith/blocks": "workspace:*",
+    "@monolith/configs": "workspace:*",
+    "@monolith/drizzle": "workspace:*",
+    "@monolith/federation": "workspace:*",
+    "@monolith/localization": "workspace:*",
+    "@monolith/server-utils": "workspace:*",
+    "@monolith/ui": "workspace:*"
+  },
+  "dependencies": {
+    "ipaddr.js": "2.5.0",
+    "web-push": "3.6.7"
+  },
+  "devDependencies": {
+    "@types/web-push": "^3.6.4"
+  },
+  "monolith": {
+    "icon": "tabler:barbell",
+    "category": "Lifestyle",
+    "id": "monolith--gym",
+    "routeId": "ff02a2f4ac721a0e661d971d2979c0c2cd6949e96be4aae2b551bb4d06f9f05f",
+    "experience": {
+      "kind": "database",
+      "surfaces": [
+        "dashboard",
+        "widget"
+      ],
+      "databases": [
+        "gym"
+      ]
+    }
+  }
+}

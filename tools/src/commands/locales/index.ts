@@ -10,7 +10,7 @@ import { validateLocaleStructureHandler } from './handlers/validateLocaleStructu
 export default function setup(program: Command): void {
   const command = program
     .command('locales')
-    .description('Manage LifeForge language packs')
+    .description('Manage Monolith language packs')
 
   command
     .command('list')

@@ -1,0 +1,53 @@
+{
+  "name": "@monolith/idea-box",
+  "displayName": "Idea Box",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MaxJafar/monolith.git",
+    "directory": "modules/monolith--idea-box"
+  },
+  "version": "0.0.1",
+  "type": "module",
+  "author": "Monolith contributors",
+  "description": "Capture them before the inspiration flies away!",
+  "scripts": {
+    "typecheck": "pnpm run typecheck:client && pnpm run typecheck:server",
+    "typecheck:client": "cd client && tsc",
+    "typecheck:server": "cd server && tsc",
+    "build": "pnpm run build:client && pnpm run build:server",
+    "build:client": "cd client && vite build",
+    "build:server": "cd server && vite build"
+  },
+  "dependencies": {
+    "@headlessui/react": "^2.2.9",
+    "open-graph-scraper": "^6.10.0",
+    "react-columns": "^1.2.1",
+    "react-dnd": "^16.0.1",
+    "react-dnd-html5-backend": "^16.0.1",
+    "react-markdown": "^10.1.0",
+    "react-medium-image-zoom": "^5.4.0"
+  },
+  "devDependencies": {},
+  "peerDependencies": {
+    "@monolith/api": "workspace:*",
+    "@monolith/configs": "workspace:*",
+    "@monolith/drizzle": "workspace:*",
+    "@monolith/federation": "workspace:*",
+    "@monolith/file-storage": "workspace:*",
+    "@monolith/localization": "workspace:*",
+    "@monolith/server-utils": "workspace:*",
+    "@monolith/ui": "workspace:*"
+  },
+  "monolith": {
+    "icon": "tabler:bulb",
+    "category": "Productivity",
+    "id": "monolith--idea-box",
+    "routeId": "f85d131fc83d7331f94b731623bc1f224708ac07a5a6096edcb895891f8b95ac",
+    "experience": {
+      "kind": "widget",
+      "surfaces": [
+        "widget"
+      ]
+    }
+  }
+}

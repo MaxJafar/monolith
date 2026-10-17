@@ -1,8 +1,11 @@
 // @vitest-environment jsdom
+import { serializeDocument } from '@monolith/blocks'
 import type { Editor, UseEditorOptions } from '@tiptap/react'
 import { type ElementType, type ReactNode, act, createElement } from 'react'
 import { type Root, createRoot } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+import { CanvasWidgetExtensionProvider } from '@/components/layout/WorkspaceCanvas/CanvasWidgets'
 
 import { BlockEditor } from './index'
 
@@ -25,6 +28,15 @@ vi.mock('@tiptap/react', async importOriginal => {
 })
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key })
+}))
+vi.mock('@/components/layout/WorkspaceCanvas/InlineDatabasePicker', () => ({
+  InlineDatabasePicker: ({ initialMode, onInsert }: {
+    initialMode: string
+    onInsert: (reference: { workspaceId: string; baseId: string; viewId: string }, title: string) => void
+  }) => createElement('button', {
+    'data-database-mode': initialMode,
+    onClick: () => onInsert({ workspaceId: crypto.randomUUID(), baseId: crypto.randomUUID(), viewId: crypto.randomUUID() }, 'Inline collection')
+  }, 'Create inline database')
 }))
 
 type PrimitiveProps = {
@@ -96,6 +108,13 @@ const originalRangeGeometry = {
 
 beforeEach(() => {
   vi.useFakeTimers()
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe() {}
+      disconnect() {}
+    }
+  )
 
   harness.editor = null
   container = document.createElement('div')
@@ -130,6 +149,7 @@ afterEach(async () => {
     else Reflect.deleteProperty(Range.prototype, name)
   }
   vi.restoreAllMocks()
+  vi.unstubAllGlobals()
 
   vi.useRealTimers()
 })
@@ -154,6 +174,111 @@ async function mount(value: string, readOnly: boolean, onChange = vi.fn()) {
 }
 
 describe('Block editor cursor and read-only behavior', () => {
+  it.each([['table', 'table'], ['board', 'kanban'], ['database', 'table']])(
+    'inserts /%s at the caret with the %s layout and preserves surrounding text',
+    async (command, mode) => {
+      const onChange = vi.fn(), onInsertBlock = vi.fn()
+      await act(async () => root.render(
+        <CanvasWidgetExtensionProvider value={{ widgets: {}, render: () => null, createDatabase: vi.fn() }}>
+          <BlockEditor value={'Before\n\nAfter'} onChange={onChange} onInsertBlock={onInsertBlock} />
+        </CanvasWidgetExtensionProvider>
+      ))
+      await settle()
+      const editor = harness.editor!
+      await act(async () => {
+        editor.chain().setTextSelection(editor.state.doc.child(0).nodeSize + 1).insertContent('/' + command).run()
+      })
+      const option = document.querySelector<HTMLButtonElement>('[role="option"]')!
+      expect(option).not.toBeNull()
+      await act(async () => option.click())
+      await settle()
+      const picker = document.querySelector<HTMLButtonElement>('[data-database-mode]')!
+      expect(picker?.dataset.databaseMode).toBe(mode)
+      await act(async () => picker.click())
+      const json = editor.getJSON()
+      expect(json.content?.filter(node => node.type === 'linkedDatabase')).toHaveLength(1)
+      expect(json.content?.find(node => node.type === 'linkedDatabase')?.attrs?.height).toBe(0)
+      expect(editor.getText()).toContain('Before')
+      expect(editor.getText()).toContain('After')
+      expect(editor.getText()).not.toContain('/' + command)
+      expect(onInsertBlock).not.toHaveBeenCalled()
+      expect(onChange).toHaveBeenCalled()
+    }
+  )
+
+  it('reopens embedded blocks and persists a database resize without moving the text cursor', async () => {
+    const onChange = vi.fn()
+    const value = serializeDocument({
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [{ type: 'text', text: 'Opening paragraph' }]
+        },
+        {
+          type: 'linkedDatabase',
+          attrs: {
+            workspaceId: crypto.randomUUID(),
+            baseId: crypto.randomUUID(),
+            viewId: crypto.randomUUID(),
+            title: 'Inside the page',
+            height: 420
+          }
+        },
+        {
+          type: 'pageEmbed',
+          attrs: {
+            kind: 'record',
+            targetId: crypto.randomUUID(),
+            label: 'Related page'
+          }
+        },
+        { type: 'paragraph' }
+      ]
+    })
+    await act(async () =>
+      root.render(
+        <CanvasWidgetExtensionProvider
+          value={{
+            widgets: {},
+            render: (_id, config) => (
+              <button onClick={() => config?.onHeightChange?.(460)}>
+                Resize database
+              </button>
+            )
+          }}
+        >
+          <BlockEditor value={value} onChange={onChange} />
+        </CanvasWidgetExtensionProvider>
+      )
+    )
+    await settle()
+    expect(
+      container.querySelector('.monolith-inline-database-block')
+    ).not.toBeNull()
+    expect(
+      container.querySelector('.monolith-inline-page-block')?.textContent
+    ).toBe('Related page')
+    const editor = harness.editor!
+    await act(async () => {
+      editor.commands.setTextSelection(editor.state.doc.content.size - 1)
+    })
+    const position = editor.state.selection.from
+    await act(async () => {
+      ;(
+        container.querySelector(
+          '.monolith-inline-database-block button'
+        ) as HTMLButtonElement
+      ).click()
+    })
+    expect(editor.state.doc.child(1).attrs.height).toBe(460)
+    expect(editor.state.selection.from).toBe(position)
+    expect(onChange).toHaveBeenLastCalledWith(
+      expect.stringContaining('"height":460')
+    )
+    expect(editor.state.doc.child(0).textContent).toBe('Opening paragraph')
+  })
+
   it.each([{ ctrlKey: true }, { metaKey: true }])(
     'does not reorder or emit edits for a read-only movement shortcut with %j',
     async modifier => {
@@ -196,14 +321,14 @@ describe('Block editor cursor and read-only behavior', () => {
       editor.commands.insertContentAt(1, '/heading')
     })
 
-    expect(container.querySelector('[role="listbox"]')).not.toBeNull()
+    expect(document.querySelector('[role="listbox"]')).not.toBeNull()
     const secondParagraphStart = editor.state.doc.child(0).nodeSize + 1
 
     await act(async () => {
       editor.commands.setTextSelection(secondParagraphStart)
     })
 
-    expect(container.querySelector('[role="listbox"]')).toBeNull()
+    expect(document.querySelector('[role="listbox"]')).toBeNull()
     const before = editor.getJSON()
 
     await act(async () => {

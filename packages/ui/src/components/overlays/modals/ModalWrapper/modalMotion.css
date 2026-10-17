@@ -1,0 +1,127 @@
+[data-modal-overlay] {
+  transition: opacity 160ms cubic-bezier(0.2, 0.7, 0.2, 1) !important;
+}
+[data-modal-overlay][data-open='false'] {
+  pointer-events: none;
+}
+.monolith-modal-surface {
+  transform-origin: 0 0;
+  transition:
+    transform 180ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    opacity 160ms ease !important;
+}
+[data-modal-overlay][data-contextual='true'] {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  pointer-events: none;
+}
+.monolith-modal-surface[data-contextual='true'] {
+  position: fixed;
+  pointer-events: auto;
+  width: min(464px, calc(100vw - 24px));
+  max-width: calc(100vw - 24px);
+  max-height: calc(100dvh - 24px);
+  padding: 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 9px;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  box-shadow:
+    0 8px 24px #00000014,
+    0 2px 6px #0000000a !important;
+}
+[data-modal-overlay][data-contextual='true'][data-open='false']
+  > .monolith-modal-surface {
+  pointer-events: none;
+  transform: translate(-3px, -4px) scale(0.985) !important;
+}
+.monolith-form-dialog {
+  font-size: 13px;
+}
+.monolith-form-dialog .monolith-modal-heading {
+  margin-bottom: 6px;
+}
+.monolith-form-dialog .monolith-modal-heading h1 {
+  font-size: 14px;
+}
+.monolith-form-dialog .monolith-modal-heading button {
+  min-height: 28px;
+  min-width: 28px;
+  padding: 5px;
+}
+.monolith-form-dialog .monolith-form-actions {
+  margin-top: 4px;
+  padding-top: 8px;
+  gap: 6px;
+}
+.monolith-form-dialog .monolith-form-actions button {
+  min-height: 30px;
+  padding: 5px 10px;
+  font-size: 13px;
+}
+.monolith-form-dialog .monolith-input {
+  min-height: 38px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  box-shadow: none;
+  background: color-mix(in srgb, var(--selection-color) 2%, var(--bg-primary));
+}
+.monolith-form-dialog .monolith-input:hover {
+  background: color-mix(in srgb, var(--selection-color) 5%, var(--bg-primary));
+}
+.monolith-form-dialog .monolith-input:focus-within {
+  border-color: color-mix(in srgb, var(--selection-color) 45%, transparent);
+  outline: none;
+}
+.monolith-form-dialog .monolith-input-icon {
+  width: 16px;
+  height: 16px;
+  margin-inline: 9px;
+}
+.monolith-form-dialog .monolith-input-label {
+  top: 11px;
+  font-size: 11px;
+  line-height: 14px;
+  padding-right: 8px;
+}
+.monolith-form-dialog
+  .monolith-input
+  input:not([type='checkbox']):not([type='radio']) {
+  font-size: 13px;
+  line-height: 20px;
+  letter-spacing: normal;
+  margin-top: 0;
+  padding: 18px 8px 5px 0;
+  min-width: 0;
+}
+.monolith-form-dialog .monolith-input:not(:has(.monolith-input-icon)) {
+  padding-left: 9px;
+}
+.monolith-form-dialog .monolith-input:not(:has(.monolith-input-label)) input {
+  padding-top: 7px;
+  padding-bottom: 7px;
+}
+.monolith-form-dialog .monolith-input-inner {
+  padding-top: 18px;
+  padding-bottom: 5px;
+  font-size: 13px;
+}
+.monolith-form-dialog .monolith-listbox-input .monolith-input-label {
+  padding-left: 34px !important;
+}
+.monolith-form-dialog .monolith-input textarea {
+  min-height: 78px;
+  padding-top: 20px;
+  font-size: 13px;
+}
+@media (pointer: coarse) {
+  .monolith-form-dialog .monolith-form-actions button {
+    min-height: 40px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-modal-overlay],
+  .monolith-modal-surface {
+    transition: none !important;
+  }
+}

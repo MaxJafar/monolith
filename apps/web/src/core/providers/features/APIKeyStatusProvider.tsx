@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
-import type { ModuleGroup } from '@lifeforge/configs'
+import type { ModuleGroup } from '@monolith/configs'
 import {
   Button,
   Card,
@@ -10,9 +10,9 @@ import {
   Stack,
   Text,
   WithQuery
-} from '@lifeforge/ui'
+} from '@monolith/ui'
 
-import forgeAPI from '@/core/utils/forgeAPI'
+import workspaceAPI from '@/core/utils/workspaceAPI'
 
 function APIKeyStatusProvider({
   APIKeyAccess,
@@ -28,7 +28,7 @@ function APIKeyStatusProvider({
     .map(([key]) => key)
 
   const hasRequiredAPIKeysQuery = useQuery(
-    forgeAPI
+    workspaceAPI
       .checkAPIKeys({
         keys: requiredAPIKeys.join(',')
       })

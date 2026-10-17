@@ -10,7 +10,7 @@ import {
   Text,
   Transition,
   usePersonalization
-} from '@lifeforge/ui'
+} from '@monolith/ui'
 
 import { useUserPersonalization } from '@/core/providers/features/UserPersonalizationProvider'
 

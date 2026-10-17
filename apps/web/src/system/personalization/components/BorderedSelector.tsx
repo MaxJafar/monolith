@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 
-import { OptionsColumn, Switch, usePersonalization } from '@lifeforge/ui'
+import { OptionsColumn, Switch, usePersonalization } from '@monolith/ui'
 
 import { useUserPersonalization } from '@/core/providers/features/UserPersonalizationProvider'
 

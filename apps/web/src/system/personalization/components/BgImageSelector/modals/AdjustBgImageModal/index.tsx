@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Button, ModalHeader, Stack, usePersonalization } from '@lifeforge/ui'
+import { Button, ModalHeader, Stack, usePersonalization } from '@monolith/ui'
 
 import { useUserPersonalization } from '@/core/providers/features/UserPersonalizationProvider'
 

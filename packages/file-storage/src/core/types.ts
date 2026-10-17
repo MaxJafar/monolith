@@ -28,7 +28,7 @@ export interface StoredFileReference extends FileReference {
   moduleId: string
 }
 
-/** Persistence boundary between `@lifeforge/file-storage` and the app. */
+/** Persistence boundary between `@monolith/file-storage` and the app. */
 export interface FileMetadataStore {
   upsert(ref: StoredFileReference): Promise<void>
   get(key: string): Promise<StoredFileReference | null>

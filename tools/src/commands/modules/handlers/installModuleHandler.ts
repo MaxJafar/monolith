@@ -28,7 +28,7 @@ interface InstalledModule {
 }
 
 /**
- * Installs one or more modules from the LifeForge registry (a GitHub-hosted index).
+ * Installs one or more modules from the configured Monolith registry (a GitHub-hosted index).
  *
  * For each module:
  * 1. Validates it doesn't already exist locally
@@ -52,7 +52,7 @@ export async function installModuleHandler(
   for (const moduleName of moduleNames) {
     const { fullName, shortName, targetDir } = normalizePackage(moduleName)
 
-    if (!/^@lifeforge\/[a-z0-9-_]+--[a-z0-9-_]+$/i.test(fullName)) {
+    if (!/^@monolith\/[a-z0-9-_]+--[a-z0-9-_]+$/i.test(fullName)) {
       log.error(
         `Invalid module name: ${chalk.blue(moduleName)}. Module names can only contain letters, numbers, hyphens, and underscores.`
       )

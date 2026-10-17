@@ -1,6 +1,6 @@
 import { getInstance, init, registerRemotes } from '@module-federation/runtime'
 
-import type { ModuleGroup } from '@lifeforge/configs'
+import { type ModuleGroup, addonPackageName } from '@monolith/configs'
 
 import { type FederatedModuleGroup } from '../providers/FederationProvider'
 import {
@@ -10,7 +10,9 @@ import {
   fetchModuleManifest
 } from '../utils/fetchModuleData'
 import { sortRoutes } from '../utils/sortRoutes'
+import { getBundledModules } from './bundledModules'
 import { registeredRemotesSet } from './loadRemoteModuleConfig'
+import { resolveRemoteEntry } from './remoteEntry'
 
 /**
  * Adds the module configuration to the moduleGroups
@@ -72,15 +74,14 @@ export async function bootstrapModules(
 
   for (const mod of federatedModuleManifests) {
     const remoteName = `m_${mod.remoteId}`
-    registeredRemotesSet.add(remoteName)
-
-    remotes.push({
-      name: remoteName,
-      entry: mod.remoteEntryUrl.startsWith('http')
-        ? mod.remoteEntryUrl
-        : `${import.meta.env.VITE_API_HOST || ''}${mod.remoteEntryUrl}`,
-      type: 'module' as const
-    })
+    if (!getBundledModules()?.[addonPackageName(mod.name)]) {
+      registeredRemotesSet.add(remoteName)
+      remotes.push({
+        name: remoteName,
+        entry: resolveRemoteEntry(mod.remoteEntryUrl),
+        type: 'module' as const
+      })
+    }
 
     const moduleConfig: ModuleGroup['items'][number] & {
       rawModule: FederatedModule

@@ -4,7 +4,7 @@ import pathlib
 import subprocess
 import time
 
-root = pathlib.Path.home() / ".lifeforge-ai"
+root = pathlib.Path.home() / ".monolith-ai"
 settings = json.loads((root / "tunnel.json").read_text())
 while True:
     try:

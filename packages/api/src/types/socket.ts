@@ -7,17 +7,17 @@ import type {
   z
 } from 'zod'
 
-import type { ForgeEndpoint } from '../proxy/forgeEndpoint'
+import type { EndpointClient } from '../proxy/endpointClient'
 
 type ZodObjectOrIntersection =
   ZodObject<ZodRawShape> | ZodIntersection<ZodTypeAny, ZodTypeAny>
 
 /**
- * Infers the input TypeScript type from a Forge endpoint config object.
+ * Infers the input TypeScript type from a Monolith endpoint config object.
  * Uses embedded Zod schema definitions to produce a plain object type.
  */
 export type InferRawInput<T> = T extends {
-  __isForgeContract: true
+  __isEndpointContract: true
   __input: infer I
   __media: infer M
 }
@@ -49,20 +49,20 @@ export type InferRawInput<T> = T extends {
   : never
 
 /**
- * Infers the output (response) TypeScript type from a Forge endpoint config object.
+ * Infers the output (response) TypeScript type from a Monolith endpoint config object.
  */
 export type InferRawOutput<T> = T extends {
-  __isForgeContract: true
+  __isEndpointContract: true
   __output: infer O
 }
   ? O
   : never
 
 /**
- * Extracts the input schema type from a `ForgeEndpoint` instance.
+ * Extracts the input schema type from a `EndpointClient` instance.
  */
-export type InferInput<T extends ForgeEndpoint> = T['__type'] extends {
-  __isForgeContract: true
+export type InferInput<T extends EndpointClient> = T['__type'] extends {
+  __isEndpointContract: true
   __input: infer I
   __media: infer M
 }
@@ -94,10 +94,10 @@ export type InferInput<T extends ForgeEndpoint> = T['__type'] extends {
   : never
 
 /**
- * Extracts the output (response) type from a `ForgeEndpoint` instance.
+ * Extracts the output (response) type from a `EndpointClient` instance.
  */
-export type InferOutput<T extends ForgeEndpoint> = T['__type'] extends {
-  __isForgeContract: true
+export type InferOutput<T extends EndpointClient> = T['__type'] extends {
+  __isEndpointContract: true
   __output: infer O
 }
   ? O

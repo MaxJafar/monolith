@@ -1,5 +1,5 @@
-export * from './createForgeProxy'
+export * from './createApiClient'
 
-export * from './forgeEndpoint'
+export * from './endpointClient'
 
 export * from './registry'

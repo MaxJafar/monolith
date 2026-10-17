@@ -1,46 +1,36 @@
-import z from 'zod'
+import { serviceResponse } from '@functions/external/serviceRequest'
+import { z } from 'zod'
 
-import { createForge } from '@lifeforge/server-utils'
+import { createMonolith } from '@monolith/server-utils'
 
-const forge = createForge({ moduleId: 'cors_anywhere' })
+const target = z.url().refine(value => {
+  const url = new URL(value)
+  return (
+    ['http:', 'https:'].includes(url.protocol) && !url.username && !url.password
+  )
+}, 'An HTTP or HTTPS address without embedded credentials is required')
 
-const corsAnywhere = forge
+export default createMonolith({ moduleId: 'cors_anywhere' })
   .query({
-    description: 'CORS Anywhere - Fetch external URL content',
-    input: {
-      query: z.object({
-        url: z.url()
+    description: 'Read remote text or JSON through the authenticated workspace',
+    input: { query: z.object({ url: target }) },
+    output: { OK: z.any() }
+  })
+  .callback(async ({ query, response }) => {
+    try {
+      const remote = await serviceResponse('Remote content', query.url, {
+        headers: {
+          'User-Agent': 'Monolith/1.0',
+          Accept: 'application/json, text/plain, text/html;q=0.9, */*;q=0.5'
+        }
       })
-    },
-    output: {
-      OK: z.any()
+      const mediaType = remote.contentType.split(';')[0]?.trim().toLowerCase()
+      return response.ok(
+        mediaType === 'application/json' || mediaType?.endsWith('+json')
+          ? (JSON.parse(remote.text) as unknown)
+          : remote.text
+      )
+    } catch {
+      return response.badRequest('The remote content could not be retrieved')
     }
   })
-  .callback(async ({ query: { url }, core: { logging }, response }) => {
-    const r = await fetch(url, {
-      headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
-      }
-    }).catch(() => {
-      logging.error(`Failed to fetch URL: ${url}`)
-    })
-
-    if (!r) {
-      return response.badRequest('Failed to fetch URL')
-    }
-
-    if (!r.ok) {
-      return response.badRequest(`Failed to fetch URL: ${url}`)
-    }
-
-    if (r.headers.get('content-type')?.includes('application/json')) {
-      const json = await r.json()
-
-      return response.ok(json)
-    }
-
-    return response.ok(await r.text())
-  })
-
-export default corsAnywhere

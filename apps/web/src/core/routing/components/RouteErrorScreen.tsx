@@ -1,6 +1,6 @@
 import { useRouteError } from 'react-router'
 
-import { ErrorScreen } from '@lifeforge/ui'
+import { ErrorScreen } from '@monolith/ui'
 
 function RouteErrorScreen() {
   const error = useRouteError()

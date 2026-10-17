@@ -1,38 +1,44 @@
-export default async function searchLocations(key: string, q: string) {
-  const response = await fetch(
-    `https://places.googleapis.com/v1/places:searchText`,
+import { z } from 'zod'
+
+import { serviceJSON } from './serviceRequest'
+
+const placesResponse = z.object({
+  places: z
+    .array(
+      z.object({
+        displayName: z.object({ text: z.string() }),
+        formattedAddress: z.string(),
+        location: z.object({
+          latitude: z.number().min(-90).max(90),
+          longitude: z.number().min(-180).max(180)
+        })
+      })
+    )
+    .optional()
+})
+
+export default async function searchLocations(
+  credential: string,
+  query: string
+) {
+  if (!query.trim()) return []
+  const result = await serviceJSON(
+    'Google Places',
+    'https://places.googleapis.com/v1/places:searchText',
+    placesResponse,
     {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'X-Goog-Api-Key': credential,
         'X-Goog-FieldMask':
-          'places.displayName,places.location,places.formattedAddress',
-        'X-Goog-Api-Key': key
+          'places.displayName,places.location,places.formattedAddress'
       },
-      body: JSON.stringify({
-        textQuery: q
-      })
+      body: JSON.stringify({ textQuery: query.trim() })
     }
-  ).then(res => res.json())
-
-  const places: {
-    displayName: {
-      languageCode: string
-      text: string
-    }
-    formattedAddress: string
-    location: {
-      latitude: number
-      longitude: number
-    }
-  }[] = response.places ?? []
-
-  return places.map(place => ({
-    name: place.displayName.text,
-    formattedAddress: place.formattedAddress,
-    location: {
-      latitude: place.location.latitude,
-      longitude: place.location.longitude
-    }
+  )
+  return (result.places ?? []).map(({ displayName, ...place }) => ({
+    ...place,
+    name: displayName.text
   }))
 }

@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 
-import { Flex, Text } from '@lifeforge/ui'
+import { Flex, Text } from '@monolith/ui'
 
 import MonolithLogo from '@/core/components/MonolithLogo'
 

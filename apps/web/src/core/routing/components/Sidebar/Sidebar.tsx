@@ -1,27 +1,41 @@
-import { useEffect, useRef, useState } from 'react'
+import {
+  Box,
+  Button,
+  Flex,
+  Stack,
+  elasticScrollEdge,
+  useMainSidebarState
+} from '@monolith/ui'
+import { type CSSProperties, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation } from 'react-router'
 
-import { Box, Flex, useMainSidebarState } from '@lifeforge/ui'
+import SidebarCharacter from '@/addons/urpg/SidebarCharacter'
+import { useSettingsOverlay } from '@/core/overlays/SettingsOverlay'
+import WorkspaceUtilities from '@/core/overlays/WorkspaceUtilities'
+import { sidebarShouldCloseOnEscape } from '@/core/routing/utils/navigation'
 
-import WorkspaceSwitcher from '@/core/workspaces/WorkspaceSwitcher'
-
-import CustomPages from './CustomPages'
+import NavigationTree from './NavigationTree'
 import SidebarBottomBar from './SidebarBottomBar'
 import SidebarEventBanner from './SidebarEventBanner'
 import SidebarHeader from './SidebarHeader'
-import SidebarItems from './SidebarItems'
+import { useSidebarPreferences } from './SidebarPreferences'
+import SidebarResize from './SidebarResize'
+import SidebarWidgets from './SidebarWidgets'
+import SystemNavigation from './SystemNavigation'
 import './sidebar.css'
 
 function Sidebar() {
   const { t } = useTranslation('common.appBar')
   const { sidebarExpanded, toggleSidebar } = useMainSidebarState()
   const location = useLocation()
+  const { t: ui } = useTranslation('common.workspaceUI')
+  const settings = useSettingsOverlay()
+  const { preferences } = useSidebarPreferences()
 
   const route = `${location.pathname}${location.search}`
 
   const previousRoute = useRef(route)
-  const [searchQuery, setSearchQuery] = useState('')
   const sidebarRef = useRef<HTMLElement>(null)
   const previouslyExpanded = useRef(sidebarExpanded)
 
@@ -33,11 +47,18 @@ function Sidebar() {
     if (!opened || !sidebar || window.innerWidth > 1000) return
 
     const previousFocus = document.activeElement
-    sidebar
-      .querySelector<HTMLInputElement>('input')
-      ?.focus({ preventScroll: true })
+    const focusDrawer = () => {
+      if (!sidebar.contains(document.activeElement))
+        sidebar
+          .querySelector<HTMLElement>('button:not([disabled]),a[href],input')
+          ?.focus({ preventScroll: true })
+    }
+    const frame = requestAnimationFrame(focusDrawer)
+    sidebar.addEventListener('transitionend', focusDrawer, { once: true })
 
     return () => {
+      cancelAnimationFrame(frame)
+      sidebar.removeEventListener('transitionend', focusDrawer)
       if (
         document.activeElement !== document.body &&
         !sidebar.contains(document.activeElement)
@@ -72,11 +93,11 @@ function Sidebar() {
   return (
     <>
       <Box
+        aria-hidden={!sidebarExpanded}
         aria-label={t('closeSidebar')}
         as="button"
         className="monolith-sidebar-backdrop"
         data-expanded={sidebarExpanded}
-        aria-hidden={!sidebarExpanded}
         inert={!sidebarExpanded}
         tabIndex={-1}
         type="button"
@@ -84,25 +105,29 @@ function Sidebar() {
       />
       <Flex
         ref={sidebarRef}
+        aria-hidden={!sidebarExpanded}
         as="aside"
         bg={{ base: 'bg-50', dark: 'bg-900' }}
         className="zillion-main-sidebar"
+        data-compact={preferences.compact}
         data-expanded={sidebarExpanded}
-        aria-hidden={!sidebarExpanded}
-        inert={!sidebarExpanded}
         direction="column"
         flexShrink="0"
         height="100%"
         id="workspace-navigation"
+        inert={!sidebarExpanded}
         left="0"
         minWidth="0"
         overflow="hidden"
         position="relative"
         r="none"
+        style={{ '--sidebar-width': `${preferences.width}px` } as CSSProperties}
         top="0"
-        width="min(100%, 250px)"
+        width="min(100%, 264px)"
         zIndex="99"
         onKeyDown={event => {
+          // Portalled utility popovers handle their own Escape and Tab keys.
+          if (!event.currentTarget.contains(event.target as Node)) return
           if (event.key === 'Tab' && window.innerWidth <= 1000) {
             const controls = Array.from(
               sidebarRef.current?.querySelectorAll<HTMLElement>(
@@ -127,9 +152,7 @@ function Sidebar() {
           }
 
           if (
-            event.key === 'Escape' &&
-            !event.defaultPrevented &&
-            !event.nativeEvent.isComposing
+            sidebarShouldCloseOnEscape(event.nativeEvent, sidebarExpanded, window.innerWidth)
           ) {
             event.preventDefault()
             toggleSidebar()
@@ -137,11 +160,8 @@ function Sidebar() {
         }}
       >
         <SidebarEventBanner />
-        <SidebarHeader
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-        />
-        <WorkspaceSwitcher />
+        <SidebarHeader />
+        <SidebarCharacter />
         <Box
           className="monolith-sidebar-scroll"
           flex="1"
@@ -149,11 +169,52 @@ function Sidebar() {
           overflowX="hidden"
           overflowY="auto"
           pb="md"
+          onWheel={event =>
+            elasticScrollEdge(event.currentTarget, event.nativeEvent)
+          }
         >
-          <CustomPages />
-          <SidebarItems query={searchQuery} />
+          <Stack gap="none">
+            <SystemNavigation />
+            <SidebarWidgets />
+            <NavigationTree />
+          </Stack>
         </Box>
+        <Stack className="monolith-sidebar-utilities" gap="none" px="sm">
+          <WorkspaceUtilities />
+          <Button
+            icon="lucide:sliders-horizontal"
+            justify="start"
+            namespace={false}
+            variant="plain"
+            onClick={() => settings('sidebar')}
+          >
+            {ui('customizeSidebar')}
+          </Button>
+          <Flex gap="xs">
+            <Button
+              flex="1"
+              icon="lucide:settings"
+              justify="start"
+              namespace={false}
+              variant="plain"
+              onClick={() => settings()}
+            >
+              {ui('settings')}
+            </Button>
+            <Button
+              flex="1"
+              icon="lucide:archive"
+              justify="start"
+              namespace={false}
+              variant="plain"
+              onClick={() => settings('archive')}
+            >
+              {ui('archive')}
+            </Button>
+          </Flex>
+        </Stack>
         <SidebarBottomBar />
+        <SidebarResize sidebar={sidebarRef} />
       </Flex>
     </>
   )

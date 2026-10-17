@@ -1,4 +1,6 @@
 export * from './BackgroundProvider'
+export * from './AppearanceProvider'
+export * from './PageOpenPreference'
 
 export * from './ModalProvider'
 

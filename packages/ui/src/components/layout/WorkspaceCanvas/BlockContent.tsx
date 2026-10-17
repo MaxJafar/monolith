@@ -1,10 +1,10 @@
+import { type CanvasBlock, canvasLink } from '@monolith/blocks'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
-import { type CanvasBlock, canvasLink } from '@lifeforge/blocks'
-
 import { Button } from '@/components/inputs'
+import { PopoverButton } from '@/components/overlays/PopoverButton'
 import { Box, Stack, Text } from '@/components/primitives'
 
 import { useCanvasWidgets } from './CanvasWidgets'
@@ -15,16 +15,18 @@ export function CanvasBlockContent({
   editing,
   native,
   onChange,
-  onValidity
+  onValidity,
+  onInsertBlock
 }: {
   block: CanvasBlock
   editing: boolean
   native: ReactNode
   onChange: (block: CanvasBlock) => void
   onValidity: (valid: boolean) => void
+  onInsertBlock?: (kind: string, anchor: DOMRect) => void
 }) {
   const { t } = useTranslation('common.canvas')
-  const { render, widgets, databases = [] } = useCanvasWidgets()
+  const { render, widgets } = useCanvasWidgets()
 
   const update = (field: 'title' | 'content' | 'url', value: string) =>
     onChange({ ...block, [field]: value })
@@ -42,35 +44,23 @@ export function CanvasBlockContent({
   if (block.type === 'database')
     return (
       <Stack gap="sm" minWidth="0">
-        {editing && (
-          <details className="canvas-content-settings">
-            <summary>{t('changeView')}</summary>
-            <select
-              aria-label={t('changeView')}
-              value={block.database?.viewId ?? ''}
-              onChange={event =>
-                onChange({
-                  ...block,
-                  database: { ...block.database!, viewId: event.target.value }
-                })
-              }
-            >
-              {databases
-                .find(database => database.id === block.database?.baseId)
-                ?.views.map(view => (
-                  <option key={view.id} value={view.id}>
-                    {view.name}
-                  </option>
-                ))}
-            </select>
-          </details>
-        )}
-        {render('linkedDatabase', { filter: JSON.stringify(block.database) })}
+        {render('linkedDatabase', {
+          filter: JSON.stringify(block.database),
+          onViewChange: editing
+            ? viewId =>
+                onChange({ ...block, database: { ...block.database!, viewId } })
+            : undefined,
+          onHeightChange: editing
+            ? height =>
+                onChange({ ...block, database: { ...block.database!, height } })
+            : undefined
+        })}
       </Stack>
     )
   if (block.type === 'document')
     return (
       <CanvasDocumentBlock
+        onInsertBlock={onInsertBlock}
         block={block}
         editing={editing}
         onChange={onChange}
@@ -94,14 +84,13 @@ export function CanvasBlockContent({
           ))}
         {render(block.widget, { filter: block.content })}
         {editing && widgets[block.widget]?.filterable && (
-          <details className="canvas-content-settings">
-            <summary>{t('filter')}</summary>
+          <PopoverButton label={t('filter')} icon="lucide:list-filter">
             <input
               aria-label={t('filter')}
               value={block.content}
               onChange={event => update('content', event.target.value)}
             />
-          </details>
+          </PopoverButton>
         )}
       </Stack>
     )
@@ -165,8 +154,7 @@ export function CanvasBlockContent({
               {block.title || block.url}
             </Button>
           ))}
-        <details className="canvas-link-settings canvas-content-settings">
-          <summary>{t('linkSettings')}</summary>
+        <PopoverButton label={t('linkSettings')} icon="lucide:link">
           <label>
             {t('blockTitle')}
             <input
@@ -181,7 +169,7 @@ export function CanvasBlockContent({
               onChange={event => update('url', event.target.value)}
             />
           </label>
-        </details>
+        </PopoverButton>
       </Stack>
     )
   if (block.type === 'heading') return <Text as="h2">{block.title}</Text>

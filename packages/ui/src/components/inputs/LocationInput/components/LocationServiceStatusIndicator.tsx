@@ -38,7 +38,7 @@ export function LocationServiceStatusIndicator({
               as="a"
               color="primary"
               decoration="underline"
-              href="https://docs.lifeforge.melvinchia.dev/user-guide/api-keys#location"
+              href="https://github.com/MaxJafar/monolith/blob/main/README.md#provider-configuration"
               rel="noopener noreferrer"
               style={{ textDecorationThickness: '2px' }}
               target="_blank"

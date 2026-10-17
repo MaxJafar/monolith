@@ -1,7 +1,7 @@
 import { Extension, Node, mergeAttributes } from '@tiptap/core'
 import { Plugin } from '@tiptap/pm/state'
 
-import type { PageTarget } from '@lifeforge/blocks'
+import type { PageTarget } from '@monolith/blocks'
 
 export const BlockIds = Extension.create({
   name: 'blockIds',
@@ -18,7 +18,10 @@ export const BlockIds = Extension.create({
           'taskItem',
           'blockquote',
           'codeBlock',
-          'horizontalRule'
+          'horizontalRule',
+          'linkedDatabase',
+          'callout',
+          'pageEmbed'
         ],
         attributes: {
           id: {

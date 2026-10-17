@@ -85,12 +85,26 @@
   "messages": {
     "twoFA": {
       "enableSuccess": "Two-factor authentication enabled successfully.",
-      "disableSuccess": "Two-factor authentication disabled successfully."
+      "disableSuccess": "Two-factor authentication disabled successfully.",
+      "disableFailed": "Two-factor authentication could not be disabled.",
+      "setupFailed": "The setup code could not be loaded.",
+      "verifyFailed": "The code was not accepted. Try the current code from your authenticator."
     },
     "oauth": {
       "changeConfirm": "Are you sure you want to change the OAuth credentials?",
-      "changeAlert": "Updating the client ID and secret will replace existing ones. This action is not reversible."
-    }
+      "changeAlert": "Updating the client ID and secret will replace existing ones. This action is not reversible.",
+      "keepBlank": "Leave a field blank to keep its saved value. A supplied value replaces it, and saving enables this provider.",
+      "saved": "Sign-in provider saved.",
+      "loadFailed": "Provider status is unavailable.",
+      "saveFailed": "The provider could not be updated.",
+      "removeDescription": "Remove this provider’s saved credentials and sign-in option?"
+    },
+    "profileSaved": "Profile updated.",
+    "passwordSaved": "Password updated.",
+    "avatarSaved": "Profile picture updated.",
+    "avatarRemoved": "Profile picture removed.",
+    "avatarFailed": "The profile picture could not be saved.",
+    "avatarRemoveDescription": "Remove your current profile picture?"
   },
   "misc": {
     "enabled": "Enabled",
@@ -101,5 +115,19 @@
   "tabs": {
     "personalInformation": "Personal Information",
     "accountAndSecurity": "Account & Security"
+  },
+  "actions": {
+    "editField": "Edit {{field}}",
+    "enableProvider": "Enable {{provider}} sign-in",
+    "removeProvider": "Remove {{provider}}?",
+    "removeAvatar": "Remove profile picture"
+  },
+  "validation": {
+    "profile": "Enter a valid {{field}}.",
+    "required": "This field is required.",
+    "passwordLength": "Use at least 8 characters.",
+    "passwordMismatch": "The passwords do not match.",
+    "credentialChange": "Enter a new client ID or secret.",
+    "otp": "Enter the six-digit code from your authenticator."
   }
 }

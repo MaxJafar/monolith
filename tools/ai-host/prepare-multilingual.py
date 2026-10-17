@@ -10,9 +10,9 @@ import sys
 source = pathlib.Path(sys.argv[1]).resolve(strict=True)
 file = source / "tools/laya/laya-cli.cpp"
 code = file.read_text()
-if "LIFEFORGE_JSON_DAEMON" not in code:
+if "MONOLITH_JSON_DAEMON" not in code:
     edits = [
-        ('#include "laya.h"', '#include "laya.h"\n#include <iostream> // LIFEFORGE_JSON_DAEMON'),
+        ('#include "laya.h"', '#include "laya.h"\n#include <iostream> // MONOLITH_JSON_DAEMON'),
         ('int n_threads = 1;', 'bool daemon = false;\n    int n_threads = 1;'),
         ('if (arg == "-m" || arg == "--model") {',
          'if (arg == "--daemon") {\n            daemon = true;\n        } else if (arg == "-m" || arg == "--model") {'),

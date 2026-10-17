@@ -64,7 +64,9 @@ async function handleAxiosResponse<T>(
     if (data.state === 'success') {
       return data.data as T
     }
-  } else if (response.headers['x-lifeforge-downloadable'] === 'true') {
+  } else if (
+    response.headers['x-monolith-downloadable'] === 'true'
+  ) {
     return new Uint8Array(response.data) as unknown as T
   } else if (contentType.includes('text/plain')) {
     return response.data
@@ -150,7 +152,9 @@ export async function fetchAPI<T>(
     config.responseType = 'arraybuffer'
     config.transformResponse = [
       (data, headers) => {
-        if (headers['x-lifeforge-downloadable'] === 'true') {
+        if (
+          headers['x-monolith-downloadable'] === 'true'
+        ) {
           return data
         }
 

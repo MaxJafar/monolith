@@ -11,7 +11,7 @@ import type { RegistryEntry } from './registryIndex'
 
 interface InstallFromGithubOptions {
   kind: LockKind
-  /** Scope-stripped module/locale id (e.g. `lifeforge--wallet`). */
+  /** Scope-stripped module/locale id (e.g. `monolith--wallet`). */
   id: string
   entry: RegistryEntry
   targetDir: string
@@ -40,7 +40,7 @@ export async function installFromGithub({
 
   assertKebabRepo(entry.repo)
 
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-pkg-'))
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'endpoints-pkg-'))
 
   try {
     await downloadArchive(entry.repo, commitSha, tempDir)
@@ -55,7 +55,7 @@ export async function installFromGithub({
       name: string
     }
 
-    const expectedName = `@lifeforge/${id}`
+    const expectedName = `@monolith/${id}`
 
     if (pkg.name !== expectedName) {
       throw new Error(

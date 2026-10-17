@@ -1,7 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-
 @import 'react-grid-layout/css/styles.css';
-@import '@lifeforge/ui/dist/index.css';
+@import '@monolith/ui/dist/index.css';
 
 main#app {
   background-color: var(--bg-primary);

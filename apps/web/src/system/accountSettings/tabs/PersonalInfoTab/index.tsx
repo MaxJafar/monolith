@@ -1,31 +1,14 @@
 import OrdinaryColumn from '../../components/OrdinaryColumn'
+import { profileFields } from '../../profile'
 import AvatarColumn from './components/AvatarColumn'
 
-function PersonalInfoTab() {
+export default function PersonalInfoTab() {
   return (
     <>
       <AvatarColumn />
-      <OrdinaryColumn
-        icon="tabler:user"
-        id="username"
-        title="username"
-        type="text"
-      />
-      <OrdinaryColumn
-        icon="tabler:user-screen"
-        id="name"
-        title="display Name"
-        type="text"
-      />
-      <OrdinaryColumn icon="tabler:mail" id="email" title="email" type="text" />
-      <OrdinaryColumn
-        icon="tabler:cake"
-        id="dateOfBirth"
-        title="date Of Birth"
-        type="datetime"
-      />
+      {profileFields.map(field => (
+        <OrdinaryColumn key={field.id} field={field} />
+      ))}
     </>
   )
 }
-
-export default PersonalInfoTab

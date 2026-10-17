@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { encrypt, usePromiseLoading } from '@lifeforge/api'
-import type { ForgeEndpoint } from '@lifeforge/api'
+import { encrypt, usePromiseLoading } from '@monolith/api'
+import type { EndpointClient } from '@monolith/api'
 
 import { Button, TextInput } from '@/components/inputs'
 import { Box, Flex, Icon, Text } from '@/components/primitives'
@@ -14,8 +14,8 @@ export function LockedScreen({
   onRecoveryRequested,
   setMasterPassword
 }: {
-  challengeController: ForgeEndpoint
-  verifyController: ForgeEndpoint
+  challengeController: EndpointClient
+  verifyController: EndpointClient
   onRecoveryRequested?: () => void
   setMasterPassword: React.Dispatch<React.SetStateAction<string>>
 }) {

@@ -4,7 +4,7 @@ import {
   getTableName
 } from 'drizzle-orm'
 
-import type { ResolvedModuleSchema } from '@lifeforge/module-runtime/registry'
+import type { ResolvedModuleSchema } from '@monolith/module-runtime/registry'
 
 /**
  * Scopes the relations helper so bare table keys resolve to their namespaced

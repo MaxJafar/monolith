@@ -35,8 +35,8 @@ dotenv.config({ path: paths, quiet: true })
 // Setup and run CLI
 try {
   program
-    .name('pnpm forge')
-    .description('Build and manage the LifeForge ecosystem')
+    .name('pnpm monolith')
+    .description('Develop, build and manage Monolith')
     .version(getVersion())
     .enablePositionalOptions()
     .option('--host', 'Expose frontend client on the local network')
@@ -49,7 +49,11 @@ try {
     registerCommand(program)
   }
 
-  program.parse()
+  void program.parseAsync().catch(error => {
+    log.error(error instanceof Error ? error.message : String(error))
+    process.exitCode = 1
+  })
 } catch (error) {
   log.error(`Unexpected error occurred: ${error}`)
+  process.exitCode = 1
 }

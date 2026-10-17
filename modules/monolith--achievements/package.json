@@ -1,0 +1,44 @@
+{
+  "name": "@monolith/achievements",
+  "displayName": "Achievements",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MaxJafar/monolith.git",
+    "directory": "modules/monolith--achievements"
+  },
+  "version": "0.0.1",
+  "type": "module",
+  "author": "Monolith contributors",
+  "description": "Celebrate your victories big and small.",
+  "scripts": {
+    "typecheck": "pnpm run typecheck:client && pnpm run typecheck:server",
+    "typecheck:client": "cd client && tsc",
+    "typecheck:server": "cd server && tsc",
+    "build": "pnpm run build:client && pnpm run build:server",
+    "build:client": "cd client && vite build",
+    "build:server": "cd server && vite build"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "peerDependencies": {
+    "@monolith/api": "workspace:*",
+    "@monolith/configs": "workspace:*",
+    "@monolith/drizzle": "workspace:*",
+    "@monolith/federation": "workspace:*",
+    "@monolith/localization": "workspace:*",
+    "@monolith/server-utils": "workspace:*",
+    "@monolith/ui": "workspace:*"
+  },
+  "monolith": {
+    "icon": "tabler:award",
+    "category": "Lifestyle",
+    "id": "monolith--achievements",
+    "routeId": "64d61d6d14492492fe3f90334b7c3bf958866083a9f7bf742ee4c75fc0ff711f",
+    "experience": {
+      "kind": "widget",
+      "surfaces": [
+        "widget"
+      ]
+    }
+  }
+}

@@ -4,7 +4,7 @@ import { resolve } from 'path'
 import { defineConfig, esmExternalRequirePlugin } from 'vite'
 import dts from 'vite-plugin-dts'
 
-import { externalDependencyRegex } from '@lifeforge/configs/vite'
+import { externalDependencyRegex } from '@monolith/configs/vite'
 
 export default defineConfig({
   plugins: [

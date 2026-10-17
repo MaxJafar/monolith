@@ -5,6 +5,9 @@
 **/.next
 **/build
 **/*.tsbuildinfo
+**/src-tauri/target
+**/src-tauri/gen
+**/.build
 .git
 .github
 .temp
@@ -47,3 +50,4 @@ MODULE-HEADS.json
 !**/LICENSE*
 !**/NOTICE*
 !**/COPYRIGHT*
+!THIRD_PARTY_NOTICES.md

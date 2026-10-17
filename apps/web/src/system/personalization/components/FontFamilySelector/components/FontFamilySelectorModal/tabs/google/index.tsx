@@ -1,21 +1,21 @@
 import { useQuery } from '@tanstack/react-query'
 
-import type { InferOutput } from '@lifeforge/api'
-import { EmptyStateScreen, Flex, WithQuery } from '@lifeforge/ui'
+import type { InferOutput } from '@monolith/api'
+import { EmptyStateScreen, Flex, WithQuery } from '@monolith/ui'
 
-import forgeAPI from '@/core/utils/forgeAPI'
+import workspaceAPI from '@/core/utils/workspaceAPI'
 
 import GoogleFontFilter from './components/GoogleFontFilter'
 import GoogleFontList from './components/GoogleFontList'
 import { GoogleFontProvider, useGoogleFont } from './contexts/GoogleFontContext'
 
 export type FontFamily = InferOutput<
-  typeof forgeAPI.fonts.google.list
+  typeof workspaceAPI.fonts.google.list
 >['items'][number]
 
 function GoogleFontSelectorContent() {
   const apiKeyAvailable = useQuery(
-    forgeAPI
+    workspaceAPI
       .checkAPIKeys({
         keys: 'gcloud'
       })

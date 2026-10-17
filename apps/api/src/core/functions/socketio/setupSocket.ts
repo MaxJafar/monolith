@@ -1,10 +1,18 @@
 import { globalTaskPool } from '@functions/socketio/taskPool'
-import jwt from 'jsonwebtoken'
 import { Server } from 'socket.io'
 
-const JWT_SECRET = process.env.JWT_SIGNING_KEY!
+import { setupRoomsRealtime } from '../../../lib/rooms/realtime'
+import { listenDeviceRevocations } from '../../drizzle'
+import { verifyApplicationToken } from '../deviceSession'
 
 export function setupSocket(io: Server) {
+  setupRoomsRealtime(io)
+  void listenDeviceRevocations(session => {
+    io.in(`device:${session}`).disconnectSockets(true)
+  }).catch(error => {
+    console.error('Device revocation listener unavailable', error)
+    io.disconnectSockets(true)
+  })
   // QR Login namespace - no authentication required
   // This allows unauthenticated desktop clients to listen for login approval
   const qrLoginNamespace = io.of('/qr-login')
@@ -43,7 +51,11 @@ export function setupSocket(io: Server) {
     }
 
     try {
-      jwt.verify(bearerToken, JWT_SECRET, { algorithms: ['HS512'] })
+      const identity = await verifyApplicationToken(bearerToken)
+      socket.data.userId = identity.sub
+      socket.data.deviceSessionId = identity.dsid
+      socket.data.expiresAt = identity.exp! * 1000
+      if (identity.dsid) await socket.join(`device:${identity.dsid}`)
       next()
     } catch {
       next(new Error('Invalid authorization credentials'))
@@ -51,6 +63,31 @@ export function setupSocket(io: Server) {
   })
 
   io.on('connection', socket => {
+    const validate = async () => {
+      try {
+        await verifyApplicationToken(socket.handshake.auth.token as string)
+        return true
+      } catch {
+        socket.disconnect(true)
+        return false
+      }
+    }
+    socket.use(async (_packet, next) => {
+      if (await validate()) next()
+      else next(new Error('Authentication expired'))
+    })
+    // Notification loss and quiet sockets cannot retain an expired credential.
+    const revalidate = setInterval(() => {
+      void validate()
+    }, 15_000)
+    const expiry = setTimeout(
+      () => socket.disconnect(true),
+      Math.max(0, socket.data.expiresAt - Date.now())
+    )
+    socket.on('disconnect', () => {
+      clearInterval(revalidate)
+      clearTimeout(expiry)
+    })
     for (const task in globalTaskPool) {
       const taskData = globalTaskPool[task]
 

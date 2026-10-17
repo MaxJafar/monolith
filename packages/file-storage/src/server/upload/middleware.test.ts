@@ -10,7 +10,7 @@ const { TEST_ROOT } = vi.hoisted(() => ({
   TEST_ROOT: `${process.cwd()}/temp_test_upload_middleware`
 }))
 
-vi.mock('@lifeforge/configs/node', () => ({
+vi.mock('@monolith/configs/node', () => ({
   findProjectRoot: () => TEST_ROOT
 }))
 

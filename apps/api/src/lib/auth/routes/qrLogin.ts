@@ -2,7 +2,7 @@ import { v4 } from 'uuid'
 import z from 'zod'
 
 import { getCookieOptions } from '../constants/cookie'
-import forge from '../forge'
+import endpoints from '../endpoints'
 import { sessions } from '../utils/qrLogin'
 import { storeRefreshToken } from '../utils/refreshTokenStore'
 import {
@@ -11,7 +11,7 @@ import {
   signAccessToken
 } from '../utils/tokens'
 
-export const register = forge
+export const register = endpoints
   .mutation({
     description: 'Register a new QR login session',
     noAuth: true,
@@ -46,7 +46,7 @@ export const register = forge
     })
   })
 
-export const approve = forge
+export const approve = endpoints
   .mutation({
     description: 'Approve a QR login request from an authenticated device',
     encrypted: false,
@@ -107,7 +107,7 @@ export const approve = forge
     })
   })
 
-export const status = forge
+export const status = endpoints
   .query({
     description: 'Check QR login session status',
     noAuth: true,
@@ -160,7 +160,7 @@ export const status = forge
     })
   })
 
-export const claim = forge
+export const claim = endpoints
   .mutation({
     description: 'Claim approved QR login session and set auth cookie',
     noAuth: true,

@@ -3,7 +3,7 @@ import { Fragment, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation } from 'react-router'
 
-import { useFederation } from '@lifeforge/federation'
+import { useFederation } from '@monolith/federation'
 import {
   Box,
   EmptyStateScreen,
@@ -11,7 +11,7 @@ import {
   MainSidebarItem,
   useMainSidebarState,
   usePersonalization
-} from '@lifeforge/ui'
+} from '@monolith/ui'
 
 import { useWorkspace } from '@/core/workspaces/WorkspaceProvider'
 

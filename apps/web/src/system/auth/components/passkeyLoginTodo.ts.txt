@@ -24,7 +24,7 @@ async function fetchPassKeyChallenge(): Promise<string> {
 
 async function registerWithPasskey() {
   const res = await webauthn.client.register(
-    'melvinchia623600@gmail.com',
+    'contributor@example.invalid',
     '20e47b44-293a-417a-8559-d7f32affd8b4',
     {
       authenticatorType: 'both',

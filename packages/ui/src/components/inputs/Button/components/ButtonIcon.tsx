@@ -26,7 +26,19 @@ function _ButtonIcon({
     return icon
   }, [icon, disabled, loading, hasChildren])
 
-  return <Icon {...rest} icon={finalIcon} />
+  return (
+    <Icon
+      color="inherit"
+      {...rest}
+      style={{
+        ...(!rest.color || rest.color === 'inherit'
+          ? { color: 'inherit' }
+          : {}),
+        ...rest.style
+      }}
+      icon={finalIcon}
+    />
+  )
 }
 
 export const ButtonIcon = memo(_ButtonIcon)

@@ -1,99 +1,54 @@
-import getAPIKeyFactory, {
-  validateCallerAccess
-} from '@functions/database/getAPIKey'
-import { createServiceLogger } from '@functions/logging'
-import chalk from 'chalk'
-import OpenAI from 'openai'
-import z from 'zod'
+import type { ZodType } from 'zod'
 
-import { ClientError, FetchAIFunc } from '@lifeforge/server-utils'
+import { ClientError, type FetchAIFunc } from '@monolith/server-utils'
 
 import type { db } from '../../../drizzle'
-import { getProvider, registerProvider } from './providers'
+import getAPIKeyFactory, {
+  validateCallerAccess
+} from '../../database/getAPIKey'
+import {
+  type CompletionRequest,
+  getProvider,
+  registerProvider
+} from './providers'
 import { deepseekProvider } from './providers/deepseek.provider'
 import { groqProvider } from './providers/groq.provider'
 import { ollamaProvider } from './providers/ollama.provider'
 import { openaiProvider } from './providers/openai.provider'
 import { openrouterProvider } from './providers/openrouter.provider'
 
-const logger = createServiceLogger('AI')
+for (const provider of [
+  openaiProvider,
+  groqProvider,
+  ollamaProvider,
+  deepseekProvider,
+  openrouterProvider
+])
+  registerProvider(provider.name, provider)
 
-registerProvider('openai', openaiProvider)
-registerProvider('groq', groqProvider)
-registerProvider('ollama', ollamaProvider)
-registerProvider('deepseek', deepseekProvider)
-registerProvider('openrouter', openrouterProvider)
+type Caller = { source: 'app' | 'core'; id: string }
 
-type CallerModule = { source: 'app' | 'core'; id: string }
-
-type AIProvider = 'groq' | 'openai' | 'ollama' | 'deepseek' | 'openrouter'
-
-type FetchAIArgs<T extends z.ZodTypeAny | undefined = undefined> = {
-  provider: AIProvider
-  model: string
-  messages: OpenAI.ChatCompletionMessageParam[]
-  structure?: T
-}
-
-async function fetchAI<T extends z.ZodTypeAny | undefined = undefined>(
-  database: typeof db,
-  callerModule: CallerModule,
-  { provider, model, messages, structure }: FetchAIArgs<T>
-): Promise<(T extends z.ZodTypeAny ? z.infer<T> : string) | null> {
-  const aiProvider = getProvider(provider)
-
-  if (!aiProvider) {
-    throw new ClientError(`AI provider ${provider} is not registered.`)
-  }
-
-  let apiKey: string | undefined
-
-  if (aiProvider.requireAPIKey) {
-    await validateCallerAccess(callerModule, provider)
-
-    const fetchedKey = await getAPIKeyFactory(database, callerModule)(provider)
-
-    if (!fetchedKey) {
-      throw new ClientError(`API key for ${provider} not found.`)
-    }
-    apiKey = fetchedKey
-  }
-
-  logger.debug(
-    `${chalk.blue(callerModule)} is sending ${chalk.blue(messages.length)} message(s) to ${chalk.green(
-      model
-    )} on provider ${chalk.green(provider)} using model: ${chalk.green(model)}.`
-  )
-
-  return aiProvider.fetch({
-    model,
-    messages,
-    apiKey,
-    structure
-  })
-}
-
-/**
- * Binds `fetchAI` to the caller module (resolved from the route context) so it
- * doesn't need to detect the caller at runtime.
- */
 export default function createFetchAI(
   database: typeof db,
-  callerModule: CallerModule | undefined
+  caller: Caller | undefined
 ): FetchAIFunc {
-  function boundFetchAI<T extends z.ZodTypeAny | undefined = undefined>(
-    args: FetchAIArgs<T>
-  ): Promise<(T extends z.ZodTypeAny ? z.infer<T> : string) | null> {
-    if (!callerModule) {
-      throw new Error(
-        'Unable to determine caller module for API key validation.'
-      )
+  return async <T extends ZodType | undefined = undefined>(
+    request: Omit<CompletionRequest<T>, 'apiKey'> & { provider: string }
+  ) => {
+    if (!caller)
+      throw new Error('A caller identity is required to access AI providers')
+    const provider = getProvider(request.provider)
+    if (!provider)
+      throw new ClientError('Unknown AI provider: ' + request.provider)
+    let apiKey: string | undefined
+    if (provider.requireAPIKey) {
+      await validateCallerAccess(caller, provider.name)
+      apiKey = await getAPIKeyFactory(database, caller)(provider.name)
+      if (!apiKey)
+        throw new ClientError('Missing credential for ' + provider.name)
     }
-
-    return fetchAI(database, callerModule, args)
+    return provider.fetch({ ...request, apiKey })
   }
-
-  return boundFetchAI as FetchAIFunc
 }
 
 export { getProvider, registerProvider } from './providers'

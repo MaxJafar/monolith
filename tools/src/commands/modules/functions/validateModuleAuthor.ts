@@ -22,16 +22,16 @@ export default async function validateModuleAuthor(modulePath: string) {
     process.exit(1)
   }
 
-  const nameWithoutScope = packageJson.data.name.replace('@lifeforge/', '')
+  const nameWithoutScope = packageJson.data.name.replace('@monolith/', '')
 
-  const usernamePrefix = nameWithoutScope.split('--')[0]
+  const usernamePrefix = nameWithoutScope.includes('--') ? nameWithoutScope.split('--')[0] : 'monolith'
 
   if (usernamePrefix && usernamePrefix !== username) {
-    if (usernamePrefix === 'lifeforge') {
+    if (usernamePrefix === 'monolith') {
       validateMaintainerAccess(username)
     } else {
       log.error(
-        `Cannot publish as "${username}" - package belongs to "${usernamePrefix}". You can only publish packages starting with @lifeforge/${username}--`
+        `Cannot publish as "${username}" - package belongs to "${usernamePrefix}". You can only publish packages starting with @monolith/${username}--`
       )
       process.exit(1)
     }

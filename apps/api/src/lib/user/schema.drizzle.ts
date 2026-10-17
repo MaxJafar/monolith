@@ -10,7 +10,7 @@ import {
   varchar
 } from 'drizzle-orm/pg-core'
 
-import type { CanvasPage } from '@lifeforge/blocks'
+import type { CanvasPage } from '@monolith/blocks'
 
 export const users = pgTable('users', {
   id: uuid('id').defaultRandom().primaryKey(),

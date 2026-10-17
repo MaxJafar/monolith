@@ -11,9 +11,9 @@ import {
   WithQuery,
   useModalStore,
   usePersonalization
-} from '@lifeforge/ui'
+} from '@monolith/ui'
 
-import forgeAPI from '@/core/utils/forgeAPI'
+import workspaceAPI from '@/core/utils/workspaceAPI'
 
 import FontFamilySelectorModal from './components/FontFamilySelectorModal'
 
@@ -23,7 +23,7 @@ function FontFamilySelector() {
   const { fontFamily } = usePersonalization()
 
   const customFontQuery = useQuery(
-    forgeAPI.fonts.custom.get
+    workspaceAPI.fonts.custom.get
       .input({
         id: fontFamily.replace('custom:', '')
       })

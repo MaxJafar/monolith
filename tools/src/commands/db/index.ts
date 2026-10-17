@@ -19,7 +19,7 @@ export default function setup(program: Command): void {
     .command('generate')
     .description('Generate SQL migrations from Drizzle schemas')
     .action(() => {
-      executeCommand('pnpm --filter @lifeforge/server db:generate', {
+      executeCommand('pnpm --filter @monolith/server db:generate', {
         cwd: ROOT_DIR,
         stdio: 'inherit'
       })
@@ -29,7 +29,7 @@ export default function setup(program: Command): void {
     .command('migrate')
     .description('Apply generated SQL migrations')
     .action(() => {
-      executeCommand('pnpm --filter @lifeforge/server db:migrate', {
+      executeCommand('pnpm --filter @monolith/server db:migrate', {
         cwd: ROOT_DIR,
         stdio: 'inherit'
       })

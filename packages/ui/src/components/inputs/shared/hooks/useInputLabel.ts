@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import { useModuleTranslation } from '@lifeforge/localization'
+import { useModuleTranslation } from '@monolith/localization'
 
 export function useInputLabel({
   namespace,

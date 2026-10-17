@@ -1,6 +1,6 @@
 import { memo, useRef, useState } from 'react'
 
-import { usePromiseLoading } from '@lifeforge/api'
+import { usePromiseLoading } from '@monolith/api'
 
 import { Flex } from '@/components/primitives'
 

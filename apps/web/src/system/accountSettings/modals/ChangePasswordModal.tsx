@@ -1,98 +1,82 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
-import z from 'zod'
+import { useTranslation } from 'react-i18next'
 
-import { FormModal, TextField, createDefaultValues, toast } from '@lifeforge/ui'
+import { FormModal, TextField, toast } from '@monolith/ui'
 
-import forgeAPI from '@/core/utils/forgeAPI'
+import workspaceAPI from '@/core/utils/workspaceAPI'
 
-const schema = z
-  .object({
-    oldPassword: z.string().min(1, 'Password is required'),
-    password: z.string().min(8, 'Password must be at least 8 characters'),
-    passwordConfirm: z
-      .string()
-      .min(8, 'Confirm Password must be at least 8 characters')
-  })
-  .superRefine(({ password, passwordConfirm }, ctx) => {
-    if (passwordConfirm !== password) {
-      ctx.addIssue({
-        code: 'custom',
-        message: 'Passwords do not match',
-        path: ['passwordConfirm']
-      })
-    }
-  })
+import { passwordSchema } from '../profile'
 
 export default function ChangePasswordModal({
   onClose
 }: {
   onClose: () => void
 }) {
-  const mutation = useMutation(
-    forgeAPI.user.settings.updatePassword.mutationOptions({
-      onSuccess: () => {
-        toast.success('Password updated successfully')
-        onClose()
-      },
-      onError: err => {
-        const msg =
-          err?.response?.data?.message ||
-          err?.message ||
-          'Failed to update password'
-        toast.error(msg)
-      }
-    })
-  )
-
+  const { t } = useTranslation('common.account-settings')
   const form = useForm({
-    defaultValues: createDefaultValues(schema),
-    mode: 'all',
-    resolver: zodResolver(schema)
+    defaultValues: { oldPassword: '', password: '', passwordConfirm: '' },
+    resolver: zodResolver(
+      passwordSchema({
+        required: t('validation.required'),
+        length: t('validation.passwordLength'),
+        mismatch: t('validation.passwordMismatch')
+      })
+    )
   })
+  const fields = [
+    {
+      name: 'oldPassword',
+      label: 'currentPassword',
+      icon: 'tabler:lock',
+      autocomplete: 'current-password'
+    },
+    {
+      name: 'password',
+      label: 'newPassword',
+      icon: 'tabler:lock-open',
+      autocomplete: 'new-password'
+    },
+    {
+      name: 'passwordConfirm',
+      label: 'confirmPassword',
+      icon: 'tabler:lock-check',
+      autocomplete: 'new-password'
+    }
+  ] as const
 
   return (
     <FormModal
       form={form}
-      submissionConfig={{
-        handler: mutation.mutateAsync,
-        template: 'update'
-      }}
       uiConfig={{
+        title: 'changePassword.title',
         icon: 'tabler:key',
         namespace: 'common.account-settings',
-        title: 'changePassword.title',
         onClose
       }}
+      submissionConfig={{
+        template: 'update',
+        handler: async values => {
+          await workspaceAPI.user.settings.updatePassword.mutateRaw(values)
+          form.reset()
+          toast.success(t('messages.passwordSaved'))
+        }
+      }}
     >
-      <TextField
-        isPassword
-        required
-        control={form.control}
-        icon="tabler:lock"
-        label="currentPassword"
-        name="oldPassword"
-        placeholder=""
-      />
-      <TextField
-        isPassword
-        required
-        control={form.control}
-        icon="tabler:lock-open"
-        label="newPassword"
-        name="password"
-        placeholder=""
-      />
-      <TextField
-        isPassword
-        required
-        control={form.control}
-        icon="tabler:lock-check"
-        label="confirmPassword"
-        name="passwordConfirm"
-        placeholder=""
-      />
+      {fields.map(field => (
+        <TextField
+          key={field.name}
+          control={form.control}
+          name={field.name}
+          label={field.label}
+          icon={field.icon}
+          autoComplete={field.autocomplete}
+          placeholder=""
+          required
+          isPassword
+          disabled={form.formState.isSubmitting}
+        />
+      ))}
     </FormModal>
   )
 }

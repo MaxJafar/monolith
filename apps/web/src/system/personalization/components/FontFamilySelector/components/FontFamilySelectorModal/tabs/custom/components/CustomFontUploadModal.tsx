@@ -13,9 +13,9 @@ import {
   fileValueSchema,
   getFormFileFieldInitialData,
   toast
-} from '@lifeforge/ui'
+} from '@monolith/ui'
 
-import forgeAPI from '@/core/utils/forgeAPI'
+import workspaceAPI from '@/core/utils/workspaceAPI'
 
 import type { CustomFont } from '..'
 import { detectFontMetadata } from '../../../../../utils/detectFontMetadata'
@@ -52,14 +52,14 @@ function CustomFontUploadModal({
   const queryClient = useQueryClient()
 
   const uploadMutation = useMutation(
-    forgeAPI.fonts.custom.upload
+    workspaceAPI.fonts.custom.upload
       .input({
         id: openType === 'edit' && initialData ? initialData.id : undefined
       })
       .mutationOptions({
         onSuccess: () => {
           queryClient.invalidateQueries({
-            queryKey: forgeAPI.fonts.custom.list.key
+            queryKey: workspaceAPI.fonts.custom.list.key
           })
           toast.success('Custom font uploaded successfully!')
           onClose()
@@ -75,7 +75,7 @@ function CustomFontUploadModal({
       ...createDefaultValues(schema),
       ...initialData,
       file: getFormFileFieldInitialData(
-        forgeAPI,
+        workspaceAPI,
         initialData,
         initialData?.file
       ),

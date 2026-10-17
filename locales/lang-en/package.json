@@ -1,9 +1,9 @@
 {
-  "name": "@lifeforge/lifeforge--lang-en",
+  "name": "@monolith/lang-en",
   "version": "0.0.1",
-  "description": "English language support for LifeForge.",
-  "author": "melvinchia3636 <melvinchia623600@gmail.com>",
-  "lifeforge": {
+  "description": "English language support for Monolith.",
+  "author": "Monolith contributors",
+  "monolith": {
     "code": "en",
     "displayName": "English",
     "icon": "circle-flags:gb"

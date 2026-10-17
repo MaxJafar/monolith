@@ -1,5 +1,5 @@
 {
-  "name": "@lifeforge/federation",
+  "name": "@monolith/federation",
   "version": "0.0.1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -10,7 +10,8 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@lifeforge/api": "workspace:*",
+    "@monolith/api": "workspace:*",
     "@module-federation/runtime": "^2.8.0"
-  }
+  },
+  "author": "Monolith contributors"
 }

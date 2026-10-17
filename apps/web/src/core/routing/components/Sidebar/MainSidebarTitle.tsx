@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 
-import { useFederation } from '@lifeforge/federation'
-import { Text, usePersonalization } from '@lifeforge/ui'
+import { useFederation } from '@monolith/federation'
+import { Text, usePersonalization } from '@monolith/ui'
 
 function MainSidebarTitle({ title }: { title: string }) {
   const { categoryTranslations } = useFederation()

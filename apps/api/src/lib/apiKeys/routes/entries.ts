@@ -3,231 +3,125 @@ import { eq } from 'drizzle-orm'
 import { createSelectSchema } from 'drizzle-orm/zod'
 import z from 'zod'
 
-import { forgeRouter } from '@lifeforge/server-utils'
+import { defineRoutes } from '@monolith/server-utils'
 
-import forge from '../forge'
+import endpoints from '../endpoints'
 import { apiKeysEntries } from '../schema.drizzle'
 
 const entrySchema = createSelectSchema(apiKeysEntries)
+const fields = z.object({
+  keyId: z.string(),
+  name: z.string(),
+  icon: z.string(),
+  key: z.string(),
+  exposable: z.boolean()
+})
+const identity = z.object({ id: z.string() })
+function master(): string {
+  const key = process.env.MASTER_KEY
+  if (!key) throw new Error('MASTER_KEY must be configured')
+  return key
+}
+function preview<T extends { key: string }>(entry: T): T {
+  return { ...entry, key: decrypt2(entry.key, master()).slice(-4) }
+}
 
-const get = forge
-  .query({
-    description:
-      'Retrieve API key by key ID. Only exposable keys can be retrieved.',
-    input: {
-      query: z.object({
-        keyId: z.string()
-      })
-    },
-    output: {
-      OK: z.string().nullable()
-    }
-  })
-  .callback(async ({ db, query: { keyId }, response }) => {
-    const entry = await db.query.apiKeysEntries.findFirst({
-      where: { keyId }
+export default defineRoutes({
+  get: endpoints
+    .query({
+      description: 'Read a key explicitly marked for client access',
+      input: { query: z.object({ keyId: z.string() }) },
+      output: { OK: z.string().nullable() }
     })
-
-    if (!entry) {
-      return response.ok(null)
-    }
-
-    if (!entry.exposable) {
-      return response.forbidden()
-    }
-
-    try {
-      const decryptedKey = decrypt2(
-        entry.key,
-        process.env.MASTER_KEY!
-      ).toString()
-
-      return response.ok(decryptedKey)
-    } catch {
-      return response.forbidden()
-    }
-  })
-
-const list = forge
-  .query({
-    description: 'Retrieve all API key entries',
-    input: {},
-    output: {
-      OK: z.array(entrySchema)
-    }
-  })
-  .callback(async ({ db, response }) => {
-    const entries = await db.query.apiKeysEntries.findMany({
-      orderBy: { name: 'asc' }
-    })
-
-    const mappedEntries = entries.map(entry => ({
-      id: entry.id,
-      keyId: entry.keyId,
-      name: entry.name,
-      icon: entry.icon,
-      key: decrypt2(entry.key, process.env.MASTER_KEY!).toString().slice(-4),
-      exposable: entry.exposable,
-      created: entry.created,
-      updated: entry.updated
-    }))
-
-    return response.ok(mappedEntries)
-  })
-
-const checkKeys = forge
-  .query({
-    description: 'Verify if API keys exist.',
-    input: {
-      query: z.object({
-        keys: z.string()
+    .callback(async ({ db, query, response }) => {
+      const entry = await db.query.apiKeysEntries.findFirst({
+        where: { keyId: query.keyId }
       })
-    },
-    output: {
-      OK: z.boolean()
-    }
-  })
-  .callback(async ({ query: { keys }, core: { api }, response }) => {
-    for (const key of keys.split(',')) {
+      if (!entry) return response.ok(null)
+      if (!entry.exposable) return response.forbidden()
       try {
-        await api.getAPIKey(key)
+        return response.ok(decrypt2(entry.key, master()))
+      } catch {
+        return response.forbidden()
+      }
+    }),
+  list: endpoints
+    .query({
+      description: 'List credentials with masked values',
+      output: { OK: z.array(entrySchema) }
+    })
+    .callback(async ({ db, response }) =>
+      response.ok(
+        (
+          await db.query.apiKeysEntries.findMany({ orderBy: { name: 'asc' } })
+        ).map(preview)
+      )
+    ),
+  checkKeys: endpoints
+    .query({
+      description: 'Check availability of the requested credentials',
+      input: { query: z.object({ keys: z.string() }) },
+      output: { OK: z.boolean() }
+    })
+    .callback(async ({ query, core, response }) => {
+      const required = [
+        ...new Set(query.keys.split(',').map(key => key.trim()))
+      ]
+      try {
+        await Promise.all(required.map(key => core.api.getAPIKey(key)))
+        return response.ok(true)
       } catch {
         return response.ok(false)
       }
-    }
-
-    return response.ok(true)
-  })
-
-const create = forge
-  .mutation({
-    description: 'Create a new API key entry',
-    input: {
-      body: z.object({
-        keyId: z.string(),
-        name: z.string(),
-        icon: z.string(),
-        key: z.string(),
-        exposable: z.boolean()
-      })
-    },
-    output: {
-      CREATED: entrySchema
-    }
-  })
-  .callback(
-    async ({ db, body: { keyId, name, icon, key, exposable }, response }) => {
-      const encryptedKey = encrypt2(key, process.env.MASTER_KEY!)
-
+    }),
+  create: endpoints
+    .mutation({
+      description: 'Store an encrypted credential',
+      input: { body: fields },
+      output: { CREATED: entrySchema }
+    })
+    .callback(async ({ db, body, response }) => {
       const [entry] = await db
         .insert(apiKeysEntries)
-        .values({
-          keyId,
-          name,
-          icon,
-          exposable,
-          key: encryptedKey
-        })
+        .values({ ...body, key: encrypt2(body.key, master()) })
         .returning()
-
-      if (!entry) {
-        return response.badRequest('Failed to create API key entry')
-      }
-
-      return response.created({
-        ...entry,
-        key: key.slice(-4),
-        created: entry.created,
-        updated: entry.updated
-      })
-    }
-  )
-
-const update = forge
-  .mutation({
-    description: 'Update an existing API key entry',
-    input: {
-      query: z.object({
-        id: z.string()
-      }),
-      body: z.object({
-        keyId: z.string(),
-        name: z.string(),
-        icon: z.string(),
-        key: z.string(),
-        exposable: z.boolean(),
-        overrideKey: z.boolean()
-      })
-    },
-    output: {
-      OK: entrySchema
-    }
-  })
-  .callback(
-    async ({
-      db,
-      query: { id },
-      body: { keyId, name, icon, key, exposable, overrideKey },
-      response
-    }) => {
-      const encryptedKey = encrypt2(key, process.env.MASTER_KEY!)
-
-      const [updatedEntry] = await db
+      return entry
+        ? response.created({ ...entry, key: body.key.slice(-4) })
+        : response.badRequest('Credential could not be created')
+    }),
+  update: endpoints
+    .mutation({
+      description: 'Edit credential metadata or replace its secret',
+      input: {
+        query: identity,
+        body: fields.extend({ overrideKey: z.boolean() })
+      },
+      output: { OK: entrySchema }
+    })
+    .callback(async ({ db, query, body, response }) => {
+      const { overrideKey, key, ...metadata } = body
+      const [entry] = await db
         .update(apiKeysEntries)
         .set({
-          keyId,
-          name,
-          icon,
-          exposable,
-          ...(overrideKey ? { key: encryptedKey } : {}),
-          updated: new Date()
+          ...metadata,
+          updated: new Date(),
+          ...(overrideKey ? { key: encrypt2(key, master()) } : {})
         })
-        .where(eq(apiKeysEntries.id, id))
+        .where(eq(apiKeysEntries.id, query.id))
         .returning()
-
-      if (!updatedEntry) {
-        return response.notFound()
-      }
-
-      return response.ok({
-        ...updatedEntry,
-        key: key.slice(-4),
-        created: updatedEntry.created,
-        updated: updatedEntry.updated
-      })
-    }
-  )
-
-const remove = forge
-  .mutation({
-    description: 'Delete an API key entry',
-    input: {
-      query: z.object({
-        id: z.string()
-      })
-    },
-    output: {
-      NO_CONTENT: true
-    }
-  })
-  .callback(async ({ db, query: { id }, response }) => {
-    const [deleted] = await db
-      .delete(apiKeysEntries)
-      .where(eq(apiKeysEntries.id, id))
-      .returning()
-
-    if (!deleted) {
-      return response.notFound()
-    }
-
-    return response.noContent()
-  })
-
-export default forgeRouter({
-  get,
-  list,
-  checkKeys,
-  create,
-  update,
-  remove
+      return entry ? response.ok(preview(entry)) : response.notFound()
+    }),
+  remove: endpoints
+    .mutation({
+      description: 'Remove a stored credential',
+      input: { query: identity },
+      output: { NO_CONTENT: true }
+    })
+    .callback(async ({ db, query, response }) => {
+      const removed = await db
+        .delete(apiKeysEntries)
+        .where(eq(apiKeysEntries.id, query.id))
+        .returning({ id: apiKeysEntries.id })
+      return removed.length ? response.noContent() : response.notFound()
+    })
 })

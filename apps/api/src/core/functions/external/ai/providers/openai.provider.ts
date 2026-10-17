@@ -1,110 +1,76 @@
-import { createServiceLogger } from '@functions/logging'
-import { zodTextFormat } from '@functions/utils/zodResponseFormat'
-import chalk from 'chalk'
 import OpenAI from 'openai'
-import z from 'zod'
+import { zodTextFormat } from 'openai/helpers/zod'
+import type { ZodType } from 'zod'
 
-import { AIProvider } from './index'
+import type { AIProvider, CompletionRequest, CompletionValue } from './index'
 
-const logger = createServiceLogger('AI')
-
-/** Translate the shared Chat message contract to the Responses input contract. */
+/** The SDK contract supports text and images; tool execution belongs to the agent runtime. */
 export function toResponsesInput(
   messages: OpenAI.ChatCompletionMessageParam[]
 ): OpenAI.Responses.ResponseInput {
-  return messages.map(message => {
+  const input: OpenAI.Responses.ResponseInput = []
+  for (const message of messages) {
     if (
       message.role === 'tool' ||
       message.role === 'function' ||
       (message.role === 'assistant' &&
         (message.tool_calls?.length || message.function_call))
-    ) {
+    )
       throw new Error(
         'Tool messages are not supported by this text/image provider'
       )
+    if (typeof message.content === 'string') {
+      input.push({ role: message.role, content: message.content })
+      continue
     }
-
-    const content =
-      typeof message.content === 'string'
-        ? message.content
-        : (message.content ?? []).map(part => {
-            if (part.type === 'text')
-              return { type: 'input_text' as const, text: part.text }
-            if (part.type === 'image_url')
-              return {
-                type: 'input_image' as const,
-                image_url: part.image_url.url,
-                detail: part.image_url.detail ?? ('auto' as const)
-              }
-            throw new Error(`Unsupported message content: ${part.type}`)
+    const content: OpenAI.Responses.ResponseInputContent[] = []
+    for (const part of message.content ?? []) {
+      switch (part.type) {
+        case 'text':
+          content.push({ type: 'input_text', text: part.text })
+          break
+        case 'image_url':
+          content.push({
+            type: 'input_image',
+            image_url: part.image_url.url,
+            detail: part.image_url.detail ?? 'auto'
           })
-
-    return { role: message.role, content }
-  })
-}
-
-async function fetchOpenAI<
-  T extends z.ZodTypeAny | undefined = undefined
->(params: {
-  model: string
-  messages: OpenAI.ChatCompletionMessageParam[]
-  apiKey?: string
-  structure?: T
-}): Promise<(T extends z.ZodTypeAny ? z.infer<T> : string) | null> {
-  const { model, messages, apiKey, structure } = params
-
-  if (!apiKey) {
-    throw new Error('API key is required for OpenAI provider')
-  }
-
-  const client = new OpenAI({ apiKey })
-
-  if (structure) {
-    const completion = await client.responses.parse({
-      model,
-      input: toResponsesInput(messages),
-      text: {
-        format: zodTextFormat(structure, 'response')
+          break
+        default:
+          throw new Error('Unsupported message content: ' + part.type)
       }
-    })
-
-    const parsedResponse = completion.output_parsed
-
-    if (!parsedResponse) {
-      logger.error('No structured response received from OpenAI model.')
-
-      return null
     }
-
-    logger.debug(
-      `Received structured response (${chalk.blue(Object.keys(parsedResponse).length)} fields) from OpenAI model: ${chalk.green(model)}`
-    )
-
-    return parsedResponse as T extends z.ZodTypeAny ? z.infer<T> : string
+    input.push({ role: message.role, content })
   }
-
-  const response = await client.responses.create({
-    input: toResponsesInput(messages),
-    model
-  })
-
-  const res = response.output_text
-
-  if (!res) {
-    logger.error('No text response received from OpenAI model.')
-
-    return null
-  }
-
-  logger.debug(
-    `Received text response (${chalk.blue(res.length)} characters) from OpenAI model: ${chalk.green(model)}`
-  )
-
-  return res as T extends z.ZodTypeAny ? z.infer<T> : string
+  return input
 }
 
 export const openaiProvider: AIProvider = {
   name: 'openai',
   requireAPIKey: true,
-  fetch: fetchOpenAI
+  async fetch<T extends ZodType | undefined = undefined>(
+    request: CompletionRequest<T>
+  ): Promise<CompletionValue<T> | null> {
+    if (!request.apiKey)
+      throw new Error('API key is required for OpenAI provider')
+    const client = new OpenAI({
+      apiKey: request.apiKey,
+      timeout: 120_000,
+      maxRetries: 1
+    })
+    const input = toResponsesInput(request.messages)
+    if (request.structure) {
+      const result = await client.responses.parse({
+        model: request.model,
+        input,
+        text: { format: zodTextFormat(request.structure, 'response') }
+      })
+      return (result.output_parsed ?? null) as CompletionValue<T> | null
+    }
+    const result = await client.responses.create({
+      model: request.model,
+      input
+    })
+    return (result.output_text || null) as CompletionValue<T> | null
+  }
 }

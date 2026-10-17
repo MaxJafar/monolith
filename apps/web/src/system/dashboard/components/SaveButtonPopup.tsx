@@ -1,7 +1,7 @@
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Button, Flex, Icon, Stack, Text } from '@lifeforge/ui'
+import { Button, Flex, Icon, Stack, Text } from '@monolith/ui'
 
 function SaveButtonPopup({
   canChange,

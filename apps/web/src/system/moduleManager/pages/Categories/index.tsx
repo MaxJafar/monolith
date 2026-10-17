@@ -1,141 +1,144 @@
 import {
   DndContext,
+  type DragEndEvent,
   KeyboardSensor,
   PointerSensor,
   closestCenter,
   useSensor,
   useSensors
 } from '@dnd-kit/core'
-import type { DragEndEvent } from '@dnd-kit/core'
 import {
   SortableContext,
-  arrayMove,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy
 } from '@dnd-kit/sortable'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { SYSTEM_CATEGORIES, useFederation } from '@lifeforge/federation'
+import { SYSTEM_CATEGORIES, useFederation } from '@monolith/federation'
 import {
   Alert,
   Button,
+  ConfirmationModal,
   EmptyStateScreen,
   ModuleHeader,
   Stack,
   Text,
+  WithQuery,
   toast,
   useModalStore
-} from '@lifeforge/ui'
+} from '@monolith/ui'
 
-import forgeAPI from '@/core/utils/forgeAPI'
+import workspaceAPI from '@/core/utils/workspaceAPI'
 
 import CategoryItem from './components/CategoryItem'
 import ModifyCategoryModal from './components/ModifyCategoryModal'
+import {
+  type Category,
+  CategoryConflict,
+  type CategoryMap,
+  deleteCategory,
+  editCategories,
+  reorderCategories
+} from './model'
 
-function Categories() {
+const endpoint = workspaceAPI.modules.categories
+const systemKeys = new Set(SYSTEM_CATEGORIES.map(name => name.toLowerCase()))
+
+export default function Categories() {
   const { t } = useTranslation('common.module-manager')
   const { open } = useModalStore()
-  const { categoryTranslations, moduleGroups, refetch } = useFederation()
+  const federation = useFederation()
+  const cache = useQueryClient()
+  const query = useQuery(endpoint.list.queryOptions())
+  const locked = useRef(false)
 
-  const [items, setItems] = useState<
-    Array<{ key: string; value: Record<string, string> }>
-  >([])
-  const missingKeys = useMemo(() => {
-    const allKeys = [
-      ...new Set([
-        ...Object.keys(categoryTranslations),
-        ...moduleGroups
-          .flatMap(module =>
-            module.items.map(item => item.category.toLowerCase())
-          )
-          .filter(
-            key =>
-              !SYSTEM_CATEGORIES.map(cat => cat.toLowerCase()).includes(key)
-          )
-      ])
-    ]
+  const mutation = useMutation({
+    mutationFn: (data: CategoryMap) => endpoint.update.mutate({ data }),
+    onMutate: async data => {
+      await cache.cancelQueries({ queryKey: endpoint.list.key })
+      const previous = cache.getQueryData<CategoryMap>(endpoint.list.key)
+      cache.setQueryData(endpoint.list.key, data)
 
-    return allKeys.filter(key => !categoryTranslations[key])
-  }, [categoryTranslations, moduleGroups])
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates
-    })
-  )
-  useEffect(() => {
-    setItems(
-      Object.entries(categoryTranslations).map(([key, value]) => ({
-        key,
-        value
-      }))
-    )
-  }, [categoryTranslations])
+      return { previous }
+    },
+    onError: (_error, _data, context) =>
+      cache.setQueryData(endpoint.list.key, context?.previous),
+    onSuccess: (_result, data) => {
+      federation.setCategoryTranslations(data)
+      void federation.refetch
+        .current()
+        .catch(() => toast.error(t('categoryEditor.refreshFailed')))
+    }
+  })
 
-  const handleModify = async (
-    categories: Array<{ key: string; value: Record<string, string> }>,
-    oldKey?: string
-  ) => {
+  async function save(next: CategoryMap) {
+    if (locked.current) throw new Error(t('categoryEditor.saving'))
+    locked.current = true
+
     try {
-      const newCategoryTranslations = JSON.parse(
-        JSON.stringify(categoryTranslations)
-      )
-
-      if (oldKey) delete newCategoryTranslations[oldKey]
-
-      for (const { key, value } of categories) {
-        newCategoryTranslations[key] = value
-      }
-
-      await forgeAPI.modules.categories.update.mutate({
-        data: newCategoryTranslations
-      })
-
-      setTimeout(() => {
-        refetch.current()
-      }, 300)
-    } catch (e) {
-      toast.error('Failed to update category')
-      console.error(e)
+      await mutation.mutateAsync(next)
+    } finally {
+      locked.current = false
     }
   }
 
-  const handleDragEnd = useCallback(
-    async (event: DragEndEvent) => {
-      const { active, over } = event
+  function current() {
+    return (
+      cache.getQueryData<CategoryMap>(endpoint.list.key) ?? query.data ?? {}
+    )
+  }
 
-      if (over && active.id !== over.id) {
-        const oldIndex = items.findIndex(item => item.key === active.id)
+  async function modify(updates: Category[], oldKey?: string) {
+    try {
+      await save(editCategories(current(), updates, oldKey))
+    } catch (error) {
+      if (error instanceof CategoryConflict)
+        throw new Error(t('categoryEditor.duplicate'), { cause: error })
+      throw error
+    }
+  }
 
-        const newIndex = items.findIndex(item => item.key === over.id)
+  const create = (initialKeys?: string[]) =>
+    open(ModifyCategoryModal, {
+      openType: 'create',
+      initialKeys,
+      onSubmit: modify
+    })
 
-        const newItems = arrayMove(items, oldIndex, newIndex)
+  async function move(source: string, target: string) {
+    const before = current()
+    const next = reorderCategories(before, source, target)
 
-        setItems(newItems)
+    if (next === before || locked.current) return
 
-        try {
-          const newCategoryTranslations: Record<
-            string,
-            Record<string, string>
-          > = {}
+    try {
+      await save(next)
+    } catch {
+      toast.error(t('categoryEditor.saveFailed'))
+    }
+  }
 
-          for (const item of newItems) {
-            newCategoryTranslations[item.key] = item.value
-          }
+  function drop({ active, over }: DragEndEvent) {
+    if (over) void move(String(active.id), String(over.id))
+  }
 
-          await forgeAPI.modules.categories.update.mutate({
-            data: newCategoryTranslations
-          })
-
-          refetch.current()
-        } catch (e) {
-          toast.error('Failed to reorder categories')
-          console.error(e)
-        }
-      }
-    },
-    [items, refetch]
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  )
+  const data = query.data ?? {}
+  const keys = Object.keys(data)
+  const missing = [
+    ...new Set(
+      federation.moduleGroups.flatMap(group =>
+        group.items.map(item => item.category.toLowerCase())
+      )
+    )
+  ].filter(
+    key =>
+      !systemKeys.has(key) && !Object.prototype.hasOwnProperty.call(data, key)
   )
 
   return (
@@ -146,85 +149,92 @@ function Categories() {
         title="categories"
         trailing={
           <Button
-            display={{ base: 'none', md: 'flex' }}
+            disabled={mutation.isPending}
             icon="tabler:plus"
-            tProps={{
-              item: t('items.category')
-            }}
-            onClick={() => {
-              open(ModifyCategoryModal, {
-                openType: 'create',
-                onSubmit: handleModify
-              })
-            }}
+            namespace="common.module-manager"
+            onClick={() => create()}
           >
-            new
+            addCategory
           </Button>
         }
       />
-      {missingKeys.length > 0 && (
-        <Alert mb="md" type="warning">
-          {t('messages.categoriesMissingTranslations', {
-            count: missingKeys.length
-          })}{' '}
-          {missingKeys.map((key, idx) => (
-            <>
-              <Text key={key} as="code">
-                {key}
-              </Text>
-              {idx < missingKeys.length - 1 && ', '}
-            </>
-          ))}
-          <Button
-            icon="tabler:plus"
-            mt="md"
-            variant="secondary"
-            width="100%"
-            onClick={() => {
-              open(ModifyCategoryModal, {
-                openType: 'create',
-                initialKeys: missingKeys,
-                onSubmit: handleModify
-              })
-            }}
-          >
-            Create All
-          </Button>
-        </Alert>
-      )}
-      {items.length > 0 ? (
-        <DndContext
-          collisionDetection={closestCenter}
-          sensors={sensors}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableContext
-            items={items.map(item => item.key)}
-            strategy={verticalListSortingStrategy}
-          >
-            <Stack>
-              {items.map(item => (
-                <CategoryItem
-                  key={item.key}
-                  id={item.key}
-                  item={item}
-                  onModify={handleModify}
-                />
-              ))}
-            </Stack>
-          </SortableContext>
-        </DndContext>
-      ) : (
-        <EmptyStateScreen
-          icon="tabler:apps-off"
-          message={{
-            id: 'category',
-            namespace: 'common.module-manager'
-          }}
-        />
-      )}
+      <WithQuery query={query}>
+        {() => (
+          <Stack gap="md">
+            <Text color="muted" size="sm">
+              {t('categoryEditor.orderHelp')}
+            </Text>
+            {missing.length > 0 && (
+              <Alert type="warning">
+                <Text>
+                  {t('messages.categoriesMissingTranslations', {
+                    count: missing.length
+                  })}{' '}
+                  {missing.join(', ')}
+                </Text>
+                <Button
+                  disabled={mutation.isPending}
+                  icon="tabler:plus"
+                  namespace="common.module-manager"
+                  variant="plain"
+                  onClick={() => create(missing)}
+                >
+                  createMissing
+                </Button>
+              </Alert>
+            )}
+            {keys.length ? (
+              <DndContext
+                collisionDetection={closestCenter}
+                sensors={sensors}
+                onDragEnd={drop}
+              >
+                <SortableContext
+                  items={keys}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <Stack aria-busy={mutation.isPending} gap="xs">
+                    {keys.map((key, index) => (
+                      <CategoryItem
+                        key={key}
+                        busy={mutation.isPending}
+                        first={index === 0}
+                        item={{ key, value: data[key]! }}
+                        last={index === keys.length - 1}
+                        onDelete={() =>
+                          open(ConfirmationModal, {
+                            title: t('categoryEditor.deleteTitle', {
+                              name: key
+                            }),
+                            description: t('categoryEditor.deleteDescription'),
+                            onConfirm: () =>
+                              save(deleteCategory(current(), key))
+                          })
+                        }
+                        onEdit={() =>
+                          open(ModifyCategoryModal, {
+                            openType: 'update',
+                            category: { key, value: data[key]! },
+                            onSubmit: updates => modify(updates, key)
+                          })
+                        }
+                        onMove={direction =>
+                          void move(key, keys[index + direction]!)
+                        }
+                      />
+                    ))}
+                  </Stack>
+                </SortableContext>
+              </DndContext>
+            ) : (
+              <EmptyStateScreen
+                icon="tabler:category"
+                message={{ id: 'category', namespace: 'common.module-manager' }}
+              />
+            )}
+          </Stack>
+        )}
+      </WithQuery>
     </>
   )
 }
-
-export default Categories

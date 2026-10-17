@@ -2,12 +2,15 @@ import { log } from '@clack/prompts'
 
 import executeCommand from '@/utils/commands'
 
+import { registryConfig } from './registryConfig'
+
 /** Validates that `username` has maintainer access to the official repo. */
 export function validateMaintainerAccess(username: string): void {
+  const { repo } = registryConfig()
   try {
     // Check permission level on the official repo
     const result = executeCommand(
-      `gh api repos/lifeforge-app/lifeforge/collaborators/${username}/permission`
+      `gh api repos/${repo}/collaborators/${encodeURIComponent(username)}/permission`
     )
 
     const response = JSON.parse(result) as {

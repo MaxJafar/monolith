@@ -10,104 +10,39 @@ export const RESPONSIVE_CONDITIONS = {
   print: { '@media': 'print' }
 } as const satisfies Record<Breakpoint, object>
 
-export const LAYOUT_PROP_DEFS = {
-  width: {
-    className: 'lf-w',
-    customProperties: ['--lf-w']
-  },
-  minWidth: {
-    className: 'lf-min-w',
-    customProperties: ['--lf-min-w']
-  },
-  maxWidth: {
-    className: 'lf-max-w',
-    customProperties: ['--lf-max-w']
-  },
-  height: {
-    className: 'lf-h',
-    customProperties: ['--lf-h']
-  },
-  minHeight: {
-    className: 'lf-min-h',
-    customProperties: ['--lf-min-h']
-  },
-  maxHeight: {
-    className: 'lf-max-h',
-    customProperties: ['--lf-max-h']
-  },
-  inset: {
-    className: 'lf-inset',
-    customProperties: ['--lf-inset']
-  },
-  top: {
-    className: 'lf-t',
-    customProperties: ['--lf-t']
-  },
-  right: {
-    className: 'lf-r',
-    customProperties: ['--lf-r']
-  },
-  bottom: {
-    className: 'lf-b',
-    customProperties: ['--lf-b']
-  },
-  left: {
-    className: 'lf-l',
-    customProperties: ['--lf-l']
-  },
-  flex: {
-    className: 'lf-fl',
-    customProperties: ['--lf-fl']
-  },
-  flexBasis: {
-    className: 'lf-fb',
-    customProperties: ['--lf-fb']
-  },
-  flexGrow: {
-    className: 'lf-fg',
-    customProperties: ['--lf-fg']
-  },
-  flexShrink: {
-    className: 'lf-fs',
-    customProperties: ['--lf-fs']
-  },
-  gridArea: {
-    className: 'lf-ga',
-    customProperties: ['--lf-ga']
-  },
-  gridColumnSpan: {
-    className: 'lf-gcsp',
-    customProperties: ['--lf-gcsp']
-  },
-  gridRowSpan: {
-    className: 'lf-grsp',
-    customProperties: ['--lf-grsp']
-  },
-  // Grid container props
-  gridTemplateColumns: {
-    className: 'lf-gtc',
-    customProperties: ['--lf-gtc']
-  },
-  gridTemplateRows: {
-    className: 'lf-gtr',
-    customProperties: ['--lf-gtr']
-  },
-  zIndex: {
-    className: 'lf-zi',
-    customProperties: ['--lf-zi']
-  },
-  ringWidth: {
-    className: 'lf-rw',
-    customProperties: ['--lf-rw']
-  },
-  ringOffsetWidth: {
-    className: 'lf-row',
-    customProperties: ['--lf-row']
-  },
-  aspectRatio: {
-    className: 'lf-ar',
-    customProperties: ['--lf-ar']
-  }
-} as const satisfies Record<string, PropDef>
-
-export type LayoutPropDefsKey = keyof typeof LAYOUT_PROP_DEFS
+export const LAYOUT_PROPERTIES = {
+  width: ['w', 'width'],
+  minWidth: ['min-w', 'minWidth'],
+  maxWidth: ['max-w', 'maxWidth'],
+  height: ['h', 'height'],
+  minHeight: ['min-h', 'minHeight'],
+  maxHeight: ['max-h', 'maxHeight'],
+  inset: ['inset', 'inset'],
+  top: ['t', 'top'],
+  right: ['r', 'right'],
+  bottom: ['b', 'bottom'],
+  left: ['l', 'left'],
+  flex: ['fl', 'flex'],
+  flexBasis: ['fb', 'flexBasis'],
+  flexGrow: ['fg', 'flexGrow'],
+  flexShrink: ['fs', 'flexShrink'],
+  gridArea: ['ga', 'gridArea'],
+  gridColumnSpan: ['gcsp', 'gridColumn'],
+  gridRowSpan: ['grsp', 'gridRow'],
+  gridTemplateColumns: ['gtc', 'gridTemplateColumns'],
+  gridTemplateRows: ['gtr', 'gridTemplateRows'],
+  zIndex: ['zi', 'zIndex'],
+  ringWidth: ['rw', '--monolith-ring-width'],
+  ringOffsetWidth: ['row', '--monolith-ring-offset-width'],
+  aspectRatio: ['ar', 'aspectRatio']
+} as const
+export type LayoutPropDefsKey = keyof typeof LAYOUT_PROPERTIES
+export const LAYOUT_PROP_DEFS = Object.fromEntries(
+  Object.entries(LAYOUT_PROPERTIES).map(([name, [suffix]]) => [
+    name,
+    {
+      className: 'monolith-' + suffix,
+      customProperties: ['--monolith-' + suffix]
+    }
+  ])
+) as Record<LayoutPropDefsKey, PropDef>

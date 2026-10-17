@@ -1,9 +1,9 @@
 {
-  "name": "@lifeforge/melvinchia3636--lang-ms",
+  "name": "@monolith/lang-ms",
   "version": "0.0.5",
-  "description": "Bahasa Malaysia language support for LifeForge.",
-  "author": "melvinchia3636 <melvinchia623600@gmail.com>",
-  "lifeforge": {
+  "description": "Bahasa Malaysia language support for Monolith.",
+  "author": "Monolith contributors",
+  "monolith": {
     "code": "ms",
     "displayName": "Bahasa Malaysia",
     "icon": "circle-flags:my"

@@ -1,47 +1,35 @@
-import { createContext, useContext } from 'react'
-import { type FieldValues, type UseFormReturn } from 'react-hook-form'
-
-import { usePromiseLoading } from '@lifeforge/api'
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useId,
+  useRef,
+  useState
+} from 'react'
+import type { FieldValues, UseFormReturn } from 'react-hook-form'
 
 import { LoadingScreen } from '@/components/feedback'
 import { Button } from '@/components/inputs'
 import { ModalHeader } from '@/components/overlays'
-import { Flex, Stack } from '@/components/primitives'
+import { Bordered, Flex, Stack } from '@/components/primitives'
 import { toast } from '@/providers'
 
 const NamespaceContext = createContext<string | false | undefined>(undefined)
+export const useNamespace = () => useContext(NamespaceContext)
 
-export function useNamespace() {
-  return useContext(NamespaceContext)
-}
-
-const SUBMISSION_CONFIG_TEMPLATE = {
-  create: {
-    label: 'Create',
-    icon: 'tabler:plus'
-  },
-  update: {
-    label: 'Update',
-    icon: 'tabler:pencil'
-  }
+const actions = {
+  create: { label: 'create', icon: 'tabler:plus' },
+  update: { label: 'update', icon: 'tabler:device-floppy' }
 } as const
 
-type SubmissionConfig<T extends FieldValues> =
-  | {
-      template: keyof typeof SUBMISSION_CONFIG_TEMPLATE
-      disabled?: boolean
-      handler: (data: T) => Promise<unknown> | unknown
-    }
-  | {
-      label: string
-      icon: string
-      disabled?: boolean
-      handler: (data: T) => Promise<unknown> | unknown
-    }
+type SubmissionConfig<T extends FieldValues> = {
+  disabled?: boolean
+  handler: (data: T) => Promise<unknown> | unknown
+} & ({ template: keyof typeof actions } | { label: string; icon: string })
 
 export function FormModal<T extends FieldValues>({
   form,
-  uiConfig: { title, icon, namespace, loading = false, onClose, headerActions },
+  uiConfig,
   submissionConfig,
   children
 }: {
@@ -57,62 +45,112 @@ export function FormModal<T extends FieldValues>({
   submissionConfig: SubmissionConfig<T>
   children: React.ReactNode
 }) {
-  const handleSubmit = form.handleSubmit(async values => {
-    try {
-      await submissionConfig.handler(values)
-
-      onClose?.()
-    } catch (error) {
-      console.error(error)
-      toast.error(
-        (error as Error).message ||
-          'Failed to submit form. Please check the console for details'
-      )
-    }
-  })
-
-  const [submitButtonLoading, onSubmitButtonClick] =
-    usePromiseLoading(handleSubmit)
-
-  const finalSubmissionConfig =
+  const titleId = useId()
+  const locked = useRef(false)
+  const active = useRef(false)
+  const [pending, setPending] = useState(false)
+  const action =
     'template' in submissionConfig
-      ? SUBMISSION_CONFIG_TEMPLATE[submissionConfig.template]
+      ? actions[submissionConfig.template]
       : submissionConfig
+  const unavailable = pending || !!uiConfig.loading
+  useEffect(() => {
+    active.current = true
+    return () => {
+      active.current = false
+    }
+  }, [])
+
+  function close() {
+    if (!locked.current && !uiConfig.loading) uiConfig.onClose()
+  }
+
+  async function submit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    event.stopPropagation()
+    if (locked.current || uiConfig.loading || submissionConfig.disabled) return
+    locked.current = true
+    setPending(true)
+    try {
+      await form.handleSubmit(async values => {
+        await submissionConfig.handler(values)
+        if (active.current) uiConfig.onClose()
+      })()
+    } catch (error) {
+      if (active.current)
+        toast.error(
+          error instanceof Error ? error.message : 'Unable to save changes'
+        )
+    } finally {
+      locked.current = false
+      if (active.current) setPending(false)
+    }
+  }
 
   return (
-    <NamespaceContext value={namespace}>
-      <Stack minWidth="50vw">
+    <NamespaceContext value={uiConfig.namespace}>
+      <Stack
+        width="440px"
+        maxWidth="100%"
+        minWidth="0"
+        gap="sm"
+        className="monolith-form-dialog"
+        role="dialog"
+        aria-labelledby={titleId}
+        aria-busy={unavailable}
+        data-dirty={form.formState.isDirty}
+        tabIndex={-1}
+      >
         <ModalHeader
-          icon={icon}
-          namespace={namespace}
-          title={title}
-          trailing={headerActions}
-          onClose={onClose}
+          titleId={titleId}
+          title={uiConfig.title}
+          icon={uiConfig.icon}
+          namespace={uiConfig.namespace}
+          trailing={uiConfig.headerActions}
+          onClose={close}
         />
-        {!loading ? (
-          <>
-            {children}
-            <Button
-              disabled={submissionConfig.disabled}
-              icon={finalSubmissionConfig.icon}
-              loading={submitButtonLoading}
-              mt="lg"
-              width="100%"
-              onClick={onSubmitButtonClick}
-            >
-              {finalSubmissionConfig.label}
-            </Button>
-          </>
-        ) : (
-          <Flex
-            align="center"
-            direction="column"
-            flex="1"
-            justify="center"
-            minHeight="24em"
-          >
+        {uiConfig.loading ? (
+          <Flex centered minHeight="12em">
             <LoadingScreen />
           </Flex>
+        ) : (
+          <form noValidate onSubmit={submit}>
+            <Bordered
+              as="fieldset"
+              disabled={pending}
+              borderSide="none"
+              p="none"
+              m="none"
+              minWidth="0"
+            >
+              <Stack gap="sm">{children}</Stack>
+            </Bordered>
+            <Flex
+              className="monolith-form-actions"
+              gap="sm"
+              justify="end"
+              wrap="wrap"
+              mt="md"
+              pt="sm"
+            >
+              <Button
+                type="button"
+                variant="plain"
+                disabled={unavailable}
+                onClick={close}
+              >
+                cancel
+              </Button>
+              <Button
+                type="submit"
+                icon={action.icon}
+                loading={pending}
+                disabled={submissionConfig.disabled}
+              >
+                {action.label}
+              </Button>
+            </Flex>
+          </form>
         )}
       </Stack>
     </NamespaceContext>

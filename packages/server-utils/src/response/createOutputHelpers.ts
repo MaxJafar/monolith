@@ -1,48 +1,28 @@
-import { Output, isSuccessOutputKey } from './status'
+import { Output } from './status'
 import type { OutputDefinition, OutputHelpers } from './types'
 
-export function createOutputHelpers<
-  TOutput extends OutputDefinition | 'custom'
->(output: TOutput): OutputHelpers<TOutput> {
-  const helpers = {} as Record<
-    string,
-    (payload?: unknown) => { $status: number; payload?: unknown }
-  >
-
-  if (output === 'custom') {
-    return helpers as unknown as OutputHelpers<TOutput>
-  }
-
-  for (const key of Object.keys(output)) {
-    if (!isSuccessOutputKey(key)) continue
-
-    const outputDef = Output[key]
-
-    const status = outputDef?.$status ?? 200
-
-    const hasPayload =
-      outputDef && 'hasPayload' in outputDef
-        ? (outputDef as { hasPayload: boolean }).hasPayload
-        : false
-
-    helpers[outputDef.key] = function (payload?: unknown) {
-      return {
-        $status: status,
-        ...(hasPayload ? { payload } : {})
-      }
-    }
-  }
-
-  for (const key of Object.keys(Output)) {
-    if (isSuccessOutputKey(key)) continue
-
-    const outputDef = Output[key as keyof typeof Output]
-
-    helpers[outputDef.key] =
-      'hasPayload' in outputDef
-        ? (payload?: unknown) => ({ $status: outputDef.$status, payload })
-        : () => ({ $status: outputDef.$status })
-  }
-
-  return helpers as unknown as OutputHelpers<TOutput>
+/** Every route receives error helpers and only its declared success helpers. */
+export function createOutputHelpers<T extends OutputDefinition | 'custom'>(
+  definition: T
+): OutputHelpers<T> {
+  const methods =
+    definition === 'custom'
+      ? []
+      : Object.entries(Output)
+          .filter(
+            ([name, entry]) =>
+              entry.kind === 'error' || Object.hasOwn(definition, name)
+          )
+          .map(([, entry]) => [
+            entry.key,
+            (value?: unknown) => {
+              const result: { $status: number; payload?: unknown } = {
+                $status: entry.$status
+              }
+              if ('hasPayload' in entry && entry.hasPayload)
+                result.payload = value
+              return result
+            }
+          ])
+  return Object.fromEntries(methods) as OutputHelpers<T>
 }

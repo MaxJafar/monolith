@@ -6,8 +6,8 @@ import {
   useContext as useReactContext
 } from 'react'
 
-import { useModuleMetadata } from '@lifeforge/federation'
-import { useModuleTranslation } from '@lifeforge/localization'
+import { useModuleMetadata } from '@monolith/federation'
+import { useModuleTranslation } from '@monolith/localization'
 
 import useNuqsOrBasicState from '@/hooks/useNuqsOrBasicState'
 

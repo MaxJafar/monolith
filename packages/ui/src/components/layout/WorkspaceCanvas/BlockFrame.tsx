@@ -1,10 +1,12 @@
-import type { ReactNode } from 'react'
+import type { CanvasBlock } from '@monolith/blocks'
+import { type ReactNode, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import type { CanvasBlock } from '@lifeforge/blocks'
-
 import { Button } from '@/components/inputs'
-import { Box, Flex, Icon, Stack, Text } from '@/components/primitives'
+import { ContextMenu, ContextMenuItem } from '@/components/overlays'
+import { Box, Stack, Text } from '@/components/primitives'
+import { startBlockDrag } from '@/utils/blockDrag'
+import { settleElement } from '@/utils/elasticMotion'
 
 import { CanvasBlockContent } from './BlockContent'
 
@@ -17,7 +19,8 @@ export function CanvasBlockFrame({
   onMove,
   onChange,
   onRemove,
-  onValidity
+  onValidity,
+  onInsertBlock
 }: {
   block: CanvasBlock
   editing: boolean
@@ -28,99 +31,139 @@ export function CanvasBlockFrame({
   onChange: (block: CanvasBlock) => void
   onRemove: () => void
   onValidity: (valid: boolean) => void
+  onInsertBlock?: (kind: string, anchor: DOMRect) => void
 }) {
   const { t } = useTranslation('common.canvas')
+  const frame = useRef<HTMLDivElement>(null)
+  const grip = useRef<HTMLButtonElement>(null)
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  const cancel = useRef<() => void>(() => {})
+  useEffect(() => () => cancel.current(), [editing])
 
   return (
     <Stack
+      ref={frame}
       className="canvas-block"
+      data-canvas-block-id={block.id}
       data-width={block.width}
+      data-selected={menuOpen}
       gap="sm"
       minWidth="0"
-      onDragOver={event => {
-        if (editing) event.preventDefault()
-      }}
-      onDrop={event => {
-        event.preventDefault()
-        if (editing)
-          onMove(
-            event.dataTransfer.getData('application/x-monolith-block'),
-            block.id
-          )
-      }}
     >
-      {editing && (
-        <Box as="details" className="canvas-block-tools">
-          <summary
-            draggable
+      {editing && block.type !== 'document' && (
+        <Box className="canvas-block-tools">
+          <Button
+            ref={grip}
             aria-label={t('dragBlock')}
-            onDragStart={event =>
-              event.dataTransfer.setData(
-                'application/x-monolith-block',
-                block.id
+            aria-expanded={menuOpen}
+            icon="lucide:grip-vertical"
+            namespace={false}
+            variant="plain"
+            onClick={event => {
+              if (event.detail === 0) setMenuOpen(!menuOpen)
+            }}
+            onPointerDown={event => {
+              if (!frame.current) return
+              cancel.current()
+              cancel.current = startBlockDrag(
+                event.nativeEvent,
+                frame.current,
+                {
+                  targets: () =>
+                    Array.from(
+                      frame.current?.parentElement?.querySelectorAll<HTMLElement>(
+                        ':scope > [data-canvas-block-id]'
+                      ) ?? []
+                    ).map(element => ({
+                      id: element.dataset.canvasBlockId!,
+                      element
+                    })),
+                  commit: (id, before) =>
+                    onMove(
+                      block.id,
+                      before
+                        ? id
+                        : (blocks[blocks.findIndex(item => item.id === id) + 1]
+                            ?.id ?? null)
+                    ),
+                  click: () => setMenuOpen(open => !open)
+                }
               )
-            }
-          >
-            <Icon icon="lucide:grip-vertical" />
-          </summary>
-          <Flex
-            align="center"
-            className="canvas-block-actions"
-            gap="xs"
-            wrap="wrap"
-          >
-            <Box
-              draggable
-              aria-label={t('dragBlock')}
-              as="button"
-              className="canvas-drag-handle"
-              onDragStart={event =>
-                event.dataTransfer.setData(
-                  'application/x-monolith-block',
-                  block.id
-                )
+            }}
+            onKeyDown={event => {
+              if (
+                event.altKey &&
+                ['ArrowUp', 'ArrowDown'].includes(event.key)
+              ) {
+                event.preventDefault()
+                if (event.key === 'ArrowUp' && index > 0)
+                  onMove(block.id, blocks[index - 1]!.id)
+                if (event.key === 'ArrowDown' && index < blocks.length - 1)
+                  onMove(block.id, blocks[index + 2]?.id ?? null)
               }
+            }}
+          />
+          {menuOpen && (
+            <ContextMenu
+              open
+              align="start"
+              side="right"
+              onOpenChange={open => {
+                setMenuOpen(open)
+                if (!open) requestAnimationFrame(() => grip.current?.focus())
+              }}
+              buttonComponent={
+                <button
+                  className="canvas-menu-anchor"
+                  aria-label={t('dragBlock')}
+                />
+              }
+              componentProps={{ menu: { minWidth: '240px' } }}
             >
-              <Icon icon="lucide:grip-vertical" />
-            </Box>
-            <Text color="muted" size="sm">
-              {t(`types.${block.type}`)}
-            </Text>
-            <Button
-              aria-label={t('moveUp')}
-              disabled={index === 0}
-              icon="lucide:arrow-up"
-              variant="plain"
-              onClick={() => onMove(block.id, blocks[index - 1]?.id ?? null)}
-            />
-            <Button
-              aria-label={t('moveDown')}
-              disabled={index === blocks.length - 1}
-              icon="lucide:arrow-down"
-              variant="plain"
-              onClick={() => onMove(block.id, blocks[index + 2]?.id ?? null)}
-            />
-            {(['full', 'half', 'third'] as const).map(width => (
-              <Button
-                key={width}
-                aria-pressed={block.width === width}
+              <Text color="muted" size="xs" px="md" py="sm">
+                {t(`types.${block.type}`)}
+              </Text>
+              <ContextMenuItem
+                label={t('moveUp')}
+                disabled={index === 0}
+                icon="lucide:arrow-up"
                 namespace={false}
-                variant={block.width === width ? 'primary' : 'plain'}
-                onClick={() => onChange({ ...block, width })}
-              >
-                {t(`width.${width}`)}
-              </Button>
-            ))}
-            <Button
-              aria-label={t('removeBlock')}
-              icon="lucide:x"
-              variant="plain"
-              onClick={onRemove}
-            />
-          </Flex>
+                onClick={() => onMove(block.id, blocks[index - 1]?.id ?? null)}
+              />
+              <ContextMenuItem
+                label={t('moveDown')}
+                disabled={index === blocks.length - 1}
+                icon="lucide:arrow-down"
+                namespace={false}
+                onClick={() => onMove(block.id, blocks[index + 2]?.id ?? null)}
+              />
+              {(['full', 'half', 'third'] as const).map(width => (
+                <ContextMenuItem
+                  key={width}
+                  checked={block.width === width}
+                  label={t(`width.${width}`)}
+                  icon="lucide:columns-2"
+                  namespace={false}
+                  onClick={() => {
+                    onChange({ ...block, width })
+                    requestAnimationFrame(() => settleElement(frame.current))
+                  }}
+                />
+              ))}
+              <ContextMenuItem
+                label={t('removeBlock')}
+                icon="lucide:trash-2"
+                namespace={false}
+                dangerous
+                onClick={onRemove}
+              />
+            </ContextMenu>
+          )}
         </Box>
       )}
       <CanvasBlockContent
+        onInsertBlock={onInsertBlock}
         block={block}
         editing={editing}
         native={native}

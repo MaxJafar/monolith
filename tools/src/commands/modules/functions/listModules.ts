@@ -1,10 +1,8 @@
 import { log } from '@clack/prompts'
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 
-import { readPackageJson } from '@/utils/packageJson'
-
-import normalizePackage from '../../../utils/normalizePackage'
+import { ROOT_DIR } from '@/utils/constants'
 
 interface ModuleBasicInfo {
   name: string
@@ -12,44 +10,28 @@ interface ModuleBasicInfo {
   version: string
 }
 
-/**
- * Lists all installed modules with their basic info.
- *
- * Parses the root package.json and lists all dependencies that start with `@lifeforge/` (except `@lifeforge/lang-*`),
- * then reads the package.json of each module to get the basic info.
- *
- * @param exitIfNoModule - Whether to exit the process if no modules are found
- * @returns Record of module name to module basic info
- */
+/** Discover source addons, including local scaffolds that were never published. */
 export default function listModules(
   exitIfNoModule = false
 ): Record<string, ModuleBasicInfo> {
-  const appsPackageJson = readPackageJson('modules')
-
-  const allModules = Object.keys(appsPackageJson.dependencies ?? {})
-    .filter(dep => dep.startsWith('@lifeforge/'))
-    .filter(dep => !dep.replace('@lifeforge/', '').match(/^.*?--lang-.*$/))
-
+  const directory = path.join(ROOT_DIR, 'modules')
   const modules: Record<string, ModuleBasicInfo> = {}
-
-  for (const module of allModules) {
-    const { targetDir } = normalizePackage(module)
-
-    const packageJson = JSON.parse(
-      fs.readFileSync(path.join(targetDir, 'package.json'), 'utf-8')
-    )
-
-    modules[module] = {
-      name: packageJson.name,
-      displayName: packageJson.displayName,
-      version: packageJson.version
+  for (const entry of fs.existsSync(directory)
+    ? fs.readdirSync(directory)
+    : []) {
+    const file = path.join(directory, entry, 'package.json')
+    if (!fs.existsSync(file)) continue
+    const pkg = JSON.parse(fs.readFileSync(file, 'utf8'))
+    if (!pkg.monolith || !pkg.name) continue
+    modules[pkg.name] = {
+      name: pkg.name,
+      displayName: pkg.displayName,
+      version: pkg.version
     }
   }
-
-  if (exitIfNoModule && Object.keys(modules).length === 0) {
-    log.step('No @lifeforge/* modules found. Exiting...')
+  if (exitIfNoModule && !Object.keys(modules).length) {
+    log.step('No Monolith addons installed.')
     process.exit(0)
   }
-
   return modules
 }

@@ -28,7 +28,7 @@ export const i18nConfig = {
 
       if (!lang) return
 
-      return `https://raw.githubusercontent.com/Lifeforge-app/lifeforge/main/locales/lang-${lang}/${namespace}.json`
+      return `https://raw.githubusercontent.com/MaxJafar/monolith/main/locales/lang-${lang}/${namespace}.json`
     }
   }
 }

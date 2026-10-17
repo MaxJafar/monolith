@@ -1,153 +1,127 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import { useForm, useWatch } from 'react-hook-form'
-import z from 'zod'
+import { useTranslation } from 'react-i18next'
 
 import {
   CheckboxField,
   FormModal,
   IconField,
   TextField,
-  createDefaultValues,
   toast
-} from '@lifeforge/ui'
+} from '@monolith/ui'
 
-import forgeAPI from '@/core/utils/forgeAPI'
+import workspaceAPI from '@/core/utils/workspaceAPI'
 
 import type { APIKeyEntry } from '..'
+import { credentialSchema } from '../model'
 
-const schema = z
-  .object({
-    _type: z.enum(['create', 'update']),
-    keyId: z
-      .string()
-      .regex(
-        /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/,
-        'Key ID must be in kebab-case (e.g. my-api-key)'
-      ),
-    name: z.string().min(1, 'Key name is required'),
-    icon: z.string().min(1, 'Key icon is required'),
-    overrideKey: z.boolean(),
-    key: z.string(),
-    exposable: z.boolean()
-  })
-  .superRefine(({ _type, overrideKey, key }, ctx) => {
-    if (_type === 'create' || (_type === 'update' && overrideKey)) {
-      if (!key || key.length === 0) {
-        ctx.addIssue({
-          code: 'custom',
-          message: 'API key is required',
-          path: ['key']
-        })
-      }
-    }
-  })
-
-function ModifyAPIKeyModal({
-  data: { type, initialData },
+export default function ModifyAPIKeyModal({
+  data,
   onClose
 }: {
-  data: {
-    type: 'create' | 'update'
-    initialData?: APIKeyEntry
-  }
+  data: { type: 'create' | 'update'; initialData?: APIKeyEntry }
   onClose: () => void
 }) {
-  const queryClient = useQueryClient()
-
-  const mutation = useMutation(
-    (type === 'create'
-      ? forgeAPI.apiKeys.entries.create
-      : forgeAPI.apiKeys.entries.update.input({
-          id: initialData?.id || ''
-        })
-    ).mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['apiKeys'] })
-      },
-      onError: (error: Error) => {
-        toast.error('Failed to save API key: ' + error.message)
-      }
-    })
-  )
+  const { t } = useTranslation('common.api-keys')
+  const cache = useQueryClient()
+  const creating = data.type === 'create'
+  const initial = data.initialData
   const form = useForm({
     defaultValues: {
-      ...createDefaultValues(schema),
-      _type: type,
-      keyId: initialData?.keyId || '',
-      name: initialData?.name || '',
-      icon: initialData?.icon || '',
-      key: '',
-      exposable: initialData?.exposable || false
+      keyId: initial?.keyId ?? '',
+      name: initial?.name ?? '',
+      icon: initial?.icon ?? 'tabler:key',
+      exposable: initial?.exposable ?? false,
+      overrideKey: false,
+      key: ''
     },
-    mode: 'all',
-    resolver: zodResolver(schema)
+    resolver: zodResolver(
+      credentialSchema(creating, {
+        id: t('validation.id'),
+        required: t('validation.required')
+      })
+    )
   })
-
-  const overrideKey = useWatch({ control: form.control, name: 'overrideKey' })
+  const replacing = useWatch({ control: form.control, name: 'overrideKey' })
 
   return (
     <FormModal
       form={form}
-      submissionConfig={{
-        handler: async data => {
-          const { _type: _omit, ...payload } = data
-
-          await mutation.mutateAsync(payload)
-        },
-        template: type
-      }}
       uiConfig={{
-        icon: type === 'create' ? 'tabler:plus' : 'tabler:pencil',
+        title: 'apiKey.' + data.type,
         namespace: 'common.api-keys',
-        title: `apiKey.${type}`,
+        icon: 'tabler:key',
         onClose
+      }}
+      submissionConfig={{
+        template: data.type,
+        handler: async values => {
+          if (creating) {
+            const { overrideKey: _ignored, ...entry } = values
+            await workspaceAPI.apiKeys.entries.create.mutateRaw(entry)
+          } else {
+            if (!initial?.id) throw new Error(t('messages.missingEntry'))
+            await workspaceAPI.apiKeys.entries.update
+              .input({ id: initial.id })
+              .mutateRaw({
+                ...values,
+                key: replacing ? values.key : ''
+              })
+          }
+          await cache.invalidateQueries({ queryKey: workspaceAPI.apiKeys.key })
+          form.reset()
+          toast.success(t('messages.saved'))
+        }
       }}
     >
       <TextField
-        required
         control={form.control}
-        icon="tabler:id"
-        label="Key ID"
         name="keyId"
-        placeholder="id-of-the-api-key"
+        icon="tabler:id"
+        label="keyId"
+        placeholder=""
+        required
+        disabled={form.formState.isSubmitting}
+        autoComplete="off"
       />
       <TextField
-        required
         control={form.control}
-        icon="tabler:key"
-        label="Key Name"
         name="name"
-        placeholder="My API Key"
+        icon="tabler:key"
+        label="keyName"
+        placeholder=""
+        required
+        disabled={form.formState.isSubmitting}
       />
-      <IconField required control={form.control} label="Key Icon" name="icon" />
-      {type === 'update' && (
+      <IconField control={form.control} name="icon" label="keyIcon" required />
+      {!creating && (
         <CheckboxField
           control={form.control}
-          icon="tabler:refresh"
-          label="Override Key"
           name="overrideKey"
+          icon="tabler:refresh"
+          label="overrideKey"
         />
       )}
-      {(type === 'create' || overrideKey) && (
+      {(creating || replacing) && (
         <TextField
-          isPassword
-          required
           control={form.control}
-          icon="tabler:key"
-          label="API Key"
           name="key"
-          placeholder="••••••••••••••••"
+          icon="tabler:lock"
+          label="apiKey"
+          placeholder=""
+          required
+          isPassword
+          autoComplete="new-password"
+          disabled={form.formState.isSubmitting}
         />
       )}
       <CheckboxField
         control={form.control}
-        icon="tabler:eye"
-        label="isExposable"
         name="exposable"
+        icon="tabler:world"
+        label="isExposable"
       />
     </FormModal>
   )
 }
-
-export default ModifyAPIKeyModal

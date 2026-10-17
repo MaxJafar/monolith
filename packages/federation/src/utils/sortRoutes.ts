@@ -1,4 +1,4 @@
-import type { ModuleGroup } from '@lifeforge/configs'
+import type { ModuleGroup } from '@monolith/configs'
 
 import { SYSTEM_CATEGORIES } from '../providers/FederationProvider'
 

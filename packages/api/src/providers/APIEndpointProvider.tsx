@@ -1,5 +1,7 @@
 import { createContext, useContext } from 'react'
 
+import { getNativeRuntime } from '../desktop/runtime'
+
 const APIEndpointContext = createContext<string | null>(null)
 
 export function APIEndpointProvider({
@@ -9,7 +11,17 @@ export function APIEndpointProvider({
   endpoint: string
   children: React.ReactNode
 }) {
-  return <APIEndpointContext value={endpoint}>{children}</APIEndpointContext>
+  return (
+    <APIEndpointContext
+      value={
+        getNativeRuntime()
+          ? getNativeRuntime()!.profile.origin + '/api'
+          : endpoint
+      }
+    >
+      {children}
+    </APIEndpointContext>
+  )
 }
 
 export function useAPIEndpoint() {

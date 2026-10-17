@@ -1,5 +1,5 @@
 import { cleanupTestTokens, initAuthTests } from '@tests/e2e-setup'
-import { expectNo2FA, extractCookies, forgeAPI, unwrap } from '@tests/utils'
+import { expectNo2FA, extractCookies, unwrap, workspaceAPI } from '@tests/utils'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 let email = ''
@@ -16,7 +16,7 @@ function creds() {
 }
 
 function loginAndCookies() {
-  return forgeAPI.auth.login
+  return workspaceAPI.auth.login
     .mutateRaw(creds(), { raw: true })
     .then(res => extractCookies(res.headers['set-cookie']))
 }
@@ -27,7 +27,7 @@ describe('POST /auth/refresh', () => {
   it('returns 200 with new accessToken and cookie', async () => {
     const cookies = await loginAndCookies()
 
-    const res = await forgeAPI.auth.refresh.mutateRaw(undefined, {
+    const res = await workspaceAPI.auth.refresh.mutateRaw(undefined, {
       raw: true,
       headers: { Cookie: cookies }
     })
@@ -40,13 +40,15 @@ describe('POST /auth/refresh', () => {
   })
 
   it('returns 401 when no cookie is sent', async () => {
-    const res = await forgeAPI.auth.refresh.mutateRaw(undefined, { raw: true })
+    const res = await workspaceAPI.auth.refresh.mutateRaw(undefined, {
+      raw: true
+    })
 
     expect(res.status).toBe(401)
   })
 
   it('returns 401 for an invalid cookie', async () => {
-    const res = await forgeAPI.auth.refresh.mutateRaw(undefined, {
+    const res = await workspaceAPI.auth.refresh.mutateRaw(undefined, {
       raw: true,
       headers: { Cookie: 'refresh_token=somegarbage123456' }
     })
@@ -57,14 +59,14 @@ describe('POST /auth/refresh', () => {
   it('old token is invalidated after rotation', async () => {
     const cookies = await loginAndCookies()
 
-    const refresh1 = await forgeAPI.auth.refresh.mutateRaw(undefined, {
+    const refresh1 = await workspaceAPI.auth.refresh.mutateRaw(undefined, {
       raw: true,
       headers: { Cookie: cookies }
     })
 
     expect(refresh1.status).toBe(200)
 
-    const retry = await forgeAPI.auth.refresh.mutateRaw(undefined, {
+    const retry = await workspaceAPI.auth.refresh.mutateRaw(undefined, {
       raw: true,
       headers: { Cookie: cookies }
     })
@@ -75,7 +77,7 @@ describe('POST /auth/refresh', () => {
   it('new cookie from refresh is valid for subsequent requests', async () => {
     const cookies = await loginAndCookies()
 
-    const refresh = await forgeAPI.auth.refresh.mutateRaw(undefined, {
+    const refresh = await workspaceAPI.auth.refresh.mutateRaw(undefined, {
       raw: true,
       headers: { Cookie: cookies }
     })
@@ -87,7 +89,7 @@ describe('POST /auth/refresh', () => {
     let cookies = await loginAndCookies()
 
     for (let i = 0; i < 3; i++) {
-      const refresh = await forgeAPI.auth.refresh.mutateRaw(undefined, {
+      const refresh = await workspaceAPI.auth.refresh.mutateRaw(undefined, {
         raw: true,
         headers: { Cookie: cookies }
       })
@@ -103,21 +105,21 @@ describe('POST /auth/refresh', () => {
   it('replay detection: rotated token triggers family revocation', async () => {
     const cookies = await loginAndCookies()
 
-    const refresh1 = await forgeAPI.auth.refresh.mutateRaw(undefined, {
+    const refresh1 = await workspaceAPI.auth.refresh.mutateRaw(undefined, {
       raw: true,
       headers: { Cookie: cookies }
     })
 
     expect(refresh1.status).toBe(200)
 
-    const oldReplay = await forgeAPI.auth.refresh.mutateRaw(undefined, {
+    const oldReplay = await workspaceAPI.auth.refresh.mutateRaw(undefined, {
       raw: true,
       headers: { Cookie: cookies }
     })
 
     expect(oldReplay.status).toBe(401)
 
-    const activeFail = await forgeAPI.auth.refresh.mutateRaw(undefined, {
+    const activeFail = await workspaceAPI.auth.refresh.mutateRaw(undefined, {
       raw: true,
       headers: { Cookie: extractCookies(refresh1.headers['set-cookie']) }
     })
@@ -128,10 +130,10 @@ describe('POST /auth/refresh', () => {
   it('access token changes on each refresh', async () => {
     const cookies = await loginAndCookies()
 
-    const loginToken = await forgeAPI.auth.login.mutateRaw(creds(), {
+    const loginToken = await workspaceAPI.auth.login.mutateRaw(creds(), {
       raw: true
     })
-    const refresh = await forgeAPI.auth.refresh.mutateRaw(undefined, {
+    const refresh = await workspaceAPI.auth.refresh.mutateRaw(undefined, {
       raw: true,
       headers: { Cookie: cookies }
     })

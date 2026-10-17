@@ -1,4 +1,3 @@
-import { ROOT_DIR } from '@constants'
 import {
   ALLOWED_NAMESPACE,
   LocaleService
@@ -7,34 +6,24 @@ import fs from 'fs'
 import path from 'path'
 import z from 'zod'
 
-import { ModuleRegistry } from '@lifeforge/module-runtime/registry'
-import {
-  createForgeContractBuilder,
-  forgeRouter
-} from '@lifeforge/server-utils'
+import { addonPackageName, addonWireName } from '@monolith/configs'
+import { ModuleRegistry } from '@monolith/module-runtime/registry'
+import { defineEndpoints, defineRoutes } from '@monolith/server-utils'
 
 import type { CoreRelations } from '@/core/drizzle'
 
-const forge = createForgeContractBuilder<CoreRelations>({ moduleId: 'locales' })
-
-const appsDir = path.join(ROOT_DIR, 'modules')
+const endpoints = defineEndpoints<CoreRelations>({ moduleId: 'locales' })
 
 function getModulesWithLocales(): string[] {
-  if (!fs.existsSync(appsDir)) return []
-
-  return fs
-    .readdirSync(appsDir)
-    .filter(dir => {
-      if (dir.startsWith('.')) return false
-
-      const localesPath = path.join(appsDir, dir, 'locales')
-
-      return fs.existsSync(localesPath)
-    })
-    .map(dir => path.join(appsDir, dir))
+  return ModuleRegistry.entries
+    .map(entry => ModuleRegistry.getPath(entry.id))
+    .filter(
+      (directory): directory is string =>
+        !!directory && fs.existsSync(path.join(directory, 'locales'))
+    )
 }
 
-const listLanguages = forge
+const listLanguages = endpoints
   .query({
     description: 'List all languages',
     noAuth: true,
@@ -56,7 +45,7 @@ const listLanguages = forge
     return response.ok(LocaleService.getLangManifests())
   })
 
-const getLocale = forge
+const getLocale = endpoints
   .query({
     description: 'Retrieve localization strings for namespace',
     noAuth: true,
@@ -96,10 +85,13 @@ const getLocale = forge
         }
 
         return (
+          entry.id === subnamespace ||
           entry.name ===
-          (subnamespace.startsWith('@lifeforge/')
-            ? subnamespace
-            : `@lifeforge/${subnamespace}`)
+            addonPackageName(
+              subnamespace.startsWith('@')
+                ? subnamespace
+                : `@monolith/${subnamespace}`
+            )
         )
       })
 
@@ -144,7 +136,7 @@ const getLocale = forge
       targetToBeInjected.apps = {
         ...Object.fromEntries(
           moduleApps
-            .map(modulePath => {
+            .flatMap(modulePath => {
               const localePath = path.join(
                 modulePath,
                 'locales',
@@ -163,12 +155,13 @@ const getLocale = forge
                 ModuleRegistry.getModuleByPath(modulePath)?.name ??
                 path.basename(modulePath)
 
+              const labels = {
+                title: localeData.title ?? '',
+                subsections: localeData.subsections ?? {}
+              }
               return [
-                moduleName,
-                {
-                  title: localeData.title ?? '',
-                  subsections: localeData.subsections ?? {}
-                }
+                [moduleName, labels],
+                [addonWireName(moduleName, false), labels]
               ]
             })
             .filter(e => e.length > 0)
@@ -187,7 +180,7 @@ const getLocale = forge
     return response.ok(data)
   })
 
-const listUnsupportedModules = forge
+const listUnsupportedModules = endpoints
   .query({
     description:
       "List modules that do not support the user's currently selected language",
@@ -225,7 +218,7 @@ const listUnsupportedModules = forge
     return response.ok(unsupported)
   })
 
-export default forgeRouter({
+export default defineRoutes({
   listLanguages,
   getLocale,
   listUnsupportedModules

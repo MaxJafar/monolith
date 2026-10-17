@@ -1,11 +1,11 @@
 {
-  "title": "模块管理器",
-  "description": "基于UI的monolith实例模块管理器",
+  "title": "扩展与小组件",
+  "description": "管理 monolith 工作空间的可选工具",
   "category": "分类",
   "subsections": {
     "modules": {
-      "title": "模块",
-      "description": "安装、更新和移除您monolith实例中的模块"
+      "title": "扩展与小组件",
+      "description": "安装、更新和移除您monolith实例中的扩展"
     },
     "categories": {
       "title": "类别",
@@ -16,14 +16,16 @@
     "uninstall": "卸载",
     "addTranslation": "添加翻译",
     "addCategory": "添加分类",
-    "add category": "添加分类"
+    "add category": "添加分类",
+    "createMissing": "创建缺少的分类"
   },
   "items": {
     "category": "类别"
   },
   "inputs": {
     "categoryKey": "类别键",
-    "translationKey": "翻译键"
+    "translationKey": "翻译键",
+    "translationLabel": "翻译标签"
   },
   "empty": {
     "category": {
@@ -31,8 +33,8 @@
       "description": "创建类别以开始"
     },
     "modules": {
-      "title": "未安装模块",
-      "description": "从注册表安装模块以扩展您的monolith"
+      "title": "未安装扩展",
+      "description": "创建扩展或安装共享源代码，为 monolith 增添功能。"
     }
   },
   "modals": {
@@ -42,16 +44,16 @@
     },
     "uninstall": {
       "title": "卸载 {{module}}？",
-      "description": "此模块将从您的系统中移除，但您的数据将被保留。您可以随时从注册表重新安装。"
+      "description": "此扩展将从系统中移除，其数据将被保留。您可以通过源代码重新安装。"
     },
     "devMode": {
       "enable": {
         "title": "启用开发模式",
-        "description": "启用开发模式将直接从源代码加载此模块，而不是预构建的包。对模块代码的更改将即时热重载，无需重新构建。\n\n在积极开发或自定义此模块时使用此功能。"
+        "description": "启用开发模式将直接从源代码加载此扩展，而不是预构建的包。对扩展代码的更改将即时热重载，无需重新构建。\n\n在积极开发或自定义此扩展时使用此功能。"
       },
       "disable": {
         "title": "禁用开发模式",
-        "description": "禁用开发模式将切换回从预构建包加载。请确保已重新构建模块以包含最新更改。"
+        "description": "禁用开发模式将切换回从预构建包加载。请确保已重新构建扩展以包含最新更改。"
       }
     },
     "translationKey": {
@@ -74,5 +76,139 @@
   },
   "messages": {
     "categoriesMissingTranslations": "{{count}} 个分类缺少翻译:"
+  },
+  "catalog": {
+    "description": "定制这个工作空间，选择您需要的工具。",
+    "workspace": "当前工作空间",
+    "selectWorkspace": "选择工作空间",
+    "workspaceCount": "已启用 {{enabled}} 个 · 共 {{total}} 个工具",
+    "ownerOnly": "只有工作空间所有者可以启用或停用扩展。",
+    "status": "扩展状态",
+    "all": "全部扩展",
+    "enabled": "已启用",
+    "available": "可启用",
+    "search": "搜索插件与小组件…",
+    "kind": "扩展类型",
+    "allCategories": "全部分类",
+    "allKinds": "全部类型",
+    "clear": "清除筛选",
+    "results": "{{count}} 个扩展",
+    "noMatches": "没有符合筛选条件的扩展",
+    "noMatchesHelp": "试试其他搜索词、分类或类型。",
+    "toggle": "启用 {{name}}",
+    "on": "已启用",
+    "off": "未启用",
+    "saving": "保存中…",
+    "open": "打开",
+    "openDashboard": "打开仪表盘",
+    "availableHint": "随时可启用",
+    "enabledNotice": "已启用 {{name}}",
+    "disabledNotice": "已停用 {{name}}",
+    "results_one": "{{count}} 个扩展",
+    "results_other": "{{count}} 个扩展"
+  },
+  "shop": {
+    "collection": "扩展集",
+    "description": "按需添加工具与小组件，打造适合自己的工作空间。",
+    "summary": "已安装 {{count}} 个 · 此处启用 {{enabled}} 个",
+    "workspaceSettings": "工作空间设置",
+    "sections": "扩展商店分区",
+    "addons": "扩展",
+    "widgets": "小组件",
+    "sidebar": "侧边栏",
+    "addon": "扩展",
+    "widget": "小组件",
+    "addonsTitle": "扩展更多可能",
+    "addonsHelp": "拥有独立工作界面的完整工具。在主机安装后，按工作空间启用。",
+    "widgetsTitle": "小组件，你的仪表盘",
+    "widgetsHelp": "在仪表盘专注、学习并追踪进展。通过小型浮层预览和配置各组件。",
+    "sidebarTitle": "随时触手可及",
+    "sidebarHelp": "将日历等紧凑组件固定在页面旁。在下方调整原生功能顺序，或拖动侧边栏手柄。",
+    "all": "全部",
+    "installed": "已安装",
+    "enabled": "此处已启用",
+    "updates": "更新",
+    "updateAvailable": "有可用更新",
+    "update": "更新",
+    "install": "下载",
+    "checkUpdates": "检查更新",
+    "checked": "已刷新发布目录。",
+    "details": "详情",
+    "detailsFor": "关于 {{name}}",
+    "installedVersion": "已安装版本",
+    "notInstalled": "未安装",
+    "downloadSize": "下载大小",
+    "requiresHost": "需要 Monolith {{version}}",
+    "noNotes": "暂无发布说明。",
+    "localPackage": "此服务器已包含此扩展，尚未配置可下载版本。",
+    "installHelp": "激活前验证软件包。工作空间开关保留数据，数据库结构变更需要对应主机版本。",
+    "reload": "重新加载以使用此版本",
+    "configureWidget": "预览与配置",
+    "livePreview": "实时组件预览",
+    "addDashboard": "添加到仪表盘",
+    "addSidebar": "固定到侧边栏",
+    "saveSidebar": "保存侧边栏组件",
+    "removeSidebar": "从侧边栏移除",
+    "includedWidgets": "Monolith 内置",
+    "builtIn": "内置 · 无需下载",
+    "connectedWidget": "工作空间数据的关联视图。",
+    "nativeSections": "原生侧边栏功能",
+    "dragHelp": "拖动侧边栏手柄排序，或聚焦手柄后按 ↑ / ↓。设置保存在此设备的当前工作空间。",
+    "moveArea": "调整 {{name}} 顺序",
+    "moved": "已移动 {{name}}",
+    "moveUp": "上移 {{name}}",
+    "moveDown": "下移 {{name}}",
+    "showArea": "显示 {{name}}",
+    "unpublished": "当前浏览此服务器已有软件包。主机连接发布目录后将提供下载。",
+    "hostAdmin": "主机管理员管理下载，工作空间所有者可启用已安装工具。",
+    "loading": "正在加载扩展集…",
+    "yourWorkspace": "你的工作空间，你的工具",
+    "downloadProgress": "下载进度",
+    "phases": {
+      "queued": "排队中",
+      "downloading": "下载中",
+      "verifying": "验证软件包",
+      "installing": "正在激活",
+      "complete": "安装完成，请重新加载",
+      "failed": "安装失败"
+    },
+    "native": {
+      "calendar": "工作空间的日期和日程",
+      "projects": "看板、时间线与项目进展",
+      "actions": "任务与每日待办",
+      "rooms": "加密对话与协作",
+      "docs": "页面、写作与关联知识",
+      "dashboard": "个人关联组件合集",
+      "databases": "结构化记录与灵活视图"
+    },
+    "widgetDescriptions": {
+      "calendarWidget": "页面旁的月历、周历或日程。",
+      "weather": "所选城市的本地天气预报。",
+      "habitTracker": "随时查看并打卡每日习惯。",
+      "marketTracker": "追踪所选股票与加密货币。",
+      "workspacePulse": "工作空间活动的实时概览。",
+      "actionAgenda": "已有记录中的近期任务。",
+      "projectFocus": "在仪表盘查看项目进展。",
+      "quickLinks": "快速访问原生工作空间功能。",
+      "upcomingEvents": "快速查看即将到来的活动。"
+    }
+  },
+  "categoryEditor": {
+    "orderHelp": "拖动手柄或使用箭头按钮调整分类顺序。",
+    "refreshFailed": "已保存，但导航未能刷新。请重新加载查看更改。",
+    "saving": "分类更改仍在保存中。",
+    "duplicate": "请选择唯一的分类标识。",
+    "saveFailed": "无法保存分类顺序，已恢复之前的顺序。",
+    "deleteTitle": "移除 {{name}}？",
+    "deleteDescription": "这将移除分类标签，插件及其数据将保留。",
+    "edit": "编辑 {{name}}",
+    "remove": "移除 {{name}}",
+    "translate": "建议翻译",
+    "removeEntry": "移除分类",
+    "removeTranslation": "移除翻译",
+    "required": "此字段为必填项。",
+    "invalidLanguage": "请输入语言代码，例如 en、ms 或 zh-CN。",
+    "duplicateLanguage": "每种语言只能出现一次。",
+    "translationFailed": "无法生成翻译。"
   }
 }

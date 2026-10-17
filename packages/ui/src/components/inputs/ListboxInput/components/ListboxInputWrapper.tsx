@@ -62,6 +62,7 @@ export function ListboxInputWrapper<T>({
             ref={listboxRef}
             as="div"
             className={clsx(
+              'monolith-input monolith-listbox-input',
               !errorMsg && styles.dataOpen,
               inputWrapperRecipe({
                 variant,
@@ -71,6 +72,7 @@ export function ListboxInputWrapper<T>({
               })
             )}
             multiple={multiple}
+            data-input-variant={variant}
             style={{
               padding: 0
             }}

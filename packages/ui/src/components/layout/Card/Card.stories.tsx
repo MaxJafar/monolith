@@ -76,7 +76,7 @@ export const AsLink: Story = {
   args: {
     children: (
       <a
-        href="https://docs.lifeforge.dev"
+        href="https://github.com/MaxJafar/monolith/tree/main/docs"
         rel="noopener noreferrer"
         target="_blank"
       >

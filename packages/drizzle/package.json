@@ -1,7 +1,7 @@
 {
-  "name": "@lifeforge/drizzle",
+  "name": "@monolith/drizzle",
   "version": "0.0.1",
-  "description": "Drizzle ORM glue for the LifeForge server",
+  "description": "Drizzle ORM glue for the Monolith server",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -20,11 +20,12 @@
     "typecheck": "tsc --project tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@lifeforge/module-runtime": "workspace:*"
+    "@monolith/module-runtime": "workspace:*"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.8",
-    "@lifeforge/configs": "workspace:*",
+    "@monolith/configs": "workspace:*",
     "@types/node": "^25.0.6"
-  }
+  },
+  "author": "Monolith contributors"
 }

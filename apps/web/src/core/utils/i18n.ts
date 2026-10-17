@@ -2,9 +2,9 @@ import i18n from 'i18next'
 import I18NextHttpBackend from 'i18next-http-backend'
 import { initReactI18next } from 'react-i18next'
 
-import { clientI18nConfig, setI18n } from '@lifeforge/localization'
+import { clientI18nConfig, setI18n } from '@monolith/localization'
 
-import forgeAPI from './forgeAPI'
+import workspaceAPI from './workspaceAPI'
 
 export let AVAILABLE_LANG: {
   name: string
@@ -13,6 +13,7 @@ export let AVAILABLE_LANG: {
 }[] = [{ name: 'en', icon: 'circle-flags:gb' }]
 
 export async function initI18n() {
+  if (i18n.isInitialized) return i18n
   try {
     const langRes = await fetch(
       `${import.meta.env.VITE_API_HOST || ''}/locales/listLanguages`
@@ -37,7 +38,7 @@ export async function initI18n() {
     .use(initReactI18next)
     .init(
       clientI18nConfig({
-        forgeAPI,
+        workspaceAPI,
         getAvailableLanguages: () => AVAILABLE_LANG
       })
     )

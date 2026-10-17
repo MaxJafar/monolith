@@ -1,11 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Socket, io } from 'socket.io-client'
+import { type Socket, io } from 'socket.io-client'
 
-import { resolveSocketUrl, setAccessToken, useAuth } from '@lifeforge/api'
-import { toast } from '@lifeforge/ui'
+import {
+  clearAccessToken,
+  getAccessToken,
+  resolveSocketUrl,
+  setAccessToken,
+  useAuth
+} from '@monolith/api'
+import { toast } from '@monolith/ui'
 
-import forgeAPI from '@/core/utils/forgeAPI'
+import workspaceAPI from '@/core/utils/workspaceAPI'
 
 import {
   clearStoredSession,
@@ -13,228 +19,153 @@ import {
   storeSession
 } from '../utils/QRSessionMngr'
 import getBrowserInfo from '../utils/getBrowserInfo'
+import { watchQRSession } from '../utils/qrConnection'
 
 export type QRStatus =
   'loading' | 'ready' | 'waiting' | 'approved' | 'expired' | 'error'
 
-interface UseQRLoginSessionOptions {
-  onSuccess: () => void
+interface Snapshot {
+  status: QRStatus
+  qrData: string
+  timeLeft: number
 }
 
 export default function useQRLoginSession({
   onSuccess
-}: UseQRLoginSessionOptions) {
+}: {
+  onSuccess: () => void
+}) {
   const { t } = useTranslation('common.auth')
   const { setAuth, setUserData } = useAuth()
-  const [status, setStatus] = useState<QRStatus>('loading')
-  const [qrData, setQrData] = useState<string>('')
-  const [expiresAt, setExpiresAt] = useState<string>('')
-  const [timeLeft, setTimeLeft] = useState<number>(0)
-  const sessionIdRef = useRef<string>('')
-  const socketRef = useRef<Socket | null>(null)
-  const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const [revision, setRevision] = useState(0)
 
-  const handleApproved = useCallback(
-    async (accessToken: string) => {
-      setStatus('approved')
+  const [snapshot, setSnapshot] = useState<Snapshot>({
+    status: 'loading',
+    qrData: '',
+    timeLeft: 0
+  })
+
+  const callbacks = useRef({ t, onSuccess })
+  const cancel = useRef<() => void>(() => {})
+
+  useEffect(() => {
+    callbacks.current = { t, onSuccess }
+  }, [t, onSuccess])
+  useEffect(() => {
+    let disposed = false
+    const isDisposed = () => disposed
+    let completed = false
+    let claimedToken: string | undefined
+    let socket: Socket | undefined
+    let connection: ReturnType<typeof watchQRSession> | undefined
+
+    function disconnect() {
+      socket?.removeAllListeners()
+      socket?.disconnect()
+    }
+
+    function cleanup() {
+      disposed = true
+      connection?.dispose()
+      disconnect()
+      if (!completed && claimedToken && getAccessToken() === claimedToken)
+        clearAccessToken()
+    }
+
+    function terminal(status: 'expired' | 'error') {
+      if (isDisposed()) return
+      connection?.dispose()
       clearStoredSession()
+      disconnect()
+      setSnapshot(current => ({ ...current, status, timeLeft: 0 }))
+    }
 
-      setAccessToken(accessToken)
+    cancel.current = cleanup
+    setSnapshot({ status: 'loading', qrData: '', timeLeft: 0 })
+    void (async () => {
+      let session = getStoredSession()
 
-      try {
-        const meData = await forgeAPI.user.me.queryRaw()
-
-        setUserData(meData.userData)
-        setAuth(true)
-        toast.success(
-          t('messages.welcomeBack', {
-            name: meData.userData.name
-          })
-        )
-        onSuccess()
-      } catch {
-        setStatus('error')
-        toast.error(t('messages.unknownError'))
-      }
-    },
-    [setAuth, setUserData, t, onSuccess]
-  )
-
-  const startPolling = useCallback(
-    (sessionId: string) => {
-      if (pollingIntervalRef.current) return
-
-      pollingIntervalRef.current = setInterval(async () => {
-        try {
-          const response = await forgeAPI.auth.qrLogin.status
-            .input({ sessionId })
-            .queryRaw()
-
-          if (response.status === 'approved') {
-            clearInterval(pollingIntervalRef.current!)
-            pollingIntervalRef.current = null
-
-            await forgeAPI.auth.qrLogin.claim.mutateRaw({ sessionId })
-
-            await handleApproved(response.accessToken)
-          } else if (response.status === 'expired') {
-            clearInterval(pollingIntervalRef.current!)
-            pollingIntervalRef.current = null
-            clearStoredSession()
-            setStatus('expired')
-          }
-        } catch {
-          // Ignore polling errors
-        }
-      }, 3000)
-    },
-    [handleApproved]
-  )
-
-  const connectWebSocket = useCallback(
-    (sessionId: string) => {
-      if (socketRef.current) {
-        socketRef.current.disconnect()
-        socketRef.current = null
-      }
-
-      const apiHost = import.meta.env.VITE_API_HOST || window.location.origin
-      const socket = io(
-        resolveSocketUrl(apiHost, window.location.origin, '/qr-login'),
-        {
-          transports: ['websocket', 'polling']
-        }
-      )
-
-      socketRef.current = socket
-
-      socket.on('connect', () => {
-        socket.emit('joinQRSession', sessionId)
-      })
-
-      socket.on('sessionApproved', async (data: { accessToken: string }) => {
-        await forgeAPI.auth.qrLogin.claim.mutateRaw({ sessionId })
-        await handleApproved(data.accessToken)
-      })
-
-      socket.on('error', () => {
-        startPolling(sessionId)
-      })
-
-      socket.on('disconnect', () => {
-        if (status !== 'approved' && status !== 'expired') {
-          startPolling(sessionId)
-        }
-      })
-    },
-    [handleApproved, startPolling, status]
-  )
-
-  const initializeSession = useCallback(
-    async (forceNew = false) => {
-      setStatus('loading')
-
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current)
-        pollingIntervalRef.current = null
-      }
-
-      if (!forceNew) {
-        const storedSession = getStoredSession()
-
-        if (storedSession) {
-          sessionIdRef.current = storedSession.sessionId
-          setQrData(storedSession.qrData)
-          setExpiresAt(storedSession.expiresAt)
-          setStatus('ready')
-          connectWebSocket(storedSession.sessionId)
-
-          return
-        }
-      }
-
-      try {
-        const response = await forgeAPI.auth.qrLogin.register.mutateRaw({
+      if (!session) {
+        const created = await workspaceAPI.auth.qrLogin.register.mutateRaw({
           browserInfo: getBrowserInfo()
         })
-
-        const sessionId = response.sessionId
-
-        sessionIdRef.current = sessionId
-        setExpiresAt(response.expiresAt)
-
-        const qrSessionData = {
-          type: 'lifeforge-qr-login',
-          v: 1,
-          sessionId
+        session = {
+          ...created,
+          qrData: JSON.stringify({
+            type: 'monolith-qr-login',
+            v: 1,
+            sessionId: created.sessionId
+          })
         }
-
-        const qrDataString = JSON.stringify(qrSessionData)
-
-        setQrData(qrDataString)
-        setStatus('ready')
-
-        storeSession({
-          sessionId,
-          qrData: qrDataString,
-          expiresAt: response.expiresAt
-        })
-
-        connectWebSocket(sessionId)
-      } catch {
-        setStatus('error')
-        toast.error(t('messages.unknownError'))
       }
-    },
-    [t, connectWebSocket]
-  )
+      if (isDisposed()) return
+      storeSession(session)
+      const sessionId = session.sessionId
+      setSnapshot({ status: 'ready', qrData: session.qrData, timeLeft: 0 })
+      connection = watchQRSession(session.expiresAt, {
+        status: () =>
+          workspaceAPI.auth.qrLogin.status.input({ sessionId }).queryRaw(),
+        claim: () => workspaceAPI.auth.qrLogin.claim.mutateRaw({ sessionId }),
+        countdown: timeLeft =>
+          setSnapshot(current => ({ ...current, timeLeft })),
+        claiming: () =>
+          setSnapshot(current => ({ ...current, status: 'waiting' })),
+        expired: () => terminal('expired'),
+        error: () => {
+          terminal('error')
+          toast.error(callbacks.current.t('messages.unknownError'))
+        },
+        approved: async token => {
+          if (isDisposed()) return
+          claimedToken = token
+          setAccessToken(token)
+
+          try {
+            const { userData } = await workspaceAPI.user.me.queryRaw()
+
+            if (isDisposed()) return
+            completed = true
+            clearStoredSession()
+            disconnect()
+            setSnapshot(current => ({ ...current, status: 'approved' }))
+            setUserData(userData)
+            setAuth(true)
+            toast.success(
+              callbacks.current.t('messages.welcomeBack', {
+                name: userData.name
+              })
+            )
+            callbacks.current.onSuccess()
+          } catch (error) {
+            if (getAccessToken() === token) clearAccessToken()
+            throw error
+          }
+        }
+      })
+      if (Date.parse(session.expiresAt) <= Date.now()) return
+
+      const host = import.meta.env.VITE_API_HOST || window.location.origin
+      socket = io(resolveSocketUrl(host, window.location.origin, '/qr-login'), {
+        transports: ['websocket', 'polling']
+      })
+      socket.on('connect', () => {
+        socket?.emit('joinQRSession', sessionId)
+      })
+      socket.on('sessionApproved', () => {
+        void connection?.notifyApproval()
+      })
+    })().catch(() => {
+      terminal('error')
+    })
+
+    return cleanup
+  }, [revision, setAuth, setUserData])
 
   const refreshSession = useCallback(() => {
+    cancel.current()
     clearStoredSession()
-    initializeSession(true)
-  }, [initializeSession])
-
-  useEffect(() => {
-    if (!expiresAt || status === 'approved' || status === 'expired') return
-
-    const updateTimer = () => {
-      const now = Date.now()
-      const expiry = new Date(expiresAt).getTime()
-      const remaining = Math.max(0, Math.floor((expiry - now) / 1000))
-
-      setTimeLeft(remaining)
-
-      if (remaining === 0) {
-        setStatus('expired')
-        clearStoredSession()
-      }
-    }
-
-    updateTimer()
-
-    const interval = setInterval(updateTimer, 1000)
-
-    return () => clearInterval(interval)
-  }, [expiresAt, status])
-
-  useEffect(() => {
-    initializeSession()
-
-    return () => {
-      if (socketRef.current) {
-        socketRef.current.disconnect()
-      }
-
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current)
-      }
-    }
+    setRevision(current => current + 1)
   }, [])
 
-  return {
-    status,
-    qrData,
-    timeLeft,
-    refreshSession
-  }
+  return { ...snapshot, refreshSession }
 }

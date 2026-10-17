@@ -1,19 +1,19 @@
+import { useAuth } from '@monolith/api'
+import { validateCanvasPage } from '@monolith/blocks'
+import { Box, Text, WorkspaceCanvas, elasticScrollEdge } from '@monolith/ui'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { useParams } from 'react-router'
 
-import { useAuth } from '@lifeforge/api'
-import { validateCanvasPage } from '@lifeforge/blocks'
-import { Box, Text, WorkspaceCanvas } from '@lifeforge/ui'
-
 import { useWorkspace } from '@/core/workspaces/WorkspaceProvider'
 import { workspaceAPI } from '@/core/workspaces/workspaceAPI'
 
-export default function CanvasPageRoute() {
-  const { id = '' } = useParams(),
+export default function CanvasPageRoute({ pageId }: { pageId?: string } = {}) {
+  const { id: routeId = '' } = useParams(),
     { userData } = useAuth(),
     { activate, workspaces } = useWorkspace(),
     cache = useQueryClient()
+  const id = pageId ?? routeId
   const endpoint = workspaceAPI.workspaces.getPage.input({ id })
   const options = endpoint.queryOptions()
   const metadata = useQuery<Awaited<ReturnType<typeof endpoint.query>>>({
@@ -42,6 +42,9 @@ export default function CanvasPageRoute() {
       flex="1"
       minHeight="0"
       overflowY="auto"
+      onWheel={event =>
+        elasticScrollEdge(event.currentTarget, event.nativeEvent)
+      }
       pt="lg"
       px={{ base: 'md', sm: '2xl' }}
     >
@@ -49,6 +52,10 @@ export default function CanvasPageRoute() {
         key={id}
         native={null}
         storage={{
+          canonical: {
+            workspaceId: selected.page.workspace_id,
+            source: { kind: 'page', id }
+          },
           queryKey: [...options.queryKey, userData?.id, 'content'],
           initialPage: selected.page.body,
           initialDataUpdatedAt: metadata.dataUpdatedAt,

@@ -2,9 +2,9 @@ import _ from 'lodash'
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import tinycolor from 'tinycolor2'
 
-import { useLanguageEffect } from '@lifeforge/localization'
+import { useLanguageEffect } from '@monolith/localization'
 
-import { forgeAPI as coreForgeAPI } from '@/utils/forgeAPI'
+import { workspaceAPI as coreWorkspaceAPI } from '@/utils/workspaceAPI'
 
 import { BG_THEME } from './constants/bg_theme'
 import THEME_COLOR_HEX from './constants/theme_color_hex'
@@ -63,11 +63,11 @@ const PersonalizationContext = createContext<IPersonalizationData | undefined>(
 )
 
 export function PersonalizationProvider({
-  forgeAPI,
+  workspaceAPI,
   defaultValueOverride = {},
   children
 }: {
-  forgeAPI: typeof coreForgeAPI
+  workspaceAPI: typeof coreWorkspaceAPI
   defaultValueOverride?: Partial<IPersonalizationData>
   children: React.ReactNode
 }) {
@@ -179,14 +179,11 @@ export function PersonalizationProvider({
     [themeColor, bgTempPalette]
   )
 
-  useFontFamily(fontFamily, fontScale, forgeAPI)
+  useFontFamily(fontFamily, fontScale, workspaceAPI)
   useThemeEffect(rootElement, derivedTheme, rawThemeColor, bgTemp)
   useBgTempEffect(rootElement, bgTemp, derivedTheme)
 
-  useRawThemeColorEffect(rootElement, rawThemeColor, derivedTheme, [
-    bgTempPalette[100],
-    bgTempPalette[800]
-  ])
+  useRawThemeColorEffect(rootElement, rawThemeColor, derivedTheme, themeColor)
 
   useLanguageEffect(language)
   useMetaEffect()

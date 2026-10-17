@@ -2,38 +2,34 @@ import { registerHooks } from 'node:module'
 
 import { loaderLogger } from './logger'
 
-/**
- * Registers custom module resolution hooks for development mode,
- * allowing modules to use `@/` path aliases that resolve relative to
- * the module's own `server/` directory.
- */
+let installed = false
 export default function registerDevResolverHooks(): void {
+  if (installed) return
   try {
     registerHooks({
-      resolve: (specifier, context, nextResolve) => {
-        if (specifier.startsWith('@/')) {
-          const parentURL = context.parentURL
-
-          if (parentURL) {
-            const match = parentURL.match(/(.*\/modules\/[^/]+\/server)\//)
-
-            if (match) {
-              const serverRoot = match[1]
-              const relativePath = specifier.slice(2)
-              const resolvedSpecifier = new URL(relativePath, serverRoot + '/')
-                .href
-
-              return nextResolve(resolvedSpecifier, context)
-            }
-          }
-        }
-
-        return nextResolve(specifier, context)
+      resolve(specifier, context, next) {
+        if (
+          !specifier.startsWith('@/') ||
+          !context.parentURL?.startsWith('file:')
+        )
+          return next(specifier, context)
+        const parent = new URL(context.parentURL)
+        const segments = parent.pathname.split('/')
+        const modules = segments.lastIndexOf('modules')
+        if (modules < 0 || segments[modules + 2] !== 'server')
+          return next(specifier, context)
+        parent.pathname = segments.slice(0, modules + 3).join('/') + '/'
+        const candidate = new URL(specifier.slice(2), parent)
+        if (!candidate.pathname.startsWith(parent.pathname))
+          throw new Error('Module alias escapes its server directory')
+        return next(candidate.href, context)
       }
     })
-  } catch (e) {
+    installed = true
+  } catch (error) {
     loaderLogger.error(
-      `Failed to register custom path alias resolver hooks: ${e}`
+      'Development module resolution could not be registered',
+      { error: String(error) }
     )
   }
 }

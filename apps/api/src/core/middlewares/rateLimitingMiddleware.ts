@@ -1,50 +1,36 @@
 import rateLimit from 'express-rate-limit'
 import jwt from 'jsonwebtoken'
 
-const JWT_SECRET = process.env.JWT_SIGNING_KEY!
-
-const disabledRoutes = new Set<string>()
-
-function normalizePath(p: string): string {
-  let normalized = p.trim().toLowerCase()
-
-  if (normalized.length > 1 && normalized.endsWith('/')) {
-    normalized = normalized.slice(0, -1)
-  }
-
-  return normalized
-}
+const exemptions = new Map<string, Set<string>>()
+const pathKey = (value: string) =>
+  value.trim().toLowerCase().replace(/\/+$/, '') || '/'
 
 export function disableRateLimitForRoute(method: string, path: string): void {
-  const normalizedPath = normalizePath(path)
-  disabledRoutes.add(`${method.toLowerCase()}:${normalizedPath}`)
+  const verb = method.toUpperCase()
+  if (!exemptions.has(verb)) exemptions.set(verb, new Set())
+  exemptions.get(verb)!.add(pathKey(path))
 }
 
 export default rateLimit({
-  windowMs: 15 * 60 * 1000,
+  windowMs: 900000,
   max: 250,
-  skip: async req => {
-    const reqMethod = req.method.toLowerCase()
-    const reqPath = normalizePath(req.path)
-
-    if (disabledRoutes.has(`${reqMethod}:${reqPath}`)) {
-      return true
-    }
-
-    if (req.path.trim().startsWith('/modules')) {
-      return true
-    }
-
-    const bearerToken = req.headers.authorization?.split(' ')[1]
-
-    if (!bearerToken) {
-      return false
-    }
-
+  skip(request) {
+    const path = pathKey(request.path)
+    if (exemptions.get(request.method.toUpperCase())?.has(path)) return true
+    if (path === '/modules' || path.startsWith('/modules/')) return true
+    const token = /^Bearer\s+(\S+)$/i.exec(
+      request.headers.authorization ?? ''
+    )?.[1]
+    if (!token || !process.env.JWT_SIGNING_KEY) return false
     try {
-      jwt.verify(bearerToken, JWT_SECRET, { algorithms: ['HS512'] })
-
-      return true
+      const payload = jwt.verify(token, process.env.JWT_SIGNING_KEY, {
+        algorithms: ['HS512']
+      })
+      return (
+        typeof payload === 'object' &&
+        typeof payload.sub === 'string' &&
+        payload.sub.length > 0
+      )
     } catch {
       return false
     }

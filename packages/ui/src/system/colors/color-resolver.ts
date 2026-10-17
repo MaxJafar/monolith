@@ -1,4 +1,4 @@
-import { type ResolvedStyle, mergeStyle } from '../props-resolver'
+import type { ResolvedStyle } from '../props-resolver'
 import { isColorWithOpacity } from './color-with-opacity'
 import {
   COLORS,
@@ -6,58 +6,31 @@ import {
   type ColorPropName,
   type ColorValue,
   THEME_CONDITIONS,
-  type ThemeConditionProp,
-  type ThemeConditionPropName
+  type ThemeConditionProp
 } from './constants'
 
-const resolveColor = (value: ColorValue) =>
-  isColorWithOpacity(value) ? value.toString() : COLORS[value]
-
-/**
- * Resolves a color prop value into CSS class names and custom property styles.
- *
- * Supports static color values (string or `ColorWithOpacity`) and
- * theme-condition-aware objects (e.g. `{ base: 'red', dark: 'blue' }`).
- *
- * @param propName - The color property name (e.g. `'bg'`, `'color'`).
- * @param value - A color value, a `ColorWithOpacity`, or a map of
- *                theme conditions to color values. `undefined` returns empty styles.
- * @returns A `ResolvedStyle` with concatenated class names and CSS custom property styles.
- */
 export function resolveColorProp(
-  propName: ColorPropName,
-  value: ThemeConditionProp<ColorValue> | undefined
+  name: ColorPropName,
+  input: ThemeConditionProp<ColorValue> | undefined
 ): ResolvedStyle {
-  let final = { className: '', style: {} as const }
-
-  if (value === undefined) return final
-
-  const classBase = COLOR_PROP_DEFS[propName].className
-
-  const varBase = COLOR_PROP_DEFS[propName].varPrefix
-
-  if (typeof value === 'string' || isColorWithOpacity(value)) {
-    return {
-      className: classBase,
-      style: { [varBase]: resolveColor(value) }
-    }
+  const style: Record<string, string> = {}
+  const classes: string[] = []
+  const definition = COLOR_PROP_DEFS[name]
+  if (!definition || input == null) return { className: '', style }
+  const values =
+    typeof input === 'string' || isColorWithOpacity(input)
+      ? { base: input }
+      : input
+  for (const condition of Object.keys(THEME_CONDITIONS) as Array<
+    keyof typeof THEME_CONDITIONS
+  >) {
+    const value = values[condition]
+    if (value === undefined) continue
+    const resolved = isColorWithOpacity(value) ? String(value) : COLORS[value]
+    if (!resolved) continue
+    const selector = THEME_CONDITIONS[condition]
+    classes.push(definition.className + selector.suffix)
+    style[definition.varPrefix + selector.varSuffix] = resolved
   }
-
-  for (const [condition, colorValue] of Object.entries(value) as [
-    ThemeConditionPropName,
-    ColorValue
-  ][]) {
-    if (colorValue === undefined) continue
-
-    const condDef = THEME_CONDITIONS[condition]
-
-    if (!condDef) continue
-
-    final = mergeStyle(final, {
-      className: `${classBase}${condDef.suffix}`,
-      style: { [`${varBase}${condDef.suffix}`]: resolveColor(colorValue) }
-    })
-  }
-
-  return final
+  return { className: classes.join(' '), style }
 }

@@ -1,83 +1,68 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import clsx from 'clsx'
 import type { CSSProperties } from 'react'
 
 import type { ArbitraryProps } from './arbitrary'
 import { type ColorPropName, type ColorProps, resolveColorProp } from './colors'
-import type { ResponsiveProp } from './responsive'
+import type { ResponsiveProp } from './responsive/types'
 import { getResponsiveLayoutStyles } from './responsive/utils/getResponsiveLayoutStyles'
 
-type AnySprinklesFn = {
-  (props: any): string
-  properties: Set<string>
-}
-
-type SprinklesProps<T extends AnySprinklesFn> = Parameters<T>[0]
-
-type ResolveResponsiveOutputs<T> = {
+type Sprinkles = { (props: any): string; properties: Set<string> }
+type Outputs<T> = {
   [K in keyof T]: NonNullable<T[K]> extends ResponsiveProp<
-    infer TInput,
-    infer TOutput,
+    infer I,
+    infer O,
     any
   >
-    ? ResponsiveProp<TInput, TOutput, 'output'>
+    ? ResponsiveProp<I, O, 'output'>
     : T[K]
 }
-
-type ResolveStylesOptions<
-  T extends AnySprinklesFn,
-  TComponentArbitraryProps extends object = {}
-> = {
-  sprinkles: T
-  sprinkleProps: Partial<SprinklesProps<T>>
-  arbitraryProps?: Partial<ResolveResponsiveOutputs<ArbitraryProps>>
-  componentArbitraryProps?: Partial<
-    ResolveResponsiveOutputs<TComponentArbitraryProps>
-  >
+type Options<S extends Sprinkles, Extra extends object> = {
+  sprinkles: S
+  sprinkleProps: Partial<Parameters<S>[0]>
+  arbitraryProps?: Partial<Outputs<ArbitraryProps>>
+  componentArbitraryProps?: Partial<Outputs<Extra>>
   colorProps?: ColorProps
   style?: CSSProperties
   className?: string
 }
-
 export interface ResolvedStyle {
   className: string
   style: CSSProperties
 }
 
-export function mergeStyle(...styles: ResolvedStyle[]): ResolvedStyle {
-  return {
-    className: clsx(...styles.map(s => s.className)),
-    style: Object.assign({}, ...styles.map(s => s.style))
+export function mergeStyle(...sources: ResolvedStyle[]): ResolvedStyle {
+  const result: ResolvedStyle = { className: '', style: {} }
+  const names = new Set<string>()
+  for (const source of sources) {
+    for (const name of source.className.split(/\s+/)) if (name) names.add(name)
+    Object.assign(result.style, source.style)
   }
+  result.className = [...names].join(' ')
+  return result
 }
 
-export function resolveStyles<
-  T extends AnySprinklesFn,
-  TComponentArbitraryProps extends object = {}
->({
-  sprinkles,
-  sprinkleProps,
-  arbitraryProps,
-  componentArbitraryProps,
-  colorProps,
-  style,
-  className
-}: ResolveStylesOptions<T, TComponentArbitraryProps>): ResolvedStyle {
-  const sprinklesClassName = sprinkles(sprinkleProps as SprinklesProps<T>)
-
-  const responsiveStyles = getResponsiveLayoutStyles({
-    ...arbitraryProps,
-    ...componentArbitraryProps
-  })
-
-  const colorStyles = Object.entries(colorProps || {}).reduce<ResolvedStyle>(
-    (acc, [key, value]) =>
-      mergeStyle(acc, resolveColorProp(key as ColorPropName, value)),
-    { className: '', style: {} }
+export function resolveStyles<S extends Sprinkles, Extra extends object = {}>(
+  options: Options<S, Extra>
+): ResolvedStyle {
+  const colors = Object.entries(options.colorProps ?? {}).map(([name, value]) =>
+    resolveColorProp(name as ColorPropName, value)
   )
-
-  return mergeStyle(responsiveStyles, colorStyles, {
-    className: clsx(sprinklesClassName, className),
-    style: style ?? {}
+  const layout = getResponsiveLayoutStyles({
+    ...options.arbitraryProps,
+    ...options.componentArbitraryProps
   })
+  const tokens = Object.fromEntries(
+    Object.entries(options.sprinkleProps).filter(
+      ([name, value]) =>
+        value !== undefined && options.sprinkles.properties.has(name)
+    )
+  )
+  return mergeStyle(
+    layout,
+    ...colors,
+    { className: options.sprinkles(tokens), style: {} },
+    {
+      className: options.className ?? '',
+      style: options.style ?? {}
+    }
+  )
 }

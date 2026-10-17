@@ -33,10 +33,10 @@ const appSchema = defineModuleSchema(
       })
     }
   }),
-  'lifeforge--app'
+  'monolith--app'
 )
 
-const tagsSchema = defineModuleSchema({ tags }, () => ({}), 'lifeforge--tags')
+const tagsSchema = defineModuleSchema({ tags }, () => ({}), 'monolith--tags')
 
 describe('scopeDbForModule (real PGlite)', () => {
   let client: PGlite

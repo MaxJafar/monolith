@@ -11,7 +11,7 @@ import { ROOT_DIR } from '@/utils/constants'
  * production mode, concurrently.
  */
 export function startHandler(this: Command): void {
-  // Prevent forge CLI's --tsconfig from leaking to child processes
+  // Prevent endpoints CLI's --tsconfig from leaking to child processes
   delete process.env.TSX_TSCONFIG_PATH
 
   const build = this.opts().build as boolean
@@ -23,12 +23,12 @@ export function startHandler(this: Command): void {
   const port = globalOptions?.port
 
   if (build) {
-    log.step('Building LifeForge for production...')
+    log.step('Building Monolith for production...')
 
     // Build only the core (framework packages + server + client). Installed
     // modules are already built (and cleaned) — building them would fail.
     executeCommand(
-      'pnpm exec turbo build --filter=@lifeforge/server --filter=@lifeforge/client',
+      'pnpm exec turbo build --filter=@monolith/server --filter=@monolith/client',
       { cwd: ROOT_DIR, stdio: 'inherit' }
     )
   }

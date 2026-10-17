@@ -1,11 +1,12 @@
 import { useTranslation } from 'react-i18next'
 
-import type { CanvasBlock } from '@lifeforge/blocks'
+import type { CanvasBlock } from '@monolith/blocks'
 
 import { Button } from '@/components/inputs'
 import { Flex, Stack, Text } from '@/components/primitives'
 
 import { useCanvasWidgets } from './CanvasWidgets'
+import { InlineDatabasePicker } from './InlineDatabasePicker'
 import { newCanvasBlock } from './defaults'
 
 export function CanvasBlockMenu({
@@ -16,7 +17,7 @@ export function CanvasBlockMenu({
   allowNative: boolean
 }) {
   const { t } = useTranslation('common.canvas')
-  const { widgets, databases = [] } = useCanvasWidgets()
+  const { widgets } = useCanvasWidgets()
 
   return (
     <Stack
@@ -54,39 +55,11 @@ export function CanvasBlockMenu({
           </Button>
         ))}
       </Flex>
-      <Text weight="semibold">{t('types.database')}</Text>
-      <Flex direction="column" gap="xs">
-        {databases.map(database => (
-          <Button
-            key={database.id}
-            icon="lucide:database"
-            justify="start"
-            namespace={false}
-            variant="plain"
-            onClick={() =>
-              onAdd(
-                newCanvasBlock('database', {
-                  title: database.name,
-                  database: {
-                    workspaceId: database.workspaceId,
-                    baseId: database.id,
-                    ...(database.views[0]
-                      ? { viewId: database.views[0].id }
-                      : {})
-                  }
-                })
-              )
-            }
-          >
-            {database.name}
-          </Button>
-        ))}
-        {!databases.length && (
-          <Text color="muted" size="sm">
-            {t('noDatabases')}
-          </Text>
-        )}
-      </Flex>
+      <InlineDatabasePicker
+        onInsert={(reference, title) =>
+          onAdd(newCanvasBlock('database', { title, database: reference }))
+        }
+      />
       <Text weight="semibold">{t('liveBlocks')}</Text>
       <Flex gap="sm" wrap="wrap">
         {Object.entries(widgets)

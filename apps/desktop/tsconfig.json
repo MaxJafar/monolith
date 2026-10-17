@@ -1,0 +1,15 @@
+{
+  "extends": "../web/tsconfig.json",
+  "compilerOptions": {
+    "composite": false,
+    "rootDir": "../..",
+    "noEmit": true,
+    "paths": { "@/*": ["../web/src/*"] },
+    "types": ["vite/client"]
+  },
+  "include": [
+    "src",
+    "../web/src",
+    "../../modules/monolith--databases/client/contract.ts"
+  ]
+}

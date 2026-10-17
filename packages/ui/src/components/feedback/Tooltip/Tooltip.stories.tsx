@@ -49,11 +49,11 @@ export const ClickableTooltip: Story = {
           as="a"
           color="primary"
           decoration="underline"
-          href="https://docs.lifeforge.dev"
+          href="https://github.com/MaxJafar/monolith/tree/main/docs"
           rel="noreferrer"
           target="_blank"
         >
-          LifeForge Docs
+          Monolith Docs
         </Text>{' '}
         to learn more about this project.
       </>

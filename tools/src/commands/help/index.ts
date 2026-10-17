@@ -2,46 +2,28 @@ import { log } from '@clack/prompts'
 import chalk from 'chalk'
 import type { Command } from 'commander'
 
-const LOGO = chalk.bold.green(`
-██╗     ██╗███████╗███████╗███████╗ ██████╗ ██████╗  ██████╗ ███████╗
-██║     ██║██╔════╝██╔════╝██╔════╝██╔═══██╗██╔══██╗██╔════╝ ██╔════╝
-██║     ██║█████╗  █████╗  █████╗  ██║   ██║██████╔╝██║  ███╗█████╗  
-██║     ██║██╔══╝  ██╔══╝  ██╔══╝  ██║   ██║██╔══██╗██║   ██║██╔══╝  
-███████╗██║██║     ███████╗██║     ╚██████╔╝██║  ██║╚██████╔╝███████╗
-╚══════╝╚═╝╚═╝     ╚══════╝╚═╝      ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚══════╝
-                                                                     
-`)
-
-const SECTION_ICONS: Record<string, string> = {
-  Commands: '📦',
-  Options: '⚙️ ',
-  Arguments: '📋',
-  Usage: '🚀',
-  Description: '📖'
-}
+const LOGO = chalk.bold('\n▌ monolith\n')
 
 function formatSectionTitle(title: string): string {
-  const icon = SECTION_ICONS[title] || '•'
-
-  return `\n${icon} ${chalk.bold.underline.yellow(title)}\n`
+  return `\n${chalk.bold(title)}\n`
 }
 
 function formatCommand(name: string, description: string): string {
   const paddedName = name.padEnd(20)
 
-  return `   ${chalk.cyan(paddedName)} ${chalk.dim('│')} ${chalk.white(description)}`
+  return `   ${chalk.bold(paddedName)} ${chalk.dim('│')} ${chalk.reset(description)}`
 }
 
 function formatOption(flags: string, description: string): string {
   const paddedFlags = flags.padEnd(25)
 
-  return `   ${chalk.green(paddedFlags)} ${chalk.dim('│')} ${chalk.white(description)}`
+  return `   ${chalk.reset(paddedFlags)} ${chalk.dim('│')} ${chalk.reset(description)}`
 }
 
 function formatArgument(name: string, description: string): string {
   const paddedName = name.padEnd(20)
 
-  return `   ${chalk.magenta(paddedName)} ${chalk.dim('│')} ${chalk.white(description)}`
+  return `   ${chalk.bold(paddedName)} ${chalk.dim('│')} ${chalk.reset(description)}`
 }
 
 export default function setup(program: Command): void {
@@ -55,7 +37,7 @@ export default function setup(program: Command): void {
       } else {
         output.push('')
         output.push(
-          `   ${chalk.bold.cyan('forge')} ${chalk.yellow(cmd.name())} ${chalk.dim('- ' + cmd.description())}`
+          `   ${chalk.bold('monolith')} ${chalk.bold(cmd.name())} ${chalk.dim('- ' + cmd.description())}`
         )
         output.push('')
       }
@@ -65,16 +47,16 @@ export default function setup(program: Command): void {
 
       const usage = helper
         .commandUsage(cmd)
-        .replace(/\bforge\b/, chalk.magenta('forge'))
-        .replace(/\[options\]/g, chalk.green('[options]'))
-        .replace(/\[command\]/g, chalk.cyan('[command]'))
+        .replace(/\bmonolith\b/, chalk.bold('monolith'))
+        .replace(/\[options\]/g, chalk.reset('[options]'))
+        .replace(/\[command\]/g, chalk.bold('[command]'))
 
       output.push(`   ${chalk.dim('$')} ${usage}`)
 
       // Description for subcommands
       if (cmd.parent && cmd.description()) {
         output.push(formatSectionTitle('Description'))
-        output.push(`   ${chalk.white(cmd.description())}`)
+        output.push(`   ${chalk.reset(cmd.description())}`)
       }
 
       // Arguments
@@ -116,7 +98,7 @@ export default function setup(program: Command): void {
       output.push('')
       output.push(
         chalk.dim(
-          `   Run ${chalk.cyan('pnpm forge <command> --help')} for more info on a specific command`
+          `   Run ${chalk.bold('pnpm monolith <command> --help')} for more info on a specific command`
         )
       )
       output.push('')
@@ -124,10 +106,10 @@ export default function setup(program: Command): void {
       return output.join('\n')
     },
 
-    subcommandTerm: cmd => chalk.cyan(cmd.name()),
+    subcommandTerm: cmd => chalk.bold(cmd.name()),
     argumentTerm: arg =>
-      chalk.magenta(arg.required ? `<${arg.name()}>` : `[${arg.name()}]`),
-    optionTerm: opt => chalk.green(opt.flags)
+      chalk.bold(arg.required ? `<${arg.name()}>` : `[${arg.name()}]`),
+    optionTerm: opt => chalk.reset(opt.flags)
   })
 
   // Custom error formatting

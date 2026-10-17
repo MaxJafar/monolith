@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 import { composeRelations } from './composeRelations'
 import { defineModuleSchema } from './defineModuleSchema'
 
-const MODULE = 'lifeforge--app'
+const MODULE = 'monolith--app'
 
 /** Resolves a module's schema the way the server does (into a global config). */
 function buildRelations(

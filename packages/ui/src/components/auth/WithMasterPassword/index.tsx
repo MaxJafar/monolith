@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 
-import type { ForgeEndpoint } from '@lifeforge/api'
+import type { EndpointClient } from '@monolith/api'
 
 import { CreatePasswordScreen } from './components/CreatePasswordScreen'
 import { LockedScreen } from './components/LockedScreen'
@@ -13,12 +13,12 @@ export function WithMasterPassword<TCreationOutput>({
   children
 }: {
   controllers: {
-    createPassword: ForgeEndpoint<{
-      __isForgeContract: true
+    createPassword: EndpointClient<{
+      __isEndpointContract: true
       __output: TCreationOutput
     }>
-    getChallenge: ForgeEndpoint
-    verifyPassword: ForgeEndpoint
+    getChallenge: EndpointClient
+    verifyPassword: EndpointClient
   }
   hasMasterPassword: boolean
   onCreate?: (data: TCreationOutput) => void

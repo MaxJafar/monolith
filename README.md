@@ -92,7 +92,7 @@ Build and sign in before generating configuration. Follow the **[MCP and CLI gui
 - **Desktop** — Build the Windows or macOS shell on its supported platform. Check [Releases](https://github.com/MaxJafar/monolith/releases) for published installers.
 - **Self-host** — Run the API, Go gateway and PostgreSQL with the [container guide](https://monolith-site-maxjafars-projects.vercel.app/docs/self-hosting).
 
-> **Development preview:** these docs describe the current Monolith development workspace, version **0.0.0**. The repository is private, the published application source predates parts of this workspace, and no public installers or addon catalog have been released. See [release availability](https://monolith-site-maxjafars-projects.vercel.app/docs/availability) before choosing a build.
+> **Preview 0.1.0-preview.1:** this is the maintained Monolith source tree. Platform downloads are published together after their build and verification checks pass. See [Releases](https://github.com/MaxJafar/monolith/releases) for available downloads and [installation instructions](release/INSTALL.md) for the manual preview.
 
 <details>
 <summary><strong>Run the development workspace from source</strong></summary>

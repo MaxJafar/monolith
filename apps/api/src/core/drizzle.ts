@@ -1,15 +1,15 @@
+import { composeRelations, defineModuleSchema } from '@monolith/drizzle'
+import { filesSchema } from '@monolith/file-storage/server'
+import { ModuleRegistry } from '@monolith/module-runtime/registry'
 import { defineRelations } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/postgres-js'
 import { type PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
 
-import { composeRelations, defineModuleSchema } from '@lifeforge/drizzle'
-import { filesSchema } from '@lifeforge/file-storage/server'
-import { ModuleRegistry } from '@lifeforge/module-runtime/registry'
-
 import * as apiKeysSchema from '../lib/apiKeys/schema.drizzle'
 import * as authSchema from '../lib/auth/schema.drizzle'
 import * as fontsSchema from '../lib/fonts/schema.drizzle'
+import * as roomsSchema from '../lib/rooms/schema.drizzle'
 import * as searchSchema from '../lib/search/schema.drizzle'
 import * as userSchema from '../lib/user/schema.drizzle'
 
@@ -28,7 +28,8 @@ const coreTables = {
   ...apiKeysSchema.tables,
   ...fontsSchema.tables,
   ...filesSchema.tables,
-  ...searchSchema.tables
+  ...searchSchema.tables,
+  ...roomsSchema.tables
 }
 
 const coreDefinition = defineModuleSchema(coreTables, r =>
@@ -39,7 +40,8 @@ const coreDefinition = defineModuleSchema(coreTables, r =>
     apiKeysSchema.relations(r),
     fontsSchema.relations(r),
     filesSchema.relations(r),
-    searchSchema.relations(r)
+    searchSchema.relations(r),
+    roomsSchema.relations(r)
   )
 )
 
@@ -58,6 +60,14 @@ let db: PostgresJsDatabase<CoreRelations> = drizzle({
 })
 
 export { db }
+
+export function listenDeviceRevocations(listener: (sessionId: string) => void) {
+  return client.listen('monolith_device_revoked', listener)
+}
+
+export function listenRoomChanges(listener: (payload: string) => void) {
+  return client.listen('monolith_rooms_changed', listener)
+}
 
 export function initDrizzle(): void {
   db = drizzle({

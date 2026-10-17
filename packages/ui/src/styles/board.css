@@ -32,7 +32,8 @@
     box-shadow var(--motion-fast) var(--motion-ease),
     transform var(--motion-standard) var(--motion-ease),
     opacity var(--motion-fast);
-  animation: monolith-card-enter var(--motion-standard) var(--motion-ease);
+  animation: monolith-card-enter 380ms var(--motion-ease);
+  transform-origin: top center;
 }
 .monolith-board-card[draggable='true'] {
   cursor: grab;
@@ -114,13 +115,28 @@
   border-radius: 0;
 }
 @keyframes monolith-card-enter {
-  from {
+  0% {
     opacity: 0;
-    transform: translateY(4px);
+    transform: translateY(6px) scale(0.975, 1.025) rotate(-0.4deg);
   }
-  to {
+  60% {
+    opacity: 1;
+    transform: translateY(-1px) scale(1.009, 0.993) rotate(0.2deg);
+  }
+  100% {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .monolith-board-card {
+    animation: none;
+    transition: none;
+    transform: none !important;
+  }
+  .monolith-board-column,
+  .monolith-board-actions {
+    transition: none;
   }
 }
 @media (hover: hover) and (pointer: fine) {

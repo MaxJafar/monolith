@@ -1,4 +1,4 @@
-import { findProjectRoot } from '@lifeforge/configs/node'
+import { findProjectRoot } from '@monolith/configs/node'
 
 import '../loadEnv'
 

@@ -1,0 +1,111 @@
+.workspace-pulse {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  padding: 8px 0;
+}
+.workspace-pulse-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  color: var(--text-primary);
+  text-decoration: none;
+  transition:
+    background 180ms,
+    transform 240ms cubic-bezier(0.2, 1.5, 0.4, 1);
+}
+.workspace-pulse-stat:hover {
+  background: var(--bg-hover);
+  transform: translateY(-2px);
+}
+.workspace-progress {
+  height: 5px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg-secondary);
+}
+.workspace-progress > span {
+  display: block;
+  height: 100%;
+  background: var(--text-primary);
+  border-radius: inherit;
+  transition: width 500ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+.workspace-widget-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 6px;
+  border-radius: 6px;
+  color: var(--text-primary);
+  text-decoration: none;
+  border-bottom: 1px solid var(--border-subtle);
+  transition: background 150ms;
+}
+.workspace-widget-row:hover {
+  background: var(--bg-hover);
+}
+.workspace-widget-row a {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+.workspace-widget-row input[type='checkbox'] {
+  appearance: auto;
+  width: 17px;
+  min-width: 17px;
+  max-width: 17px;
+  height: 17px;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--text-primary);
+  cursor: pointer;
+  flex-shrink: 0;
+  flex-grow: 0;
+}
+.workspace-status {
+  margin-left: auto;
+  white-space: nowrap;
+  padding: 3px 8px;
+  border-radius: 5px;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+}
+.workspace-weather-temperature {
+  font-size: clamp(36px, 5vw, 56px);
+  letter-spacing: -0.055em;
+  line-height: 1.15;
+}
+@media (max-width: 640px) {
+  .workspace-pulse {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+}
+@container widget (max-width: 550px) {
+  .workspace-pulse {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .workspace-progress > span,
+  .workspace-pulse-stat {
+    transition: none;
+  }
+  .workspace-pulse-stat:hover {
+    transform: none;
+  }
+}
+.workspace-calendar-day { position: relative; min-height: 29px; padding: 4px 0; border-radius: 4px; }
+.workspace-calendar-day[aria-pressed='true'] { background: color-mix(in srgb, var(--selection-color) 12%, transparent); }
+.workspace-calendar-day[data-outside='true'] { opacity: .4; }
+.workspace-calendar-day[data-today='true'] { color: var(--selection-color); font-weight: 600; }
+.workspace-calendar-dot { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: var(--selection-color); bottom: 2px; }
+.workspace-widget-quote { border-bottom: 1px solid var(--border-subtle); }

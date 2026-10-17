@@ -1,44 +1,59 @@
+import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { useAuth } from '@lifeforge/api'
-import { Flex, ModalHeader, toast } from '@lifeforge/ui'
+import { useAuth } from '@monolith/api'
+import { ModalHeader, OTPInputBox, Stack, Text, toast } from '@monolith/ui'
 
-import UsingAuthApp from './components/UsingAuthApp'
-
-function TwoFAModal({ onClose }: { onClose: () => void }) {
+export default function TwoFAModal({ onClose }: { onClose: () => void }) {
+  const { authenticateWith2FA, tid } = useAuth()
   const { t } = useTranslation('common.auth')
-  const { authenticateWith2FA } = useAuth()
+  const [otp, setOtp] = useState('')
+  const [pending, setPending] = useState(false)
+  const lock = useRef(false)
 
-  async function verifyOTP(otp: string) {
-    if (otp.length !== 6) {
-      toast.error('OTP must be 6 digits')
-
+  async function verify(code: string) {
+    if (lock.current) return
+    if (!/^\d{6}$/.test(code)) {
+      toast.error(t('messages.otpLength'))
       return
     }
-
+    lock.current = true
+    setPending(true)
     try {
-      const name = await authenticateWith2FA(otp)
-
+      const name = await authenticateWith2FA(code)
+      tid.current = ''
       toast.success(t('messages.welcomeBack', { name }))
       onClose()
     } catch {
-      toast.error('Invalid OTP')
+      toast.error(t('messages.invalidOTP'))
+    } finally {
+      lock.current = false
+      setPending(false)
     }
   }
 
   return (
-    <Flex direction="column" minWidth="40vw">
+    <Stack maxWidth="30rem" width="100%">
       <ModalHeader
         icon="tabler:lock-access"
         namespace="common.auth"
         title="twoFA"
         onClose={() => {
-          window.location.reload()
+          if (lock.current) return
+          tid.current = ''
+          onClose()
         }}
       />
-      <UsingAuthApp callback={verifyOTP} />
-    </Flex>
+      <Text as="p" color="muted" mb="lg">
+        {t('modals.twoFA.description')}
+      </Text>
+      <OTPInputBox
+        lighter
+        otp={otp}
+        setOtp={value => setOtp(value.replace(/\D/g, '').slice(0, 6))}
+        verifyOTP={verify}
+        verifyOtpLoading={pending}
+      />
+    </Stack>
   )
 }
-
-export default TwoFAModal

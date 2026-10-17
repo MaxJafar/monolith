@@ -2,9 +2,9 @@ import { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import type { RouteObject } from 'react-router'
 
-import type { ModuleConfig, ModuleGroup } from '@lifeforge/configs'
-import type { FederatedModule } from '@lifeforge/federation'
-import { Box, ErrorScreen, ModuleWrapper, NotFoundScreen } from '@lifeforge/ui'
+import type { ModuleConfig, ModuleGroup } from '@monolith/configs'
+import type { FederatedModule } from '@monolith/federation'
+import { Box, ErrorScreen, ModuleWrapper, NotFoundScreen } from '@monolith/ui'
 
 import APIKeyStatusProvider from '@/core/providers/features/APIKeyStatusProvider'
 
@@ -21,6 +21,7 @@ export interface RouteBuilderOptions {
     title: string
     icon: string
     translationNamespace?: string
+    canvas?: boolean
     clearQueryOnUnmount: boolean
   }
 }
@@ -88,6 +89,7 @@ export function createModuleRoute(
       routes: item.routes,
       APIKeyAccess: item.APIKeyAccess,
       config: {
+        canvas: item.name !== 'module-manager' && (item.canvas ?? true),
         name: item.name || '',
         title: item.name,
         translationNamespace: `common.${item.name}`,

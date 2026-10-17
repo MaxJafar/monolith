@@ -17,6 +17,10 @@ export type Source = {
   workspace: string | null
   href: string
   text: string
+  /** Canonical prose/properties, without search display metadata. */
+  bodyText?: string
+  entityType?: string
+  tags?: string[]
   file?: { key: string; mime: string; size: number }
   fingerprint: string
 }

@@ -2,7 +2,7 @@ import type {
   CanvasBlock,
   CanvasBlockType,
   CanvasPage
-} from '@lifeforge/blocks'
+} from '@monolith/blocks'
 
 export function newCanvasBlock(
   type: CanvasBlockType,
@@ -40,58 +40,26 @@ export function defaultCanvasPage(
 
   return {
     version: 1,
-    title: home ? (labels.home ?? 'Home') : title,
+    title,
     icon: `lucide:${icons[key.split('/')[1] ?? ''] ?? 'file-text'}`,
     fullWidth: true,
     revision: 0,
     updated: null,
     blocks: home
       ? [
-          newCanvasBlock('heading', {
-            title: labels.quickAccess ?? 'Quick access'
-          }),
-          newCanvasBlock('button', {
-            title: labels.projects ?? 'Projects',
-            url: '/projects',
-            width: 'third'
-          }),
-          newCanvasBlock('button', {
-            title: labels.documents ?? 'Documents & databases',
-            url: '/databases',
-            width: 'third'
-          }),
-          newCanvasBlock('button', {
-            title: 'Tech Lab',
-            url: '/tech-lab',
-            width: 'third'
-          }),
-          newCanvasBlock('widget', {
-            title: labels.labHealth ?? 'Lab health',
-            widget: 'techLabHealth',
-            width: 'half'
-          }),
-          newCanvasBlock('widget', {
-            title: labels.deviceResources ?? 'Device resources',
-            widget: 'techLabDevice',
-            width: 'half'
-          }),
-          newCanvasBlock('widget', {
-            title: labels.projects ?? 'Projects',
-            widget: 'projectOverview'
-          }),
-          newCanvasBlock('widget', {
-            title: labels.homelab ?? 'Homelab',
-            widget: 'techLabServices'
-          }),
-          newCanvasBlock('widget', {
-            title: labels.financialOverview ?? 'Financial overview',
-            widget: 'assetsBalance',
-            width: 'half'
-          }),
-          newCanvasBlock('document', {
-            title: labels.notes ?? 'Notes',
-            width: 'half'
-          })
+          ...[
+            'workspacePulse',
+            'actionAgenda',
+            'projectFocus',
+            'quickLinks',
+            'weather'
+          ].map(widget =>
+            newCanvasBlock('widget', {
+              title: labels[widget] ?? widget,
+              widget,
+              width: widget === 'workspacePulse' ? 'full' : 'half'
+            })
+          )
         ]
       : key.startsWith('/page/')
         ? [newCanvasBlock('document')]

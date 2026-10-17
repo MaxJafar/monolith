@@ -1,4 +1,4 @@
-import { createTabbedView, usePersonalization } from '@lifeforge/ui'
+import { createTabbedView, usePersonalization } from '@monolith/ui'
 
 import CustomFontSelector from './custom'
 import GoogleFontSelector from './google'

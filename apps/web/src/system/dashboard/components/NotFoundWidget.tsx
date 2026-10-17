@@ -6,7 +6,7 @@ import {
   Widget,
   useModalStore,
   usePersonalization
-} from '@lifeforge/ui'
+} from '@monolith/ui'
 
 import { useUserPersonalization } from '@/core/providers/features/UserPersonalizationProvider'
 

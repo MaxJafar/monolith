@@ -1,4 +1,4 @@
-import { useEncryption } from '@lifeforge/api'
+import { useEncryption } from '@monolith/api'
 
 import { EmptyStateScreen, LoadingScreen } from '@/components/feedback'
 

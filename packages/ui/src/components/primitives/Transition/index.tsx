@@ -1,136 +1,57 @@
-import {
-  type CSSProperties,
-  type HTMLAttributes,
-  type ReactNode,
-  type Ref
-} from 'react'
+import type { HTMLAttributes, Ref } from 'react'
 
 import { Slot } from '../Slot'
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-type EasingValue =
-  'linear' | 'ease' | 'ease-in' | 'ease-out' | 'ease-in-out' | (string & {})
-
-type PropertyValue =
-  | 'all'
-  | 'none'
-  | 'opacity'
-  | 'transform'
-  | 'color'
-  | 'background-color'
-  | 'border-color'
-  | 'box-shadow'
-  | 'width'
-  | 'height'
-  | (string & {})
-
-interface TransitionEntry {
-  property: PropertyValue
-  /** Overrides the component-level duration for this property. */
+type Entry = {
+  property: string
   duration?: number | string
-  /** Overrides the component-level easing for this property. */
-  easing?: EasingValue
-  /** Overrides the component-level delay for this property. */
+  easing?: string
   delay?: number | string
 }
-
-// ─── Props ────────────────────────────────────────────────────────────────────
-
-interface TransitionProps extends Omit<
-  HTMLAttributes<HTMLElement>,
-  'property'
-> {
+type Props = Omit<HTMLAttributes<HTMLElement>, 'property'> & {
   ref?: Ref<HTMLElement>
-  /** Transition duration in ms, or a CSS time string e.g. `'100ms'` / `'0.1s'`. Defaults to `'100ms'`. */
   duration?: number | string
-  /** CSS transition-timing-function. Defaults to `'ease-in-out'`. */
-  easing?: EasingValue
-  /** Transition delay in ms, or a CSS time string. */
+  easing?: string
   delay?: number | string
-  /**
-   * Property or array of properties to transition. Each entry can be a plain
-   * property name (uses component-level duration/easing/delay) or a
-   * `TransitionEntry` object with per-property overrides.
-   */
-  property?:
-    PropertyValue | TransitionEntry | Array<PropertyValue | TransitionEntry>
-  children?: ReactNode
-  className?: string
-  style?: CSSProperties
+  property?: string | Entry | Array<string | Entry>
 }
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function toTimeString(value: number | string): string {
-  if (typeof value === 'number') return `${value}ms`
-
-  return value
-}
+const time = (value: number | string) =>
+  typeof value === 'number' ? value + 'ms' : value
 
 export function buildEntry(
-  entry: PropertyValue | TransitionEntry,
+  input: string | Entry,
   defaults: { duration: string; easing: string; delay?: string }
 ): string {
-  if (typeof entry === 'string') {
-    const parts = [entry, defaults.duration, defaults.easing]
-
-    if (defaults.delay) parts.push(defaults.delay)
-
-    return parts.join(' ')
-  }
-
-  const duration = toTimeString(entry.duration ?? defaults.duration)
-
-  const easing = entry.easing ?? defaults.easing
-
-  const delay =
-    entry.delay !== undefined ? toTimeString(entry.delay) : defaults.delay
-
-  const parts = [entry.property, duration, easing]
-
-  if (delay) parts.push(delay)
-
-  return parts.join(' ')
+  const entry = typeof input === 'string' ? { property: input } : input
+  const duration = time(entry.duration ?? defaults.duration)
+  const delay = entry.delay === undefined ? defaults.delay : time(entry.delay)
+  return [entry.property, duration, entry.easing ?? defaults.easing, delay]
+    .filter(value => value !== undefined)
+    .join(' ')
 }
 
-// ─── Component ───────────────────────────────────────────────────────────────
-
-/**
- * A component that applies CSS transitions to its children. You can specify the transition properties, duration, easing, and delay. This component generates the appropriate CSS `transition` property based on the provided props and applies it to a wrapper element around the children.
- *
- * Defaults:
- * - `duration`: `'100ms'`
- * - `easing`: `'ease-in-out'`
- * - `property`: `'all'`
- */
 export function Transition({
-  ref,
-  duration = '100ms',
+  duration = 100,
   easing = 'ease-in-out',
   delay,
   property = 'all',
   children,
-  className,
   style,
-  ...rest
-}: TransitionProps) {
+  ...native
+}: Props) {
   const defaults = {
-    duration: toTimeString(duration),
+    duration: time(duration),
     easing,
-    delay: delay !== undefined ? toTimeString(delay) : undefined
+    delay: delay === undefined ? undefined : time(delay)
   }
-
-  const entries = Array.isArray(property) ? property : [property]
-
-  const transition = entries.map(e => buildEntry(e, defaults)).join(', ')
-
+  const values = Array.isArray(property) ? property : [property]
   return (
     <Slot
-      ref={ref}
-      className={className}
-      style={{ transition, ...style }}
-      {...rest}
+      {...native}
+      style={{
+        transition: values.map(value => buildEntry(value, defaults)).join(', '),
+        ...style
+      }}
     >
       {children}
     </Slot>

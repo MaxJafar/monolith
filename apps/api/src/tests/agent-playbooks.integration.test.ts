@@ -4,16 +4,15 @@ import { randomUUID } from 'node:crypto'
 import postgres from 'postgres'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
-import type { ForgeContract } from '@lifeforge/server-utils'
+import type { EndpointContract } from '@monolith/server-utils'
 
-import { entries as projects } from '../../../../modules/lifeforge--projects/server/schema.drizzle'
 import {
   playbook,
   playbookInput,
   qualityOutput
-} from '../../../../modules/zillion--agents/server/playbooks'
-import * as routes from '../../../../modules/zillion--agents/server/routes'
-import * as runtime from '../../../../modules/zillion--agents/server/runtime'
+} from '../../../../modules/monolith--agents/server/playbooks'
+import * as routes from '../../../../modules/monolith--agents/server/routes'
+import * as runtime from '../../../../modules/monolith--agents/server/runtime'
 import {
   activity,
   playbooks,
@@ -21,12 +20,13 @@ import {
   relations,
   tables,
   usageRecords
-} from '../../../../modules/zillion--agents/server/schema.drizzle'
+} from '../../../../modules/monolith--agents/server/schema.drizzle'
 import type {
   AgentSnapshot,
   PlaybookSnapshot,
   Run
-} from '../../../../modules/zillion--agents/shared'
+} from '../../../../modules/monolith--agents/shared'
+import { entries as projects } from '../../../../modules/monolith--projects/server/schema.drizzle'
 
 const enabled = process.env.ZILLION_INTEGRATION === '1'
 const connection = process.env.DATABASE_URL ?? ''
@@ -54,11 +54,13 @@ const db = drizzle({ client, relations: defineRelations(tables, relations) })
 const owner = randomUUID(),
   other = randomUUID()
 
-type Context = Parameters<ReturnType<ForgeContract['getValue']>['callback']>[0]
+type Context = Parameters<
+  ReturnType<EndpointContract['getValue']>['callback']
+>[0]
 type Identity = { principalId: string; credentialId: string }
 
 async function invoke<T>(
-  route: ForgeContract,
+  route: EndpointContract,
   body?: unknown,
   query: Record<string, string> = {},
   user = owner,

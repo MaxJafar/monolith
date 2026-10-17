@@ -11,9 +11,9 @@ import {
   toast,
   useModalStore,
   usePersonalization
-} from '@lifeforge/ui'
+} from '@monolith/ui'
 
-import forgeAPI from '@/core/utils/forgeAPI'
+import workspaceAPI from '@/core/utils/workspaceAPI'
 
 import AdjustBgImageModal from './modals/AdjustBgImageModal'
 
@@ -27,7 +27,7 @@ function BgImageSelector() {
     open(AdjustBgImageModal, {})
   }, [])
   const deleteMutation = useMutation(
-    forgeAPI.user.personalization.deleteBgImage.mutationOptions({
+    workspaceAPI.user.personalization.deleteBgImage.mutationOptions({
       onSuccess: () => {
         setBgImage('')
         setBackdropFilters({
@@ -56,11 +56,13 @@ function BgImageSelector() {
 
   async function onSubmit(file: string | File) {
     try {
-      const data = await forgeAPI.user.personalization.updateBgImage.mutate({
-        file
-      })
+      const data = await workspaceAPI.user.personalization.updateBgImage.mutate(
+        {
+          file
+        }
+      )
 
-      setBgImage(forgeAPI.getMedia(data))
+      setBgImage(workspaceAPI.getMedia(data))
       toast.success('Background image updated')
     } catch {
       toast.error('Failed to update background image')

@@ -1,6 +1,6 @@
 import { defineRelations } from 'drizzle-orm'
 
-import type { ResolvedModuleSchema } from '@lifeforge/module-runtime/registry'
+import type { ResolvedModuleSchema } from '@monolith/module-runtime/registry'
 
 /**
  * Merges every registered schema part into the single global relations config

@@ -7,9 +7,9 @@ metadata in the shared `files` table. Clients fetch files via `GET /files/get`.
 
 Two entry points:
 
-- **`@lifeforge/file-storage`** — the `core.storage` API, `FileReference`/
+- **`@monolith/file-storage`** — the `core.storage` API, `FileReference`/
   `fileReferenceSchema`, and the provider factory.
-- **`@lifeforge/file-storage/server`** — server wiring used by `apps/api`
+- **`@monolith/file-storage/server`** — server wiring used by `apps/api`
   (upload middleware, `files` table/store, staging sweep).
 
 ---
@@ -113,7 +113,7 @@ Return a `FileReference` from any route that exposes a file. Use the shared
 schema so the contract and client types stay in sync:
 
 ```typescript
-import { fileReferenceSchema } from '@lifeforge/file-storage'
+import { fileReferenceSchema } from '@monolith/file-storage'
 
 const output = {
   OK: z.object({ file: fileReferenceSchema })
@@ -150,7 +150,7 @@ interface FileReference {
 }
 ```
 
-The client-side `FileReference` type is exported from `@lifeforge/api`, and
+The client-side `FileReference` type is exported from `@monolith/api`, and
 form file fields map it to an `existing` value via
 `getFormFileFieldInitialData`.
 
@@ -185,8 +185,8 @@ const key = await migrateFileField({
 })
 ```
 
-See the `database-migration` skill and `apps/api/scripts/migrations/` for the
-full workflow.
+Use `pnpm migrate:pocketbase` and the workflow in
+`docs/MONOLITH-POCKETBASE-MIGRATION.md` for import validation, rehearsal and rollback.
 
 ---
 

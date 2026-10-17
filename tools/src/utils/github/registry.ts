@@ -3,14 +3,11 @@ import os from 'node:os'
 import path from 'node:path'
 
 import { ghApi, run } from './cli'
+import { registryConfig } from './registryConfig'
 
 /**
  * The GitHub repo that hosts the static module/locale index.
  */
-export const REGISTRY_REPO = 'lifeforge-app/registry'
-
-export const REGISTRY_REF = 'main'
-
 /** Fetches and parses JSON from a URL. */
 export async function fetchJson<T>(url: string): Promise<T> {
   const response = await fetch(url)
@@ -24,7 +21,8 @@ export async function fetchJson<T>(url: string): Promise<T> {
 
 /** URL of a file in the registry index repo (raw). */
 export function rawRegistryUrl(file: string): string {
-  return `https://raw.githubusercontent.com/${REGISTRY_REPO}/${REGISTRY_REF}/${file}`
+  const { repo, ref } = registryConfig()
+  return `https://raw.githubusercontent.com/${repo}/${ref}/${file}`
 }
 
 /**
@@ -35,10 +33,11 @@ export function updateRegistryIndex(
   kind: 'modules' | 'locales',
   entry: { id: string; repo: string; version: string; commitSha: string }
 ): void {
+  const { repo, ref } = registryConfig()
   const file = `${kind}.json`
 
   const existing = ghApi<{ content: string; sha: string }>(
-    `repos/${REGISTRY_REPO}/contents/${file}`
+    `repos/${repo}/contents/${file}?ref=${encodeURIComponent(ref)}`
   )
 
   const list = JSON.parse(
@@ -73,21 +72,20 @@ export function updateRegistryIndex(
     'base64'
   )
 
-  const bodyFile = path.join(os.tmpdir(), `forge-index-${Date.now()}.json`)
+  const bodyFile = path.join(os.tmpdir(), `monolith-index-${Date.now()}.json`)
 
   fs.writeFileSync(
     bodyFile,
     JSON.stringify({
       message: `chore: index ${kind}/${entry.id}@${entry.version}`,
       content,
+      branch: ref,
       sha: existing.sha
     })
   )
 
   try {
-    run(
-      `gh api -X PUT repos/${REGISTRY_REPO}/contents/${file} --input "${bodyFile}"`
-    )
+    run(`gh api -X PUT repos/${repo}/contents/${file} --input "${bodyFile}"`)
   } finally {
     fs.rmSync(bodyFile, { force: true })
   }

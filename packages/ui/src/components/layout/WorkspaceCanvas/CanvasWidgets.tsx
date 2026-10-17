@@ -1,10 +1,30 @@
 import { type ReactNode, createContext, useContext } from 'react'
 
-import type { PageTarget } from '@lifeforge/blocks'
+import type { PageTarget } from '@monolith/blocks'
 
 import type { CanvasPageStorage } from './index'
 
+export type InlineDatabaseMode =
+  | 'table'
+  | 'kanban'
+  | 'calendar'
+  | 'gallery'
+  | 'list'
+  | 'chart'
+  | 'dashboard'
+  | 'timeline'
+export type CanvasWidgetConfiguration = {
+  filter: string
+  onViewChange?: (id: string) => void
+  onHeightChange?: (height: number) => void
+  onConfigChange?: (filter: string) => void
+  readOnly?: boolean
+}
+
 export type CanvasWidgetCatalog = {
+  addToDashboard?: (id: string, filter: string) => void
+  requestedWidget?: { id: string; filter: string }
+  consumeRequestedWidget?: () => void
   pageStorage?: (key: string) => CanvasPageStorage | undefined
   pages?: PageTarget[]
   openPage?: (page: Pick<PageTarget, 'id' | 'kind'>) => void
@@ -14,8 +34,15 @@ export type CanvasWidgetCatalog = {
     name: string
     views: { id: string; name: string }[]
   }[]
-  widgets: Record<string, { title: string; icon: string; filterable?: boolean }>
-  render: (id: string, configuration?: { filter: string }) => ReactNode
+  createDatabase?: (
+    name: string,
+    mode?: InlineDatabaseMode
+  ) => Promise<{ workspaceId: string; baseId: string; viewId: string }>
+  widgets: Record<
+    string,
+    { title: string; icon: string; module?: string; filterable?: boolean }
+  >
+  render: (id: string, configuration?: CanvasWidgetConfiguration) => ReactNode
 }
 
 const CanvasWidgets = createContext<CanvasWidgetCatalog>({

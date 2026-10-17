@@ -1,0 +1,146 @@
+name: Publish Monolith preview
+
+on:
+  push:
+    tags: ['v*-preview.*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: monolith-preview-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  clients:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: windows-amd64
+          - os: macos-latest
+            target: darwin-universal
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm release:version
+      - run: pnpm updater:test
+      - run: pnpm desktop:bundle
+      - name: Build and test Windows preview
+        if: runner.os == 'Windows'
+        run: |
+          pnpm desktop:windows:test
+          pnpm --dir apps/desktop exec tauri build --bundles nsis
+      - name: Build and test universal Mac preview
+        if: runner.os == 'macOS'
+        run: |
+          pnpm exec node tools/macos-build.mjs --test
+          pnpm exec node tools/macos-build.mjs
+      - run: pnpm exec node tools/preview-release.mjs client ${{ matrix.target }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: preview-${{ matrix.target }}
+          path: dist/platform-releases/${{ github.ref_name }}/*
+          retention-days: 7
+          if-no-files-found: error
+
+  server:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            target: linux-amd64
+          - os: ubuntu-24.04-arm
+            target: linux-arm64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: pnpm
+      - uses: docker/setup-buildx-action@v3
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm release:version
+      - run: pnpm gateway:test
+      - run: pnpm release:platform server ${{ matrix.target }}
+      - run: pnpm exec node tools/preview-release.mjs kit
+      - run: pnpm exec node tools/smoke-release-server.mjs ${{ matrix.target }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: preview-${{ matrix.target }}
+          path: |
+            dist/platform-releases/${{ github.ref_name }}/*.tar.gz
+            dist/platform-releases/${{ github.ref_name }}/*.part*
+            dist/platform-releases/${{ github.ref_name }}/*.artifact.json
+            dist/platform-releases/${{ github.ref_name }}/monolith-updater-*
+          retention-days: 7
+          if-no-files-found: error
+
+  extras:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm release:version
+      - run: pnpm core:check
+      - run: pnpm typecheck
+      - run: pnpm exec node --test tools/platform-release.test.mjs tools/preview-release.test.mjs
+      - run: pnpm --filter @monolith/client test
+      - run: pnpm --filter @monolith/configs test
+      - run: pnpm --filter @monolith/module-runtime test
+      - run: pnpm --filter @monolith/server-utils test
+      - run: pnpm exec vitest run --config tools/vitest.addons.config.ts
+      - run: pnpm agent:test
+      - run: pnpm release:addons
+        env:
+          MONOLITH_RELEASE_PRIVATE_KEY: ${{ secrets.MONOLITH_ADDON_CATALOG_PRIVATE_KEY }}
+      - run: pnpm exec node tools/preview-release.mjs extras
+      - uses: actions/upload-artifact@v4
+        with:
+          name: preview-extras
+          path: dist/platform-releases/${{ github.ref_name }}/*
+          retention-days: 7
+          if-no-files-found: error
+
+  publish:
+    needs: [clients, server, extras]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+      - run: pnpm release:version
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: preview-*
+          path: dist/platform-releases/${{ github.ref_name }}
+          merge-multiple: true
+      - run: pnpm exec node tools/preview-release.mjs manifest
+      - name: Publish the complete manual preview
+        run: pnpm exec node tools/publish-platform-release.mjs --preview
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          MONOLITH_RELEASE_NOTES_FILE: release/PREVIEW.md

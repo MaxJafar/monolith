@@ -1,8 +1,7 @@
-import { useMutation } from '@tanstack/react-query'
-import { useCallback } from 'react'
+import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { useAuth } from '@lifeforge/api'
+import { useAuth } from '@monolith/api'
 import {
   Box,
   Button,
@@ -13,126 +12,99 @@ import {
   OptionsColumn,
   toast,
   useModalStore
-} from '@lifeforge/ui'
+} from '@monolith/ui'
 
-import forgeAPI from '@/core/utils/forgeAPI'
+import workspaceAPI from '@/core/utils/workspaceAPI'
 
-function AvatarColumn() {
-  const { open } = useModalStore()
+export default function AvatarColumn() {
+  const { userData, setUserData, getAvatarURL } = useAuth()
   const { t } = useTranslation('common.account-settings')
-  const { getAvatarURL, userData, setUserData } = useAuth()
+  const { open } = useModalStore()
+  const [busy, setBusy] = useState(false)
+  const locked = useRef(false)
 
-  async function changeAvatar(file: File | string | null) {
-    if (file === null) {
-      toast.error('No file selected')
-
-      return
-    }
-
+  async function save(file: File | string | null, remove = false) {
+    if (!userData || locked.current || (!remove && !file)) return
+    locked.current = true
+    setBusy(true)
     try {
-      const data = await forgeAPI.user.settings.updateAvatar.mutate({
-        file
-      })
-
-      setUserData(userData => (userData ? { ...userData, avatar: data } : null))
-
-      toast.success('Avatar updated successfully')
-    } catch {
-      toast.error('An error occurred')
+      const avatar = remove
+        ? (await workspaceAPI.user.settings.deleteAvatar.mutateRaw(undefined),
+          null)
+        : await workspaceAPI.user.settings.updateAvatar.mutate({ file: file! })
+      setUserData(current => (current ? { ...current, avatar } : current))
+      toast.success(
+        t(remove ? 'messages.avatarRemoved' : 'messages.avatarSaved')
+      )
+    } catch (error) {
+      toast.error(t('messages.avatarFailed'))
+      throw error
+    } finally {
+      locked.current = false
+      setBusy(false)
     }
   }
 
-  const deleteAvatarMutation = useMutation(
-    forgeAPI.user.settings.deleteAvatar.mutationOptions({
-      onSuccess: () => {
-        setUserData(userData =>
-          userData ? { ...userData, avatar: null } : null
-        )
-        toast.success('Avatar removed successfully')
-      },
-      onError: () => {
-        toast.error('Failed to remove avatar')
-      }
+  function choose() {
+    open(FilePickerModal, {
+      mimeTypes: { image: ['jpg', 'jpeg', 'png', 'gif', 'webp'] },
+      sources: { pixabay: true, url: true, ai: { defaultPrompt: '' } },
+      onSelect: file => save(file).catch(() => {})
     })
-  )
-  const handleDeleteAvatar = useCallback(() => {
-    open(ConfirmationModal, {
-      title: 'Delete Avatar',
-      description:
-        'Are you sure you want to delete your avatar? This action cannot be undone.',
-      confirmationButton: 'delete',
-      onConfirm: async () => {
-        await deleteAvatarMutation.mutateAsync(undefined)
-      }
-    })
-  }, [])
-
-  if (!userData) return null
+  }
 
   return (
     <OptionsColumn
-      description={t('settings.desc.profilePicture')}
       icon="tabler:camera"
       title={t('settings.title.profilePicture')}
+      description={t('settings.desc.profilePicture')}
     >
-      <Flex
-        centered
-        shadow
-        bg={{ base: 'bg-100', dark: 'bg-800' }}
-        flexShrink="0"
-        height="3em"
-        mr="md"
-        overflow="hidden"
-        r="full"
-        width="3em"
-      >
-        {userData.avatar ? (
-          <Box
-            asChild
-            height="100%"
-            style={{
-              objectFit: 'cover'
-            }}
-            width="100%"
-          >
-            <img alt="" src={getAvatarURL()} />
-          </Box>
-        ) : (
-          <Icon color="muted" icon="tabler:user" size="1.5em" />
-        )}
-      </Flex>
-      <Flex align="center" gap="sm" width="100%">
+      <Flex align="center" gap="md" width="100%">
+        <Flex
+          centered
+          width="56px"
+          height="56px"
+          r="full"
+          overflow="hidden"
+          flexShrink="0"
+          bg={{ base: 'bg-100', dark: 'bg-800' }}
+        >
+          {userData?.avatar ? (
+            <Box
+              asChild
+              width="100%"
+              height="100%"
+              style={{ objectFit: 'cover' }}
+            >
+              <img alt="" src={getAvatarURL()} />
+            </Box>
+          ) : (
+            <Icon icon="tabler:user" color="muted" size="1.5em" />
+          )}
+        </Flex>
         <Button
-          flex="1"
-          icon="tabler:photo-hexagon"
-          variant={userData.avatar ? 'secondary' : 'primary'}
-          onClick={() =>
-            open(FilePickerModal, {
-              mimeTypes: {
-                image: ['jpg', 'jpeg', 'png', 'gif']
-              },
-              sources: {
-                pixabay: true,
-                url: true,
-                ai: {
-                  defaultPrompt:
-                    'Generate a cool profile picture of a cyberpunk themed neon green colored cube, the aspect ratio should be 1:1 (squared).'
-                }
-              },
-              enableUrl: true,
-              enableAI: true,
-              onSelect: file => changeAvatar(file)
-            })
-          }
+          icon="tabler:photo"
+          variant="secondary"
+          loading={busy}
+          disabled={!userData}
+          onClick={choose}
         >
           select
         </Button>
-        {userData.avatar && (
+        {userData?.avatar && (
           <Button
-            dangerous
             icon="tabler:trash"
+            dangerous
             variant="plain"
-            onClick={handleDeleteAvatar}
+            disabled={busy}
+            onClick={() =>
+              open(ConfirmationModal, {
+                title: t('actions.removeAvatar'),
+                description: t('messages.avatarRemoveDescription'),
+                confirmationButton: 'delete',
+                onConfirm: () => save(null, true)
+              })
+            }
           >
             remove
           </Button>
@@ -141,5 +113,3 @@ function AvatarColumn() {
     </OptionsColumn>
   )
 }
-
-export default AvatarColumn

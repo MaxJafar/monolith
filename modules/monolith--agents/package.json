@@ -1,0 +1,41 @@
+{
+  "name": "@monolith/agents",
+  "displayName": "Agents",
+  "version": "0.0.1",
+  "type": "module",
+  "author": "Monolith contributors",
+  "description": "People and agents working together on Monolith projects.",
+  "scripts": {
+    "build": "pnpm run build:client && pnpm run build:server",
+    "build:client": "vite build --config client/vite.config.ts",
+    "build:server": "vite build --config server/vite.config.ts",
+    "typecheck": "pnpm run typecheck:client && pnpm run typecheck:server",
+    "typecheck:client": "tsc -p client/tsconfig.json",
+    "typecheck:server": "tsc -p server/tsconfig.json"
+  },
+  "peerDependencies": {
+    "@monolith/api": "workspace:*",
+    "@monolith/blocks": "workspace:*",
+    "@monolith/configs": "workspace:*",
+    "@monolith/drizzle": "workspace:*",
+    "@monolith/federation": "workspace:*",
+    "@monolith/localization": "workspace:*",
+    "@monolith/server-utils": "workspace:*",
+    "@monolith/ui": "workspace:*"
+  },
+  "devDependencies": {
+    "@monolith/blocks": "workspace:*"
+  },
+  "monolith": {
+    "icon": "tabler:robot",
+    "category": "Workspace",
+    "id": "monolith--agents",
+    "routeId": "c76c180dd9148a2d5b8e2b2dedcc59abfd569fe719e1e9cc22280d6828dc53da",
+    "experience": {
+      "kind": "workbench",
+      "surfaces": [
+        "page"
+      ]
+    }
+  }
+}

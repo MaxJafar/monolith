@@ -2,8 +2,8 @@ import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { encrypt } from '@lifeforge/api'
-import type { ForgeEndpoint } from '@lifeforge/api'
+import { encrypt } from '@monolith/api'
+import type { EndpointClient } from '@monolith/api'
 
 import { Button, TextInput } from '@/components/inputs'
 import { ConfirmationModal } from '@/components/overlays'
@@ -15,8 +15,8 @@ export function CreatePasswordScreen({
   challengeController,
   onCreate
 }: {
-  controller: ForgeEndpoint
-  challengeController: ForgeEndpoint
+  controller: EndpointClient
+  challengeController: EndpointClient
   onCreate?: (data: any) => void
 }) {
   const { open } = useModalStore()

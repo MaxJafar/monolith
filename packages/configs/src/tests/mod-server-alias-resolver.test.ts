@@ -133,8 +133,8 @@ describe('serverAliasResolver', () => {
 
   it('externalizes core bare packages as-is', () => {
     expect(plugin.resolveId('zod')).toEqual({ id: 'zod', external: true })
-    expect(plugin.resolveId('@lifeforge/server-utils')).toEqual({
-      id: '@lifeforge/server-utils',
+    expect(plugin.resolveId('@monolith/server-utils')).toEqual({
+      id: '@monolith/server-utils',
       external: true
     })
   })
@@ -191,11 +191,11 @@ describe('serverAliasResolver', () => {
 
   it('resolves directory index files correctly for core dependencies', () => {
     mockRequire.resolve.mockReturnValue(
-      '/test/dir/node_modules/@lifeforge/server-utils/subfolder/index.js'
+      '/test/dir/node_modules/@monolith/server-utils/subfolder/index.js'
     )
 
-    expect(plugin.resolveId('@lifeforge/server-utils/subfolder')).toEqual({
-      id: '@lifeforge/server-utils/subfolder/index.js',
+    expect(plugin.resolveId('@monolith/server-utils/subfolder')).toEqual({
+      id: '@monolith/server-utils/subfolder/index.js',
       external: true
     })
   })
@@ -226,16 +226,16 @@ describe('serverAliasResolver', () => {
     'preserves the exported module-runtime %s name instead of exposing its index file',
     subpath => {
       const manifest =
-        '/test/dir/node_modules/@lifeforge/module-runtime/package.json'
+        '/test/dir/node_modules/@monolith/module-runtime/package.json'
       mockRequire.resolve.mockReturnValue(
-        `/test/dir/node_modules/@lifeforge/module-runtime/dist/${subpath}/index.js`
+        `/test/dir/node_modules/@monolith/module-runtime/dist/${subpath}/index.js`
       )
       vi.mocked(fs.existsSync).mockImplementation(
         file => norm(String(file)) === manifest
       )
       vi.mocked(fs.readFileSync).mockReturnValue(
         JSON.stringify({
-          name: '@lifeforge/module-runtime',
+          name: '@monolith/module-runtime',
           exports: {
             './registry': {
               import: './dist/registry/index.js',
@@ -249,8 +249,8 @@ describe('serverAliasResolver', () => {
         })
       )
 
-      expect(plugin.resolveId(`@lifeforge/module-runtime/${subpath}`)).toEqual({
-        id: `@lifeforge/module-runtime/${subpath}`,
+      expect(plugin.resolveId(`@monolith/module-runtime/${subpath}`)).toEqual({
+        id: `@monolith/module-runtime/${subpath}`,
         external: true
       })
       expect(
@@ -262,22 +262,22 @@ describe('serverAliasResolver', () => {
   )
 
   it('preserves wildcard export-map subpaths and query/hash suffixes when backing files have different names', () => {
-    const manifest = '/test/dir/node_modules/@lifeforge/runtime/package.json'
+    const manifest = '/test/dir/node_modules/@monolith/runtime/package.json'
     mockRequire.resolve.mockReturnValue(
-      '/test/dir/node_modules/@lifeforge/runtime/dist/worker-compiled.js'
+      '/test/dir/node_modules/@monolith/runtime/dist/worker-compiled.js'
     )
     vi.mocked(fs.existsSync).mockImplementation(
       file => norm(String(file)) === manifest
     )
     vi.mocked(fs.readFileSync).mockReturnValue(
       JSON.stringify({
-        name: '@lifeforge/runtime',
+        name: '@monolith/runtime',
         exports: { './*': './dist/*-compiled.js' }
       })
     )
 
-    expect(plugin.resolveId('@lifeforge/runtime/worker?url#hash')).toEqual({
-      id: '@lifeforge/runtime/worker?url#hash',
+    expect(plugin.resolveId('@monolith/runtime/worker?url#hash')).toEqual({
+      id: '@monolith/runtime/worker?url#hash',
       external: true
     })
   })

@@ -1,0 +1,75 @@
+import { useEffect, useRef } from 'react'
+
+import { Flex, useModalStore } from '@monolith/ui'
+
+import SessionEndedModal from '@/modal/SessionEndedModal'
+import { useActiveSession } from '@/providers/ActiveSessionProvider'
+import { useCurrentSession } from '@/providers/CurrentSessionProvider'
+
+import NewSessionScreen from '../NewSessionScreen'
+import ControlButtons from './components/ControlButtons'
+import Header from './components/Header'
+import ProgressBars from './components/ProgressBars'
+import ProgressCircle from './components/ProgressCircle'
+import StatusSection from './components/StatusSection'
+
+export default function Timer() {
+  const currentSession = useCurrentSession()
+  const { setActiveSession } = useActiveSession()
+  const { open } = useModalStore()
+  const hasOpenedModalRef = useRef(false)
+
+  // When session becomes completed, open modal and clear active session
+  useEffect(() => {
+    if (
+      currentSession &&
+      currentSession.session.status === 'completed' &&
+      !hasOpenedModalRef.current
+    ) {
+      hasOpenedModalRef.current = true
+
+      open(SessionEndedModal, {
+        sessionId: currentSession.session.id
+      })
+
+      setActiveSession(null)
+    }
+  }, [currentSession, open, setActiveSession])
+
+  // Reset the ref when session changes
+  useEffect(() => {
+    if (!currentSession) {
+      hasOpenedModalRef.current = false
+    }
+  }, [currentSession])
+
+  if (!currentSession) {
+    return <></>
+  }
+
+  if (currentSession.session.status === 'new') {
+    return (
+      <NewSessionScreen
+        changeStatus={currentSession.changeStatus}
+        session={currentSession.session}
+      />
+    )
+  }
+
+  // Completed sessions are handled by the useEffect above
+  if (currentSession.session.status === 'completed') {
+    return <></>
+  }
+
+  return (
+    <>
+      <Header />
+      <Flex centered direction="column" flex="1" gap="lg" p="xl">
+        <StatusSection />
+        <ProgressCircle />
+        <ProgressBars />
+        <ControlButtons />
+      </Flex>
+    </>
+  )
+}

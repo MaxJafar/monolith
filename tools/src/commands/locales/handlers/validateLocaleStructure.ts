@@ -7,7 +7,7 @@ import z from 'zod'
 import normalizePackage from '@/utils/normalizePackage'
 
 const localesPackageJSONSchema = z.object({
-  name: z.string().regex(/^@lifeforge\/.+--lang-.+$/),
+  name: z.string().regex(/^@monolith\/(?:.+--)?lang-.+$/),
   version: z.string().regex(/^\d+\.\d+\.\d+$/),
   description: z.string(),
   author: z.string(),
@@ -17,7 +17,7 @@ const localesPackageJSONSchema = z.object({
       url: z.string()
     })
     .optional(),
-  lifeforge: z.object({
+  monolith: z.object({
     code: z.string(),
     displayName: z.string(),
     icon: z.string(),
@@ -54,7 +54,7 @@ export function validateLocaleStructureHandler(lang: string) {
     process.exit(1)
   }
 
-  if (`@lifeforge/${lang}` !== packageJson.data.name) {
+  if (`@monolith/${lang}` !== packageJson.data.name) {
     log.error(
       `The folder name "${lang}" does not match the package name "${packageJson.data.name}"`
     )

@@ -12,7 +12,7 @@ import {
 import { homedir } from 'node:os'
 import { join, resolve } from 'node:path'
 
-const privateRoot = join(homedir(), '.lifeforge-ai')
+const privateRoot = join(homedir(), '.monolith-ai')
 mkdirSync(privateRoot, { recursive: true })
 const sshConfig =
   process.env.SHARED_AI_SSH_CONFIG || join(homedir(), '.searchx/ssh/config')
@@ -28,31 +28,31 @@ const ssh = code =>
     }
   )
 const remoteRoot = ssh(
-  'import pathlib; print(pathlib.Path.home()/"services/lifeforge-ai")\n'
+  'import pathlib; print(pathlib.Path.home()/"services/monolith-ai")\n'
 ).trim()
 const credentialsPath = join(privateRoot, 'credentials.json')
 const tokens = existsSync(credentialsPath)
   ? JSON.parse(readFileSync(credentialsPath, 'utf8'))
   : {
-      lifeforge: randomBytes(32).toString('base64url'),
+      monolith: randomBytes(32).toString('base64url'),
       golden_retriever: randomBytes(32).toString('base64url')
     }
 writeFileSync(credentialsPath, JSON.stringify(tokens), { mode: 0o600 })
-writeFileSync(join(privateRoot, 'lifeforge.token'), tokens.lifeforge, {
+writeFileSync(join(privateRoot, 'monolith.token'), tokens.monolith, {
   mode: 0o600
 })
 const config = {
   tokens,
-  embedding_model: 'lifeforge-embeddinggemma',
-  generation_model: 'lifeforge-gemma',
+  embedding_model: 'monolith-embeddinggemma',
+  generation_model: 'monolith-gemma',
   llama_binary: `${remoteRoot}/llama/llama-b11588/llama-server`,
   engines: {
     generation: {
       model: remoteRoot.replace(
-        '/services/lifeforge-ai',
+        '/services/monolith-ai',
         '/.lmstudio/models/google/gemma-4-E2B-it-qat-q4_0-gguf/gemma-4-E2B_q4_0-it.gguf'
       ),
-      alias: 'lifeforge-gemma',
+      alias: 'monolith-gemma',
       port: 1244,
       context: 8192,
       batch: 1024,
@@ -61,7 +61,7 @@ const config = {
       extra_args: [
         '--mmproj',
         remoteRoot.replace(
-          '/services/lifeforge-ai',
+          '/services/monolith-ai',
           '/.lmstudio/models/google/gemma-4-E2B-it-qat-q4_0-gguf/mmproj-gemma-4-E2B-it.gguf'
         ),
         '--jinja',
@@ -71,10 +71,10 @@ const config = {
     },
     embedding: {
       model: remoteRoot.replace(
-        '/services/lifeforge-ai',
+        '/services/monolith-ai',
         '/.lmstudio/models/ggml-org/embeddinggemma-2-GGUF/embeddinggemma-2-Q8_0.gguf'
       ),
-      alias: 'lifeforge-embeddinggemma',
+      alias: 'monolith-embeddinggemma',
       port: 1235,
       context: 8192,
       batch: 8192,
@@ -133,7 +133,7 @@ execFileSync(
 ssh(`import pathlib,plistlib,os,subprocess,time
 root=pathlib.Path(${JSON.stringify(remoteRoot)})
 root.chmod(0o700);(root/'config.json').chmod(0o600)
-label='com.lifeforge.shared-ai'; domain='gui/'+str(os.getuid())
+label='com.monolith.shared-ai'; domain='gui/'+str(os.getuid())
 folder=pathlib.Path.home()/'Library/LaunchAgents';folder.mkdir(exist_ok=True)
 file=folder/(label+'.plist')
 plist={'Label':label,'ProgramArguments':['/opt/homebrew/bin/python3.12',str(root/'start.py')],
@@ -162,14 +162,14 @@ const envPath = resolve('env/.env.local')
 const current = readFileSync(envPath, 'utf8')
 const marker =
   /^SHARED_AI_(URL|TOKEN_FILE|EMBEDDING_MODEL|GENERATION_MODEL)=.*\r?\n?/gm
-if (!existsSync(join(privateRoot, 'lifeforge.env.before')))
-  writeFileSync(join(privateRoot, 'lifeforge.env.before'), current, {
+if (!existsSync(join(privateRoot, 'monolith.env.before')))
+  writeFileSync(join(privateRoot, 'monolith.env.before'), current, {
     mode: 0o600
   })
 writeFileSync(
   envPath,
   current.replace(marker, '').trimEnd() +
-    `\n\nSHARED_AI_URL=http://127.0.0.1:8771\nSHARED_AI_TOKEN_FILE=${join(privateRoot, 'lifeforge.token').replaceAll('\\', '/')}\nSHARED_AI_EMBEDDING_MODEL=lifeforge-embeddinggemma\nSHARED_AI_GENERATION_MODEL=lifeforge-gemma\n`
+    `\n\nSHARED_AI_URL=http://127.0.0.1:8771\nSHARED_AI_TOKEN_FILE=${join(privateRoot, 'monolith.token').replaceAll('\\', '/')}\nSHARED_AI_EMBEDDING_MODEL=monolith-embeddinggemma\nSHARED_AI_GENERATION_MODEL=monolith-gemma\n`
 )
 if (process.platform === 'win32') {
   const sid = execFileSync(
@@ -213,5 +213,5 @@ if (process.platform === 'win32') {
   }
 }
 console.log(
-  'Installed shared host source and LifeForge private connection settings. No credentials printed.'
+  'Installed shared host source and Monolith private connection settings. No credentials printed.'
 )

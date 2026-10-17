@@ -1,14 +1,14 @@
 import { createSelectSchema } from 'drizzle-orm/zod'
 import z from 'zod'
 
-import { fileReferenceSchema } from '@lifeforge/file-storage'
+import { fileReferenceSchema } from '@monolith/file-storage'
 
-import forge from '../forge'
+import endpoints from '../endpoints'
 import { users } from '../schema.drizzle'
 
 const userSelectSchema = createSelectSchema(users)
 
-export const me = forge
+export const me = endpoints
   .query({
     description: 'Get current user data',
     encrypted: false,

@@ -17,7 +17,7 @@ export async function startSingleService(
   host?: boolean,
   port?: string
 ): Promise<void> {
-  // Prevent forge CLI's --tsconfig from leaking to child processes
+  // Prevent endpoints CLI's --tsconfig from leaking to child processes
   delete process.env.TSX_TSCONFIG_PATH
 
   // Handle core services
@@ -77,7 +77,7 @@ export async function startAllServices(
   port?: string
 ): Promise<void> {
   try {
-    // Prevent forge CLI's --tsconfig from leaking to child processes
+    // Prevent endpoints CLI's --tsconfig from leaking to child processes
     delete process.env.TSX_TSCONFIG_PATH
 
     const concurrentServices = await getConcurrentServices(host, port)

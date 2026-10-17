@@ -105,20 +105,27 @@ describe('clientAliasResolver', () => {
 
   it('resolves components for a "web" project root', () => {
     const importer = path.join(WEB_SRC, 'index.tsx')
-    const expected = path.join(WEB_SRC, 'core', 'utils', 'forgeAPI.ts')
+    const expected = path.join(WEB_SRC, 'core', 'utils', 'workspaceAPI.ts')
 
     mockExistsSync(expected)
 
-    const result = clientAliasResolver('@/core/utils/forgeAPI', importer)
+    const result = clientAliasResolver('@/core/utils/workspaceAPI', importer)
 
     expect(norm(result!)).toBe(norm(expected))
   })
 
   it('returns the same normalized module ID as Vite for shared contexts', () => {
     const importer = path.join(WEB_SRC, 'core', 'routing', 'Sidebar.tsx')
-    const expected = path.join(WEB_SRC, 'core', 'providers', 'SettingsContext.ts')
+    const expected = path.join(
+      WEB_SRC,
+      'core',
+      'providers',
+      'SettingsContext.ts'
+    )
     mockExistsSync(expected)
-    expect(clientAliasResolver('@/core/providers/SettingsContext', importer)).toBe(norm(expected))
+    expect(
+      clientAliasResolver('@/core/providers/SettingsContext', importer)
+    ).toBe(norm(expected))
   })
 
   it('resolves a ".ts" file when no ".tsx" variant exists', () => {

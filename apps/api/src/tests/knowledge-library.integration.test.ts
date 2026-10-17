@@ -8,18 +8,18 @@ import {
   type CanvasPage,
   serializeDocument,
   validateCanvasPage
-} from '@lifeforge/blocks'
-import type { ForgeContract } from '@lifeforge/server-utils'
+} from '@monolith/blocks'
+import type { EndpointContract } from '@monolith/server-utils'
 
 import type {
   KnowledgeLibrary,
   KnowledgeSearch
-} from '../../../../modules/zillion--databases/knowledgeLibraryShared'
-import * as routes from '../../../../modules/zillion--databases/server/knowledgeLibraryRoutes'
+} from '../../../../modules/monolith--databases/knowledgeLibraryShared'
+import * as routes from '../../../../modules/monolith--databases/server/knowledgeLibraryRoutes'
 import {
   relations,
   tables
-} from '../../../../modules/zillion--databases/server/schema.drizzle'
+} from '../../../../modules/monolith--databases/server/schema.drizzle'
 
 const enabled = process.env.MONOLITH_KNOWLEDGE_INTEGRATION === '1'
 const connection = process.env.DATABASE_URL ?? ''
@@ -67,10 +67,12 @@ const workspace = randomUUID(),
   siblingRecord = randomUUID()
 
 let collectionId: string, importedId: string, linkedId: string
-type Context = Parameters<ReturnType<ForgeContract['getValue']>['callback']>[0]
+type Context = Parameters<
+  ReturnType<EndpointContract['getValue']>['callback']
+>[0]
 
 async function invoke<T>(
-  route: ForgeContract,
+  route: EndpointContract,
   actor: string,
   body?: unknown,
   query: Record<string, string> = { workspace_id: workspace }

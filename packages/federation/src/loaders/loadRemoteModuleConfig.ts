@@ -5,14 +5,17 @@ import {
   registerRemotes
 } from '@module-federation/runtime'
 
-import { globalProxyRegistry } from '@lifeforge/api'
+import { globalProxyRegistry } from '@monolith/api'
 import {
   type ModuleConfig,
   type ModuleGroup,
+  addonPackageName,
   moduleConfigSchema
-} from '@lifeforge/configs'
+} from '@monolith/configs'
 
 import { type FederatedModule } from '../utils/fetchModuleData'
+import { getBundledModules } from './bundledModules'
+import { resolveRemoteEntry } from './remoteEntry'
 
 /**
  * Maps module short name to import function for dev mode
@@ -32,7 +35,7 @@ function getDevModeImport(
       '/package.json'
     )
 
-    if (devModePkgs[pkgPath]?.name === moduleName) {
+    if (devModePkgs[pkgPath]?.name === addonPackageName(moduleName)) {
       return importFn
     }
   }
@@ -51,7 +54,14 @@ export async function loadRemoteModuleConfig(
   let unwrapped: ModuleConfig
 
   // Dev mode: import directly from source for hot-reload
-  if (import.meta.env.DEV) {
+  if (getBundledModules()?.[addonPackageName(mod.name)]) {
+    const load = getBundledModules()![addonPackageName(mod.name)]
+    if (!load)
+      throw new Error(
+        `This module is not bundled with this desktop release: ${mod.name}`
+      )
+    unwrapped = (await load()).default
+  } else if (import.meta.env.DEV && !mod.remoteEntryUrl.includes('managed=1')) {
     const devImport = getDevModeImport(mod.name, devModeImports, devModePkgs)
 
     if (devImport) {
@@ -99,6 +109,7 @@ export async function loadRemoteModuleConfig(
     hidden: unwrapped.hidden,
     disabled: unwrapped.disabled,
     clearQueryOnUnmount: unwrapped.clearQueryOnUnmount,
+    canvas: unwrapped.canvas,
     APIKeyAccess: mod.APIKeyAccess,
     widgets: unwrapped.widgets,
     contract: unwrapped.contract
@@ -124,9 +135,7 @@ async function loadFromFederation(mod: FederatedModule): Promise<ModuleConfig> {
   if (!registeredRemotesSet.has(remoteName)) {
     const remoteConfig = {
       name: remoteName,
-      entry: mod.remoteEntryUrl.startsWith('http')
-        ? mod.remoteEntryUrl
-        : `${import.meta.env.VITE_API_HOST || ''}${mod.remoteEntryUrl}`,
+      entry: resolveRemoteEntry(mod.remoteEntryUrl),
       type: 'module'
     }
 

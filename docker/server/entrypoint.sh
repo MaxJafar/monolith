@@ -1,4 +1,4 @@
 #!/bin/sh
 set -eu
-cd /zillion/apps/api
+cd /monolith/apps/api
 exec node dist/server.js "$@"

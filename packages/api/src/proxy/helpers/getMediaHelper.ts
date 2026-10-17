@@ -1,3 +1,5 @@
+import { getNativeRuntime } from '../../desktop/runtime'
+
 /**
  * Creates a helper function for generating media/file URLs.
  *
@@ -11,10 +13,10 @@
  * ```typescript
  * const getMedia = createGetMediaHelper('https://api.example.com')
  * const imageUrl = getMedia({
- *   key: 'lifeforge--books-library/booksEntries/file-123.epub',
+ *   key: 'monolith--books-library/booksEntries/file-123.epub',
  *   thumb: '200x0'
  * })
- * // => 'https://api.example.com/files/get?key=lifeforge--books-library/booksEntries/123/my-book.epub&thumb=200x0'
+ * // => 'https://api.example.com/files/get?key=monolith--books-library/booksEntries/123/my-book.epub&thumb=200x0'
  * ```
  */
 export function createGetMediaHelper(apiHost: string | undefined) {
@@ -33,6 +35,17 @@ export function createGetMediaHelper(apiHost: string | undefined) {
     if (params.download) searchParams.append('download', params.download)
 
     const fullPath = `files/get?${searchParams.toString()}`
+
+    const native = getNativeRuntime()
+    if (native) {
+      const { serverId, accountId } = native.profile
+      const origin =
+        native.host.platform === 'windows'
+          ? 'http://monolith-media.localhost'
+          : 'monolith-media://app'
+      // Native code checks both identities and supplies credentials itself.
+      return `${origin}/${serverId}/${accountId}/${fullPath}`
+    }
 
     if (apiHost?.startsWith('/')) {
       const origin = typeof window !== 'undefined' ? window.location.origin : ''

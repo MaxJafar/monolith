@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { Button } from './index'
 
-vi.mock('@lifeforge/localization', () => ({
+vi.mock('@monolith/localization', () => ({
   useModuleTranslation: () => ({ t: () => 'Save' })
 }))
 vi.mock('./Button.css', () => ({ buttonRecipe: () => '' }))

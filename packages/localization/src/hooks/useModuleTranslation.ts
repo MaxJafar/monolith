@@ -1,11 +1,11 @@
+import { addonPackageName } from '@monolith/configs'
+import { useModuleMetadata } from '@monolith/federation'
 import { useTranslation } from 'react-i18next'
-
-import { useModuleMetadata } from '@lifeforge/federation'
 
 export function useModuleTranslation(extraKeys: string[] = []) {
   const { name } = useModuleMetadata()
 
-  const ns = name ? `apps.${name}` : undefined
+  const ns = name ? `apps.${addonPackageName(name)}` : undefined
 
   const { t, i18n, ready } = useTranslation(ns ? [ns, ...extraKeys] : extraKeys)
 

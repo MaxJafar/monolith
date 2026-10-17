@@ -15,7 +15,7 @@ export default defineConfig({
     minify: true,
     rollupOptions: {
       output: {
-        entryFileNames: 'forge.js',
+        entryFileNames: 'monolith.cjs',
         format: 'cjs'
       }
     }

@@ -5,7 +5,7 @@ dist/
 **/dist-docker/
 storybook-static/
 **/storybook-static/
-modules/melvinchia3636--truckers-log/client/src/lib/
+modules/example-author--truckers-log/client/src/lib/
 # Archived upstream/handover evidence is retained verbatim, outside maintained code.
 reference/
 .temp/

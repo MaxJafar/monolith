@@ -1,6 +1,6 @@
 import { lazy } from 'react'
 
-import type { ModuleGroup } from '@lifeforge/configs'
+import type { ModuleGroup } from '@monolith/configs'
 
 export default {
   routes: {
@@ -9,7 +9,7 @@ export default {
   name: 'documentation',
   displayName: 'Documentation',
   version: '1.0.0',
-  author: 'LifeForge <https://lifeforge.dev>',
+  author: 'Monolith contributors',
   description: 'Documentation',
   icon: 'tabler:info-circle',
   category: '<END>',

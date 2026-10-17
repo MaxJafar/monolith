@@ -1,0 +1,55 @@
+.monolith-choice-select {
+  min-height: 32px;
+  width: 100%;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-primary);
+  box-shadow: none;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+}
+.monolith-choice-select:focus-visible {
+  outline: 1px solid color-mix(in srgb, var(--selection-color) 35%, transparent);
+  outline-offset: -1px;
+}
+.monolith-choice-select:focus-visible:hover {
+  outline-color: color-mix(in srgb, var(--selection-color) 85%, transparent);
+}
+.monolith-choice-select > svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+.monolith-choice-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.monolith-choice-label > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.monolith-choice-label > svg {
+  flex-shrink: 0;
+}
+.database-compact-setting > .monolith-choice-select,
+.workspace-setting-row > .monolith-choice-select {
+  width: auto;
+  max-width: 58%;
+  min-height: 28px;
+  padding: 4px 6px;
+  border-color: transparent;
+  background: transparent;
+  color: var(--text-muted);
+}
+.database-compact-setting > .monolith-choice-select:not(:disabled):hover,
+.workspace-setting-row > .monolith-choice-select:not(:disabled):hover {
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--selection-color) 8%, transparent);
+}
+.database-compact-setting > .monolith-choice-select:disabled > svg {
+  display: none;
+}

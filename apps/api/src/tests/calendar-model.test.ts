@@ -14,17 +14,17 @@ import {
   toggleSelection,
   viewRange,
   writeSelection
-} from '../../../../modules/lifeforge--calendar/client/src/utils/calendarModel'
+} from '../../../../modules/monolith--calendar/client/src/utils/calendarModel'
 import {
   getRRuleStart,
   setRRuleStart
-} from '../../../../modules/lifeforge--calendar/client/src/utils/recurrence'
+} from '../../../../modules/monolith--calendar/client/src/utils/recurrence'
 import {
   expandOccurrences,
   isOffsetInstant,
   parseDuration,
   parseEventRange
-} from '../../../../modules/lifeforge--calendar/server/functions/eventValidation'
+} from '../../../../modules/monolith--calendar/server/functions/eventValidation'
 
 const defaults: SmartFilters = {
   calendars: null,

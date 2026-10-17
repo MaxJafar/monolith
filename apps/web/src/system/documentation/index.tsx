@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 
-import { toast } from '@lifeforge/ui'
+import { toast } from '@monolith/ui'
 
 function Documentation() {
   const navigate = useNavigate()
@@ -11,7 +11,7 @@ function Documentation() {
   useEffect(() => {
     const a = document.createElement('a')
 
-    a.href = 'https://docs.lifeforge.dev'
+    a.href = 'https://github.com/MaxJafar/monolith#readme'
     a.target = '_blank'
     a.click()
 

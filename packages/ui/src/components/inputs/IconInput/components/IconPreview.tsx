@@ -51,6 +51,7 @@ export function IconPreview({
         }
       >
         <Icon
+          preserveStyle
           icon={value && iconExists ? value : 'tabler:question-mark'}
           size={variant === 'plain' ? '1.5em' : '1em'}
         />

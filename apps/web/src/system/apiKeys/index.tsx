@@ -1,74 +1,61 @@
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
-import type { InferOutput } from '@lifeforge/api'
+import type { InferOutput } from '@monolith/api'
 import {
   Button,
   EmptyStateScreen,
-  FAB,
   ModuleHeader,
   Stack,
   WithQuery,
   useModalStore
-} from '@lifeforge/ui'
+} from '@monolith/ui'
 
-import forgeAPI from '@/core/utils/forgeAPI'
+import workspaceAPI from '@/core/utils/workspaceAPI'
 
 import EntryItem from './components/EntryItem'
 import ModifyAPIKeyModal from './modals/ModifyAPIKeyModal'
 
 export type APIKeyEntry = InferOutput<
-  typeof forgeAPI.apiKeys.entries.list
+  typeof workspaceAPI.apiKeys.entries.list
 >[number]
 
-function APIKeys() {
-  const { open } = useModalStore()
+export default function APIKeys() {
   const { t } = useTranslation('common.api-keys')
-  const entriesQuery = useQuery(forgeAPI.apiKeys.entries.list.queryOptions())
-
-  const handleCreateAPIKey = () => {
-    open(ModifyAPIKeyModal, {
-      type: 'create'
-    })
-  }
+  const { open } = useModalStore()
+  const query = useQuery(workspaceAPI.apiKeys.entries.list.queryOptions())
+  const create = () => open(ModifyAPIKeyModal, { type: 'create' })
 
   return (
-    <>
+    <Stack gap="lg" pb="xl">
       <ModuleHeader
         namespace="common.api-keys"
         trailing={
           <Button
-            display={{ base: 'none', lg: 'flex' }}
             icon="tabler:plus"
-            tProps={{
-              item: t('common.api-keys:items.apiKey')
-            }}
-            onClick={handleCreateAPIKey}
+            tProps={{ item: t('items.apiKey') }}
+            onClick={create}
           >
             new
           </Button>
         }
       />
-      <WithQuery query={entriesQuery}>
-        {entries => (
-          <Stack flex="1" mb={{ base: '3xl', lg: '2xl' }}>
-            {entries.length > 0 ? (
-              entries.map(entry => <EntryItem key={entry.id} entry={entry} />)
-            ) : (
-              <EmptyStateScreen
-                icon="tabler:key-off"
-                message={{
-                  id: 'apiKeys',
-                  namespace: 'common.api-keys'
-                }}
-              />
-            )}
-          </Stack>
-        )}
+      <WithQuery query={query}>
+        {entries =>
+          entries.length ? (
+            <Stack gap="sm" role="list" aria-label={t('title')}>
+              {entries.map(entry => (
+                <EntryItem key={entry.id} entry={entry} />
+              ))}
+            </Stack>
+          ) : (
+            <EmptyStateScreen
+              icon="tabler:key-off"
+              message={{ id: 'apiKeys', namespace: 'common.api-keys' }}
+            />
+          )
+        }
       </WithQuery>
-      <FAB onClick={handleCreateAPIKey} />
-    </>
+    </Stack>
   )
 }
-
-export default APIKeys

@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import { useTranslation } from 'react-i18next'
 
-import { OptionsColumn, SliderInput, surface } from '@lifeforge/ui'
+import { OptionsColumn, SliderInput, surface } from '@monolith/ui'
 
 function AdjustmentColumn({
   icon,

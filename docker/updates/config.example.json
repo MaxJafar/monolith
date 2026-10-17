@@ -1,0 +1,16 @@
+{
+  "repository": "YOUR_ORG/YOUR_REPO",
+  "publicKey": "ED25519_PUBLIC_PEM_WITH_ESCAPED_NEWLINES",
+  "version": "1.0.0",
+  "target": "linux-amd64",
+  "protocol": 1,
+  "schemaHash": "REPLACE_WITH_THE_INSTALLED_IMAGE_APP_MONOLITH_SCHEMA_LABEL",
+  "listen": "0.0.0.0:6169",
+  "tokenFile": "/etc/monolith-updater/token",
+  "compose": {
+    "files": ["/opt/monolith/docker-compose.yaml"],
+    "envFile": "/opt/monolith/env/.env.docker",
+    "project": "monolith",
+    "healthUrl": "http://127.0.0.1:8080/healthz"
+  }
+}

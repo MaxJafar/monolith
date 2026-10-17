@@ -19,7 +19,7 @@ export function assertKebabRepo(repo: string): void {
 
   if (!isKebabCase(name)) {
     log.error(
-      `Repository name "${name}" must be dash-case (e.g. "lifeforge-module-my-module"). Please rename the GitHub repo.`
+      `Repository name "${name}" must be dash-case (e.g. "monolith-addon-my-addon"). Please rename the GitHub repo.`
     )
 
     process.exit(1)

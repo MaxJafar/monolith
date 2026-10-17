@@ -1,21 +1,19 @@
 import { useQuery } from '@tanstack/react-query'
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation } from 'react-router'
 
-import { useAuth } from '@lifeforge/api'
-import {
-  Button,
-  Flex,
-  Text,
-  useMainSidebarState,
-  usePersonalization
-} from '@lifeforge/ui'
+import { useAuth } from '@monolith/api'
+import { Flex, Icon, Text, usePageChrome } from '@monolith/ui'
 
-import { useUserPersonalization } from '@/core/providers/features/UserPersonalizationContext'
+import { useAppAppearance } from '@/core/appearance/AppearanceContext'
+import ItemDiscussions from '@/core/rooms/ItemDiscussions'
 import { useWorkspace } from '@/core/workspaces/WorkspaceProvider'
 import { workspaceArea } from '@/core/workspaces/areaPage'
 import { workspaceAPI } from '@/core/workspaces/workspaceAPI'
 
+import PageActions from './PageActions'
+import { useWorkspaceTabs } from './WorkspaceTabs'
 import './monolithAppBar.css'
 
 export default function MonolithAppBar() {
@@ -25,14 +23,29 @@ export default function MonolithAppBar() {
     'common.canvas'
   ])
 
-  const { sidebarExpanded, toggleSidebar } = useMainSidebarState()
-  const { derivedTheme } = usePersonalization()
-  const { changeTheme } = useUserPersonalization()
+  const tabs = useWorkspaceTabs()
+  const chrome = usePageChrome()
   const { pathname, search } = useLocation()
   const { userData } = useAuth()
   const { active } = useWorkspace()
+  const appearance = useAppAppearance()
+  const { t: systemText } = useTranslation('common.navigation')
 
+  const routeArea = pathname.split('/')[1] ?? 'dashboard'
+  const area = routeArea === 'module-manager' ? 'addons' : routeArea
   const isPage = pathname.startsWith('/page/')
+  const isSystem = [
+    'calendar',
+    'projects',
+    'actions',
+    'rooms',
+    'docs',
+    'ideas',
+    'dashboard',
+    'databases',
+    'addons',
+    'urpg'
+  ].includes(area)
   const options = workspaceAPI.workspaces.getPage
     .input({
       id: isPage ? pathname.slice(6) : '00000000-0000-4000-8000-000000000000'
@@ -48,7 +61,7 @@ export default function MonolithAppBar() {
   const nativePage = useQuery({
     ...areaOptions,
     queryKey: [...areaOptions.queryKey, userData?.id],
-    enabled: !!active && !isPage
+    enabled: !!active && !isPage && !isSystem
   })
 
   const pages = useQuery({
@@ -57,17 +70,48 @@ export default function MonolithAppBar() {
     enabled: !!userData?.id && pathname.startsWith('/page/')
   })
 
-  const area = pathname.split('/')[1] ?? 'dashboard'
-  const label =
-    area === 'dashboard'
-      ? t('workspace')
-      : area === 'tech-lab'
-        ? t('techLab')
-        : area === 'page'
-          ? (pages.data?.page.title ?? t('page'))
-          : area
-              .replace(/-/g, ' ')
-              .replace(/\b[a-z]/g, letter => letter.toUpperCase())
+  const label = isSystem
+    ? systemText(area === 'addons' ? 'manageAddons' : area)
+    : area === 'tech-lab'
+      ? t('techLab')
+      : area === 'page'
+        ? (pages.data?.page.title ?? t('page'))
+        : area
+            .replace(/-/g, ' ')
+            .replace(/\b[a-z]/g, letter => letter.toUpperCase())
+  const routeTitle =
+    !isPage &&
+    !isSystem &&
+    nativePage.data?.page &&
+    typeof nativePage.data.page === 'object' &&
+    'title' in nativePage.data.page
+      ? String(nativePage.data.page.title)
+      : area === 'search'
+        ? t('common.systemSearch:title')
+        : areaPage.titleKey
+          ? t(`common.canvas:${areaPage.titleKey}`)
+          : label
+  const title =
+    isPage && chrome?.document?.sourceId === pathname.slice(6)
+      ? chrome.document.title || t('page')
+      : routeTitle
+  const icon =
+    appearance.pages[appearance.pageKey]?.icon ??
+    {
+      dashboard: 'lucide:house',
+      calendar: 'lucide:calendar-days',
+      projects: 'lucide:layers-2',
+      actions: 'lucide:circle-check',
+      rooms: 'lucide:messages-square',
+      docs: 'lucide:files',
+      databases: 'lucide:database',
+      urpg: 'lucide:swords',
+      search: 'lucide:search'
+    }[area] ??
+    'lucide:file-text'
+  useEffect(() => {
+    tabs.describe(title, icon)
+  }, [tabs.describe, tabs.active, tabs.tabs, title, icon])
 
   return (
     <Flex
@@ -79,54 +123,23 @@ export default function MonolithAppBar() {
       justify="between"
     >
       <Flex align="center" gap="sm" minWidth="0">
-        <Button
-          aria-controls="workspace-navigation"
-          aria-expanded={sidebarExpanded}
-          aria-label={t(sidebarExpanded ? 'closeSidebar' : 'openSidebar')}
-          icon="lucide:panel-left"
-          variant="plain"
-          onClick={toggleSidebar}
-        />
-        <Text as={Link} color="muted" to="/dashboard">
-          monolith
+        <Text
+          as={Link}
+          className="monolith-breadcrumb-workspace"
+          color="muted"
+          to={`/dashboard?workspace=${active?.id ?? ''}`}
+        >
+          {active?.name ?? 'monolith'}
         </Text>
         <Text aria-hidden="true" color="muted">
           /
         </Text>
-        <Text truncate>
-          {!isPage &&
-          nativePage.data?.page &&
-          typeof nativePage.data.page === 'object' &&
-          'title' in nativePage.data.page
-            ? String(nativePage.data.page.title)
-            : areaPage.titleKey
-              ? t(`common.canvas:${areaPage.titleKey}`)
-              : label}
-        </Text>
+        <Icon preserveStyle icon={icon} size="16px" />
+        <Text truncate>{title}</Text>
       </Flex>
       <Flex align="center" gap="xs">
-        <Button
-          aria-label={t('common.systemSearch:title')}
-          as={Link}
-          icon="lucide:search"
-          to="/search"
-          variant="plain"
-        />
-        <Button
-          aria-label={t(derivedTheme === 'dark' ? 'lightTheme' : 'darkTheme')}
-          icon={derivedTheme === 'dark' ? 'lucide:sun' : 'lucide:moon'}
-          variant="plain"
-          onClick={() =>
-            void changeTheme(derivedTheme === 'dark' ? 'light' : 'dark')
-          }
-        />
-        <Button
-          aria-label={t('account')}
-          as={Link}
-          icon="lucide:user-round"
-          to="/account-settings"
-          variant="plain"
-        />
+        <ItemDiscussions />
+        <PageActions />
       </Flex>
     </Flex>
   )

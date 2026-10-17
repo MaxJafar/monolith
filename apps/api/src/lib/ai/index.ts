@@ -1,9 +1,9 @@
-import { forgeRouter } from '@lifeforge/server-utils'
+import { defineRoutes } from '@monolith/server-utils'
 
 import * as imageGenerationRoutes from './routes/imageGeneration'
 import * as sharedRoutes from './shared/routes'
 
-export default forgeRouter({
+export default defineRoutes({
   imageGeneration: imageGenerationRoutes,
   shared: sharedRoutes
 })

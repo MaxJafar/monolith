@@ -1,18 +1,18 @@
 export const SHARED_PACKAGES = {
-  '@lifeforge/api': {
-    aliasRegex: /^@lifeforge\/api$/,
+  '@monolith/api': {
+    aliasRegex: /^@monolith\/api$/,
     entryPoint: '../packages/api/src/index.ts'
   },
-  '@lifeforge/federation': {
-    aliasRegex: /^@lifeforge\/federation$/,
+  '@monolith/federation': {
+    aliasRegex: /^@monolith\/federation$/,
     entryPoint: '../packages/federation/src/index.ts'
   },
-  '@lifeforge/localization': {
-    aliasRegex: /^@lifeforge\/localization$/,
+  '@monolith/localization': {
+    aliasRegex: /^@monolith\/localization$/,
     entryPoint: '../packages/localization/src/index.ts'
   },
-  '@lifeforge/ui': {
-    aliasRegex: /^@lifeforge\/ui$/,
+  '@monolith/ui': {
+    aliasRegex: /^@monolith\/ui$/,
     entryPoint: '../packages/ui/src/index.ts'
   }
 }

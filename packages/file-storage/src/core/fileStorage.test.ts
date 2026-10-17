@@ -66,7 +66,7 @@ describe('LocalStorageProvider & FileStorage', () => {
     storage = new FileStorage(
       provider,
       new MemoryStore(),
-      'lifeforge--test-module'
+      'monolith--test-module'
     )
   })
 
@@ -85,7 +85,7 @@ describe('LocalStorageProvider & FileStorage', () => {
     })
 
     expect(ref).not.toBeNull()
-    expect(ref!.key).toContain('lifeforge--test-module/')
+    expect(ref!.key).toContain('monolith--test-module/')
     expect(ref!.originalName).toBe('file.bin')
 
     const meta = await storage.getReference(ref!.key)
@@ -106,7 +106,7 @@ describe('LocalStorageProvider & FileStorage', () => {
   })
 
   it('should prevent access to other modules files (ownership check)', async () => {
-    const foreignKey = 'lifeforge--other-module/123.txt'
+    const foreignKey = 'monolith--other-module/123.txt'
     expect(await storage.get(foreignKey)).toBeNull()
     expect(await storage.getReference(foreignKey)).toBeNull()
   })
@@ -329,7 +329,7 @@ describe('LocalStorageProvider & FileStorage', () => {
 
   it('is a no-op when deleting a foreign key', async () => {
     await expect(
-      storage.delete('lifeforge--other-module/1.txt')
+      storage.delete('monolith--other-module/1.txt')
     ).resolves.not.toThrow()
   })
 })

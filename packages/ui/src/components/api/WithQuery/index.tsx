@@ -2,7 +2,7 @@ import type { UseQueryResult } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import type React from 'react'
 
-import { APIError } from '@lifeforge/api'
+import { APIError } from '@monolith/api'
 
 import { ErrorScreen, LoadingScreen } from '@/components/feedback'
 

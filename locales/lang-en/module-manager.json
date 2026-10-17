@@ -1,11 +1,11 @@
 {
-  "title": "Module Manager",
-  "description": "UI-based module manager for your monolith instance",
+  "title": "Addons and Widgets",
+  "description": "Manage optional tools for your monolith workspace",
   "category": "Category",
   "subsections": {
     "modules": {
-      "title": "Modules",
-      "description": "Install, update, and remove modules from your monolith instance"
+      "title": "Addons and Widgets",
+      "description": "Install, update, and remove addons from your monolith instance"
     },
     "categories": {
       "title": "Categories",
@@ -16,14 +16,16 @@
     "uninstall": "Uninstall",
     "addTranslation": "Add Translation",
     "addCategory": "Add Category",
-    "add category": "Add Category"
+    "add category": "Add Category",
+    "createMissing": "Create missing categories"
   },
   "items": {
     "category": "Category"
   },
   "inputs": {
     "categoryKey": "Category Key",
-    "translationKey": "Translation Key"
+    "translationKey": "Translation Key",
+    "translationLabel": "Translated label"
   },
   "empty": {
     "category": {
@@ -31,8 +33,8 @@
       "description": "Create a category to get started"
     },
     "modules": {
-      "title": "No modules installed",
-      "description": "Install modules from the registry to extend your monolith"
+      "title": "No addons installed",
+      "description": "Create an addon or install shared source to extend monolith."
     }
   },
   "modals": {
@@ -42,16 +44,16 @@
     },
     "uninstall": {
       "title": "Uninstall {{module}}?",
-      "description": "This module will be removed from your system but your data will be preserved. You can reinstall it anytime from the registry."
+      "description": "This addon will be removed from your system, while its data is preserved. You can reinstall it from its source."
     },
     "devMode": {
       "enable": {
         "title": "Enable Dev Mode",
-        "description": "Enabling dev mode will load this module directly from source instead of pre-built bundles. Changes to the module's codebase will hot-reload instantly without requiring a rebuild.\n\nUse this when actively developing or customizing this module."
+        "description": "Enabling dev mode will load this addon directly from source instead of pre-built bundles. Changes to the addon's codebase will hot-reload instantly without requiring a rebuild.\n\nUse this when actively developing or customizing this addon."
       },
       "disable": {
         "title": "Disable Dev Mode",
-        "description": "Disabling dev mode will switch back to loading from pre-built bundles. Make sure you have rebuilt the module to include your latest changes."
+        "description": "Disabling dev mode will switch back to loading from pre-built bundles. Make sure you have rebuilt the addon to include your latest changes."
       }
     },
     "translationKey": {
@@ -74,5 +76,139 @@
   },
   "messages": {
     "categoriesMissingTranslations": "{{count}} categories are missing translations:"
+  },
+  "catalog": {
+    "description": "Make this workspace your own. Choose the tools that belong here.",
+    "workspace": "CURRENT WORKSPACE",
+    "selectWorkspace": "Select a workspace",
+    "workspaceCount": "{{enabled}} enabled · {{total}} tools",
+    "ownerOnly": "Only the workspace owner can enable or disable addons.",
+    "status": "Addon status",
+    "all": "All addons",
+    "enabled": "Enabled",
+    "available": "Available",
+    "search": "Search addons and widgets…",
+    "kind": "Addon type",
+    "allCategories": "All categories",
+    "allKinds": "All types",
+    "clear": "Clear filters",
+    "results": "{{count}} addons",
+    "noMatches": "No addons match your filters",
+    "noMatchesHelp": "Try another search, category, or addon type.",
+    "toggle": "Enable {{name}}",
+    "on": "On",
+    "off": "Off",
+    "saving": "Saving…",
+    "open": "Open",
+    "openDashboard": "Open dashboard",
+    "availableHint": "Ready to enable",
+    "enabledNotice": "{{name}} enabled",
+    "disabledNotice": "{{name}} disabled",
+    "results_one": "{{count}} addon",
+    "results_other": "{{count}} addons"
+  },
+  "shop": {
+    "collection": "Collection",
+    "description": "A workspace that grows with you. Add the tools and widgets you need.",
+    "summary": "{{count}} installed · {{enabled}} enabled here",
+    "workspaceSettings": "Workspace settings",
+    "sections": "Shop sections",
+    "addons": "Addons",
+    "widgets": "Widgets",
+    "sidebar": "Sidebar",
+    "addon": "Addon",
+    "widget": "Widget",
+    "addonsTitle": "Make room for more",
+    "addonsHelp": "Full tools with their own workspace. Install once on the host, then enable where you need them.",
+    "widgetsTitle": "Small blocks. Your dashboard.",
+    "widgetsHelp": "Focus, study and track your progress from the dashboard. Preview and configure each widget in a small overlay.",
+    "sidebarTitle": "Keep it within reach",
+    "sidebarHelp": "Pin Calendar and other compact widgets beside your pages. Reorder the native sections below or drag their sidebar handles.",
+    "all": "All",
+    "installed": "Installed",
+    "enabled": "Enabled here",
+    "updates": "Updates",
+    "updateAvailable": "Update available",
+    "update": "Update",
+    "install": "Download",
+    "checkUpdates": "Check for updates",
+    "checked": "Release catalog refreshed.",
+    "details": "Details",
+    "detailsFor": "About {{name}}",
+    "installedVersion": "Installed version",
+    "notInstalled": "Not installed",
+    "downloadSize": "Download size",
+    "requiresHost": "Requires Monolith {{version}}",
+    "noNotes": "No release notes provided.",
+    "localPackage": "Included on this server. A downloadable release has not been configured.",
+    "installHelp": "Packages are verified before activation. Workspace switches keep your data. Schema changes require a matching host release.",
+    "reload": "Reload to use this version",
+    "configureWidget": "Preview & configure",
+    "livePreview": "Live widget preview",
+    "addDashboard": "Add to dashboard",
+    "addSidebar": "Pin to sidebar",
+    "saveSidebar": "Save sidebar widget",
+    "removeSidebar": "Remove from sidebar",
+    "includedWidgets": "Included with Monolith",
+    "builtIn": "Built in · no download needed",
+    "connectedWidget": "A connected view of your workspace data.",
+    "nativeSections": "Native sidebar sections",
+    "dragHelp": "Drag a sidebar handle to reorder. Focus a handle and use ↑ or ↓ on the keyboard. Saved for this workspace on this device.",
+    "moveArea": "Reorder {{name}}",
+    "moved": "{{name}} moved",
+    "moveUp": "Move {{name}} up",
+    "moveDown": "Move {{name}} down",
+    "showArea": "Show {{name}}",
+    "unpublished": "Browsing packages already on this server. Downloads appear when the host connects a release catalog.",
+    "hostAdmin": "The host administrator manages downloads. Workspace owners can enable installed tools.",
+    "loading": "Loading collection…",
+    "yourWorkspace": "Your workspace, your tools",
+    "downloadProgress": "Download progress",
+    "phases": {
+      "queued": "Queued",
+      "downloading": "Downloading",
+      "verifying": "Verifying package",
+      "installing": "Activating package",
+      "complete": "Installed — reload to apply",
+      "failed": "Installation failed"
+    },
+    "native": {
+      "calendar": "Dates and schedules across your workspace",
+      "projects": "Boards, timelines and project progress",
+      "actions": "Tasks and your daily agenda",
+      "rooms": "Encrypted conversations and collaboration",
+      "docs": "Pages, writing and linked knowledge",
+      "dashboard": "Your personal collection of connected widgets",
+      "databases": "Structured records and flexible views"
+    },
+    "widgetDescriptions": {
+      "calendarWidget": "A month, week or agenda beside your pages.",
+      "weather": "Local forecasts for the city you choose.",
+      "habitTracker": "Keep daily habits close and check in as you go.",
+      "marketTracker": "Follow your chosen stocks and cryptocurrency.",
+      "workspacePulse": "A real snapshot of your workspace activity.",
+      "actionAgenda": "Upcoming actions from your existing records.",
+      "projectFocus": "Project progress without leaving the dashboard.",
+      "quickLinks": "Shortcuts to the native workspace sections.",
+      "upcomingEvents": "Your next scheduled events at a glance."
+    }
+  },
+  "categoryEditor": {
+    "orderHelp": "Drag a handle or use the arrow buttons to change the category order.",
+    "refreshFailed": "Saved, but navigation could not refresh. Reload to see the change.",
+    "saving": "A category change is still being saved.",
+    "duplicate": "Choose a unique category key.",
+    "saveFailed": "Could not save the category order. Your previous order was restored.",
+    "deleteTitle": "Remove {{name}}?",
+    "deleteDescription": "This removes the category label. Addons and their data are kept.",
+    "edit": "Edit {{name}}",
+    "remove": "Remove {{name}}",
+    "translate": "Suggest translations",
+    "removeEntry": "Remove category",
+    "removeTranslation": "Remove translation",
+    "required": "This field is required.",
+    "invalidLanguage": "Enter a language code such as en, ms or zh-CN.",
+    "duplicateLanguage": "Each language can appear only once.",
+    "translationFailed": "Translations could not be generated."
   }
 }

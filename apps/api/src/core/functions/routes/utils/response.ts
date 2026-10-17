@@ -1,66 +1,52 @@
-import chalk from 'chalk'
-import { Response } from 'express'
+import type { Response } from 'express'
 
-import { createLogger } from '@lifeforge/log'
-import { BaseResponse } from '@lifeforge/server-utils'
+import { createLogger } from '@monolith/log'
+import type { BaseResponse } from '@monolith/server-utils'
+
+const log = createLogger({ name: 'http' })
 
 export function clientError({
   res,
   message = 'Bad Request',
   code = 400,
-  moduleName = 'unknown-module'
+  moduleName = 'core'
 }: {
   res: Response
-  message?: any
+  message?: unknown
   code?: number
   moduleName?: string
-}) {
-  const logger = createLogger({ name: moduleName })
-
-  try {
-    logger.error(
-      chalk.red(typeof message === 'string' ? message : JSON.stringify(message))
-    )
-
-    res.status(code).json({
-      state: 'error',
-      message
-    })
-  } catch {
-    console.error('Failed to send response')
-  }
+}): void {
+  if (res.headersSent) return
+  log.warn(typeof message === 'string' ? message : 'Request rejected', {
+    status: code,
+    module: moduleName
+  })
+  res.status(code).json({ state: 'error', message })
 }
 
 export function serverError(
   res: Response,
-  err?: string,
-  moduleName: string = 'unknown-module'
-) {
-  const logger = createLogger({ name: moduleName })
-
-  try {
-    logger.error(chalk.red(err))
-
+  error = 'Internal server error',
+  moduleName = 'core'
+): void {
+  log.error(error, { module: moduleName })
+  if (!res.headersSent)
     res.status(500).json({
       state: 'error',
-      message: err || 'Internal server error'
+      message:
+        process.env.NODE_ENV === 'production' ? 'Internal server error' : error
     })
-  } catch {
-    console.error('Failed to send response')
-  }
 }
 
 export function success<T>(
   res: Response<BaseResponse<T>>,
   data: T,
-  statusCode: number = 200
-) {
-  try {
-    res.status(statusCode).json({
-      state: 'success',
-      data: data
-    })
-  } catch {
-    console.error('Failed to send response')
+  status = 200
+): void {
+  if (res.headersSent) return
+  if (status === 204) {
+    res.status(status).end()
+    return
   }
+  res.status(status).json({ state: 'success', data })
 }

@@ -1,20 +1,44 @@
+import type { ModuleGroup } from '@monolith/configs'
+import { ErrorScreen, NotFoundScreen } from '@monolith/ui'
 import { Suspense, lazy } from 'react'
-import { Navigate, type RouteObject } from 'react-router'
+import { Navigate, type RouteObject, useLocation } from 'react-router'
 
-import type { ModuleGroup } from '@lifeforge/configs'
-import { NotFoundScreen } from '@lifeforge/ui'
-
+import { useWorkspace } from '@/core/workspaces/WorkspaceProvider'
 import Auth from '@/system/auth'
 
 import CanvasPageRoute from '../components/CanvasPageRoute'
+import LazyRouteLoader from '../components/LazyRouteLoader'
 import RootLayout from '../components/RootLayout'
 import RouteErrorScreen from '../components/RouteErrorScreen'
 import RouteLoadingScreen from '../components/RouteLoadingScreen'
 import { resolveModuleAvailability } from './moduleAvailability'
-import { workspaceRedirect } from './navigation'
+import { modulePath, workspaceRedirect } from './navigation'
 import { createModuleRoute } from './routeBuilder'
 
 const SystemSearchPage = lazy(() => import('@/core/search/SystemSearchPage'))
+const RoomsPage = lazy(() => import('@/core/rooms/RoomsPage'))
+const RpgPage = lazy(() => import('@/addons/urpg/RpgPage'))
+
+function SystemRoute(props: Parameters<typeof LazyRouteLoader>[0]) {
+  const { active, loading, error } = useWorkspace(),
+    location = useLocation()
+
+  if (loading) return <RouteLoadingScreen message="loadingUserData" />
+  if (error || !active)
+    return <ErrorScreen message={error || 'Workspace unavailable'} />
+
+  const params = new URLSearchParams(location.search)
+
+  if (!params.has('workspace')) {
+    params.set('workspace', active.id)
+
+    return (
+      <Navigate replace to={`${location.pathname}?${params}${location.hash}`} />
+    )
+  }
+
+  return <LazyRouteLoader {...props} systemView />
+}
 
 interface CreateRouterConfigOptions {
   routes: ModuleGroup[]
@@ -55,9 +79,60 @@ export async function createRouterConfig({
 
   const enabledItems = resolvedItems.filter(item => !item.disabled)
 
-  const moduleRoutes = enabledItems.flatMap(item =>
-    createModuleRoute(item, loadingMessage)
+  const database = enabledItems.find(
+    item => modulePath(item.name) === '/databases'
   )
+  const systemPaths = [
+    '/calendar',
+    '/projects',
+    '/dashboard',
+    '/databases',
+    '/blog'
+  ]
+  const moduleRoutes = enabledItems
+    .filter(item => !database || !systemPaths.includes(modulePath(item.name)))
+    .flatMap(item => createModuleRoute(item, loadingMessage))
+
+  if (database)
+    for (const area of [
+      'calendar',
+      'projects',
+      'actions',
+      'docs',
+      'ideas',
+      'journal',
+      'blog',
+      'dashboard',
+      'databases'
+    ])
+      moduleRoutes.push({
+        path: `/${area}/*`,
+        element: <SystemRoute item={database} loadingMessage={loadingMessage} />
+      })
+
+  const calendar = enabledItems.find(
+    item => modulePath(item.name) === '/calendar'
+  )
+
+  if (calendar)
+    moduleRoutes.push({
+      path: '/calendar/sources/*',
+      element: (
+        <LazyRouteLoader
+          systemView
+          item={calendar}
+          loadingMessage={loadingMessage}
+        />
+      )
+    })
+
+  const manager = enabledItems.find(item => item.name === 'module-manager')
+
+  if (manager)
+    moduleRoutes.push({
+      ...(createModuleRoute(manager, loadingMessage) as RouteObject),
+      path: '/addons'
+    })
 
   return [
     {
@@ -66,6 +141,26 @@ export async function createRouterConfig({
       element: <RootLayout />,
       children: [
         ...moduleRoutes,
+        {
+          path: '/rooms',
+          element: (
+            <Suspense
+              fallback={<RouteLoadingScreen message="loadingUserData" />}
+            >
+              <RoomsPage />
+            </Suspense>
+          )
+        },
+        {
+          path: '/urpg',
+          element: (
+            <Suspense
+              fallback={<RouteLoadingScreen message="loadingUserData" />}
+            >
+              <RpgPage />
+            </Suspense>
+          )
+        },
         {
           path: '/search',
           element: (

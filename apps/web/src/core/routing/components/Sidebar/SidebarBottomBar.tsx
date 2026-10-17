@@ -1,7 +1,4 @@
-import { useCallback } from 'react'
-import { useNavigate } from 'react-router'
-
-import { useAuth } from '@lifeforge/api'
+import { useAuth } from '@monolith/api'
 import {
   Box,
   Card,
@@ -14,10 +11,13 @@ import {
   surface,
   toast,
   useMainSidebarState
-} from '@lifeforge/ui'
+} from '@monolith/ui'
+import { useCallback } from 'react'
+
+import { useSettingsOverlay } from '@/core/overlays/SettingsOverlay'
 
 function SidebarBottomBar() {
-  const navigate = useNavigate()
+  const settings = useSettingsOverlay()
   const { sidebarExpanded, toggleSidebar } = useMainSidebarState()
   const { userData, getAvatarURL, logout } = useAuth()
 
@@ -25,8 +25,8 @@ function SidebarBottomBar() {
     if (window.innerWidth < 1024) {
       toggleSidebar()
     }
-    navigate('/account-settings')
-  }, [navigate, toggleSidebar])
+    settings('account')
+  }, [settings, toggleSidebar])
   const handleLoggingOut = useCallback(() => {
     logout()
     toast.warning('Logged out successfully!')

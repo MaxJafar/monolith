@@ -1,51 +1,59 @@
-import fs from 'fs'
-import path from 'path'
+import { randomUUID } from 'node:crypto'
+import {
+  closeSync,
+  mkdirSync,
+  openSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  writeFileSync
+} from 'node:fs'
+import { basename, resolve } from 'node:path'
 
-import { ITempFileManager } from '@lifeforge/server-utils'
+import type { ITempFileManager } from '@monolith/server-utils'
 
-const TEMP_FILE_DIR = '.temp'
-
-// Ensure temp directory exists
-if (!fs.existsSync(TEMP_FILE_DIR)) {
-  fs.mkdirSync(TEMP_FILE_DIR)
-}
-
-class TempFileManager implements ITempFileManager {
+export default class TempFileManager implements ITempFileManager {
   private readonly filePath: string
-
   constructor(
     fileName: `${string}.json`,
-    private readonly jsonType: 'object' | 'array' = 'array'
+    jsonType: 'object' | 'array' = 'array'
   ) {
-    if (!fileName.endsWith('.json')) {
-      throw new Error('Invalid temp file name, must be a .json file')
-    }
-
-    this.filePath = path.join(TEMP_FILE_DIR, fileName)
-    this.createFileIfAbsent()
-  }
-
-  private createFileIfAbsent(): void {
-    if (!fs.existsSync(this.filePath)) {
-      fs.writeFileSync(this.filePath, this.jsonType === 'array' ? '[]' : '{}')
-    }
-  }
-
-  public read<T>(): T {
-    const fileContent = fs.readFileSync(this.filePath)
-
+    if (
+      !fileName.endsWith('.json') ||
+      basename(fileName) !== fileName ||
+      /[\\/:\0]/.test(fileName)
+    )
+      throw new Error('Temp file name must be a plain .json filename')
+    const directory = resolve('.temp')
+    mkdirSync(directory, { recursive: true })
+    this.filePath = resolve(directory, fileName)
     try {
-      const parsed = JSON.parse(fileContent.toString())
-
-      return parsed as T
-    } catch {
-      throw new Error('Invalid JSON in temp file')
+      const handle = openSync(this.filePath, 'wx', 0o600)
+      try {
+        writeFileSync(handle, jsonType === 'array' ? '[]' : '{}')
+      } finally {
+        closeSync(handle)
+      }
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error
     }
   }
-
-  public write(data: Buffer | string): void {
-    fs.writeFileSync(this.filePath, data)
+  read<T>(): T {
+    try {
+      return JSON.parse(readFileSync(this.filePath, 'utf8')) as T
+    } catch (error) {
+      if (error instanceof SyntaxError)
+        throw new Error('Invalid JSON in temp file', { cause: error })
+      throw error
+    }
+  }
+  write(data: Buffer | string): void {
+    const pending = this.filePath + '.' + randomUUID() + '.pending'
+    try {
+      writeFileSync(pending, data, { flag: 'wx', mode: 0o600 })
+      renameSync(pending, this.filePath)
+    } finally {
+      rmSync(pending, { force: true })
+    }
   }
 }
-
-export default TempFileManager

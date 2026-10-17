@@ -6,7 +6,7 @@ import {
   Icon,
   LoadingScreen,
   TAILWIND_PALETTE
-} from '@lifeforge/ui'
+} from '@monolith/ui'
 
 export default function QRByStatus({
   status,

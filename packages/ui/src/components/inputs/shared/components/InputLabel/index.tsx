@@ -33,6 +33,7 @@ function _InputLabel({
       <Flex
         align="center"
         className={clsx(
+          'monolith-input-label',
           active || focused ? inputLabelActiveStyle : inputLabelInactiveStyle,
           className
         )}

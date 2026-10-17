@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 
-import { Box, Flex, Stack, Text } from '@lifeforge/ui'
+import { Box, Flex, Stack, Text } from '@monolith/ui'
 
 import type { WidgetEntry } from '@/system/dashboard/providers/WidgetProvider'
 

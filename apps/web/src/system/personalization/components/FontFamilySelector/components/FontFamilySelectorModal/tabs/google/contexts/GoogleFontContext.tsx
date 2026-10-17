@@ -9,9 +9,9 @@ import {
   useState
 } from 'react'
 
-import { usePersonalization } from '@lifeforge/ui'
+import { usePersonalization } from '@monolith/ui'
 
-import forgeAPI from '@/core/utils/forgeAPI'
+import workspaceAPI from '@/core/utils/workspaceAPI'
 
 import { useFontFamilySelector } from '../../../contexts/FontFamilySelectorContext'
 import type { FontFamily } from '../index'
@@ -46,9 +46,9 @@ function GoogleFontProvider({ children }: { children: ReactNode }) {
   const fontsQuery = useQuery<{
     enabled: boolean
     items: FontFamily[]
-  }>(forgeAPI.fonts.google.list.queryOptions())
+  }>(workspaceAPI.fonts.google.list.queryOptions())
   const pinnedFontsQuery = useQuery<string[]>(
-    forgeAPI.fonts.pins.list.queryOptions()
+    workspaceAPI.fonts.pins.list.queryOptions()
   )
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)

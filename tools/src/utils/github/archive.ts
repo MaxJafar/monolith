@@ -27,7 +27,7 @@ export async function downloadArchive(
 
   const tarball = path.join(
     os.tmpdir(),
-    `forge-${Date.now()}-${Math.random().toString(36).slice(2)}.tar.gz`
+    `endpoints-${Date.now()}-${Math.random().toString(36).slice(2)}.tar.gz`
   )
 
   await pipeline(

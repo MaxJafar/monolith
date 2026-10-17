@@ -1,141 +1,123 @@
-import z from 'zod'
+import { serviceJSON } from '@functions/external/serviceRequest'
+import { z } from 'zod'
 
-import { createForge, forgeRouter } from '@lifeforge/server-utils'
+import { createMonolith, defineRoutes } from '@monolith/server-utils'
 
-const forge = createForge({ moduleId: 'pixabay' })
-
-const searchImages = forge
+const search = z.object({
+  q: z.string().trim().min(1).max(200),
+  page: z
+    .string()
+    .regex(/^[1-9]\d*$/)
+    .max(6)
+    .default('1'),
+  type: z.enum(['all', 'photo', 'illustration', 'vector']).default('all'),
+  category: z
+    .enum([
+      'backgrounds',
+      'fashion',
+      'nature',
+      'science',
+      'education',
+      'feelings',
+      'health',
+      'people',
+      'religion',
+      'places',
+      'animals',
+      'industry',
+      'computer',
+      'food',
+      'sports',
+      'transportation',
+      'travel',
+      'buildings',
+      'business',
+      'music'
+    ])
+    .optional(),
+  colors: z
+    .enum([
+      'grayscale',
+      'transparent',
+      'red',
+      'orange',
+      'yellow',
+      'green',
+      'turquoise',
+      'blue',
+      'lilac',
+      'pink',
+      'white',
+      'gray',
+      'black',
+      'brown'
+    ])
+    .nullable()
+    .optional(),
+  editors_choice: z.enum(['true', 'false']).default('false')
+})
+const providerResult = z.object({
+  totalHits: z.number().int().nonnegative(),
+  hits: z.array(
+    z.object({
+      id: z.union([z.string(), z.number()]),
+      webformatURL: z.url(),
+      webformatWidth: z.number().nonnegative(),
+      webformatHeight: z.number().nonnegative(),
+      largeImageURL: z.url()
+    })
+  )
+})
+const searchImages = createMonolith({ moduleId: 'pixabay' })
   .query({
-    description: 'Search for images on Pixabay',
-    input: {
-      query: z.object({
-        q: z.string().min(1),
-        page: z.string().optional().default('1'),
-        type: z.enum(['all', 'photo', 'illustration', 'vector']).default('all'),
-        category: z
-          .enum([
-            'backgrounds',
-            'fashion',
-            'nature',
-            'science',
-            'education',
-            'feelings',
-            'health',
-            'people',
-            'religion',
-            'places',
-            'animals',
-            'industry',
-            'computer',
-            'food',
-            'sports',
-            'transportation',
-            'travel',
-            'buildings',
-            'business',
-            'music'
-          ])
-          .optional(),
-        colors: z
-          .enum([
-            'grayscale',
-            'transparent',
-            'red',
-            'orange',
-            'yellow',
-            'green',
-            'turquoise',
-            'blue',
-            'lilac',
-            'pink',
-            'white',
-            'gray',
-            'black',
-            'brown'
-          ])
-          .optional()
-          .nullable(),
-        editors_choice: z.enum(['true', 'false']).default('false')
-      })
-    },
+    description: 'Search the configured image catalog',
+    input: { query: search },
     output: {
       OK: z.object({
         total: z.number(),
         hits: z.array(
           z.object({
             id: z.string(),
+            imageURL: z.string(),
             thumbnail: z.object({
               url: z.string(),
               width: z.number(),
               height: z.number()
-            }),
-            imageURL: z.string()
+            })
           })
         )
       })
     }
   })
-  .callback(
-    async ({
-      query: { q, page, type, category, colors, editors_choice },
-      core: {
-        api: { getAPIKey }
-      },
-      response
-    }) => {
-      const key = await getAPIKey('pixabay')
-
-      if (!key) {
-        return response.badRequest('Pixabay API key is not set')
-      }
-
-      const url = new URL('https://pixabay.com/api/')
-
-      url.searchParams.append('key', key)
-      url.searchParams.append('q', q)
-      url.searchParams.append('page', page)
-      url.searchParams.append('image_type', type)
-
-      if (category) {
-        url.searchParams.append('category', category)
-      }
-
-      if (colors) {
-        url.searchParams.append('colors', colors)
-      }
-      url.searchParams.append('editors_choice', editors_choice)
-
-      const r = await fetch(url.toString())
-
-      if (!r.ok) {
-        return response.badRequest(
-          `Pixabay API request failed with status ${r.status}`
-        )
-      }
-
-      const data = await r.json()
-
-      return response.ok({
-        total: data.totalHits,
-        hits: data.hits.map(
-          (hit: {
-            id: string | number
-            webformatURL: string
-            webformatWidth: number
-            webformatHeight: number
-            largeImageURL: string
-          }) => ({
-            id: String(hit.id),
-            thumbnail: {
-              url: hit.webformatURL,
-              width: hit.webformatWidth,
-              height: hit.webformatHeight
-            },
-            imageURL: hit.largeImageURL
-          })
-        )
-      })
+  .callback(async ({ query, core, response }) => {
+    const key = await core.api.getAPIKey('pixabay').catch(() => null)
+    if (!key) return response.badRequest('Pixabay API key is not set')
+    const url = new URL('https://pixabay.com/api/')
+    for (const [name, value] of Object.entries({
+      ...query,
+      key,
+      q: query.q,
+      image_type: query.type
+    })) {
+      if (value != null && name !== 'type') url.searchParams.set(name, value)
     }
-  )
+    try {
+      const result = await serviceJSON('Image catalog', url, providerResult)
+      return response.ok({
+        total: result.totalHits,
+        hits: result.hits.map(image => ({
+          id: String(image.id),
+          imageURL: image.largeImageURL,
+          thumbnail: {
+            url: image.webformatURL,
+            width: image.webformatWidth,
+            height: image.webformatHeight
+          }
+        }))
+      })
+    } catch {
+      return response.badRequest('The image catalog could not be retrieved')
+    }
+  })
 
-export default forgeRouter({ searchImages })
+export default defineRoutes({ searchImages })

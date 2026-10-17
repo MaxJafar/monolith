@@ -1,27 +1,27 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 
-export function usePromiseLoading<T extends any[]>(
-  callback: (...args: T) => Promise<any>,
+/** Pending remains true until every invocation settles, including overlapping saves. */
+export function usePromiseLoading<Args extends unknown[]>(
+  operation: (...args: Args) => Promise<unknown>,
   onError?: (error: unknown) => void
-): [boolean, (...args: T) => Promise<void>] {
-  const [isLoading, setIsLoading] = useState(false)
-
-  const onClick = useCallback(
-    async (...args: T) => {
-      setIsLoading(true)
-
+): [boolean, (...args: Args) => Promise<void>] {
+  const pending = useRef(0)
+  const [busy, setBusy] = useState(false)
+  const run = useCallback(
+    async (...args: Args) => {
+      pending.current += 1
+      setBusy(true)
       try {
-        await callback(...args)
+        await operation(...args)
       } catch (error) {
-        console.error(error)
-        onError?.(error)
+        if (onError) onError(error)
+        else console.error(error)
       } finally {
-        setIsLoading(false)
+        pending.current -= 1
+        setBusy(pending.current !== 0)
       }
     },
-    [callback, onError]
+    [operation, onError]
   )
-
-  return [isLoading, onClick]
+  return [busy, run]
 }

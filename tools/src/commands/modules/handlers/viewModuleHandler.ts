@@ -10,7 +10,7 @@ import { startSpinner, stopSpinner } from '@/utils/spinner'
 /**
  * Views module information from the registry (GitHub-hosted index).
  *
- * @param moduleName - The module name to view (e.g., calendar or @lifeforge/lifeforge--calendar)
+ * @param moduleName - The module name to view (e.g., calendar or @monolith/calendar)
  */
 export async function viewModuleHandler(moduleName: string): Promise<void> {
   const { shortName } = normalizePackage(moduleName)
@@ -43,8 +43,8 @@ export async function viewModuleHandler(moduleName: string): Promise<void> {
   log.message('')
   log.message(
     pkg.displayName
-      ? `${chalk.bold.blue(String(pkg.displayName))} ${chalk.dim(`(@lifeforge/${shortName})`)}`
-      : chalk.bold.blue(`@lifeforge/${shortName}`)
+      ? `${chalk.bold.blue(String(pkg.displayName))} ${chalk.dim(`(@monolith/${shortName})`)}`
+      : chalk.bold.blue(`@monolith/${shortName}`)
   )
 
   if (typeof pkg.description === 'string') {

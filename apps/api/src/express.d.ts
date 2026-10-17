@@ -1,7 +1,7 @@
 import type { ITaskPoolTask } from '@functions/socketio/taskPool'
 import { type PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 
-import type { ConvertMedia, MediaConfig } from '@lifeforge/server-utils'
+import type { ConvertMedia, MediaConfig } from '@monolith/server-utils'
 
 declare global {
   namespace Express {

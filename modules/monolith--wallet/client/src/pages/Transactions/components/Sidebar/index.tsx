@@ -1,0 +1,38 @@
+import { SidebarDivider, SidebarWrapper } from '@monolith/ui'
+
+import useFilter from '@/hooks/useFilter'
+
+import AllTransactionsButton from './components/AllTransactionsButton'
+import AssetsSection from './components/AssetsSection'
+import CategoriesSection from './components/CategoriesSection'
+import DateRangeSelector from './components/DateRangeSelector'
+import LedgerSection from './components/LedgersSection'
+import MiniCalendar from './components/MiniCalendarSection'
+import PlatformsSection from './components/PlatformsSection'
+import TypeSection from './components/TypeSection'
+
+function Sidebar() {
+  const { type } = useFilter()
+
+  return (
+    <SidebarWrapper>
+      <AllTransactionsButton />
+      <SidebarDivider />
+      <MiniCalendar />
+      <SidebarDivider />
+      <DateRangeSelector />
+      <SidebarDivider />
+      <TypeSection />
+      <SidebarDivider />
+      <CategoriesSection />
+      {type !== 'transfer' && <SidebarDivider />}
+      <PlatformsSection />
+      {type !== 'transfer' && <SidebarDivider />}
+      <AssetsSection />
+      <SidebarDivider />
+      <LedgerSection />
+    </SidebarWrapper>
+  )
+}
+
+export default Sidebar

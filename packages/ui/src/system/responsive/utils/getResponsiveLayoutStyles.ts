@@ -1,76 +1,49 @@
-import type { ResolvedStyle, ResponsiveProp } from '@/system'
-
-import { LAYOUT_PROP_DEFS, type LayoutPropDefsKey } from '../constant'
-import type { Breakpoint, PropDef } from '../types'
-
-function isResponsiveObject<T>(
-  value: ResponsiveProp<T>
-): value is Exclude<ResponsiveProp<T>, T> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
+import type { ResolvedStyle } from '../../props-resolver'
+import {
+  LAYOUT_PROP_DEFS,
+  type LayoutPropDefsKey,
+  RESPONSIVE_CONDITIONS
+} from '../constant'
+import type { PropDef, ResponsiveProp } from '../types'
 
 export function getResponsiveStyles(
-  propDef: PropDef,
-  value: ResponsiveProp<string | number> | undefined
+  definition: PropDef,
+  input: ResponsiveProp<string | number> | undefined
 ): ResolvedStyle | undefined {
-  if (value === undefined) return undefined
-
-  const classNames: string[] = []
-
-  const style: Record<string, string> = {}
-
-  const baseProp = propDef.customProperties[0]
-
-  if (typeof value === 'string' || typeof value === 'number') {
-    classNames.push(propDef.className)
-    style[baseProp] = value.toString()
-  } else if (isResponsiveObject(value)) {
-    for (const [bp, val] of Object.entries(value) as [
-      Breakpoint,
-      string | undefined
-    ][]) {
-      if (val === undefined) continue
-
-      const bpClass =
-        bp === 'base' ? propDef.className : `${bp}:${propDef.className}`
-
-      const bpVar = bp === 'base' ? baseProp : `${baseProp}-${bp}`
-
-      classNames.push(bpClass)
-      style[bpVar] = val
-    }
+  if (input == null) return
+  const entries =
+    typeof input === 'object' ? Object.entries(input) : [['base', input]]
+  const classes: string[] = []
+  const variables: Record<string, string> = {}
+  for (const [breakpoint, value] of entries) {
+    if (!Object.hasOwn(RESPONSIVE_CONDITIONS, breakpoint!) || value == null)
+      continue
+    classes.push(
+      breakpoint === 'base'
+        ? definition.className
+        : breakpoint + ':' + definition.className
+    )
+    const variable =
+      definition.customProperties[0] +
+      (breakpoint === 'base' ? '' : '-' + breakpoint)
+    variables[variable] = String(value)
   }
-
-  if (classNames.length === 0) return undefined
-
-  return {
-    className: classNames.join(' '),
-    style
-  }
+  return classes.length
+    ? { className: classes.join(' '), style: variables }
+    : undefined
 }
 
 export function getResponsiveLayoutStyles(
   props: Partial<Record<LayoutPropDefsKey, ResponsiveProp<string | number>>>
 ): ResolvedStyle {
-  const classNames: string[] = []
-
-  const style: Record<string, string> = {}
-
-  for (const [key, value] of Object.entries(props)) {
-    const propDef = LAYOUT_PROP_DEFS[key as LayoutPropDefsKey]
-
-    if (!propDef || value === undefined) continue
-
-    const result = getResponsiveStyles(propDef, value)
-
-    if (result) {
-      classNames.push(result.className)
-      Object.assign(style, result.style)
-    }
+  const result: ResolvedStyle = { className: '', style: {} }
+  const classes: string[] = []
+  for (const name of Object.keys(LAYOUT_PROP_DEFS) as LayoutPropDefsKey[]) {
+    const resolved = getResponsiveStyles(LAYOUT_PROP_DEFS[name], props[name])
+    if (!resolved) continue
+    classes.push(resolved.className)
+    Object.assign(result.style, resolved.style)
   }
-
-  return {
-    className: classNames.join(' '),
-    style
-  }
+  result.className = classes.join(' ')
+  return result
 }

@@ -1,5 +1,5 @@
 import * as ts from '@typescript/typescript6'
-import fs from 'fs'
+import { readFileSync } from 'node:fs'
 
 import {
   type WidgetConfig,
@@ -10,24 +10,23 @@ import resolveExpressionMap, { findVariableDeclaration } from './ast-utils'
 export default function parseWidgetConfig(
   filePath: string
 ): WidgetConfig | null {
-  if (!fs.existsSync(filePath)) return null
-
   try {
-    const sourceFile = ts.createSourceFile(
+    const source = ts.createSourceFile(
       filePath,
-      fs.readFileSync(filePath, 'utf-8'),
+      readFileSync(filePath, 'utf8'),
       ts.ScriptTarget.Latest,
-      true
+      true,
+      ts.ScriptKind.TSX
     )
-
-    const config = findVariableDeclaration(sourceFile, 'config')
-
-    if (!config) return null
-
-    return widgetConfigSchema.parse(resolveExpressionMap(config))
+    const properties = findVariableDeclaration(source, 'config')
+    if (!properties) return null
+    const result = widgetConfigSchema.safeParse(
+      resolveExpressionMap(properties)
+    )
+    return result.success ? result.data : null
   } catch (error) {
-    console.error(`Failed to parse widget config for ${filePath}: ${error}`)
-
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT')
+      console.error('Cannot read widget metadata', filePath, error)
     return null
   }
 }

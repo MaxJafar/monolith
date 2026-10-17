@@ -5,12 +5,12 @@ import I18NextHttpBackend from 'i18next-http-backend'
 import { NuqsAdapter } from 'nuqs/adapters/react'
 import { initReactI18next } from 'react-i18next'
 
-import { APIEndpointProvider } from '@lifeforge/api'
+import { APIEndpointProvider } from '@monolith/api'
 import {
   I18nCommonNameSpacePreloadProvider,
   I18nInitProvider,
   setI18n
-} from '@lifeforge/localization'
+} from '@monolith/localization'
 
 import { ErrorScreen, LoadingScreen } from '@/components'
 import { ModalManager } from '@/components/overlays'

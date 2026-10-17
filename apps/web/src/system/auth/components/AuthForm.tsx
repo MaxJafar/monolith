@@ -1,129 +1,117 @@
-// import * as webauthn from '@passwordless-id/webauthn'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { type FormEvent, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router'
 
-import { useAuth, usePromiseLoading } from '@lifeforge/api'
-import { Stack, TextInput, toast, useModalStore } from '@lifeforge/ui'
+import { useAuth } from '@monolith/api'
+import { Stack, TextInput, toast, useModalStore } from '@monolith/ui'
+
+import workspaceAPI from '@/core/utils/workspaceAPI'
 
 import TwoFAModal from '../modals/TwoFAModal'
-import AuthSignInButton from './AuthSignInButtons'
+import SignInOptions from './SignInOptions'
 
-function AuthForm({ providers }: { providers: string[] }) {
-  const [emailOrUsername, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const emailOrUsernameRef = useRef(emailOrUsername)
-  const passwordRef = useRef(password)
-  const [formDisabled, setFormDisabled] = useState(false)
-  const [searchParams] = useSearchParams()
+export default function AuthForm({ providers }: { providers: string[] }) {
+  const { authenticate, auth } = useAuth()
   const { open } = useModalStore()
   const { t } = useTranslation('common.auth')
-  const { authenticate } = useAuth()
+  const [parameters] = useSearchParams()
+  const [identity, setIdentity] = useState('')
+  const [password, setPassword] = useState('')
+  const [pending, setPending] = useState<string | null>(null)
+  const lock = useRef(false)
+  const returning = Boolean(parameters.get('code') && parameters.get('state'))
+  const disabled = auth || returning || pending !== null
 
-  const INPUT_FIELDS = [
-    {
-      label: 'emailOrUsername',
-      placeholder: t('common.auth:inputs.emailOrUsername.placeholder'),
-      icon: 'tabler:user',
-      value: emailOrUsername,
-      onChange: setEmail,
-      inputMode: 'email'
-    },
-    {
-      label: 'password',
-      placeholder: '••••••••••••••••',
-      icon: 'tabler:key',
-      value: password,
-      onChange: setPassword
+  async function run(kind: string, action: () => Promise<boolean | void>) {
+    if (lock.current || disabled) return
+    lock.current = true
+    setPending(kind)
+    let navigating = false
+    try {
+      navigating = (await action()) === true
+    } catch {
+      toast.error(t('messages.invalidLoginAttempt'))
+    } finally {
+      if (!navigating) {
+        lock.current = false
+        setPending(null)
+      }
     }
-  ] as const
+  }
 
-  const signIn = useCallback(async () => {
-    const emailOrUsername = emailOrUsernameRef.current
-
-    const password = passwordRef.current
-
-    if (emailOrUsername.length === 0 || password.length === 0) {
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!identity.trim() || !password) {
       toast.error(t('messages.invalidFields'))
-
       return
     }
+    void run('password', async () => {
+      const result = await authenticate({ email: identity.trim(), password })
+      if (result === '2fa_required') open(TwoFAModal, {})
+      else if (result === 'invalid')
+        toast.error(t('messages.invalidCredentials'))
+      else if (result?.startsWith('success')) {
+        toast.success(
+          t('messages.welcomeBack', {
+            name: result.replace(/^success:?\s*/, '')
+          })
+        )
+      } else throw new Error('Sign-in did not finish')
+    })
+  }
 
-    setFormDisabled(true)
-
-    await authenticate({ email: emailOrUsername, password })
-      .then(res => {
-        if (res === '2fa_required' || !res) {
-          open(TwoFAModal, {})
-
-          return
-        }
-
-        if (res === 'invalid') {
-          toast.error(t('messages.invalidCredentials'))
-
-          return
-        }
-
-        if (res.startsWith('success')) {
-          toast.success(
-            t('messages.welcomeBack', {
-              name: res.split(' ').slice(1).join(' ')
-            })
-          )
-        } else {
-          throw new Error()
-        }
-      })
-      .catch(e => {
-        console.error(e)
-        toast.error(t('messages.invalidLoginAttempt'))
-      })
-      .finally(() => {
-        setFormDisabled(false)
-      })
-  }, [authenticate, t])
-
-  const [loading, onSubmit] = usePromiseLoading(signIn)
-
-  const onInputKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === 'Enter') {
-        onSubmit()
-      }
-    },
-    [onSubmit]
-  )
-  useEffect(() => {
-    emailOrUsernameRef.current = emailOrUsername
-  }, [emailOrUsername])
-  useEffect(() => {
-    passwordRef.current = password
-  }, [password])
+  function authorize(provider: string) {
+    void run(provider, async () => {
+      const authorization = await workspaceAPI.auth.oauth.authorize
+        .input({ provider })
+        .queryRaw()
+      const destination = new URL(authorization.url)
+      if (!['https:', 'http:'].includes(destination.protocol))
+        throw new Error('Invalid authorization address')
+      sessionStorage.setItem('oauthState', authorization.state)
+      sessionStorage.setItem('oauthProvider', provider)
+      window.location.assign(destination.href)
+      return true
+    })
+  }
 
   return (
-    <Stack maxWidth={{ sm: '70%' }} mt={{ base: 'lg', sm: '2xl' }}>
-      {INPUT_FIELDS.map((input, index) => (
-        <TextInput
-          key={index}
-          namespace="common.auth"
-          {...input}
-          disabled={
-            formDisabled ||
-            (searchParams.get('code') !== null &&
-              searchParams.get('state') !== null)
-          }
-          isPassword={index === 1}
-          onKeyDown={onInputKeyDown}
-        />
-      ))}
-      <AuthSignInButton
-        loading={loading}
+    <Stack
+      as="form"
+      aria-busy={pending !== null}
+      maxWidth={{ sm: '70%' }}
+      mt={{ base: 'lg', sm: '2xl' }}
+      onSubmit={submit}
+    >
+      <TextInput
+        autoComplete="username"
+        disabled={disabled}
+        icon="tabler:user"
+        label="emailOrUsername"
+        name="username"
+        namespace="common.auth"
+        placeholder={t('inputs.emailOrUsername.placeholder')}
+        value={identity}
+        onChange={setIdentity}
+      />
+      <TextInput
+        isPassword
+        autoComplete="current-password"
+        disabled={disabled}
+        icon="tabler:key"
+        label="password"
+        name="password"
+        namespace="common.auth"
+        placeholder={t('inputs.password.placeholder')}
+        value={password}
+        onChange={setPassword}
+      />
+      <SignInOptions
+        disabled={disabled}
+        pending={pending}
         providers={providers}
-        signIn={onSubmit}
+        onProvider={authorize}
       />
     </Stack>
   )
 }
-
-export default AuthForm

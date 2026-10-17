@@ -1,3 +1,4 @@
+import { addonStorageId } from '@monolith/configs'
 import fs from 'fs'
 import _ from 'lodash'
 import path from 'path'
@@ -32,9 +33,9 @@ function readModuleIdFromPackageJson(moduleDir: string): string | undefined {
   try {
     const pkg = JSON.parse(
       fs.readFileSync(path.join(moduleDir, 'package.json'), 'utf-8')
-    ) as { name?: string }
+    ) as { name?: string; monolith?: { id?: string } }
 
-    return pkg.name?.replace(/^@lifeforge\//, '')
+    return pkg.monolith?.id ?? (pkg.name ? addonStorageId(pkg.name) : undefined)
   } catch {
     return undefined
   }
@@ -62,10 +63,11 @@ export function resolveCallerModuleId(stack?: string): string | undefined {
 
 /**
  * Derives a module's namespace from its official id:
- * - `@lifeforge/lifeforge--calendar` → `calendar`
- * - `@lifeforge/melvinchia3636--invoice-maker` → `melvinchia3636___invoice_maker`
+ * - `@monolith/calendar` → `calendar`
+ * - `@monolith/example-author--invoice-maker` → `example-author___invoice_maker`
  */
 export function deriveModuleNamespace(moduleId: string): string {
+  moduleId = addonStorageId(moduleId)
   const scopedName = moduleId.includes('/')
     ? moduleId.slice(moduleId.lastIndexOf('/') + 1)
     : moduleId
@@ -78,7 +80,7 @@ export function deriveModuleNamespace(moduleId: string): string {
     separator === -1 ? scopedName : scopedName.slice(separator + 2)
   )
 
-  if (!author || author === 'lifeforge') {
+  if (!author || author === 'monolith') {
     return moduleName
   }
 

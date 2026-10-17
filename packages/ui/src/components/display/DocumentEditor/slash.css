@@ -1,0 +1,3 @@
+.monolith-slash-command { border: 0; background: transparent; text-align: left; color: inherit; min-height: 32px; cursor: pointer; }
+.monolith-slash-command[aria-selected='true'] { background: var(--interaction-hover, rgba(127,127,127,.14)); }
+.monolith-slash-footer { border-top: 1px solid var(--border-subtle); margin-top: 4px; }

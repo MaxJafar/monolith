@@ -30,9 +30,9 @@ describe('externalDependencyRegex', () => {
 
   describe('happy path: scoped packages', () => {
     it.each([
-      '@lifeforge/api',
-      '@lifeforge/federation',
-      '@lifeforge/localization',
+      '@monolith/api',
+      '@monolith/federation',
+      '@monolith/localization',
       '@types/react',
       '@types/node',
       '@module-federation/runtime',
@@ -48,7 +48,7 @@ describe('externalDependencyRegex', () => {
       'react-dom/client',
       'react-dom/server',
       'zustand/vanilla',
-      '@lifeforge/log/cli',
+      '@monolith/log/cli',
       '@tanstack/react-query',
       '@scope/pkg/a/b',
       '@scope/pkg-with-hyphen/sub_path'
@@ -113,7 +113,7 @@ describe('externalDependencyRegex', () => {
   describe('rejects malformed specifiers', () => {
     it.each([
       '',
-      '@lifeforge',
+      '@monolith',
       '@/foo',
       '@scope/',
       'react/',

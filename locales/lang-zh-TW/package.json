@@ -1,9 +1,9 @@
 {
-  "name": "@lifeforge/melvinchia3636--lang-zh-TW",
+  "name": "@monolith/lang-zh-TW",
   "version": "0.0.6",
-  "author": "melvinchia3636 <melvinchia623600@gmail.com>",
-  "description": "繁體中文 language support for LifeForge.",
-  "lifeforge": {
+  "author": "Monolith contributors",
+  "description": "繁體中文 language support for Monolith.",
+  "monolith": {
     "code": "zh-TW",
     "displayName": "繁體中文",
     "icon": "circle-flags:tw"

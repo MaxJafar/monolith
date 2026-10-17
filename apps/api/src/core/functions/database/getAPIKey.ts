@@ -1,8 +1,7 @@
 import { decrypt2 } from '@functions/auth/encryption'
 import { createServiceLogger } from '@functions/logging'
+import { ModuleRegistry } from '@monolith/module-runtime/registry'
 import chalk from 'chalk'
-
-import { ModuleRegistry } from '@lifeforge/module-runtime/registry'
 
 import type { db } from '../../drizzle'
 
@@ -18,8 +17,7 @@ export async function validateCallerAccess(
 
   const entry = ModuleRegistry.entries.find(
     candidate =>
-      candidate.name === callerModule.id ||
-      candidate.name.endsWith('/' + callerModule.id)
+      candidate.name === callerModule.id || candidate.id === callerModule.id
   )
 
   if (!entry) {

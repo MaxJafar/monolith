@@ -33,6 +33,7 @@ export function OptionsColumn({
   tooltip,
   children,
   breakpoint = 'md',
+  className = '',
   ...rest
 }: OptionsColumnProps) {
   const getDirection = (): ResponsiveProp<DirectionValue> => {
@@ -58,6 +59,7 @@ export function OptionsColumn({
 
   return (
     <Card
+      className={`monolith-option-row ${className}`}
       direction={getDirection()}
       gapX="xl"
       gapY="md"

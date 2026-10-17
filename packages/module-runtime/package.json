@@ -1,7 +1,7 @@
 {
-  "name": "@lifeforge/module-runtime",
+  "name": "@monolith/module-runtime",
   "version": "0.0.1",
-  "description": "LifeForge module runtime: identity/path registry and server-side loader",
+  "description": "Monolith module runtime: identity/path registry and server-side loader",
   "type": "module",
   "main": "./dist/registry/index.js",
   "types": "./dist/registry/index.d.ts",
@@ -26,8 +26,8 @@
     "typecheck": "tsc --project tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@lifeforge/configs": "workspace:*",
-    "@lifeforge/log": "workspace:*",
+    "@monolith/configs": "workspace:*",
+    "@monolith/log": "workspace:*",
     "chalk": "^5.4.1",
     "chokidar": "^4.0.3",
     "drizzle-orm": "1.0.0-rc.4",
@@ -38,5 +38,6 @@
     "@types/express": "^4.17.23",
     "@types/lodash": "^4.17.21",
     "@types/node": "^25.0.6"
-  }
+  },
+  "author": "Monolith contributors"
 }

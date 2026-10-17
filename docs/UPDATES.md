@@ -1,0 +1,129 @@
+# Monolith application updates
+
+Monolith's Windows client, universal macOS client and single-host Linux Docker deployment use signed GitHub Releases. **Settings → Updates** shows the installed version, release notes, actual downloaded bytes, installation/restart status and recovery results. A notification appears when a release is available or an installation needs attention. Desktop onboarding also has an Updates button.
+
+This code does not configure a public release, provision signing credentials or deploy your server. Existing clients need one installation of an updater-enabled, signed release before they can update themselves. Existing servers need the external supervisor described below.
+
+## Automatic behavior
+
+| Setting                | Behavior                                                                                                                                                                                    |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Release checks         | At supervisor startup and every six hours; manual checks are available. Errors back off instead of continuously requesting GitHub.                                                          |
+| Download automatically | On by default once signing is configured. A failed installation's version is not automatically retried.                                                                                     |
+| Install automatically  | Off initially; enable independently for each desktop installation and for the hosted server. Enabling it also enables downloads.                                                            |
+| Desktop installation   | Waits until the app is in the background and has had no keyboard/pointer input for two minutes. Editor save guards and native persisted-draft checks must pass.                             |
+| Server installation    | Installs a verified download during the chosen one-hour UTC maintenance window. Host administrators can also install immediately.                                                           |
+| Browser refresh        | When server automatic installation is enabled, an outdated browser tab reloads after two minutes of idle time in the background, subject to save guards. A manual reload is also available. |
+| Channels               | Stable uses GitHub's latest stable release. Beta selects the highest eligible version from the latest 30 published releases, including stable releases. No automatic downgrade occurs.      |
+
+The updater currently reads public GitHub release assets. It does not embed a GitHub token in clients. A private repository, enterprise GitHub host or a mirrored release service needs an explicit transport extension.
+
+## Build and publish a release
+
+The workflow `.github/workflows/platform-releases.yml` runs for `v<semver>` tags. It aligns root/web/API/Windows/macOS versions with the tag, tests the updater, builds both native clients and both Linux architectures, signs/notarizes clients and signs a complete release manifest. It creates a draft GitHub release, uploads every artifact, uploads the manifest last, and publishes only after all uploads succeed. A failed upload leaves a draft that can be retried; an already published version is never overwritten.
+
+Create the GitHub environment **release** and protect it according to your release policy. Configure these repository variables/secrets:
+
+| Name                             | Kind                         | Purpose                                                                 |
+| -------------------------------- | ---------------------------- | ----------------------------------------------------------------------- |
+| `MONOLITH_RELEASE_PUBLIC_KEY`    | Repository variable          | Ed25519 public PEM embedded in clients and used by the host supervisor. |
+| `MONOLITH_RELEASE_PRIVATE_KEY`   | `release` environment secret | Matching private PEM used only by the manifest-signing job.             |
+| `WINDOWS_CERTIFICATE_P12`        | Repository secret            | Base64-encoded Authenticode signing certificate and private key.        |
+| `WINDOWS_CERTIFICATE_PASSWORD`   | Repository secret            | Certificate password.                                                   |
+| `MACOS_CERTIFICATE_P12`          | Repository secret            | Base64-encoded Developer ID Application certificate and private key.    |
+| `MACOS_CERTIFICATE_PASSWORD`     | Repository secret            | Certificate password.                                                   |
+| `MACOS_SIGN_IDENTITY`            | Repository secret            | Developer ID Application signing identity.                              |
+| `MACOS_TEAM_ID`                  | Repository secret            | Ten-character Apple Developer team ID.                                  |
+| `APPLE_ID`, `APPLE_APP_PASSWORD` | Repository secrets           | Apple notarization credentials.                                         |
+
+The native signing jobs import credentials only on ephemeral GitHub runners. If your Windows certificate requires a hardware/cloud signing provider, adapt `tools/sign-windows-release.mjs` to that provider before enabling the workflow. The checked-in implementation supports an exportable P12/PFX certificate.
+
+For a release prepared locally, use the appropriate build host:
+
+```sh
+pnpm release:version 1.0.0
+pnpm updater:test
+pnpm desktop:windows:build
+# After signing the Windows binaries:
+pnpm release:platform client windows-amd64
+
+# On macOS, with signing and notarization configured:
+pnpm desktop:bundle
+pnpm exec node tools/macos-build.mjs
+pnpm release:platform client darwin-universal
+
+# On the Linux Docker build host:
+pnpm release:platform server linux-amd64
+pnpm release:platform server linux-arm64
+
+# With all four artifacts collected and release keys configured:
+pnpm release:platform manifest
+```
+
+`GITHUB_REPOSITORY` selects the release repository; otherwise the root package's repository is used. The workflow generates release notes with the [GitHub Releases API](https://docs.github.com/en/rest/releases/releases#generate-release-notes-content-for-a-release) and includes the same text in the signed manifest and published release. `MONOLITH_RELEASE_NOTES_FILE` can supply a UTF-8 file when packaging locally. Version and schema changes are not chosen automatically for you. Tag only a reviewed, tested commit. Unconfigured development builds expose update setup information and cannot install unsigned releases.
+
+Outputs are under `dist/platform-releases/v<version>/`. `monolith-release.json` contains a base64 payload plus an Ed25519 signature. Its payload binds the version, channel, updater protocol, database-schema fingerprint, platform, exact size, SHA-256 and GitHub asset URL. Server artifacts also pin an immutable Docker image ID. Large Docker archives are split into parts below [GitHub's 2 GiB per-asset limit](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases); the updater verifies each part and the complete reassembled archive. `SHA256SUMS` also covers first-install installers and host helper binaries.
+
+## Connect the hosted server
+
+The supervisor runs **on the Docker host, outside the replaceable containers**. It manages the `server` and `gateway` services in this repository's Compose deployment. It is not a Kubernetes operator, multi-host rollout controller or bare-process API updater.
+
+1. Bootstrap one healthy release image with `org.opencontainers.image.version` and `app.monolith.schema` labels. The platform release builder supplies both. Do the initial database migration and verify the deployment using the [container guide](MONOLITH-CONTAINERS.md). The old development image with the `development` schema label cannot be used as a rollback baseline.
+2. Install the matching `monolith-updater-linux-amd64` or `monolith-updater-linux-arm64` release asset as `/usr/local/bin/monolith-updater`, executable by the service user. Verify it against the release checksums obtained from your trusted release.
+3. Create the `monolith-updater` service user/group, with access to Docker and read access to the deployment's Compose files and environment file. The supervisor needs Docker deployment privileges; these credentials stay on the host.
+4. Copy `docker/updates/config.example.json` to `/etc/monolith-updater/config.json`. Set the repository, pinned public PEM, installed version/schema label, architecture, absolute Compose/env-file paths, actual Compose project name and reachable gateway `/healthz` URL. Public PEM newlines can be JSON-escaped. The supervisor checks running image labels and health instead of trusting a stale version in configuration.
+5. Put a cryptographically random token of at least 48 characters in `/etc/monolith-updater/token`, readable only by the service. Use the same token in the API environment below. Bind the listener to a private address reachable from the API container; firewall port 6169 to that container/network. Do not expose it through your public reverse proxy.
+6. Install `docker/updates/monolith-updater.service` as a systemd unit, reload systemd and enable/start it. The unit maintains state in `/var/lib/monolith-updater`. Its shutdown allowance lets an interrupted operation finish recovery.
+7. Add the following to `env/.env.docker` and recreate the API container once to apply it. `host.docker.internal` is mapped to the Docker host by the supplied Compose file.
+
+```dotenv
+MONOLITH_UPDATER_URL=http://host.docker.internal:6169
+MONOLITH_UPDATER_TOKEN=THE_SAME_RANDOM_TOKEN_AS_THE_HOST_TOKEN_FILE
+MONOLITH_UPDATE_ADMIN_IDS=HOST_ADMIN_USER_UUID
+```
+
+Use a comma-separated list for multiple administrators. Workspace ownership alone does not grant host deployment rights. Authenticated users can see update status; only these explicit administrators can check, download, install, roll back or change server settings. The browser never receives the supervisor token. The API calls its configured supervisor with a fixed action allowlist; the supervisor additionally requires its bearer token and rejects browser-origin requests.
+
+Once connected, use **Settings → Updates → Hosted server** to choose a channel, enable automatic installation and set its UTC maintenance hour. The supervisor continues operating when no clients are open.
+
+The active immutable image override is `/var/lib/monolith-updater/active-compose.json`. Include it with the original Compose files for subsequent operational `docker compose` commands; otherwise a manual `up` can replace the selected release with the source file's image. Never prune the retained previous image while rollback is available. Keep the supervisor state with your deployment backups.
+
+## Installation and rollback
+
+Downloads enter a temporary file. Signature, repository/tag binding, platform, size and hash checks must pass before activation. Settings and transaction journals are written atomically. A process-level file lock prevents multiple supervisors from mutating one installation. Interrupted downloads can be retried; they restart from byte zero.
+
+**Windows:** the helper runs from the user's application-data directory, outside the installation it replaces. It stages the candidate next to the installed app, preserves installer registration and backs up the previous files. It waits for the app to exit and atomically replaces individual files while preserving the launch path. The durable journal restores a mixed file set after interruption. Use the per-user NSIS installation; a non-writable system installation requires a manual installer.
+
+**macOS:** the candidate must have the expected Developer ID team and pass code-signature and notarization assessment. The helper atomically exchanges the `.app` bundles on the same volume, preserving the old bundle. Install in a writable directory rather than launching from the DMG.
+
+Both clients launch the candidate and require its native version/PID and mounted workspace or onboarding UI to acknowledge readiness within two minutes. An early exit, launch error or missing acknowledgement triggers restoration and relaunch of the old version. **Restore previous version** provides manual rollback after success. Credentials, drafts and settings remain in application-data storage outside the replaced application.
+
+**Server:** the supervisor loads the verified archive, validates image identity/architecture/version/schema labels and switches only `server` and `gateway`, with `--no-deps --no-build --pull never`. It waits for Compose health and checks the gateway's expected version, database connection, API version and managed-addon registration. Failure reapplies the retained image IDs and checks the old server's health. It never removes database/storage volumes or runs the migration service. Single-host replacement entails a short service interruption; already-open clients reconnect and report the outcome.
+
+After a supervisor crash, the pending journal restores the previous release before any new update action. If recovery itself fails, the journal and previous files/images stay intact and the error remains visible; correct the disk/permissions/Docker problem and restart the supervisor to retry recovery. Rollback is startup/health recovery, not a guarantee against every later application regression. Desktop backups and downloaded artifacts are retained; budget disk space and remove obsolete generated backups only after verifying recovery is no longer needed.
+
+### Schema and compatibility boundaries
+
+Automatic server installation requires an identical schema fingerprint and updater protocol. A release with changed schema sources or SQL migrations is shown as requiring a planned migration. Back up data, deploy/migrate and verify that release manually, then update the supervisor's schema configuration and restart it. Application rollback cannot undo a database migration.
+
+The baseline and candidate must both pass startup health checks. Test installed addons against the new host before rollout, and publish matching addon packages where their declared host version changes. The current shop's exact-host package compatibility still applies. Native clients and the host select versions independently; coordinate your release channel when introducing changes to the shared application protocol. An updater-protocol change or signing-key rotation requires a planned bridge/manual release.
+
+## Verification
+
+```sh
+pnpm updater:test
+pnpm exec node --test tools/platform-release.test.mjs
+pnpm gateway:test
+pnpm --filter @monolith/client test
+pnpm desktop:windows:test
+pnpm --filter @monolith/client build
+pnpm desktop:bundle
+```
+
+The Go suite tests signed metadata, hostile redirects/archives, truncated and corrupt downloads, multipart downloads, version/schema gates, atomic file replacement, failed launch/health, interrupted transactions, rollback failure retention, preferences, supervisor authentication and Docker command selection. Docker tests use a fake command runner and health transport; they do not replace a live deployment.
+
+Implementation verification on Windows passed 26 updater tests, 30 client tests, three release-packaging tests, three native Windows tests, the gateway suite including a read-only database health check, and production builds for the API, web app and desktop frontend. The Go supervisor cross-compiled for both Linux and macOS architectures. UI acceptance covered administrator and viewer permissions, notifications, download progress, recovery errors, light/dark themes and mobile layouts without browser errors. The Swift host and signed distribution upgrades require macOS/release infrastructure; a live Docker rollout has not been exercised on this development machine.
+
+For UI/API acceptance, start an isolated fixture API with `pnpm --filter @monolith/server exec tsx ../../tools/fixtures/updates-host.mts`, run the web preview on port 5187 with `VITE_API_HOST=http://localhost:3638`, then run `pnpm exec node tools/updates-smoke.mjs`. It creates and removes synthetic accounts in the guarded local development database. The privileged supervisor is simulated; the real API authentication, proxy, frontend polling and controls are exercised. Screenshots go to `.temp/update-acceptance`.
+
+Before publishing the first release, run signed installer-to-installer upgrades on Windows/macOS and a real Linux Docker installation/rollback rehearsal with the production signing configuration. Cross-compilation and mock transport tests do not replace those distribution checks.

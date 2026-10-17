@@ -24,14 +24,14 @@ export const Default: Story = {
         icon: 'tabler:hammer-off'
       },
       description:
-        "Are you sure you want to revert to the time where LifeForge didn't exist? This will trigger a serious chaos in the universe and the consequences will be dire.",
+        "Are you sure you want to revert to the time where Monolith didn't exist? This will trigger a serious chaos in the universe and the consequences will be dire.",
       onConfirm: async () => {
         await new Promise(resolve => setTimeout(resolve, 2000))
         alert(
           "Omg I can't believe you have the audacity to click this button lol"
         )
       },
-      title: 'Eliminate LifeForge from the Universe?'
+      title: 'Eliminate Monolith from the Universe?'
     },
     onClose: () => {}
   },
@@ -44,7 +44,7 @@ export const Default: Story = {
         icon="tabler:trash"
         onClick={() => open(ConfirmationModal, args.data)}
       >
-        Delete LifeForge
+        Delete Monolith
       </Button>
     )
   }
@@ -58,16 +58,16 @@ export const WithConfirmationPrompt: Story = {
         dangerous: true,
         icon: 'tabler:hammer-off'
       },
-      confirmationPrompt: 'Eliminate LifeForge',
+      confirmationPrompt: 'Eliminate Monolith',
       description:
-        "Are you sure you want to revert to the time where LifeForge didn't exist? This will trigger a serious chaos in the universe and the consequences will be dire.",
+        "Are you sure you want to revert to the time where Monolith didn't exist? This will trigger a serious chaos in the universe and the consequences will be dire.",
       onConfirm: async () => {
         await new Promise(resolve => setTimeout(resolve, 2000))
         alert(
           "Omg I can't believe you have the audacity to click this button lol"
         )
       },
-      title: 'Eliminate LifeForge from the Universe?'
+      title: 'Eliminate Monolith from the Universe?'
     },
     onClose: () => {}
   },
@@ -80,7 +80,7 @@ export const WithConfirmationPrompt: Story = {
         icon="tabler:trash"
         onClick={() => open(ConfirmationModal, args.data)}
       >
-        Delete LifeForge
+        Delete Monolith
       </Button>
     )
   }
@@ -154,7 +154,7 @@ export const WithCustomConfirmationButtons: Story = {
         icon="tabler:trash"
         onClick={() => open(ConfirmationModal, args.data)}
       >
-        Delete LifeForge
+        Delete Monolith
       </Button>
     )
   }

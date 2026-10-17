@@ -1,10 +1,10 @@
 import z from 'zod'
 
 import { getClearCookieOptions } from '../constants/cookie'
-import forge from '../forge'
+import endpoints from '../endpoints'
 import { findToken, revokeFamily } from '../utils/refreshTokenStore'
 
-export const logout = forge
+export const logout = endpoints
   .mutation({
     description: 'Invalidate refresh token and clear session',
     noAuth: true,

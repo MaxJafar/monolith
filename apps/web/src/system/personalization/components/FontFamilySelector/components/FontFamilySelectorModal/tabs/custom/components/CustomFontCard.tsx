@@ -16,9 +16,9 @@ import {
   toast,
   useModalStore,
   usePersonalization
-} from '@lifeforge/ui'
+} from '@monolith/ui'
 
-import forgeAPI from '@/core/utils/forgeAPI'
+import workspaceAPI from '@/core/utils/workspaceAPI'
 
 import type { CustomFont } from '..'
 import { useFontFamilySelector } from '../../../contexts/FontFamilySelectorContext'
@@ -34,14 +34,14 @@ function CustomFontCard({ font }: { font: CustomFont }) {
   const isSelected = selectedFont?.replace(/^custom:/, '') === font.id
 
   const deleteMutation = useMutation(
-    forgeAPI.fonts.custom.remove
+    workspaceAPI.fonts.custom.remove
       .input({
         id: font.id
       })
       .mutationOptions({
         onSuccess: () => {
           queryClient.invalidateQueries({
-            queryKey: forgeAPI.fonts.custom.list.key
+            queryKey: workspaceAPI.fonts.custom.list.key
           })
           toast.success('Custom font deleted successfully!')
         },

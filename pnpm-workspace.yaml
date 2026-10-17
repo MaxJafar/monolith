@@ -1,13 +1,19 @@
 packages:
   - './apps/api'
   - './apps/web'
-  - './docs'
+  - './apps/desktop'
+  - './apps/site'
   - './packages/*'
   - './modules/*'
   - './locales/*'
   - './tools'
 
 verifyDepsBeforeRun: false
+
+# Yjs uses constructor identity for CRDT values; all editor packages must share
+# one installed runtime and matching declaration types.
+overrides:
+  yjs: 13.6.33
 
 allowBuilds:
   argon2: true

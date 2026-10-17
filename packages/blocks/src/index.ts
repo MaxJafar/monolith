@@ -1,9 +1,18 @@
+import {
+  CANONICAL_PREFIX,
+  canonicalMarkdown,
+  canonicalReferences,
+  canonicalText
+} from './canonical'
+
+export * from './canonical'
+export * from './appearance'
 export const BLOCK_PREFIX = 'zillion:blocks:v1\n'
 export * from './canvas'
 
 export const MAX_CONTENT_LENGTH = 1_000_000
 
-export type PageKind = 'document' | 'record' | 'note'
+export type PageKind = 'document' | 'record' | 'note' | 'redraw'
 
 export type PageTarget = {
   id: string
@@ -31,31 +40,59 @@ export type PageReference = {
   block?: string
 }
 
-export type GraphNode = PageTarget & {
+export type GraphNode<Kind extends string = PageKind> = Omit<
+  PageTarget,
+  'kind'
+> & {
+  kind: Kind
   key: string
+  tags?: string[]
   parent?: string | null
   excerpt?: string
+  entityType?: string
+  href?: string
+  color?: string
 }
 
-export type GraphEdge = {
+export type PageEdgeKind = 'mention' | 'relation' | 'related' | 'parent'
+export type GraphEdgeKind =
+  PageEdgeKind | 'tag' | 'topic' | 'context' | 'collection' | 'embed'
+
+export type KnowledgeDatabase = {
+  id: string
+  title: string
+  href: string
+  recordIds: string[]
+  embeddedIn: string[]
+}
+
+export type GraphEdge<Kind extends string = PageEdgeKind> = {
   id: string
   source: string
   target: string
-  kind: 'mention' | 'relation' | 'related' | 'parent'
+  kind: Kind
   label: string
+  color?: string
+  strength?: number
+  evidence?: string[]
+  method?: 'tag' | 'topic' | 'lexical' | 'embedding'
 }
 
-export type KnowledgeSnapshot = {
-  nodes: GraphNode[]
-  edges: GraphEdge[]
+export type KnowledgeSnapshot<
+  Kind extends string = PageKind,
+  EdgeKind extends string = PageEdgeKind
+> = {
+  nodes: GraphNode<Kind>[]
+  edges: GraphEdge<EdgeKind>[]
   unresolved: number
+  databases?: KnowledgeDatabase[]
 }
 
 export const pageKey = (page: Pick<PageTarget, 'kind' | 'id'>) =>
   `${page.kind}:${page.id}`
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-const kinds: PageKind[] = ['document', 'record', 'note']
+const kinds: PageKind[] = ['document', 'record', 'note', 'redraw']
 const blocks = new Set([
   'paragraph',
   'heading',
@@ -64,7 +101,10 @@ const blocks = new Set([
   'taskList',
   'blockquote',
   'codeBlock',
-  'horizontalRule'
+  'horizontalRule',
+  'linkedDatabase',
+  'callout',
+  'pageEmbed'
 ])
 const inline = new Set(['text', 'hardBreak', 'pageLink'])
 const markTypes = new Set([
@@ -111,7 +151,7 @@ export function validateDocument(
     const permitted =
       parent === null
         ? type === 'doc'
-        : parent === 'doc' || parent === 'blockquote'
+        : parent === 'doc' || parent === 'blockquote' || parent === 'callout'
           ? blocks.has(type)
           : parent === 'bulletList' || parent === 'orderedList'
             ? type === 'listItem'
@@ -136,7 +176,10 @@ export function validateDocument(
     if (type === 'orderedList') allowed.push('start', 'type')
     if (type === 'taskItem') allowed.push('checked')
     if (type === 'codeBlock') allowed.push('language')
-    if (type === 'pageLink') allowed.push('kind', 'targetId', 'label')
+    if (type === 'pageLink' || type === 'pageEmbed')
+      allowed.push('kind', 'targetId', 'label')
+    if (type === 'linkedDatabase')
+      allowed.push('workspaceId', 'baseId', 'viewId', 'title', 'height')
     if (attrs && Object.keys(attrs).some(key => !allowed.includes(key)))
       throw new Error('Unknown block attribute')
 
@@ -172,7 +215,7 @@ export function validateDocument(
     )
       throw new Error('Invalid code language')
     if (
-      type === 'pageLink' &&
+      (type === 'pageLink' || type === 'pageEmbed') &&
       (!kinds.includes(attrs?.kind as PageKind) ||
         typeof attrs?.targetId !== 'string' ||
         !uuid.test(attrs.targetId) ||
@@ -180,6 +223,20 @@ export function validateDocument(
         attrs.label.length > 255)
     )
       throw new Error('Invalid page link')
+    if (
+      type === 'linkedDatabase' &&
+      (!['workspaceId', 'baseId', 'viewId'].every(
+        key =>
+          typeof attrs?.[key] === 'string' && uuid.test(attrs[key] as string)
+      ) ||
+        typeof attrs?.title !== 'string' ||
+        attrs.title.length > 255 ||
+        typeof attrs.height !== 'number' ||
+        !Number.isFinite(attrs.height) ||
+        (attrs.height !== 0 && attrs.height < 240) ||
+        attrs.height > 1200)
+    )
+      throw new Error('Invalid inline database')
     if (
       type === 'text'
         ? typeof text !== 'string' || !text.length
@@ -220,7 +277,10 @@ export function validateDocument(
     if (content !== undefined && !Array.isArray(content))
       throw new Error('Invalid block children')
 
-    if (inline.has(type) || type === 'horizontalRule') {
+    if (
+      inline.has(type) ||
+      ['horizontalRule', 'linkedDatabase', 'pageEmbed'].includes(type)
+    ) {
       if (content !== undefined)
         throw new Error('Leaf blocks cannot have children')
     } else {
@@ -232,7 +292,8 @@ export function validateDocument(
           'taskList',
           'listItem',
           'taskItem',
-          'blockquote'
+          'blockquote',
+          'callout'
         ].includes(type) &&
         (!Array.isArray(content) || !content.length)
       )
@@ -280,12 +341,15 @@ export function parseContent(value: string): BlockDocument {
 }
 
 export function contentText(value: string): string {
+  if (value.startsWith(CANONICAL_PREFIX)) return canonicalText(value)
   if (!value.startsWith(BLOCK_PREFIX)) return value
 
   const doc = parseContent(value)
 
   function text(node: BlockNode): string {
-    if (node.type === 'pageLink') return String(node.attrs?.label ?? '')
+    if (node.type === 'pageLink' || node.type === 'pageEmbed')
+      return String(node.attrs?.label ?? '')
+    if (node.type === 'linkedDatabase') return String(node.attrs?.title ?? '')
     if (node.type === 'hardBreak') return '\n'
 
     return (
@@ -300,6 +364,7 @@ export function contentText(value: string): string {
 }
 
 export function extractReferences(value: string): PageReference[] {
+  if (value.startsWith(CANONICAL_PREFIX)) return canonicalReferences(value)
   const references: PageReference[] = []
 
   function wikis(text: string) {
@@ -317,7 +382,7 @@ export function extractReferences(value: string): PageReference[] {
   } else {
     function visit(node: BlockNode) {
       if (node.type === 'codeBlock') return
-      if (node.type === 'pageLink')
+      if (node.type === 'pageLink' || node.type === 'pageEmbed')
         references.push({
           kind: node.attrs!.kind as PageKind,
           id: String(node.attrs!.targetId),
@@ -411,10 +476,14 @@ export function stabilizeReferences(
 }
 
 export function markdownContent(value: string): string {
+  if (value.startsWith(CANONICAL_PREFIX)) return canonicalMarkdown(value)
   if (!value.startsWith(BLOCK_PREFIX)) return value
 
   function render(node: BlockNode): string {
-    if (node.type === 'pageLink') return `[[${String(node.attrs?.label)}]]`
+    if (node.type === 'pageLink' || node.type === 'pageEmbed')
+      return `[[${String(node.attrs?.label)}]]`
+    if (node.type === 'linkedDatabase')
+      return `[[${String(node.attrs?.title)}]]`
     if (node.type === 'hardBreak') return '  \n'
     if (node.type === 'horizontalRule') return '---'
     if (node.type === 'text')
@@ -442,7 +511,7 @@ export function markdownContent(value: string): string {
         children.join('') +
         '\n```'
       )
-    if (node.type === 'blockquote')
+    if (node.type === 'blockquote' || node.type === 'callout')
       return children
         .join('\n\n')
         .split('\n')

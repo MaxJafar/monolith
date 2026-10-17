@@ -1,0 +1,30 @@
+---
+import Site from '../layouts/Site.astro'
+import Icon from '../components/Icon.astro'
+---
+
+<Site
+  title="Page not found"
+  description="This page is not part of the Monolith website. Find your way back to the product or documentation."
+  noindex
+>
+  <section class="page-hero centered container">
+    <span class="eyebrow">404 / A little off the map</span>
+    <h1>Let’s find your way back.</h1>
+    <p class="lead">
+      This page may have moved, or the link may be incomplete. The workspace is
+      still right this way.
+    </p>
+    <div class="button-row">
+      <a class="button primary" href="/">
+        Back to Monolith <Icon name="arrow" size={17} />
+      </a>
+      <a class="button secondary" href="/docs">
+        Browse the docs
+      </a>
+      <button class="button secondary" type="button" data-open-search>
+        Search documentation
+      </button>
+    </div>
+  </section>
+</Site>

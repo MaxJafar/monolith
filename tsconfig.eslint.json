@@ -9,7 +9,6 @@
     "packages/**/*",
     "apps/web/**/*",
     "apps/api/**/*",
-    "docs/**/*",
     "scripts/**/*",
     "tools/**/*",
     ".pnpmfile.cjs",

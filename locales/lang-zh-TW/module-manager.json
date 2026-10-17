@@ -1,11 +1,11 @@
 {
-  "title": "模組管理器",
-  "description": "基於UI的monolith實例模組管理器",
+  "title": "擴充與小工具",
+  "description": "管理 monolith 工作空間的選用工具",
   "category": "分類",
   "subsections": {
     "modules": {
-      "title": "模組",
-      "description": "安裝、更新和移除您monolith實例中的模組"
+      "title": "擴充與小工具",
+      "description": "安裝、更新和移除您monolith實例中的擴充套件"
     },
     "categories": {
       "title": "類別",
@@ -16,14 +16,16 @@
     "uninstall": "解除安裝",
     "addTranslation": "新增翻譯",
     "addCategory": "添加分類",
-    "add category": "添加分類"
+    "add category": "添加分類",
+    "createMissing": "建立缺少的分類"
   },
   "items": {
     "category": "類別"
   },
   "inputs": {
     "categoryKey": "類別鍵",
-    "translationKey": "翻譯鍵"
+    "translationKey": "翻譯鍵",
+    "translationLabel": "翻譯標籤"
   },
   "empty": {
     "category": {
@@ -31,8 +33,8 @@
       "description": "建立類別以開始"
     },
     "modules": {
-      "title": "未安裝模組",
-      "description": "從註冊表安裝模組以擴展您的monolith"
+      "title": "未安裝擴充套件",
+      "description": "建立擴充套件或安裝共享原始碼，為 monolith 增添功能。"
     }
   },
   "modals": {
@@ -42,16 +44,16 @@
     },
     "uninstall": {
       "title": "解除安裝 {{module}}？",
-      "description": "此模組將從您的系統中移除，但您的資料將被保留。您可以隨時從註冊表重新安裝。"
+      "description": "此擴充套件將從系統中移除，其資料將被保留。您可以透過原始碼重新安裝。"
     },
     "devMode": {
       "enable": {
         "title": "啟用開發模式",
-        "description": "啟用開發模式將直接從原始碼載入此模組，而非預先建置的套件。對模組程式碼的變更將即時熱重載，無需重新建置。\n\n在積極開發或自訂此模組時使用此功能。"
+        "description": "啟用開發模式將直接從原始碼載入此擴充套件，而非預先建置的套件。對擴充套件程式碼的變更將即時熱重載，無需重新建置。\n\n在積極開發或自訂此擴充套件時使用此功能。"
       },
       "disable": {
         "title": "停用開發模式",
-        "description": "停用開發模式將切換回從預先建置的套件載入。請確保已重新建置模組以包含最新變更。"
+        "description": "停用開發模式將切換回從預先建置的套件載入。請確保已重新建置擴充套件以包含最新變更。"
       }
     },
     "translationKey": {
@@ -74,5 +76,139 @@
   },
   "messages": {
     "categoriesMissingTranslations": "{{count}} 個分類缺少翻譯:"
+  },
+  "catalog": {
+    "description": "自訂這個工作空間，選擇您需要的工具。",
+    "workspace": "目前工作空間",
+    "selectWorkspace": "選擇工作空間",
+    "workspaceCount": "已啟用 {{enabled}} 個 · 共 {{total}} 個工具",
+    "ownerOnly": "只有工作空間擁有者可以啟用或停用擴充套件。",
+    "status": "擴充套件狀態",
+    "all": "全部套件",
+    "enabled": "已啟用",
+    "available": "可啟用",
+    "search": "搜尋外掛與小工具…",
+    "kind": "套件類型",
+    "allCategories": "全部分類",
+    "allKinds": "全部類型",
+    "clear": "清除篩選",
+    "results": "{{count}} 個套件",
+    "noMatches": "沒有符合篩選條件的擴充套件",
+    "noMatchesHelp": "試試其他搜尋詞、分類或類型。",
+    "toggle": "啟用 {{name}}",
+    "on": "已啟用",
+    "off": "未啟用",
+    "saving": "儲存中…",
+    "open": "開啟",
+    "openDashboard": "開啟儀表板",
+    "availableHint": "隨時可啟用",
+    "enabledNotice": "已啟用 {{name}}",
+    "disabledNotice": "已停用 {{name}}",
+    "results_one": "{{count}} 個套件",
+    "results_other": "{{count}} 個套件"
+  },
+  "shop": {
+    "collection": "擴充集",
+    "description": "按需加入工具與小工具，打造適合自己的工作空間。",
+    "summary": "已安裝 {{count}} 個 · 此處啟用 {{enabled}} 個",
+    "workspaceSettings": "工作空間設定",
+    "sections": "擴充商店分區",
+    "addons": "擴充",
+    "widgets": "小工具",
+    "sidebar": "側邊欄",
+    "addon": "擴充",
+    "widget": "小工具",
+    "addonsTitle": "擴充更多可能",
+    "addonsHelp": "擁有獨立工作介面的完整工具。在主機安裝後，按工作空間啟用。",
+    "widgetsTitle": "小工具，你的儀表板",
+    "widgetsHelp": "在儀表板專注、學習並追蹤進展。透過小型浮層預覽和設定各工具。",
+    "sidebarTitle": "隨時觸手可及",
+    "sidebarHelp": "將行事曆等精簡工具固定在頁面旁。在下方調整原生功能順序，或拖動側邊欄控點。",
+    "all": "全部",
+    "installed": "已安裝",
+    "enabled": "此處已啟用",
+    "updates": "更新",
+    "updateAvailable": "有可用更新",
+    "update": "更新",
+    "install": "下載",
+    "checkUpdates": "檢查更新",
+    "checked": "已重新整理發佈目錄。",
+    "details": "詳情",
+    "detailsFor": "關於 {{name}}",
+    "installedVersion": "已安裝版本",
+    "notInstalled": "未安裝",
+    "downloadSize": "下載大小",
+    "requiresHost": "需要 Monolith {{version}}",
+    "noNotes": "暫無發佈說明。",
+    "localPackage": "此伺服器已包含此擴充，尚未設定可下載版本。",
+    "installHelp": "啟用前驗證套件。工作空間開關保留資料，資料庫結構變更需要對應主機版本。",
+    "reload": "重新載入以使用此版本",
+    "configureWidget": "預覽與設定",
+    "livePreview": "即時工具預覽",
+    "addDashboard": "加入儀表板",
+    "addSidebar": "固定到側邊欄",
+    "saveSidebar": "儲存側邊欄工具",
+    "removeSidebar": "從側邊欄移除",
+    "includedWidgets": "Monolith 內建",
+    "builtIn": "內建 · 無需下載",
+    "connectedWidget": "工作空間資料的關聯檢視。",
+    "nativeSections": "原生側邊欄功能",
+    "dragHelp": "拖動側邊欄控點排序，或聚焦控點後按 ↑ / ↓。設定儲存在此裝置的目前工作空間。",
+    "moveArea": "調整 {{name}} 順序",
+    "moved": "已移動 {{name}}",
+    "moveUp": "上移 {{name}}",
+    "moveDown": "下移 {{name}}",
+    "showArea": "顯示 {{name}}",
+    "unpublished": "目前瀏覽此伺服器已有套件。主機連接發佈目錄後將提供下載。",
+    "hostAdmin": "主機管理員管理下載，工作空間擁有者可啟用已安裝工具。",
+    "loading": "正在載入擴充集…",
+    "yourWorkspace": "你的工作空間，你的工具",
+    "downloadProgress": "下載進度",
+    "phases": {
+      "queued": "排隊中",
+      "downloading": "下載中",
+      "verifying": "驗證套件",
+      "installing": "正在啟用",
+      "complete": "安裝完成，請重新載入",
+      "failed": "安裝失敗"
+    },
+    "native": {
+      "calendar": "工作空間的日期與行程",
+      "projects": "看板、時間軸與專案進展",
+      "actions": "任務與每日待辦",
+      "rooms": "加密對話與協作",
+      "docs": "頁面、寫作與關聯知識",
+      "dashboard": "個人關聯工具合集",
+      "databases": "結構化記錄與靈活檢視"
+    },
+    "widgetDescriptions": {
+      "calendarWidget": "頁面旁的月曆、週曆或行程。",
+      "weather": "所選城市的當地天氣預報。",
+      "habitTracker": "隨時查看並打卡每日習慣。",
+      "marketTracker": "追蹤所選股票與加密貨幣。",
+      "workspacePulse": "工作空間活動的即時概覽。",
+      "actionAgenda": "既有記錄中的近期任務。",
+      "projectFocus": "在儀表板查看專案進展。",
+      "quickLinks": "快速存取原生工作空間功能。",
+      "upcomingEvents": "快速查看即將到來的活動。"
+    }
+  },
+  "categoryEditor": {
+    "orderHelp": "拖曳把手或使用箭頭按鈕調整分類順序。",
+    "refreshFailed": "已儲存，但導覽無法重新整理。請重新載入以查看變更。",
+    "saving": "分類變更仍在儲存中。",
+    "duplicate": "請選擇唯一的分類識別碼。",
+    "saveFailed": "無法儲存分類順序，已還原先前的順序。",
+    "deleteTitle": "移除 {{name}}？",
+    "deleteDescription": "這將移除分類標籤，附加元件及其資料將保留。",
+    "edit": "編輯 {{name}}",
+    "remove": "移除 {{name}}",
+    "translate": "建議翻譯",
+    "removeEntry": "移除分類",
+    "removeTranslation": "移除翻譯",
+    "required": "此欄位為必填項。",
+    "invalidLanguage": "請輸入語言代碼，例如 en、ms 或 zh-CN。",
+    "duplicateLanguage": "每種語言只能出現一次。",
+    "translationFailed": "無法產生翻譯。"
   }
 }

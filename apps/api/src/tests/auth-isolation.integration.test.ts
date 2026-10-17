@@ -11,13 +11,13 @@ import { Readable } from 'node:stream'
 import postgres from 'postgres'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
-import { createProvider, generateThumbKey } from '@lifeforge/file-storage'
-import { createForgeContractBuilder } from '@lifeforge/server-utils'
+import { createProvider, generateThumbKey } from '@monolith/file-storage'
+import { defineEndpoints } from '@monolith/server-utils'
 
 import {
   bases,
   tables
-} from '../../../../modules/zillion--databases/server/schema.drizzle'
+} from '../../../../modules/monolith--databases/server/schema.drizzle'
 import { users } from '../lib/user/schema.drizzle'
 
 const enabled = process.env.ZILLION_INTEGRATION === '1'
@@ -38,7 +38,7 @@ function requireLocalDatabase(value: string | undefined) {
     !/^\/(zillion_dev|zillion_test(?:_[a-z0-9]+)?)$/.test(target.pathname)
   )
     throw new Error(
-      'Integration tests only use isolated local Zillion databases on port 55432'
+      'Integration tests only use isolated local Monolith databases on port 55432'
     )
 
   return value
@@ -196,10 +196,10 @@ async function waitForBlockedUserQueries(count: number) {
   )
 }
 
-describe.skipIf(!enabled)('Authenticated Zillion OS isolation', () => {
+describe.skipIf(!enabled)('Authenticated Monolith isolation', () => {
   beforeAll(async () => {
     const { registerController } =
-      await import('../core/functions/routes/functions/controllerLogic')
+      await import('../core/functions/routes/executeEndpoint')
     const qrRoutes = await import('../lib/auth/routes/qrLogin')
     const { refresh } = await import('../lib/auth/routes/refresh')
     const { login: loginRoute } = await import('../lib/auth/routes/login')
@@ -234,7 +234,7 @@ describe.skipIf(!enabled)('Authenticated Zillion OS isolation', () => {
       next()
     })
     const router = express.Router()
-    const forge = createForgeContractBuilder()
+    const endpoints = defineEndpoints()
 
     for (const [name, route] of Object.entries(qrRoutes))
       registerController(route, router, `qr/${name}`)
@@ -245,7 +245,7 @@ describe.skipIf(!enabled)('Authenticated Zillion OS isolation', () => {
       ['rollback', rollbackId, true],
       ['commit', committedId, false]
     ] as const) {
-      const route = forge
+      const route = endpoints
         .mutation({
           description:
             'Exercise the production authenticated transaction boundary',

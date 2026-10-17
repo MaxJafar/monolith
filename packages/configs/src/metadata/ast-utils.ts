@@ -1,131 +1,94 @@
 import * as ts from '@typescript/typescript6'
 
-/**
- * Reads the properties of an object from parsed code and returns them as a key-value map.
- * Only normal property assignments are included — shorthand or spread are skipped.
- *
- * @param node - The parsed object to read from.
- * @returns An object with property names as keys and their code values as entries.
- */
-export function parseObjectLiteral(
-  node: ts.ObjectLiteralExpression
-): Record<string, ts.Expression> {
-  const sf = node.getSourceFile()
-  const obj: Record<string, ts.Expression> = {}
-
-  for (const property of node.properties) {
-    if (ts.isPropertyAssignment(property)) {
-      const name = property.name.getText(sf).replace(/['"]/g, '')
-      obj[name] = property.initializer
-    }
-  }
-
-  return obj
+/** Metadata is read as syntax. Nothing from an addon is evaluated during discovery. */
+export function unwrapExpression(expression: ts.Expression): ts.Expression {
+  let value = expression
+  while (
+    ts.isParenthesizedExpression(value) ||
+    ts.isAsExpression(value) ||
+    ts.isSatisfiesExpression(value) ||
+    ts.isTypeAssertionExpression(value)
+  )
+    value = value.expression
+  return value
 }
 
-/**
- * Searches through code to find the first piece that matches a condition.
- *
- * @param node - The code to search through.
- * @param predicate - A function that checks if a piece of code is what you're looking for.
- * @returns The matching piece of code, or `null` if not found.
- */
 export function findNode(
-  node: ts.Node,
+  root: ts.Node,
   predicate: (node: ts.Node) => boolean
 ): ts.Node | null {
-  if (predicate(node)) return node
-
-  let result: ts.Node | null = null
-
-  ts.forEachChild(node, child => {
-    if (!result) {
-      result = findNode(child, predicate)
-    }
-  })
-
-  return result
-}
-
-/**
- * Looks through the code to find a variable with the given name
- * and returns its properties as a key-value object.
- *
- * @param node - The code to search through.
- * @param variableName - The name of the variable to find.
- * @returns An object of the variable's properties, or `null` if not found.
- */
-export function findVariableDeclaration(
-  node: ts.Node,
-  variableName: string
-): Record<string, ts.Expression> | null {
-  const declaration = findNode(
-    node,
-    n =>
-      ts.isVariableDeclaration(n) &&
-      n.name.getText(n.getSourceFile()) === variableName
-  )
-
-  if (!declaration) return null
-
-  const initializer = (declaration as ts.VariableDeclaration).initializer
-
-  if (initializer && ts.isObjectLiteralExpression(initializer)) {
-    return parseObjectLiteral(initializer)
+  const pending: ts.Node[] = [root]
+  while (pending.length) {
+    const node = pending.pop()!
+    if (predicate(node)) return node
+    const children: ts.Node[] = []
+    ts.forEachChild(node, child => {
+      children.push(child)
+    })
+    for (let index = children.length - 1; index >= 0; index--)
+      pending.push(children[index]!)
   }
-
   return null
 }
 
-const expressionRules: {
-  test: (expr: ts.Expression) => boolean
-  parse: (expr: ts.Expression) => string | number | boolean
-}[] = [
-  {
-    test: e => ts.isStringLiteral(e) || ts.isNoSubstitutionTemplateLiteral(e),
-    parse: e => (e as ts.StringLiteral | ts.NoSubstitutionTemplateLiteral).text
-  },
-  {
-    test: e => ts.isNumericLiteral(e),
-    parse: e => Number((e as ts.NumericLiteral).text)
-  },
-  {
-    test: e => ts.isPrefixUnaryExpression(e) && ts.isNumericLiteral(e.operand),
-    parse: e => {
-      const expr = e as ts.PrefixUnaryExpression
-      const val = Number((expr.operand as ts.NumericLiteral).text)
-
-      return expr.operator === ts.SyntaxKind.MinusToken ? -val : val
-    }
-  },
-  {
-    test: e => e.kind === ts.SyntaxKind.TrueKeyword,
-    parse: () => true
-  },
-  {
-    test: e => e.kind === ts.SyntaxKind.FalseKeyword,
-    parse: () => false
+export function parseObjectLiteral(
+  node: ts.ObjectLiteralExpression
+): Record<string, ts.Expression> {
+  const properties: Record<string, ts.Expression> = Object.create(null)
+  for (const property of node.properties) {
+    if (!ts.isPropertyAssignment(property)) continue
+    const name = property.name
+    if (
+      ts.isIdentifier(name) ||
+      ts.isStringLiteral(name) ||
+      ts.isNumericLiteral(name)
+    )
+      properties[name.text] = unwrapExpression(property.initializer)
   }
-]
+  return properties
+}
 
-/**
- * Takes a set of parsed code properties and returns an object of their actual values.
- *
- * @param config - An object where each value is a piece of parsed code.
- * @returns An object with the same keys mapped to their plain string, number, or boolean values.
- */
+export function findVariableDeclaration(
+  root: ts.Node,
+  name: string
+): Record<string, ts.Expression> | null {
+  const match = findNode(
+    root,
+    node =>
+      ts.isVariableDeclaration(node) &&
+      ts.isIdentifier(node.name) &&
+      node.name.text === name
+  ) as ts.VariableDeclaration | null
+  const initializer = match?.initializer && unwrapExpression(match.initializer)
+  return initializer && ts.isObjectLiteralExpression(initializer)
+    ? parseObjectLiteral(initializer)
+    : null
+}
+
+function literal(
+  expression: ts.Expression
+): string | number | boolean | undefined {
+  const value = unwrapExpression(expression)
+  if (ts.isStringLiteralLike(value)) return value.text
+  if (ts.isNumericLiteral(value)) return Number(value.text)
+  if (value.kind === ts.SyntaxKind.TrueKeyword) return true
+  if (value.kind === ts.SyntaxKind.FalseKeyword) return false
+  if (ts.isPrefixUnaryExpression(value) && ts.isNumericLiteral(value.operand)) {
+    if (value.operator === ts.SyntaxKind.MinusToken)
+      return -Number(value.operand.text)
+    if (value.operator === ts.SyntaxKind.PlusToken)
+      return Number(value.operand.text)
+  }
+  return undefined
+}
+
 export default function resolveExpressionMap(
-  config: Record<string, ts.Expression>
+  expressions: Record<string, ts.Expression>
 ) {
-  const parsed: Record<string, string | number | boolean> = {}
-
-  for (const [name, initializer] of Object.entries(config)) {
-    const rule = expressionRules.find(r => r.test(initializer))
-
-    if (rule) {
-      parsed[name] = rule.parse(initializer)
-    }
+  const values: Record<string, string | number | boolean> = Object.create(null)
+  for (const name of Object.keys(expressions)) {
+    const value = literal(expressions[name]!)
+    if (value !== undefined) values[name] = value
   }
-
-  return parsed
+  return values
 }

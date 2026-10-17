@@ -1,11 +1,12 @@
+import { ErrorScreen, Flex, Text, registerWorkspaceIcons } from '@monolith/ui'
 import { useEffect } from 'react'
 import ReactDOM, { type Root } from 'react-dom/client'
 import { ErrorBoundary } from 'react-error-boundary'
 
-import { ErrorScreen, Flex, Text } from '@lifeforge/ui'
-
 import Providers from './core/providers'
 import './index.css'
+
+registerWorkspaceIcons()
 
 ;(
   window as unknown as { process: { env: Record<string, string | undefined> } }

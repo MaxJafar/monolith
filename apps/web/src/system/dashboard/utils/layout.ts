@@ -1,4 +1,4 @@
-import type { IDashboardLayout } from '@lifeforge/ui'
+import type { IDashboardLayout } from '@monolith/ui'
 
 type WidgetConstraints = {
   minW?: number

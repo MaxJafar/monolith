@@ -1,5 +1,0 @@
-{
-  "extends": "@lifeforge/configs/tsconfig/module-server.json",
-  "compilerOptions": { "paths": { "@/*": ["./*"] }, "resolveJsonModule": true },
-  "include": ["./**/*", "../shared.ts"]
-}

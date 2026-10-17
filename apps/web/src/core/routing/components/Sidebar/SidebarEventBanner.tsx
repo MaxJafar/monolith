@@ -2,7 +2,7 @@ import dayjs from 'dayjs'
 import { useMemo } from 'react'
 import tinycolor from 'tinycolor2'
 
-import { useAuth } from '@lifeforge/api'
+import { useAuth } from '@monolith/api'
 import {
   COLORS,
   Flex,
@@ -10,7 +10,7 @@ import {
   Text,
   useMainSidebarState,
   usePersonalization
-} from '@lifeforge/ui'
+} from '@monolith/ui'
 
 function addNumberSuffix(number: number): string {
   const suffixes = ['th', 'st', 'nd', 'rd']

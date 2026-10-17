@@ -6,7 +6,7 @@
  *
  * Stored on `globalThis` so all instances of this package share it.
  */
-const LOADING_MODULE_KEY = Symbol.for('lifeforge.module-runtime.loading-module')
+const LOADING_MODULE_KEY = Symbol.for('monolith.module-runtime.loading-module')
 
 export function setLoadingModuleId(id: string | undefined): void {
   const globalObject = globalThis as unknown as Record<

@@ -54,3 +54,15 @@ export const Connected: Story = {
   args: { graph, onSelect: () => {} },
   render: () => <Example />
 }
+
+export const AtlasMindMap: Story = {
+  args: {
+    graph,
+    onSelect: () => {},
+    presentation: 'atlas',
+    layout: 'radial',
+    root: 'document:1',
+    selected: 'document:1',
+    paused: true
+  }
+}

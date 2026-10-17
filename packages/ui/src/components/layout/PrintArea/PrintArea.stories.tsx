@@ -64,7 +64,7 @@ export const Default: Story = {
               />
               <Flex direction="column" gap="xs">
                 <Text size="sm">Date: June 2, 2026</Text>
-                <Text size="sm">Billing to: Melvin Chia</Text>
+                <Text size="sm">Billing to: Monolith contributors</Text>
               </Flex>
               <Box
                 style={{

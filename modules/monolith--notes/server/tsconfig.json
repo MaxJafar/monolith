@@ -1,0 +1,9 @@
+{
+  "extends": "@monolith/configs/tsconfig/module-server.json",
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": ["./**/*"]
+}

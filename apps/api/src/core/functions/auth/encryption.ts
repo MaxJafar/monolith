@@ -1,52 +1,61 @@
-import crypto from 'crypto'
 import CryptoJS from 'crypto-js'
-
 import {
-  Decrypt2Func,
-  DecryptFunc,
-  Encrypt2Func,
-  EncryptFunc
-} from '@lifeforge/server-utils'
+  createCipheriv,
+  createDecipheriv,
+  createHash,
+  randomBytes,
+  scryptSync
+} from 'node:crypto'
 
-const ALGORITHM = 'aes-256-ctr'
+const marker = Buffer.from('monolith:sealed:1\0')
+const textPrefix = 'monolith:sealed:1:'
 
-const encrypt: EncryptFunc = (buffer: Buffer, key: string) => {
-  const iv = crypto.randomBytes(16)
-
-  key = crypto
-    .createHash('sha256')
-    .update(String(key))
-    .digest('base64')
-    .slice(0, 32)
-
-  const cipher = crypto.createCipheriv(ALGORITHM, key, iv)
-
-  const result = Buffer.concat([iv, cipher.update(buffer), cipher.final()])
-
-  return result
+/** New persisted secrets use a versioned authenticated envelope. */
+export function encrypt(data: Buffer, secret: string): Buffer {
+  const salt = randomBytes(16)
+  const nonce = randomBytes(12)
+  const key = scryptSync(secret, salt, 32)
+  const cipher = createCipheriv('aes-256-gcm', key, nonce)
+  cipher.setAAD(marker)
+  const ciphertext = Buffer.concat([cipher.update(data), cipher.final()])
+  return Buffer.concat([marker, salt, nonce, cipher.getAuthTag(), ciphertext])
 }
 
-const decrypt: DecryptFunc = (encrypted: Buffer, key: string) => {
-  const iv = encrypted.slice(0, 16)
-
-  encrypted = encrypted.slice(16)
-  key = crypto
-    .createHash('sha256')
-    .update(String(key))
-    .digest('base64')
-    .substr(0, 32)
-
-  const decipher = crypto.createDecipheriv(ALGORITHM, key, iv)
-
-  const result = Buffer.concat([decipher.update(encrypted), decipher.final()])
-
-  return result
+export function decrypt(data: Buffer, secret: string): Buffer {
+  if (data.subarray(0, marker.length).equals(marker)) {
+    const offset = marker.length
+    if (data.length < offset + 44)
+      throw new Error('Incomplete encrypted secret')
+    const key = scryptSync(secret, data.subarray(offset, offset + 16), 32)
+    const cipher = createDecipheriv(
+      'aes-256-gcm',
+      key,
+      data.subarray(offset + 16, offset + 28)
+    )
+    cipher.setAAD(marker)
+    cipher.setAuthTag(data.subarray(offset + 28, offset + 44))
+    return Buffer.concat([
+      cipher.update(data.subarray(offset + 44)),
+      cipher.final()
+    ])
+  }
+  // Read installed data using its original on-disk format; all new writes use the envelope above.
+  if (data.length < 16) throw new Error('Incomplete encrypted secret')
+  const key = createHash('sha256').update(secret).digest('base64').slice(0, 32)
+  const reader = createDecipheriv('aes-256-ctr', key, data.subarray(0, 16))
+  return Buffer.concat([reader.update(data.subarray(16)), reader.final()])
 }
 
-const encrypt2: Encrypt2Func = (message: string, key: string) =>
-  CryptoJS.AES.encrypt(message, key).toString()
-
-const decrypt2: Decrypt2Func = (encrypted: string, key: string) =>
-  CryptoJS.AES.decrypt(encrypted, key).toString(CryptoJS.enc.Utf8)
-
-export { decrypt, decrypt2, encrypt, encrypt2 }
+export function encrypt2(value: string, secret: string): string {
+  return (
+    textPrefix + encrypt(Buffer.from(value, 'utf8'), secret).toString('base64')
+  )
+}
+export function decrypt2(value: string, secret: string): string {
+  return value.startsWith(textPrefix)
+    ? decrypt(
+        Buffer.from(value.slice(textPrefix.length), 'base64'),
+        secret
+      ).toString('utf8')
+    : CryptoJS.AES.decrypt(value, secret).toString(CryptoJS.enc.Utf8)
+}

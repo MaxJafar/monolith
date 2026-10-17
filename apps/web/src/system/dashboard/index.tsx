@@ -6,7 +6,7 @@ import {
   Flex,
   ModuleHeader,
   useModalStore
-} from '@lifeforge/ui'
+} from '@monolith/ui'
 
 import DashboardGrid from './components/DashboardGrid'
 import SaveButtonPopup from './components/SaveButtonPopup'

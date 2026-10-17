@@ -4,6 +4,7 @@
 @import '../../node_modules/react-virtualized/styles.css';
 
 @import './preflight.css';
+@import './fonts.css';
 @import './themes/index.css';
 @import './global.css';
 @import './monolith.css';

@@ -5,11 +5,10 @@ import { createECDH, randomBytes, randomUUID } from 'node:crypto'
 import postgres from 'postgres'
 import { afterAll, describe, expect, it } from 'vitest'
 
-import type { ForgeContract } from '@lifeforge/server-utils'
+import type { EndpointContract } from '@monolith/server-utils'
 
-import { entries as projects } from '../../../../modules/lifeforge--projects/server/schema.drizzle'
-import * as agents from '../../../../modules/zillion--agents/server/routes'
-import * as runtime from '../../../../modules/zillion--agents/server/runtime'
+import * as agents from '../../../../modules/monolith--agents/server/routes'
+import * as runtime from '../../../../modules/monolith--agents/server/runtime'
 import {
   activity,
   tables as agentTables,
@@ -18,33 +17,33 @@ import {
   principals,
   runs,
   usageRecords
-} from '../../../../modules/zillion--agents/server/schema.drizzle'
+} from '../../../../modules/monolith--agents/server/schema.drizzle'
 import type {
   AgentSnapshot,
   Run
-} from '../../../../modules/zillion--agents/shared'
+} from '../../../../modules/monolith--agents/shared'
 import {
   type CoachProposal,
   type CoachSnapshot,
   coachConfigInputSchema
-} from '../../../../modules/zillion--gym/coachShared'
-import { pushSubscriptionInputSchema } from '../../../../modules/zillion--gym/pushShared'
-import { readyCoachNotifications } from '../../../../modules/zillion--gym/server/coachNotifications'
-import * as coaching from '../../../../modules/zillion--gym/server/coachRoutes'
+} from '../../../../modules/monolith--gym/coachShared'
+import { pushSubscriptionInputSchema } from '../../../../modules/monolith--gym/pushShared'
+import { readyCoachNotifications } from '../../../../modules/monolith--gym/server/coachNotifications'
+import * as coaching from '../../../../modules/monolith--gym/server/coachRoutes'
 import {
   coachConfigs,
   coachJobs,
   coachSnapshots
-} from '../../../../modules/zillion--gym/server/coachSchema'
+} from '../../../../modules/monolith--gym/server/coachSchema'
 import {
   pushDeliveries,
   pushSubscriptions
-} from '../../../../modules/zillion--gym/server/pushSchema'
+} from '../../../../modules/monolith--gym/server/pushSchema'
 import {
   enqueueNotifications,
   saveSubscription
-} from '../../../../modules/zillion--gym/server/pushStore'
-import * as gym from '../../../../modules/zillion--gym/server/routes'
+} from '../../../../modules/monolith--gym/server/pushStore'
+import * as gym from '../../../../modules/monolith--gym/server/routes'
 import {
   bodyweight,
   commands,
@@ -54,12 +53,13 @@ import {
   schedule,
   settings,
   workouts
-} from '../../../../modules/zillion--gym/server/schema.drizzle'
+} from '../../../../modules/monolith--gym/server/schema.drizzle'
 import type {
   GymSnapshot,
   Routine,
   Workout
-} from '../../../../modules/zillion--gym/shared'
+} from '../../../../modules/monolith--gym/shared'
+import { entries as projects } from '../../../../modules/monolith--projects/server/schema.drizzle'
 
 const enabled = process.env.ZILLION_INTEGRATION === '1'
 const connection = process.env.DATABASE_URL ?? ''
@@ -75,7 +75,7 @@ if (enabled) {
     !/^\/(zillion_dev|zillion_test(?:_[a-z0-9]+)?)$/.test(target.pathname)
   )
     throw new Error(
-      'Gym Coach tests require an isolated local Zillion database on port 55432'
+      'Gym Coach tests require an isolated local Monolith database on port 55432'
     )
 }
 
@@ -89,7 +89,9 @@ const db = drizzle({
 })
 const owners: string[] = []
 
-type Context = Parameters<ReturnType<ForgeContract['getValue']>['callback']>[0]
+type Context = Parameters<
+  ReturnType<EndpointContract['getValue']>['callback']
+>[0]
 type Identity = { principalId: string; credentialId: string }
 
 async function owned<T>(
@@ -105,7 +107,7 @@ async function owned<T>(
 
 async function invoke<T>(
   user: string,
-  route: ForgeContract,
+  route: EndpointContract,
   body?: unknown,
   query: Record<string, string> = {},
   identity?: Identity
@@ -545,7 +547,7 @@ describe.skipIf(!enabled)(
         '{"summary":"Bad","changes":[],"execute":"rm"}'
       )
       expect(finished.job).toMatchObject({ status: 'review', proposal: null })
-      expect(finished.job.error).toContain('valid Zillion Gym JSON')
+      expect(finished.job.error).toContain('valid Monolith Gym JSON')
       await expect(
         invoke(
           f.owner,
@@ -553,7 +555,7 @@ describe.skipIf(!enabled)(
           { selected_ids: [randomUUID()] },
           { id: finished.job.id }
         )
-      ).rejects.toThrow('valid Zillion Gym JSON')
+      ).rejects.toThrow('valid Monolith Gym JSON')
       expect((await state(f.owner)).routines).toEqual([])
     })
 

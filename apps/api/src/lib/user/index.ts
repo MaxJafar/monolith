@@ -1,16 +1,16 @@
 import z from 'zod'
 
-import { forgeRouter } from '@lifeforge/server-utils'
+import { defineRoutes } from '@monolith/server-utils'
 
-import forge from './forge'
+import endpoints from './endpoints'
 import * as authRoutes from './routes/auth'
 import * as meRoutes from './routes/me'
-import * as personalizationRoutes from './routes/personalization'
 import * as pageRoutes from './routes/pages'
+import * as personalizationRoutes from './routes/personalization'
 import * as settingsRoutes from './routes/settings'
 
-export default forgeRouter({
-  exists: forge
+export default defineRoutes({
+  exists: endpoints
     .query({
       description: 'Check if user exists',
       noAuth: true,

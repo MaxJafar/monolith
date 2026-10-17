@@ -1,18 +1,19 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 
-import { useAuth } from '@lifeforge/api'
-import { ModuleMetadataProvider } from '@lifeforge/federation'
+import { useAuth } from '@monolith/api'
+import { ModuleMetadataProvider } from '@monolith/federation'
 
 import { Flex } from '@/components/primitives'
 import { ModuleSidebarStateProvider } from '@/providers'
-import { forgeAPI } from '@/utils/forgeAPI'
+import { workspaceAPI } from '@/utils/workspaceAPI'
 
+import { AppearanceCover } from '../AppearanceCover'
 import { Scrollbar } from '../Scrollbar'
 import { WorkspaceCanvas, useCanvasWidgets } from '../WorkspaceCanvas'
 
 /**
- * The wrapper component for all modules in the app. It provides the layout and context for the module header and sidebar, as well as handling query cleanup on unmount if specified. If being used within LifeForge instance, it will be automatically wrapped around the module content. Therefore, no explicit usage is needed in most cases.
+ * The wrapper component for all modules in the app. It provides the layout and context for the module header and sidebar, as well as handling query cleanup on unmount if specified. If being used within Monolith instance, it will be automatically wrapped around the module content. Therefore, no explicit usage is needed in most cases.
  */
 export function ModuleWrapper({
   children,
@@ -21,6 +22,7 @@ export function ModuleWrapper({
     title,
     icon,
     translationNamespace,
+    canvas = true,
     clearQueryOnUnmount = true
   }
 }: {
@@ -31,6 +33,7 @@ export function ModuleWrapper({
     displayName?: string
     icon: string
     translationNamespace?: string
+    canvas?: boolean
     clearQueryOnUnmount: boolean
   }
 }) {
@@ -47,7 +50,7 @@ export function ModuleWrapper({
 
       queryClient.removeQueries({
         queryKey: [
-          ...forgeAPI.user.pages.get.input({ key: pathname }).queryOptions()
+          ...workspaceAPI.user.pages.get.input({ key: pathname }).queryOptions()
             .queryKey,
           userData?.id
         ]
@@ -69,13 +72,21 @@ export function ModuleWrapper({
               px={{ base: 'md', sm: '2xl' }}
               width="100%"
             >
-              <WorkspaceCanvas
-                key={storage ? JSON.stringify(storage.queryKey) : pathname}
-                native={children}
-                title={title}
-                translationNamespace={translationNamespace}
-                storage={storage}
-              />
+              {canvas ? (
+                <WorkspaceCanvas
+                  key={storage ? JSON.stringify(storage.queryKey) : pathname}
+                  native={children}
+                  title={title}
+                  translationNamespace={translationNamespace}
+                  storage={storage}
+                  widgetScope={name}
+                />
+              ) : (
+                <>
+                  <AppearanceCover />
+                  {children}
+                </>
+              )}
             </Flex>
           </Scrollbar>
         </Flex>

@@ -14,27 +14,27 @@ import {
   type StagedFile,
   type StorageProvider,
   createProvider
-} from '@lifeforge/file-storage'
-import { createFileMetadataStore } from '@lifeforge/file-storage/server'
-import type { ForgeContract } from '@lifeforge/server-utils'
+} from '@monolith/file-storage'
+import { createFileMetadataStore } from '@monolith/file-storage/server'
+import type { EndpointContract } from '@monolith/server-utils'
 
-import * as blogCategories from '../../../../modules/lifeforge--blog/server/routes/categories'
-import * as blogEntries from '../../../../modules/lifeforge--blog/server/routes/entries'
-import * as flashCards from '../../../../modules/lifeforge--flashcards/server/routes/cards'
-import * as flashDecks from '../../../../modules/lifeforge--flashcards/server/routes/decks'
-import * as flashTags from '../../../../modules/lifeforge--flashcards/server/routes/tags'
-import * as noteEntries from '../../../../modules/lifeforge--notes/server/routes/entries'
-import * as noteSubjects from '../../../../modules/lifeforge--notes/server/routes/subjects'
-import * as noteWorkspaces from '../../../../modules/lifeforge--notes/server/routes/workspaces'
-import * as projectCategories from '../../../../modules/lifeforge--projects/server/routes/categories'
-import * as projectColumns from '../../../../modules/lifeforge--projects/server/routes/columns'
-import * as projectEntries from '../../../../modules/lifeforge--projects/server/routes/entries'
-import * as projectStatuses from '../../../../modules/lifeforge--projects/server/routes/statuses'
-import * as projectTasks from '../../../../modules/lifeforge--projects/server/routes/tasks'
-import * as projectTechnologies from '../../../../modules/lifeforge--projects/server/routes/technologies'
-import * as projectVisibilities from '../../../../modules/lifeforge--projects/server/routes/visibilities'
-import * as wishEntries from '../../../../modules/lifeforge--wishlist/server/routes/entries'
-import * as wishLists from '../../../../modules/lifeforge--wishlist/server/routes/lists'
+import * as blogCategories from '../../../../modules/monolith--blog/server/routes/categories'
+import * as blogEntries from '../../../../modules/monolith--blog/server/routes/entries'
+import * as flashCards from '../../../../modules/monolith--flashcards/server/routes/cards'
+import * as flashDecks from '../../../../modules/monolith--flashcards/server/routes/decks'
+import * as flashTags from '../../../../modules/monolith--flashcards/server/routes/tags'
+import * as noteEntries from '../../../../modules/monolith--notes/server/routes/entries'
+import * as noteSubjects from '../../../../modules/monolith--notes/server/routes/subjects'
+import * as noteWorkspaces from '../../../../modules/monolith--notes/server/routes/workspaces'
+import * as projectCategories from '../../../../modules/monolith--projects/server/routes/categories'
+import * as projectColumns from '../../../../modules/monolith--projects/server/routes/columns'
+import * as projectEntries from '../../../../modules/monolith--projects/server/routes/entries'
+import * as projectStatuses from '../../../../modules/monolith--projects/server/routes/statuses'
+import * as projectTasks from '../../../../modules/monolith--projects/server/routes/tasks'
+import * as projectTechnologies from '../../../../modules/monolith--projects/server/routes/technologies'
+import * as projectVisibilities from '../../../../modules/monolith--projects/server/routes/visibilities'
+import * as wishEntries from '../../../../modules/monolith--wishlist/server/routes/entries'
+import * as wishLists from '../../../../modules/monolith--wishlist/server/routes/lists'
 
 const root = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -57,15 +57,15 @@ let provider: StorageProvider
 let storageDirectory: string
 
 type CrudRoutes = {
-  list: ForgeContract
-  create: ForgeContract
-  update: ForgeContract
-  remove: ForgeContract
+  list: EndpointContract
+  create: EndpointContract
+  update: EndpointContract
+  remove: EndpointContract
 }
 type Result = { $status: number; payload?: unknown }
 
 async function call(
-  route: ForgeContract,
+  route: EndpointContract,
   body?: unknown,
   query?: unknown,
   user = owner,
@@ -82,7 +82,7 @@ async function call(
     const storage = new FileStorage(
       provider,
       createFileMetadataStore(transaction),
-      'lifeforge--notes'
+      'monolith--notes'
     )
 
     return value.callback({
@@ -106,7 +106,7 @@ function records(result: Result): Record<string, unknown>[] {
 }
 
 async function create(
-  route: ForgeContract,
+  route: EndpointContract,
   body: unknown,
   user = owner
 ): Promise<string> {
@@ -166,7 +166,7 @@ describe.skipIf(!enabled)(
           !/^\/(zillion_dev|zillion_test(?:_[a-z0-9]+)?)$/.test(target.pathname)
         )
           throw new Error(
-            'Integration tests only use isolated local Zillion databases'
+            'Integration tests only use isolated local Monolith databases'
           )
       }
       connection = postgres(process.env.DATABASE_URL, { max: 2 })
@@ -262,7 +262,7 @@ describe.skipIf(!enabled)(
         name: 'TypeScript'
       })
       const projectBody = {
-        name: 'Zillion module',
+        name: 'Monolith module',
         description: 'Persistent board',
         icon: 'tabler:briefcase',
         color: '#f97316',

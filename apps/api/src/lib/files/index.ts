@@ -3,15 +3,15 @@ import { eq } from 'drizzle-orm'
 import path from 'node:path'
 import { z } from 'zod'
 
-import { generateThumbKey } from '@lifeforge/file-storage'
-import { files } from '@lifeforge/file-storage/server'
-import { forgeRouter } from '@lifeforge/server-utils'
+import { generateThumbKey } from '@monolith/file-storage'
+import { files } from '@monolith/file-storage/server'
+import { defineRoutes } from '@monolith/server-utils'
 
 import { storageProvider } from '@/core/storage'
 
-import forge from './forge'
+import endpoints from './endpoints'
 
-const get = forge
+const get = endpoints
   .query({
     description: 'Retrieve a stored file or thumbnail',
     encrypted: false,
@@ -75,6 +75,6 @@ const get = forge
     fileStream.stream.pipe(res)
   })
 
-export default forgeRouter({
+export default defineRoutes({
   get
 })

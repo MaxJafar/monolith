@@ -1,16 +1,13 @@
-import { clsx } from 'clsx'
-import {
-  type CSSProperties,
-  type ComponentPropsWithRef,
-  type ElementType,
-  type ReactNode,
-  type Ref
+import type {
+  CSSProperties,
+  ComponentPropsWithRef,
+  ElementType,
+  ReactNode,
+  Ref
 } from 'react'
 
 import {
   type ColorValue,
-  type OverflowValue,
-  type PositionValue,
   type ResponsiveProp,
   type ThemeConditionProp,
   type TokenizedLayoutProps,
@@ -18,66 +15,40 @@ import {
   normalizeResponsiveProp,
   resolveLayoutSprinklesProps,
   resolveSpacingSprinklesProps,
-  resolveStyles
+  resolveStyles,
+  vars
 } from '@/system'
 
 import { Slot } from '../Slot'
-import { textBase, textSprinkles } from './Text.css'
+import { textSprinkles } from './Text.css'
 
-type TextSize =
-  | 'xs'
-  | 'sm'
-  | 'base'
-  | 'lg'
-  | 'xl'
-  | '2xl'
-  | '3xl'
-  | '4xl'
-  | '5xl'
-  | '6xl'
-  | '7xl'
-  | '8xl'
-  | '9xl'
-
-type TextTracking = 'tighter' | 'tight' | 'normal' | 'wide' | 'wider' | 'widest'
-
-type TextLeading = 'none' | 'tight' | 'snug' | 'normal' | 'relaxed' | 'loose'
-
-type FontWeight = 'normal' | 'medium' | 'semibold' | 'bold'
-
-type TextAlign = 'left' | 'center' | 'right'
-
-type TextDecoration = 'underline' | 'line-through' | 'none'
-
-type TextTransform = 'uppercase' | 'lowercase' | 'capitalize' | 'none'
-
-type TextWrap = 'wrap' | 'nowrap' | 'pretty' | 'balance'
-
-type TextWhiteSpace =
-  'normal' | 'nowrap' | 'pre' | 'pre-line' | 'pre-wrap' | 'break-spaces'
-
-type TextWordBreak = 'normal' | 'break-all' | 'keep-all'
-
-type TextOverflowWrap = 'normal' | 'break-word' | 'anywhere'
-
-type TextTrim = 'normal' | 'start' | 'end' | 'both'
-
-interface TextOwnProps<T extends ElementType = 'span'>
+interface Typography<T extends ElementType>
   extends TokenizedSpacingProps, TokenizedLayoutProps {
   as?: T
   asChild?: boolean
   ref?: Ref<HTMLElement>
-  size?: ResponsiveProp<TextSize>
+  children?: ReactNode
+  className?: string
+  style?: CSSProperties
+  size?: ResponsiveProp<keyof typeof vars.fontSize>
+  weight?: ResponsiveProp<'normal' | 'medium' | 'semibold' | 'bold'>
+  leading?: ResponsiveProp<
+    'none' | 'tight' | 'snug' | 'normal' | 'relaxed' | 'loose'
+  >
+  tracking?: ResponsiveProp<
+    'tighter' | 'tight' | 'normal' | 'wide' | 'wider' | 'widest'
+  >
   color?: ThemeConditionProp<ColorValue>
   bg?: ThemeConditionProp<ColorValue>
-  weight?: ResponsiveProp<FontWeight>
-  align?: ResponsiveProp<TextAlign>
-  decoration?: ResponsiveProp<TextDecoration>
-  transform?: ResponsiveProp<TextTransform>
-  wrap?: ResponsiveProp<TextWrap>
-  whiteSpace?: ResponsiveProp<TextWhiteSpace>
-  wordBreak?: ResponsiveProp<TextWordBreak>
-  overflowWrap?: ResponsiveProp<TextOverflowWrap>
+  align?: ResponsiveProp<'left' | 'center' | 'right'>
+  decoration?: ResponsiveProp<'underline' | 'line-through' | 'none'>
+  transform?: ResponsiveProp<'uppercase' | 'lowercase' | 'capitalize' | 'none'>
+  wrap?: ResponsiveProp<'wrap' | 'nowrap' | 'pretty' | 'balance'>
+  whiteSpace?: ResponsiveProp<
+    'normal' | 'nowrap' | 'pre' | 'pre-line' | 'pre-wrap' | 'break-spaces'
+  >
+  wordBreak?: ResponsiveProp<'normal' | 'break-all' | 'keep-all'>
+  overflowWrap?: ResponsiveProp<'normal' | 'break-word' | 'anywhere'>
   display?: ResponsiveProp<
     | 'block'
     | 'inline'
@@ -87,146 +58,88 @@ interface TextOwnProps<T extends ElementType = 'span'>
     | 'none'
     | 'contents'
   >
-  trim?: ResponsiveProp<TextTrim>
+  trim?: ResponsiveProp<'normal' | 'start' | 'end' | 'both'>
   truncate?: boolean
   lineClamp?: number
-  tracking?: ResponsiveProp<TextTracking>
-  leading?: ResponsiveProp<TextLeading>
-  overflow?: ResponsiveProp<OverflowValue>
-  overflowX?: ResponsiveProp<OverflowValue>
-  overflowY?: ResponsiveProp<OverflowValue>
-  position?: ResponsiveProp<PositionValue>
-  className?: string
-  children?: ReactNode
 }
+export type TextProps<T extends ElementType = 'span'> = Typography<T> &
+  Omit<ComponentPropsWithRef<T>, keyof Typography<T>>
 
-export type TextProps<T extends ElementType = 'span'> = TextOwnProps<T> &
-  Omit<ComponentPropsWithRef<T>, keyof TextOwnProps<T>>
-
-const trimMap = {
-  normal: '',
-  start: 'trim-start',
-  end: 'trim-end',
-  both: 'trim-both'
-} as const satisfies Record<TextTrim, string>
+const typography = {
+  size: 'fontSize',
+  weight: 'fontWeight',
+  leading: 'lineHeight',
+  tracking: 'letterSpacing',
+  align: 'textAlign',
+  decoration: 'textDecoration',
+  transform: 'textTransform',
+  wrap: 'textWrap',
+  whiteSpace: 'whiteSpace',
+  wordBreak: 'wordBreak',
+  overflowWrap: 'overflowWrap',
+  display: 'display',
+  trim: 'textBoxTrim'
+} as const
+const spacing = new Set('p px py pt pr pb pl m mx my mt mr mb ml'.split(' '))
+const layout = new Set(['position', 'overflow', 'overflowX', 'overflowY'])
 
 export function Text<T extends ElementType = 'span'>({
   as,
-  asChild = false,
+  asChild,
   ref,
-  size,
-  color,
-  bg,
-  weight,
-  align,
-  display,
-  decoration,
-  transform,
-  wrap,
-  whiteSpace,
-  wordBreak,
-  overflowWrap,
-  trim,
-  truncate,
-  lineClamp,
-  tracking,
-  leading,
-  // Margin props
-  m,
-  mx,
-  my,
-  mt,
-  mb,
-  ml,
-  mr,
-  // Padding props
-  p,
-  px,
-  py,
-  pt,
-  pr,
-  pb,
-  pl,
-  // Layout props
-  overflow,
-  overflowX,
-  overflowY,
-  position,
+  children,
   className,
   style,
-  children,
-  ...rest
-}: TextProps<T> & { style?: CSSProperties }) {
-  const truncateStyle: CSSProperties | undefined = truncate
-    ? {
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap'
-      }
-    : undefined
-
-  const lineClampStyle: CSSProperties | undefined = lineClamp
-    ? {
-        display: '-webkit-box',
-        WebkitLineClamp: lineClamp,
-        WebkitBoxOrient: 'vertical',
-        overflow: 'hidden'
-      }
-    : undefined
-
-  const Component = asChild ? Slot : (as ?? 'span')
-
-  const styles = resolveStyles({
+  color,
+  bg,
+  truncate,
+  lineClamp,
+  ...properties
+}: TextProps<T>) {
+  const tokens: Record<string, unknown> = {}
+  const space: Record<string, unknown> = {}
+  const placement: Record<string, unknown> = {}
+  const native: Record<string, unknown> = {}
+  for (const [name, value] of Object.entries(properties)) {
+    if (Object.prototype.hasOwnProperty.call(typography, name)) {
+      tokens[typography[name as keyof typeof typography]] =
+        normalizeResponsiveProp(value as never)
+    } else if (spacing.has(name)) space[name] = value
+    else if (layout.has(name)) placement[name] = value
+    else native[name] = value
+  }
+  tokens.lineHeight ??= tokens.fontSize
+  const clipping: CSSProperties = {}
+  if (truncate)
+    Object.assign(clipping, {
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap'
+    })
+  if (lineClamp !== undefined && Number.isFinite(lineClamp) && lineClamp >= 1) {
+    Object.assign(clipping, {
+      display: '-webkit-box',
+      WebkitLineClamp: Math.floor(lineClamp),
+      WebkitBoxOrient: 'vertical',
+      overflow: 'hidden',
+      whiteSpace: 'normal'
+    })
+  }
+  const resolved = resolveStyles({
     sprinkles: textSprinkles,
     sprinkleProps: {
-      fontSize: normalizeResponsiveProp(size),
-      lineHeight: normalizeResponsiveProp(leading ?? size),
-      trim: normalizeResponsiveProp(trim, v => trimMap[v]),
-      fontWeight: normalizeResponsiveProp(weight),
-      textAlign: normalizeResponsiveProp(align),
-      display: normalizeResponsiveProp(display),
-      textDecoration: normalizeResponsiveProp(decoration),
-      textTransform: normalizeResponsiveProp(transform),
-      textWrap: normalizeResponsiveProp(wrap),
-      whiteSpace: normalizeResponsiveProp(whiteSpace),
-      wordBreak: normalizeResponsiveProp(wordBreak),
-      overflowWrap: normalizeResponsiveProp(overflowWrap),
-      letterSpacing: normalizeResponsiveProp(tracking),
-      ...resolveSpacingSprinklesProps({
-        p,
-        px,
-        py,
-        pt,
-        pr,
-        pb,
-        pl,
-        m,
-        mx,
-        my,
-        mt,
-        mr,
-        mb,
-        ml
-      }),
-      ...resolveLayoutSprinklesProps({
-        overflow,
-        overflowX,
-        overflowY,
-        position
-      })
+      ...tokens,
+      ...resolveSpacingSprinklesProps(space),
+      ...resolveLayoutSprinklesProps(placement)
     },
     colorProps: { color, bg },
-    style: {
-      ...style,
-      ...truncateStyle,
-      ...lineClampStyle
-    },
-    className: clsx(textBase(), className)
+    className,
+    style: { ...style, ...clipping }
   })
-
+  const Element = asChild ? Slot : (as ?? 'span')
   return (
-    <Component ref={ref as Ref<never>} {...styles} {...rest}>
+    <Element {...native} {...resolved} ref={ref as Ref<never>}>
       {children}
-    </Component>
+    </Element>
   )
 }

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { AutoSizer } from 'react-virtualized'
 
-import type { FileReference } from '@lifeforge/api'
+import type { FileReference } from '@monolith/api'
 import {
   Button,
   EmptyStateScreen,
@@ -10,9 +10,9 @@ import {
   Stack,
   WithQuery,
   useModalStore
-} from '@lifeforge/ui'
+} from '@monolith/ui'
 
-import forgeAPI from '@/core/utils/forgeAPI'
+import workspaceAPI from '@/core/utils/workspaceAPI'
 
 import CustomFontCard from './components/CustomFontCard'
 import CustomFontUploadModal from './components/CustomFontUploadModal'
@@ -27,7 +27,9 @@ export type CustomFont = {
 
 function CustomFontSelector() {
   const { open } = useModalStore()
-  const customFontsQuery = useQuery(forgeAPI.fonts.custom.list.queryOptions())
+  const customFontsQuery = useQuery(
+    workspaceAPI.fonts.custom.list.queryOptions()
+  )
 
   const handleUploadClick = () => {
     open(CustomFontUploadModal, {

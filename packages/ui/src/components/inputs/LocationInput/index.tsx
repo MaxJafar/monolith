@@ -2,12 +2,12 @@ import { useQuery } from '@tanstack/react-query'
 import { useDebounce } from '@uidotdev/usehooks'
 import { useState } from 'react'
 
-import { useAPIEndpoint } from '@lifeforge/api'
+import { useAPIEndpoint } from '@monolith/api'
 
 import { ComboboxInput, ComboboxOption } from '@/components/inputs'
 import type { InputVariants } from '@/components/inputs/shared/types'
 import { Box, Flex, Icon, Text } from '@/components/primitives'
-import { forgeAPI } from '@/utils/forgeAPI'
+import { workspaceAPI } from '@/utils/workspaceAPI'
 
 import { LocationServiceStatusIndicator } from './components/LocationServiceStatusIndicator'
 
@@ -51,7 +51,7 @@ export function LocationInput({
   const debouncedQuery = useDebounce(query, 500)
 
   const enabledQuery = useQuery(
-    forgeAPI
+    workspaceAPI
       .checkAPIKeys({
         keys: 'gcloud'
       })
@@ -67,7 +67,7 @@ export function LocationInput({
         : false
 
   const dataQuery = useQuery(
-    forgeAPI.locations.search
+    workspaceAPI.locations.search
       .setHost(apiHost)
       .input({
         q: debouncedQuery

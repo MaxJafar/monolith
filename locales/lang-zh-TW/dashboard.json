@@ -18,11 +18,11 @@
   "empty": {
     "welcome": {
       "title": "歡迎來到 monolith！",
-      "description": "在 ForgeStore 安裝一些模組並開始使用吧。"
+      "description": "建立頁面、規劃行動或啟用擴充套件，開始使用。"
     },
     "notFound": {
       "title": "未找到小工具",
-      "description": "您正在尋找的小工具不存在。請檢查您已安裝的模組。"
+      "description": "您正在尋找的小工具不存在。請檢查您已安裝的擴充套件。"
     }
   },
   "loading": "正在加載儀表板...",

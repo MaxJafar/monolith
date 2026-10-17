@@ -1,53 +1,33 @@
-import { v4 } from 'uuid'
+import { randomUUID } from 'node:crypto'
 
-import {
+import type {
   AddToTaskPoolFunc,
   GlobalTaskPool,
   UpdateTaskInPoolFunc
-} from '@lifeforge/server-utils'
+} from '@monolith/server-utils'
 
-export const globalTaskPool: GlobalTaskPool = {}
+import { createServiceLogger } from '../logging'
 
-export const addToTaskPool: AddToTaskPoolFunc = (io, taskData) => {
-  const taskId = v4()
+export const globalTaskPool: GlobalTaskPool = Object.create(null)
+const logger = createServiceLogger('tasks')
 
-  globalTaskPool[taskId] = {
-    module: taskData.module,
-    description: taskData.description,
-    status: taskData.status,
-    data: taskData.data,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    progress: taskData.progress
-  }
-
-  io.emit('taskPoolUpdate', {
-    taskId,
-    ...globalTaskPool[taskId]
-  })
-
-  return taskId
+export const addToTaskPool: AddToTaskPoolFunc = (io, details) => {
+  const id = randomUUID()
+  const now = new Date()
+  const task = { ...details, createdAt: now, updatedAt: now }
+  globalTaskPool[id] = task
+  io.emit('taskPoolUpdate', { ...task, taskId: id })
+  return id
 }
 
-export const updateTaskInPool: UpdateTaskInPoolFunc = (io, taskId, updates) => {
-  if (globalTaskPool[taskId]) {
-    globalTaskPool[taskId] = {
-      ...globalTaskPool[taskId],
-      ...updates,
-      updatedAt: new Date()
-    }
-  }
-
-  io.emit('taskPoolUpdate', {
-    taskId,
-    ...globalTaskPool[taskId]
-  })
-
-  if (updates.status === 'failed') {
-    console.error(updates.error)
-  }
-
-  if (updates.status === 'completed' || updates.status === 'failed') {
-    delete globalTaskPool[taskId]
-  }
+export const updateTaskInPool: UpdateTaskInPoolFunc = (io, id, patch) => {
+  const current = globalTaskPool[id]
+  if (!current) return
+  const task = { ...current, ...patch, updatedAt: new Date() }
+  globalTaskPool[id] = task
+  const finished = task.status === 'failed' || task.status === 'completed'
+  if (finished) delete globalTaskPool[id]
+  io.emit('taskPoolUpdate', { ...task, taskId: id })
+  if (task.status === 'failed')
+    logger.error('Background task failed', { taskId: id, error: patch.error })
 }

@@ -7,11 +7,13 @@ import { defineConfig } from 'vite'
 
 import { SHARED_DEPS, SHARED_PACKAGES } from '../constants/shared-packages'
 import { clientAliasResolver } from '../resolvers/client-alias-resolver'
+import { blocksuiteRuntime, blocksuiteSyntax } from './blocksuite'
 
 /**
- * Creates the standard client/host Vite configuration for LifeForge.
+ * Creates the standard client/host Vite configuration for Monolith.
  */
 export function defineCoreClientConfig(dirname: string) {
+  const editor = blocksuiteRuntime(path.resolve(dirname, '../..'))
   const aliasList = [
     ...Object.entries(SHARED_PACKAGES).map(
       ([, { aliasRegex, entryPoint }]) => ({
@@ -36,6 +38,7 @@ export function defineCoreClientConfig(dirname: string) {
     return {
       envDir: path.resolve(dirname, '../../env'),
       plugins: [
+        blocksuiteSyntax(),
         {
           name: 'alias-resolver',
           enforce: 'pre',
@@ -52,16 +55,19 @@ export function defineCoreClientConfig(dirname: string) {
         }),
         vanillaExtractPlugin({
           unstable_pluginFilter: ({ name }) => {
-            return ['vite-tsconfig-paths', 'alias-resolver'].includes(name)
+            return [
+              'vite-tsconfig-paths',
+              'alias-resolver',
+              'monolith-blocksuite-syntax'
+            ].includes(name)
           }
         }),
         !isDev &&
           federation({
             name: 'host',
             dts: false,
-            remotes: {
-              None: ''
-            },
+            // Addons are registered from the installed catalog at runtime.
+            remotes: {},
             shared: {
               ...Object.fromEntries(
                 Object.entries(SHARED_DEPS).map(([name, config]) => [
@@ -79,6 +85,16 @@ export function defineCoreClientConfig(dirname: string) {
           })
       ].filter(Boolean),
       server: {
+        proxy: {
+          '/.well-known/monolith': {
+            target:
+              process.env.MONOLITH_GATEWAY_DEV_URL || 'http://127.0.0.1:8080'
+          },
+          '/api/v1': {
+            target:
+              process.env.MONOLITH_GATEWAY_DEV_URL || 'http://127.0.0.1:8080'
+          }
+        },
         fs: {
           strict: true
         },
@@ -87,11 +103,12 @@ export function defineCoreClientConfig(dirname: string) {
         }
       },
       resolve: {
-        alias: activeAlias
+        alias: [...editor.aliases, ...activeAlias],
+        dedupe: ['react', 'react-dom', 'lit', 'yjs']
       },
       ssr: {
         noExternal: [
-          /^@lifeforge\//,
+          /^@monolith\//,
           new RegExp(path.resolve(dirname, '../../packages')),
           new RegExp(path.resolve(dirname, '../../modules'))
         ]
@@ -111,7 +128,8 @@ export function defineCoreClientConfig(dirname: string) {
         }
       },
       optimizeDeps: {
-        exclude: Object.keys(SHARED_PACKAGES)
+        exclude: [...Object.keys(SHARED_PACKAGES), ...editor.exclude],
+        rolldownOptions: { plugins: [blocksuiteSyntax()] }
       },
       css: {
         postcss: {

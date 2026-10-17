@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 
-import { findProjectRoot } from '@lifeforge/configs/node'
+import { findProjectRoot } from '@monolith/configs/node'
 
 export const ROOT_DIR = findProjectRoot()
 

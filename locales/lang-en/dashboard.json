@@ -18,11 +18,11 @@
   "empty": {
     "welcome": {
       "title": "Welcome to monolith!",
-      "description": "Get started by installing some modules from Forgistry."
+      "description": "Create a page, plan an action, or enable an addon to get started."
     },
     "notFound": {
       "title": "Widget Not Found",
-      "description": "The widget you are looking for does not exist. Please check your installed modules."
+      "description": "The widget you are looking for does not exist. Please check your installed addons."
     }
   },
   "loading": "Loading dashboard...",

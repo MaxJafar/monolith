@@ -3,7 +3,8 @@ import type {
   ModuleEntry,
   ModuleManifest,
   ModuleWidget
-} from '@lifeforge/configs'
+} from '@monolith/configs'
+import { addonPackageName } from '@monolith/configs'
 
 import type { ResolvedModuleSchema } from './types'
 
@@ -35,7 +36,7 @@ interface RegistryState {
  * one consumer and resolved from node_modules by another (e.g. the API bundle
  * inlining it while the external `server-utils`/`drizzle` import it).
  */
-const REGISTRY_STATE_KEY = Symbol.for('lifeforge.module-registry.state')
+const REGISTRY_STATE_KEY = Symbol.for('monolith.module-registry.state')
 
 function state(): RegistryState {
   const globalObject = globalThis as unknown as Record<
@@ -57,6 +58,19 @@ function state(): RegistryState {
 export class ModuleRegistry {
   static register(entry: ModuleEntry, absolutePath?: string): void {
     const { registeredModules } = state()
+
+    const collision = registeredModules.find(
+      existing =>
+        (existing.name === entry.name && existing.id !== entry.id) ||
+        (existing.name !== entry.name &&
+          (existing.id === entry.id ||
+            (entry.remoteId && existing.remoteId === entry.remoteId)))
+    )
+
+    if (collision)
+      throw new Error(
+        `Addon identity collision between ${entry.name} and ${collision.name}`
+      )
 
     const existingIndex = registeredModules.findIndex(
       m => m.name === entry.name
@@ -100,7 +114,7 @@ export class ModuleRegistry {
   /** Whether a module (by full name or short id) is currently registered. */
   static isAvailable(nameOrId: string): boolean {
     return state().registeredModules.some(
-      m => m.id === nameOrId || m.name === nameOrId
+      m => m.id === nameOrId || m.name === addonPackageName(nameOrId)
     )
   }
 
@@ -114,6 +128,7 @@ export class ModuleRegistry {
       id: mod.id,
       remoteId: mod.remoteId,
       displayName: mod.displayName,
+      experience: mod.experience,
       icon: mod.icon,
       category: mod.category,
       remoteEntryUrl: mod.remoteEntryUrl,
@@ -133,6 +148,7 @@ export class ModuleRegistry {
         id: mod.id,
         remoteId: mod.remoteId,
         displayName: mod.displayName,
+        experience: mod.experience,
         version: mod.version,
         description: mod.description,
         author: mod.author,

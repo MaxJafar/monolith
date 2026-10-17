@@ -1,5 +1,3 @@
-import NodeCache from 'node-cache'
-
 export interface Cache<T = unknown> {
   get(key: string): T | undefined
   set(key: string, value: T, ttl?: number): boolean
@@ -11,66 +9,58 @@ export interface Cache<T = unknown> {
   expiryTime(key: string): number | undefined
 }
 
-const instances = new Map<string, NodeCache>()
+type Entry = { value: unknown; expires: number }
 
-function getOrCreateNodeCache(
-  namespace: string,
-  options?: { stdTTL?: number }
-): NodeCache {
-  if (instances.has(namespace)) {
-    return instances.get(namespace)!
+class MemoryCache<T> implements Cache<T> {
+  private readonly entries = new Map<string, Entry>()
+  constructor(private readonly defaultTTL: number) {}
+
+  private live(key: string): Entry | undefined {
+    const entry = this.entries.get(key)
+    if (entry && entry.expires !== 0 && entry.expires <= Date.now()) {
+      this.entries.delete(key)
+      return undefined
+    }
+    return entry
   }
 
-  const instance = new NodeCache({
-    stdTTL: options?.stdTTL ?? 0,
-    checkperiod: 600,
-    useClones: false
-  })
-
-  instances.set(namespace, instance)
-
-  return instance
+  get(key: string): T | undefined {
+    return this.live(key)?.value as T | undefined
+  }
+  has(key: string): boolean {
+    return this.live(key) !== undefined
+  }
+  set(key: string, value: T, ttl = this.defaultTTL): boolean {
+    if (!Number.isFinite(ttl)) throw new TypeError('Cache TTL must be finite')
+    this.entries.set(key, {
+      value: value === undefined ? null : value,
+      expires: ttl === 0 ? 0 : Date.now() + ttl * 1000
+    })
+    return true
+  }
+  del(key: string): boolean {
+    return this.entries.delete(key)
+  }
+  clear(): void {
+    this.entries.clear()
+  }
+  keys(): string[] {
+    return [...this.entries.keys()].filter(key => this.live(key) !== undefined)
+  }
+  get size(): number {
+    return this.keys().length
+  }
+  expiryTime(key: string): number | undefined {
+    return this.live(key)?.expires
+  }
 }
 
+const namespaces = new Map<string, Cache>()
 export function createCache<T = unknown>(
   namespace: string,
   options?: { stdTTL?: number }
 ): Cache<T> {
-  const cache = getOrCreateNodeCache(namespace, options)
-
-  return {
-    get(key: string): T | undefined {
-      return cache.get<T>(key)
-    },
-    set(key: string, value: T, ttl?: number): boolean {
-      if (ttl !== undefined) {
-        return cache.set<T>(key, value, ttl)
-      }
-
-      return cache.set<T>(key, value)
-    },
-    del(key: string): boolean {
-      return cache.del(key) > 0
-    },
-    has(key: string): boolean {
-      return cache.get(key) !== undefined
-    },
-    clear(): void {
-      cache.flushAll()
-    },
-    keys(): string[] {
-      return cache.keys().filter(k => cache.get(k) !== undefined)
-    },
-    get size(): number {
-      return cache
-        .keys()
-        .reduce(
-          (count, k) => (cache.get(k) !== undefined ? count + 1 : count),
-          0
-        )
-    },
-    expiryTime(key: string): number | undefined {
-      return cache.getTtl(key)
-    }
-  }
+  if (!namespaces.has(namespace))
+    namespaces.set(namespace, new MemoryCache(options?.stdTTL ?? 0))
+  return namespaces.get(namespace)! as Cache<T>
 }

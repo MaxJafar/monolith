@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 
-import { usePromiseLoading } from '@lifeforge/api'
+import { usePromiseLoading } from '@monolith/api'
 import {
   Box,
   Button,
@@ -13,9 +13,9 @@ import {
   Transition,
   surface,
   toast
-} from '@lifeforge/ui'
+} from '@monolith/ui'
 
-import forgeAPI from '@/core/utils/forgeAPI'
+import workspaceAPI from '@/core/utils/workspaceAPI'
 import {
   addFontToStylesheet,
   removeFontFromStylesheet
@@ -37,10 +37,10 @@ function FontListItem({
   const queryClient = useQueryClient()
 
   const togglePinMutation = useMutation(
-    forgeAPI.fonts.pins.toggle.mutationOptions({
+    workspaceAPI.fonts.pins.toggle.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: forgeAPI.fonts.pins.list.key
+          queryKey: workspaceAPI.fonts.pins.list.key
         })
       },
       onError: () => {

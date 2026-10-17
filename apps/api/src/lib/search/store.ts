@@ -1,6 +1,6 @@
 import { sql } from 'drizzle-orm'
 
-import { ClientError } from '@lifeforge/server-utils'
+import { ClientError } from '@monolith/server-utils'
 
 import { enrichFile } from './files'
 import { embed, embeddingVersion } from './inference'

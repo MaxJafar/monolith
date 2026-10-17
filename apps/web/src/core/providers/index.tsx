@@ -6,14 +6,15 @@ import {
   APIOnlineStatusProvider,
   AuthProvider,
   EncryptionProvider,
+  GatewayProvider,
   SocketProvider,
-  setForgeMutationErrorHandler
-} from '@lifeforge/api'
-import { FederationProvider } from '@lifeforge/federation'
+  setApiMutationErrorHandler
+} from '@monolith/api'
+import { FederationProvider } from '@monolith/federation'
 import {
   I18nCommonNameSpacePreloadProvider,
   I18nInitProvider
-} from '@lifeforge/localization'
+} from '@monolith/localization'
 import {
   APIOnlineStatusWrapper,
   BackgroundProvider,
@@ -25,20 +26,21 @@ import {
   PersonalizationProvider,
   ToastProvider,
   toast
-} from '@lifeforge/ui'
+} from '@monolith/ui'
 
 import CoreFederationProvider from '@/core/providers/features/CoreFederationProvider'
 import AppRoutesProvider from '@/core/routing/providers/AppRoutesProvider'
-import forgeAPI from '@/core/utils/forgeAPI'
 import { initI18n } from '@/core/utils/i18n'
+import workspaceAPI from '@/core/utils/workspaceAPI'
 
 import ExternalModuleProviders from './features/ExternalModuleProviders'
 import UserPersonalizationProvider from './features/UserPersonalizationProvider'
 import { constructComponentTree, defineProviders } from './utils/providerUtils'
 
 const queryClient = new QueryClient()
+window.addEventListener('monolith-auth-cleared', () => queryClient.clear())
 
-setForgeMutationErrorHandler(msg => toast.error(msg))
+setApiMutationErrorHandler(msg => toast.error(msg))
 
 // IMPORTANT: The order of these providers matters!
 // From top to bottom, they are nested inside one another in that order.
@@ -55,10 +57,10 @@ const PROVIDERS = defineProviders([
   [APIEndpointProvider, { endpoint: import.meta.env.VITE_API_HOST }],
 
   // Provider that stores all the theming information
-  [PersonalizationProvider, { forgeAPI }],
+  [PersonalizationProvider, { workspaceAPI }],
 
   // Provider that checks if the API is online or not
-  // A wrapper exported from @lifeforge/ui is used to avoid circular dependencies
+  // A wrapper exported from @monolith/ui is used to avoid circular dependencies
   [
     APIOnlineStatusProvider,
     {
@@ -88,6 +90,7 @@ const PROVIDERS = defineProviders([
 
   // Provider that handles authentication, very obviously
   [AuthProvider],
+  [GatewayProvider],
   // Provider that manages the main sidebar state (not the module sidebars, the main one)
   [MainSidebarStateProvider],
   // Provider that synchronizes user personalization data with the backend

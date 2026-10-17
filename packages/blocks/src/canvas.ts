@@ -18,7 +18,13 @@ export type CanvasBlock = {
   content: string
   url: string
   widget: string
-  database?: { workspaceId: string; baseId: string; viewId?: string }
+  height?: number
+  database?: {
+    workspaceId: string
+    baseId: string
+    viewId?: string
+    height?: number
+  }
 }
 
 export type CanvasPage = {
@@ -134,7 +140,8 @@ export function validateCanvasPage(
             'content',
             'url',
             'widget',
-            'database'
+            'database',
+            'height'
           ].includes(key)
       ) ||
       typeof block.id !== 'string' ||
@@ -155,6 +162,14 @@ export function validateCanvasPage(
     )
       throw Error('Invalid block')
     ids.add(block.id)
+    if (
+      block.height !== undefined &&
+      (typeof block.height !== 'number' ||
+        !Number.isFinite(block.height) ||
+        block.height < 0 ||
+        block.height > 1000)
+    )
+      throw Error('Invalid widget height')
     if (block.type === 'native' && ++native > 1)
       throw Error('A page can contain only one area dashboard')
     if (block.type === 'document') assertContent(block.content)
@@ -165,12 +180,17 @@ export function validateCanvasPage(
         typeof database !== 'object' ||
         Array.isArray(database) ||
         Object.keys(database).some(
-          key => !['workspaceId', 'baseId', 'viewId'].includes(key)
+          key => !['workspaceId', 'baseId', 'viewId', 'height'].includes(key)
         ) ||
         typeof database.workspaceId !== 'string' ||
         !uuid.test(database.workspaceId) ||
         typeof database.baseId !== 'string' ||
         !uuid.test(database.baseId) ||
+        (database.height !== undefined &&
+          (typeof database.height !== 'number' ||
+            !Number.isFinite(database.height) ||
+            database.height < 0 ||
+            database.height > 1200)) ||
         (database.viewId !== undefined &&
           (typeof database.viewId !== 'string' || !uuid.test(database.viewId)))
       )

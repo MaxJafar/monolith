@@ -4,16 +4,16 @@ import { randomUUID } from 'node:crypto'
 import postgres from 'postgres'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
-import type { ForgeContract } from '@lifeforge/server-utils'
+import type { EndpointContract } from '@monolith/server-utils'
 
-import * as routes from '../../../../modules/zillion--databases/server/routes'
+import * as routes from '../../../../modules/monolith--databases/server/routes'
 import {
   bases,
   links,
   records,
   relations,
   tables
-} from '../../../../modules/zillion--databases/server/schema.drizzle'
+} from '../../../../modules/monolith--databases/server/schema.drizzle'
 import {
   type Base,
   type Field,
@@ -21,9 +21,11 @@ import {
   type SavedView,
   type Snapshot,
   applyView
-} from '../../../../modules/zillion--databases/shared'
+} from '../../../../modules/monolith--databases/shared'
 
-type Context = Parameters<ReturnType<ForgeContract['getValue']>['callback']>[0]
+type Context = Parameters<
+  ReturnType<EndpointContract['getValue']>['callback']
+>[0]
 
 const owner = randomUUID(),
   otherOwner = randomUUID()
@@ -44,7 +46,7 @@ if (enabled) {
     !/^\/(zillion_dev|zillion_test(?:_[a-z0-9]+)?)$/.test(target.pathname)
   )
     throw new Error(
-      'Integration tests only use isolated local Zillion databases on port 55432'
+      'Integration tests only use isolated local Monolith databases on port 55432'
     )
 }
 
@@ -56,7 +58,7 @@ const schema = defineRelations(tables, relations)
 const db = drizzle({ client, relations: schema })
 
 async function invoke<T>(
-  route: ForgeContract,
+  route: EndpointContract,
   user: string | undefined,
   body?: unknown,
   query: Record<string, string> = {},
@@ -147,9 +149,10 @@ async function scopedState(...baseIds: string[]) {
   }
 }
 
-describe.skipIf(!enabled)('Zillion OS persisted databases', () => {
+describe.skipIf(!enabled)('Monolith persisted databases', () => {
   beforeAll(async () => {
-    for (const id of [owner, otherOwner]) await client`insert into users(id,email,username,name) values(${id},${id+'@example.invalid'},${id},'Synthetic database owner')`
+    for (const id of [owner, otherOwner])
+      await client`insert into users(id,email,username,name) values(${id},${id + '@example.invalid'},${id},'Synthetic database owner')`
   })
   afterAll(async () => {
     for (const user of [owner, otherOwner])

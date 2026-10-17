@@ -7,7 +7,7 @@ import {
   Pagination,
   Scrollbar,
   Stack
-} from '@lifeforge/ui'
+} from '@monolith/ui'
 
 import { useGoogleFont } from '../contexts/GoogleFontContext'
 import FontListItem from './FontListItem'

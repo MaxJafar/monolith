@@ -1,4 +1,4 @@
-import type { FileReference, ProxyTree } from '@lifeforge/api'
+import type { FileReference, ProxyTree } from '@monolith/api'
 
 import type { FileValue } from '@/components/inputs'
 
@@ -7,7 +7,7 @@ function isFileReference(file: unknown): file is FileReference {
 }
 
 export function getFormFileFieldInitialData(
-  forgeAPI: ProxyTree<any>,
+  workspaceAPI: ProxyTree<any>,
   initialData: Record<string, unknown> | undefined,
   file: File | string | FileReference | null | undefined
 ): FileValue {
@@ -31,7 +31,7 @@ export function getFormFileFieldInitialData(
 
   if (isFileReference(file)) {
     const preview = file.mimeType?.startsWith('image/')
-      ? forgeAPI.getMedia({ key: file.key })
+      ? workspaceAPI.getMedia({ key: file.key })
       : undefined
 
     return {
@@ -51,7 +51,7 @@ export function getFormFileFieldInitialData(
       }
     }
 
-    const api = forgeAPI as unknown as {
+    const api = workspaceAPI as unknown as {
       getMedia: (params: { key: string }) => string
     }
 

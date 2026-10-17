@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type z from 'zod'
 
-import type { ForgeEndpoint } from '../proxy/forgeEndpoint'
+import type { EndpointClient } from '../proxy/endpointClient'
 import type { CoreHelperReturnTypes } from '../proxy/helpers/config'
 import type {
   InferContractInput,
@@ -11,7 +11,7 @@ import type {
 
 /**
  * Constructs a deeply-nested proxy tree from a server route schema.
- * Each endpoint becomes a `ForgeEndpoint`, nested groups become more `ProxyTree`.
+ * Each endpoint becomes a `EndpointClient`, nested groups become more `ProxyTree`.
  */
 
 type ProxyTreeLeaf = {
@@ -28,13 +28,13 @@ type ProxyTreeLeaf = {
 type ProxyTreeRootLeaf = ProxyTreeLeaf & {
   untyped: <TOutput = any, TBody = any, TQuery = any>(
     url: string
-  ) => ForgeEndpoint<UntypedEndpointType<TOutput, TBody, TQuery>>
+  ) => EndpointClient<UntypedEndpointType<TOutput, TBody, TQuery>>
 }
 
 type ProxyTreeInternal<T> = {
   [K in keyof T]: T[K] extends { readonly method: string }
-    ? ForgeEndpoint<{
-        __isForgeContract: true
+    ? EndpointClient<{
+        __isEndpointContract: true
         __input: InferContractInput<T[K]>
         __output: InferContractOutput<T[K]>
         __media: InferContractMedia<T[K]>
@@ -62,7 +62,7 @@ export type ProxyTree<T> =
  * Helper type for creating untyped endpoints.
  */
 export type UntypedEndpointType<TOutput = any, TBody = any, TQuery = any> = {
-  __isForgeContract: true
+  __isEndpointContract: true
   __input: { body: TBody; query: TQuery }
   __output: TOutput
   __media: null

@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
 
-import { useAPIEndpoint, usePromiseLoading } from '@lifeforge/api'
+import { useAPIEndpoint, usePromiseLoading } from '@monolith/api'
 
 import { WithQueryData } from '@/components/api'
 import { EmptyStateScreen } from '@/components/feedback'
 import { Button, TextAreaInput } from '@/components/inputs'
 import { Box, Flex } from '@/components/primitives'
 import { toast } from '@/providers'
-import { forgeAPI } from '@/utils/forgeAPI'
+import { workspaceAPI } from '@/utils/workspaceAPI'
 
 import { useFilePicker } from '../contexts/FilePickerContext'
 
@@ -26,7 +26,7 @@ export function AIImageGenerator() {
     }
 
     try {
-      const response = await forgeAPI.ai.imageGeneration.generateImage
+      const response = await workspaceAPI.ai.imageGeneration.generateImage
         .setHost(apiHost)
         .mutate({
           prompt
@@ -44,7 +44,7 @@ export function AIImageGenerator() {
 
   return (
     <WithQueryData
-      contract={forgeAPI.checkAPIKeys({ keys: 'openai' }).setHost(apiHost)}
+      contract={workspaceAPI.checkAPIKeys({ keys: 'openai' }).setHost(apiHost)}
     >
       {keyExists =>
         keyExists ? (

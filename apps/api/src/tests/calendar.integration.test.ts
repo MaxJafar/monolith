@@ -6,15 +6,15 @@ import postgres from 'postgres'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import z from 'zod'
 
-import { composeRelations, scopeDbForModule } from '@lifeforge/drizzle'
+import { composeRelations, scopeDbForModule } from '@monolith/drizzle'
 import {
   ModuleRegistry,
   setLoadingModuleId
-} from '@lifeforge/module-runtime/registry'
+} from '@monolith/module-runtime/registry'
 import {
-  type ForgeContract,
+  type EndpointContract,
   checkRecordExistence
-} from '@lifeforge/server-utils'
+} from '@monolith/server-utils'
 
 const enabled = process.env.ZILLION_INTEGRATION === '1'
 const owner = randomUUID(),
@@ -23,8 +23,8 @@ const owner = randomUUID(),
 let admin: ReturnType<typeof postgres> | undefined
 let client: ReturnType<typeof postgres> | undefined
 let db: ReturnType<typeof drizzle>
-let routes: typeof import('../../../../modules/lifeforge--calendar/server/index').default
-let schema: typeof import('../../../../modules/lifeforge--calendar/server/schema.drizzle')
+let routes: typeof import('../../../../modules/monolith--calendar/server/index').default
+let schema: typeof import('../../../../modules/monolith--calendar/server/schema.drizzle')
 
 if (enabled)
   for (const connection of [
@@ -55,7 +55,7 @@ class Rejected extends Error {
 }
 
 async function invoke(
-  route: ForgeContract,
+  route: EndpointContract,
   query: Record<string, unknown> = {},
   body: Record<string, unknown> = {},
   userId = owner
@@ -71,7 +71,7 @@ async function invoke(
       )
       const scoped = scopeDbForModule(
         tx,
-        ModuleRegistry.getModuleKeyMap('lifeforge--calendar')
+        ModuleRegistry.getModuleKeyMap('monolith--calendar')
       )
       await checkRecordExistence({
         db: scoped,
@@ -138,14 +138,14 @@ describe.skipIf(!enabled)(
       const [role] =
         await client`select rolsuper, rolbypassrls from pg_roles where rolname=current_user`
       expect(role).toMatchObject({ rolsuper: false, rolbypassrls: false })
-      setLoadingModuleId('lifeforge--calendar')
+      setLoadingModuleId('monolith--calendar')
 
       try {
         routes = (
-          await import('../../../../modules/lifeforge--calendar/server/index')
+          await import('../../../../modules/monolith--calendar/server/index')
         ).default
         schema =
-          await import('../../../../modules/lifeforge--calendar/server/schema.drizzle')
+          await import('../../../../modules/monolith--calendar/server/schema.drizzle')
       } finally {
         setLoadingModuleId(undefined)
       }
@@ -159,7 +159,7 @@ describe.skipIf(!enabled)(
     afterAll(async () => {
       if (admin) {
         const parts = ModuleRegistry.schemaParts.filter(
-          part => part.moduleId === 'lifeforge--calendar'
+          part => part.moduleId === 'monolith--calendar'
         )
 
         for (const table of parts

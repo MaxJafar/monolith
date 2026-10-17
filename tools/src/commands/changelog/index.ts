@@ -5,7 +5,7 @@ import createChangelogHandler from './handlers/createChangelogHandler'
 export default function setup(program: Command): void {
   const command = program
     .command('changelog')
-    .description('Generate changelog for LifeForge releases')
+    .description('Generate changelog for Monolith releases')
 
   command
     .command('create')

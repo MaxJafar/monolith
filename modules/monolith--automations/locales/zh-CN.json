@@ -1,0 +1,123 @@
+{
+  "title": "自动化",
+  "deleteConfirm": "删除 {{name}} 及其执行记录？",
+  "deleteWorkflow": "删除 {{name}}",
+  "description": "连接数据与操作。构建工作流，运行并检查每个步骤。",
+  "loading": "正在加载自动化…",
+  "back": "返回",
+  "active": "已启用",
+  "paused": "已暂停",
+  "all": "全部工作流",
+  "unsaved": "有未保存的更改",
+  "revision": "版本",
+  "enableWorkflow": "启用工作流",
+  "discard": "放弃未保存的工作流更改？",
+  "saveFirst": "请先保存更改再运行工作流。",
+  "canvas": "工作流画布",
+  "canvasHint": "拖动排列 · 选择输出端口，再选择输入端口",
+  "connectHint": "选择节点输入端口以连接 · Escape 取消",
+  "connectTo": "连接到",
+  "input": "输入",
+  "output": "输出",
+  "startHere": "从这里开始",
+  "selectNode": "选择节点以配置其行为。",
+  "nodeSettings": "节点设置",
+  "invalidJSON": "请输入有效的 JSON 数据。",
+  "expressionHelp": "使用 JSON 设置字段。用 {{ field.path }} 引用输入数据。保存前请应用字段。",
+  "triggerHelp": "手动运行、调用已认证的事件端点，或设置定时间隔。",
+  "httpHelp": "仅支持公开 HTTP(S) 端点。响应不超过 100 KB，不跟随重定向。",
+  "outputHelp": "在运行检查器中记录输入数据。",
+  "comparison": "比较方式",
+  "connections": "连接",
+  "disconnect": "移除连接",
+  "recentRuns": "最近运行 · 最新 50 次",
+  "noRuns": "运行此工作流以查看历史记录。",
+  "selectRun": "选择一次运行，查看每步的输入和输出。",
+  "steps": "步",
+  "zoomIn": "放大",
+  "zoomOut": "缩小",
+  "undo": "撤销",
+  "redo": "重做",
+  "nodeLibrary": "添加步骤",
+  "readOnly": "你可以查看此工作流。编辑需要工作区编辑权限。",
+  "scheduleHelp": "0 表示仅手动或事件运行。正数间隔在 Automations 工作进程连接时执行。暂停的工作流不会定时运行。",
+  "inputHelp": "传给触发器的 JSON 对象。运行使用已保存的版本。",
+  "fileTooLarge": "请选择小于 500 KB 的 JSON 文件。",
+  "noMatches": "没有匹配的工作流",
+  "adjustFilters": "尝试其他搜索条件或清除筛选。",
+  "emptyTitle": "从第一个工作流开始",
+  "emptyDescription": "选择模板，或将触发器连接到自己的操作。",
+  "workflowUnavailable": "此工作流不可用。请刷新列表或返回。",
+  "workspaceUnavailable": "此工作区不可用。",
+  "nodes": {
+    "trigger": "触发器",
+    "set": "设置字段",
+    "condition": "条件",
+    "http": "HTTP 请求",
+    "delay": "延时",
+    "output": "输出"
+  },
+  "ports": {
+    "main": "下一步",
+    "true": "真",
+    "false": "假"
+  },
+  "operators": {
+    "equals": "等于",
+    "notEquals": "不等于",
+    "contains": "包含",
+    "greater": "大于",
+    "exists": "存在"
+  },
+  "status": {
+    "success": "已完成",
+    "error": "失败"
+  },
+  "inputs": {
+    "nodeName": "节点名称",
+    "values": "字段（JSON）",
+    "dataPath": "数据路径",
+    "compareValue": "比较值（JSON）",
+    "url": "网址",
+    "requestBody": "请求体（JSON）",
+    "milliseconds": "毫秒",
+    "workflowName": "工作流名称",
+    "description": "描述",
+    "intervalMinutes": "定时间隔（分钟）",
+    "triggerData": "触发数据（JSON）",
+    "search": "搜索工作流"
+  },
+  "buttons": {
+    "apply": "应用字段",
+    "reset": "重置",
+    "removeNode": "移除节点",
+    "showNode": "查看节点",
+    "save": "保存",
+    "run": "运行工作流",
+    "editor": "编辑器",
+    "history": "运行记录",
+    "export": "导出",
+    "inspectRun": "检查运行",
+    "import": "导入",
+    "newWorkflow": "新建工作流",
+    "useTemplate": "使用模板",
+    "clearFilters": "清除筛选",
+    "retry": "重试",
+    "back": "返回"
+  },
+  "templates": {
+    "starter": {
+      "name": "简单工作流",
+      "description": "从触发器开始，准备数据并记录结果。"
+    },
+    "branch": {
+      "name": "选择分支",
+      "description": "将高优先级输入路由到不同分支。"
+    },
+    "request": {
+      "name": "请求与检查",
+      "description": "请求公开 JSON 数据并检查响应。"
+    }
+  },
+  "applyFields": "请先应用编辑过的 JSON 字段。切换节点时会保留字段草稿。"
+}

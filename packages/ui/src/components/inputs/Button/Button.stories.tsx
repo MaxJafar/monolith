@@ -102,7 +102,7 @@ export const DisabledLink: Story = {
     as: 'a',
     children: 'Open Link',
     disabled: true,
-    href: 'https://docs.lifeforge.dev'
+    href: 'https://github.com/MaxJafar/monolith/tree/main/docs'
   }
 }
 
@@ -164,7 +164,7 @@ export const AsDifferentComponent: Story = {
   args: {
     as: 'a',
     children: 'Open Link',
-    href: 'https://docs.lifeforge.dev',
+    href: 'https://github.com/MaxJafar/monolith/tree/main/docs',
     icon: 'tabler:external-link',
     rel: 'noopener noreferrer',
     target: '_blank',
@@ -180,7 +180,7 @@ export const AsDifferentComponent: Story = {
       width="100%"
     >
       <Alert type="note">
-        This button is rendered as an anchor tag that navigates to the LifeForge
+        This button is rendered as an anchor tag that navigates to the Monolith
         documentation. Open the console and inspect the element to verify that
         it is an anchor tag with the correct href, target, and rel attributes.
       </Alert>

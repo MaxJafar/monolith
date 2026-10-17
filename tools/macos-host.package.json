@@ -1,0 +1,9 @@
+{
+  "name": "monolith-native-build-host",
+  "private": true,
+  "packageManager": "pnpm@11.21.0",
+  "scripts": {
+    "build": "node tools/macos-build.mjs",
+    "test": "node tools/macos-build.mjs --test"
+  }
+}

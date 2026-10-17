@@ -1,4 +1,4 @@
-import { useModuleTranslation } from '@lifeforge/localization'
+import { useModuleTranslation } from '@monolith/localization'
 
 import { Button } from '@/components/inputs'
 import { Box, Flex, type FlexProps, Icon, Text } from '@/components/primitives'

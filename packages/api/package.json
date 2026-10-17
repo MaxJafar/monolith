@@ -1,5 +1,5 @@
 {
-  "name": "@lifeforge/api",
+  "name": "@monolith/api",
   "version": "0.0.1",
   "type": "module",
   "main": "dist/index.js",
@@ -19,7 +19,8 @@
     "socket.io-client": "^4.8.1"
   },
   "devDependencies": {
-    "@lifeforge/configs": "workspace:*",
+    "@monolith/configs": "workspace:*",
     "@types/crypto-js": "^4.2.2"
-  }
+  },
+  "author": "Monolith contributors"
 }

@@ -1,0 +1,31 @@
+---
+import Icon from './Icon.astro'
+import type { addons } from '../data/products'
+interface Props {
+  addon: (typeof addons)[number]
+  filterable?: boolean
+}
+const { addon, filterable = false } = Astro.props
+---
+
+<a
+  href={`/addons/${addon.slug}`}
+  class="addon-card"
+  data-addon-card={filterable ? '' : undefined}
+  data-type={addon.type}
+  data-category={addon.category}
+  data-search={`${addon.name} ${addon.summary} ${addon.category}`.toLowerCase()}
+>
+  <div class="addon-card-top">
+    <span class="addon-icon">
+      <Icon name={addon.icon} size={24} />
+    </span>
+    <span class="badge">{addon.type}</span>
+  </div>
+  <h3>{addon.name}</h3>
+  <p>{addon.summary}</p>
+  <div class="addon-card-bottom">
+    <span>{addon.category}</span>
+    <Icon name="arrow" size={17} />
+  </div>
+</a>

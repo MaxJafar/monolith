@@ -1,12 +1,32 @@
-# LifeForge Frontend UI Library Architecture & Usage Guide
+# Monolith Frontend UI Library Architecture & Usage Guide
 
-Welcome to the **LifeForge UI Library Guide**. This document serves as the single source of truth for frontend development in the LifeForge ecosystem. Anyone writing frontend code for LifeForge must read this guide from cover to cover before writing a single line of code.
+The web and both native clients call `registerWorkspaceIcons()` from `@monolith/ui` before rendering. Shipped interface icons are versioned under `src/assets/icons` and do not require a public icon CDN at runtime. After adding interface icons, run `pnpm exec node tools/desktop-assets.mjs` and review the generated collections and attribution. User-selected icons outside that bundle still use the icon provider. Keep the icon notices in native distributions.
+
+Welcome to the **Monolith UI Library Guide**. This document serves as the single source of truth for frontend development in the Monolith ecosystem. Anyone writing frontend code for Monolith must read this guide from cover to cover before writing a single line of code.
 
 ---
 
 ## 1. Core Philosophy & Architectural Overview
 
-The LifeForge UI library is built on a **zero-runtime CSS-in-JS** architecture powered by **[Vanilla Extract](https://vanilla-extract.style/)** and **[Sprinkles](https://vanilla-extract.style/documentation/packages/sprinkles/)**. This provides total type safety, compile-time optimization, and rich theme integration without the performance overhead of traditional CSS-in-JS solutions.
+### Shared workspace interactions
+
+The addon catalog uses Monolith's neutral surfaces and compact cards. Keep creator credits and source provenance in legal notices; catalog cards show the tool, description, type, category and workspace state. Search, status, category and type filters combine. Owner-only switches persist the workspace setting, announce save results, remain disabled while saving, and retain their previous state on failure. Use the shared Switch with scoped motion tokens and disable decorative motion for reduced-motion users.
+
+Monolith combines compact, contextual database controls with a calm writing surface. Reference inspections of Notion, Craft and Obsidian inform behavior; components retain Monolith's tokens, accessibility and canonical data model. Core surfaces use restrained borders and shallow shadows. Atlas owns the optional note-oriented workbench with tool rail, document tabs, splits, graph and backlinks.
+
+Use `FloatingPopover` for name/icon editors and contextual forms. Anchor it to the invoking row or control, flip at viewport edges, and keep the underlying layout stable. Use `ContextMenu` for actions, with `contextTarget` for right-click and Shift+F10. Escape dismisses the frontmost surface, keyboard focus returns to the invoker, and dropdowns opened inside a form remain usable. `IconPalette` provides a compact, searchable grid with named colors and a custom color input. Do not open a full-screen icon modal for ordinary page or folder customization.
+
+Block selection uses a translucent fill with small corners and database cells use a thin outline. Both inherit --selection-color from the customization accent (blue by default), including text selection and nested page surfaces. Tag option colors belong to the property schema and are shared by table chips, page properties, and board cards. Database pages use the canonical editor title, compact property rows with anchored value popovers, comments before the body, and side/center/full-page presentation. Inline databases are valid children of callouts; background changes are document properties with undo support. Editable document titles keep a caret and subtle baseline rather than a rectangular focus frame. Each canonical block has one owned grip and selection gutter. The document text context menu remains native when a text range is selected; right-clicking the block background opens block actions.
+
+Standard documents retain a comfortable reading width; Full width has no fixed 1480px ceiling and fills the available pane, including ultrawide displays. Embedded databases keep their own horizontal scroll when columns exceed the pane. Popovers use 110–120ms opacity/transform entry; hover feedback changes color without shifting geometry. Native scrolling and pointer hit targets remain immediate. Reduced motion disables decorative transitions.
+
+The directly distributed macOS build disables WebKit's internal `PreferPageRenderingUpdatesNear60FPSEnabled` preference when present, allowing the native display scheduler to deliver ProMotion frames. Runtime feature detection falls back safely, and `MONOLITH_SYSTEM_REFRESH_POLICY=1` restores the system policy. This private API must be omitted from App Store builds until a public equivalent exists. Measure real animation-frame delivery and interaction tails; never infer achieved frame rate from display capability alone.
+
+The Monolith UI library is built on a **zero-runtime CSS-in-JS** architecture powered by **[Vanilla Extract](https://vanilla-extract.style/)** and **[Sprinkles](https://vanilla-extract.style/documentation/packages/sprinkles/)**. This provides total type safety, compile-time optimization, and rich theme integration without the performance overhead of traditional CSS-in-JS solutions.
+
+### Saving in dialogs
+
+`FormModal` owns a native HTML form and a single pending submission. Do not nest another form inside it. Return or await the save promise from `submissionConfig.handler`; rejection leaves the draft open, and success closes the dialog. Its fields and cancel action remain disabled during submission. `ConfirmationModal` also awaits its handler, prevents duplicate requests, and presents failures inline. Update cached data through contract-derived query keys after successful writes.
 
 ### Two Strict Rules
 
@@ -131,18 +151,18 @@ For dynamic category labels or tag chips that need background colors based on da
 
 ## 3. Style Resolution & The Styling Engine
 
-LifeForge uses a custom styling resolver, `resolveStyles()`, which translates token-based properties and responsive objects into static class names and CSS custom properties at runtime.
+Monolith uses a custom styling resolver, `resolveStyles()`, which translates token-based properties and responsive objects into static class names and CSS custom properties at runtime.
 
 ### A. Color Properties & State Resolvers
 
-Colors in LifeForge are resolved through an **arbitrary CSS variable architecture** that handles dynamic user personalization and interactions. The primary color properties are:
+Colors in Monolith are resolved through an **arbitrary CSS variable architecture** that handles dynamic user personalization and interactions. The primary color properties are:
 
-- `bg`: Background Color (`--lf-bg`)
-- `color`: Text/Foreground Color (`--lf-color`)
-- `borderColor`: Border Color (`--lf-border-color`)
-- `ringColor`: Focus Ring Color (`--lf-ring-color`)
-- `ringOffsetColor`: Offset Ring Color (`--lf-ring-offset-color`)
-- `divideColor`: Dividing Line Color (`--lf-divide-color`)
+- `bg`: Background Color (`--monolith-bg`)
+- `color`: Text/Foreground Color (`--monolith-color`)
+- `borderColor`: Border Color (`--monolith-border-color`)
+- `ringColor`: Focus Ring Color (`--monolith-ring-color`)
+- `ringOffsetColor`: Offset Ring Color (`--monolith-ring-offset-color`)
+- `divideColor`: Dividing Line Color (`--monolith-divide-color`)
 
 #### Supported Color Keys
 
@@ -184,10 +204,10 @@ type ThemeConditionPropName =
 
 #### Pre-built Surface Presets (`surface`)
 
-The most common background patterns are available as a pre-built `surface` object exported from `@lifeforge/ui`:
+The most common background patterns are available as a pre-built `surface` object exported from `@monolith/ui`:
 
 ```typescript
-import { surface } from '@lifeforge/ui'
+import { surface } from '@monolith/ui'
 
 // Light static surface - for non-interactive light backgrounds
 surface.light
@@ -228,7 +248,7 @@ These are `as const` objects that can be spread or passed directly into the `bg`
 To prevent heavy runtimes, colors can be blended with transparency using CSS `color-mix` through the `colorWithOpacity` helper:
 
 ```typescript
-import { colorWithOpacity } from '@lifeforge/ui'
+import { colorWithOpacity } from '@monolith/ui'
 
 // Generates: color-mix(in srgb, var(--color-custom-500) 30%, transparent)
 const semiTransparentPrimary = colorWithOpacity('primary', '30%')
@@ -240,7 +260,7 @@ _Supported Opacity Levels:_ `'5%'`, `'10%'`, `'20%'`, `'30%'`, `'40%'`, `'50%'`,
 
 ```typescript
 // In a .css.ts file (build-time evaluation)
-import { colorWithOpacity } from '@lifeforge/ui'
+import { colorWithOpacity } from '@monolith/ui'
 
 const bg200Opacity30 = colorWithOpacity('bg-200', '30%').toString()
 
@@ -294,7 +314,7 @@ Any responsive property accepts a scalar or a responsive configuration object:
 <Box display={{ base: 'block', print: 'none' }} />
 ```
 
-_How it works under the hood:_ The engine applies `.lf-w` and `.md:lf-w` classes while defining CSS variables (`--lf-w: 100%`, `--lf-w-md: 50%`) inline, keeping output stylesheet sizes extremely small.
+_How it works under the hood:_ The engine applies `.monolith-w` and `.md:monolith-w` classes while defining CSS variables (`--monolith-w: 100%`, `--monolith-w-md: 50%`) inline, keeping output stylesheet sizes extremely small.
 
 ---
 
@@ -552,7 +572,7 @@ interface TextOwnProps {
     Create Account
   </Text>
   <Text color="muted" size="base">
-    Welcome back to LifeForge.
+    Welcome back to Monolith.
   </Text>
 </Stack>
 
@@ -870,11 +890,15 @@ All raw input components share a unified visual style by extending components fr
 
 ### C. React Hook Form Integration & FormModal
 
-LifeForge integrates forms via `react-hook-form` controllers to provide a type-safe form state and automated validation messaging.
+Monolith integrates forms via `react-hook-form` controllers to provide a type-safe form state and automated validation messaging.
 
 #### 1. FormModal
 
 A dialog wrapper that encapsulates form state management and submission configurations.
+
+Standard `FormModal` editors open as compact anchored popovers through `ModalManager`, retaining validation and submission handling. The manager captures the invoking control for placement and focus return. Outside clicks dismiss a clean editor; a dirty or submitting editor stays open until an explicit action. Use `FloatingPopover` or `PopoverButton` for small contextual settings, rather than inline `<details>` forms.
+
+Use `AnimatedCollapse` for expandable properties, navigation and grouped content. Keep it mounted while changing `open`; pair its `id` with the trigger's `aria-controls` and `aria-expanded`. The closed content becomes inert immediately while its height settles. Reduced motion removes the transition. `ColorPicker` offers preset and custom colors; an undefined value follows `--selection-color`.
 
 ```typescript
 type SubmissionConfig<T extends FieldValues> =
@@ -937,7 +961,7 @@ Before initializing a form, use `createDefaultValues(schema)` to parse the Zod v
 ```typescript
 import { z } from 'zod'
 
-import { createDefaultValues } from '@lifeforge/ui'
+import { createDefaultValues } from '@monolith/ui'
 
 const userSchema = z.object({
   name: z.string(),
@@ -990,7 +1014,7 @@ interface MenuProps {
 
 ### B. Modal System
 
-LifeForge features a robust, portal-based modal stack manager.
+Monolith features a robust, portal-based modal stack manager.
 
 #### 1. ModalProvider & useModalStore
 
@@ -1184,11 +1208,11 @@ return (
 )
 ```
 
-- **`WithQueryData`:** Simplifies the process by resolving a LifeForge controller query directly:
+- **`WithQueryData`:** Simplifies the process by resolving a Monolith controller query directly:
 
 ```tsx
 return (
-  <WithQueryData contract={forgeAPI.tasks.listAll}>
+  <WithQueryData contract={workspaceAPI.tasks.listAll}>
     {tasks => (
       <Stack>
         {tasks.map(t => (
@@ -1212,9 +1236,9 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'react-toastify'
 
-import { Button, Flex, Icon, Stack, Text, TextInput } from '@lifeforge/ui'
+import { Button, Flex, Icon, Stack, Text, TextInput } from '@monolith/ui'
 
-import forgeAPI from '@/forgeAPI'
+import workspaceAPI from '@/workspaceAPI'
 
 function UserCreationPage() {
   const { t } = useTranslation('common.auth')
@@ -1230,7 +1254,7 @@ function UserCreationPage() {
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const createUserMutation = useMutation(
-    forgeAPI.user.auth.createFirstUser.mutationOptions({
+    workspaceAPI.user.auth.createFirstUser.mutationOptions({
       onSuccess: () => {
         toast.success(t('messages.userCreated'))
         window.location.reload()
@@ -1294,7 +1318,7 @@ function UserCreationPage() {
         <Text as="h1" size="3xl" weight="semibold" whiteSpace="nowrap">
           <Icon color="primary" icon="tabler:hammer" />
           <div>
-            LifeForge
+            Monolith
             <Text color="primary" size="4xl">
               .
             </Text>
@@ -1408,7 +1432,7 @@ Before (using removed Tailwind utilities):
 After (using UI primitives with `surface` preset):
 
 ```tsx
-import { Box, Text, surface } from '@lifeforge/ui'
+import { Box, Text, surface } from '@monolith/ui'
 
 ;<Box as="button" bg={surface.lightInteractive} p="lg" r="lg" width="100%">
   <Text weight="medium">Item</Text>
@@ -1506,15 +1530,15 @@ After:
 
 ---
 
-## 13. Migration Guide: `@iconify/react` → `@lifeforge/ui` Icon Primitive
+## 13. Migration Guide: `@iconify/react` → `@monolith/ui` Icon Primitive
 
-The standalone `Icon` from `@iconify/react` must never be imported directly. Always use the `Icon` primitive exported by `@lifeforge/ui`.
+The standalone `Icon` from `@iconify/react` must never be imported directly. Always use the `Icon` primitive exported by `@monolith/ui`.
 
 ### Key Differences
 
-| Aspect   | `@iconify/react` Icon                                | `@lifeforge/ui` Icon                                       |
+| Aspect   | `@iconify/react` Icon                                | `@monolith/ui` Icon                                        |
 | -------- | ---------------------------------------------------- | ---------------------------------------------------------- |
-| Import   | `import { Icon } from '@iconify/react'`              | `import { Icon } from '@lifeforge/ui'`                     |
+| Import   | `import { Icon } from '@iconify/react'`              | `import { Icon } from '@monolith/ui'`                      |
 | Sizing   | `width` / `height` props (e.g. `width="1.5em"`)      | **`size`** prop (e.g. `size="1.5em"`)                      |
 | Color    | `className="text-custom-500"` (Tailwind)             | `color="primary"` (design token)                           |
 | Layout   | `className="absolute right-1.5 bottom-2"` (Tailwind) | `Box asChild position="absolute" bottom="sm" right="sm"`   |
@@ -1540,7 +1564,7 @@ import { Icon } from '@iconify/react'
 After (positioned):
 
 ```tsx
-import { Box, Icon } from '@lifeforge/ui'
+import { Box, Icon } from '@monolith/ui'
 
 ;<Box asChild position="absolute" bottom="sm" right="sm">
   <Icon color="primary" icon="tabler:check" size="1.5em" />
@@ -1550,7 +1574,7 @@ import { Box, Icon } from '@lifeforge/ui'
 After (inline - no positioning needed):
 
 ```tsx
-import { Icon } from '@lifeforge/ui'
+import { Icon } from '@monolith/ui'
 
 ;<Icon color="primary" icon="tabler:check" />
 ```
@@ -1559,7 +1583,7 @@ import { Icon } from '@lifeforge/ui'
 
 ### Migration Checklist
 
-1. Replace `import { Icon } from '@iconify/react'` with `import { Icon } from '@lifeforge/ui'` (or add `Icon` to the existing destructured import from `@lifeforge/ui`).
+1. Replace `import { Icon } from '@iconify/react'` with `import { Icon } from '@monolith/ui'` (or add `Icon` to the existing destructured import from `@monolith/ui`).
 2. Replace `width="..." height="..."` with a single `size="..."`.
 3. Replace `className="text-custom-500"` / `className="text-bg-500"` with `color="primary"` / `color="muted"`.
 4. For positioned icons (`position`, `top`, `right`, `bottom`), wrap with `Box asChild`. For spacing and display, pass props directly to `Icon` (it inherits all `Text` props).
@@ -1705,7 +1729,7 @@ Replace breakpoints with responsive props: `hidden md:flex` →
   that only they use.
 - Co-locate a modal's private components under `<ModalName>/components/` with the
   modal as `<ModalName>/index.tsx`.
-- Update hardcoded `queryKey` arrays you touch to the `forgeAPI.*.key` convention.
+- Update hardcoded `queryKey` arrays you touch to the `workspaceAPI.*.key` convention.
 
 ---
 
@@ -1728,7 +1752,7 @@ Before submitting a pull request, verify that you have adhered to all core desig
 
 ## monolith visual defaults
 
-Monolith uses a black and white identity in a Notion-inspired workspace: a persistent page tree, compact breadcrumb header and editable page canvas. The original geometric M mark in `apps/web/public/brand` is shared by the interface, favicon, app icons and desktop shortcut. Keep specialized area dashboards connected to their existing data.
+Monolith uses a black, white and gray identity in a Notion-inspired workspace: a persistent page tree, compact breadcrumb header and editable page canvas. The minimal rectangular monolith faces right, with a white front, gray left side and black rounded-square tile; the outer corners are transparent. Keep the mark identical in light and dark themes, with no text inside the icon. `apps/web/public/brand/monolith-mark.svg` is the source shared by the interface, favicon, app icons, desktop shortcut and docs. Run `pnpm brand:assets` after changing it to regenerate the public copies, PNG sizes, ICO and docs preview. Keep specialized area dashboards connected to their existing data.
 
 - Light canvas and panels `#ffffff`, sidebar `#f7f7f5`, lifted panels `#f1f1ef`, primary text `#252525`, supporting text `#73736f`. Dark canvas `#191919`, panels and sidebar `#202020`, lifted panels `#2c2c2c`, primary text `#eeeeec`, supporting text `#a6a6a2`. Essential labels use the supporting role or primary text.
 - Primary actions use `--interactive-primary` and `--interactive-on-primary`, inverting in dark mode. Neutral tonal containers mix 8% text into the panel. Red and amber remain reserved for meaningful error and warning states; categorical property colors can convey data.
@@ -1740,13 +1764,33 @@ Monolith uses a black and white identity in a Notion-inspired workspace: a persi
 - Boards scroll horizontally within the content area and snap gently on touch. Reveal card actions on hover or keyboard focus, keeping them visible on touch. Every draggable card also offers a keyboard-accessible move menu. Show optimistic moves immediately, then restore the previous state on failure. Preserve records whose grouping option was removed and allow creation directly within each group.
 - Keep localization, responsive primitive props, semantic headings, keyboard support and user personalization.
 
-Internal LifeForge package identifiers remain compatible with existing modules and data.
+All maintained packages use @monolith/*. An explicit compatibility adapter preserves historical storage IDs and route hashes for existing addons and saved data.
 
-The sidebar uses one continuous scroll region, with workspace pages before installed areas. Keep the workspace selector compact and keyboard accessible. Page branches expose their expanded state and reveal the active page's ancestors; collapsed children are absent from keyboard and accessibility navigation. Show child-page actions on hover or focus on desktop, and retain 44px visible targets on touch layouts. Dismiss the mobile drawer only after guarded navigation commits, including query-only workspace changes. The drawer and backdrop share the 1000px breakpoint.
+### System views, pages and addons
+
+Use **Addon** in user-facing text. Internal package, route-contract and database identifiers retain `module` for compatibility. Calendar, Projects, Actions, Docs, Dashboard and Databases are system views and must never depend on optional addon enablement. Each reads the selected workspace's database snapshot; matching records retain their IDs, permissions and revision guards across views. Exact routing tags are `action`/`task`, `project`, `doc`/`note` and `idea`, with plural aliases. Native item types continue to match. Calendar also reads date properties. Never copy records merely to populate a system view.
+
+Sidebar order is workspace selection, search, system views, editable Pages/groups/Addons, then the account control. Pages nest; custom groups accept both pages and addons. Keep drag-and-drop and keyboard menu alternatives consistent. Rename, visibility, group membership and manual order persist through the workspace navigation contract with compare-and-swap revisions. Hiding an addon does not delete its data. Sorting and filtering must not mutate saved manual order. Owners manage addon enablement, owners/editors arrange navigation, and viewers can browse but cannot mutate it.
+
+Inline and standalone databases use the same registry and appear in Databases. Inline embeds store workspace/base/view IDs and an optional presentation height, never copied records. Core database widgets remain available even when no addons are enabled. Actions defaults to today's agenda and explicitly identifies the database when creating an item. Projects exposes board, timeline and Gantt controls with accessible status movement. Dashboard derives every count from current workspace records; avoid illustrative or fabricated analytics.
+
+Addon development starts with `pnpm monolith addons create author--name`; packaging uses `pnpm monolith addons pack author--name`. The scaffold follows these UI rules and includes all four locales. The addon manager explains source sharing without linking to an unimplemented shop. Addons are trusted application code, so workspace enablement is not an isolation or sandbox boundary.
+
+The sidebar uses one continuous scroll region, with workspace pages before installed areas. Keep the workspace selector compact and keyboard accessible. Page branches and groups expose their expanded state and persist collapse choices per account and workspace. Reveal the active page's ancestors on navigation. Collapsed children are inert and hidden from accessibility; their reveal animation respects reduced motion. Show child-page actions on hover or focus on desktop, and retain visible targets on touch layouts. Dismiss the mobile drawer only after guarded navigation commits, including query-only workspace changes. The drawer and backdrop share the 1000px breakpoint.
+
+### Workspace chrome and page controls
+
+Web, Windows and macOS share one compact 38px workspace strip containing a single subtly translucent Monolith icon and wordmark, sidebar toggle, history controls and page tabs. Windows uses native host minimize, maximize/restore, close and window-drag operations. macOS retains its native traffic lights with reserved space in the shared strip and a transparent titlebar. Do not add another branded title or connection toolbar. The desktop Connection & drafts panel opens from the page menu and floats below the chrome.
+
+Tabs are scoped to the authenticated account and server, restored from session storage, and capped at 30. Normal navigation replaces the current tab; a new tab opens workspace-scoped search. Control/Command-click and middle-click on internal links open workspace tabs. External links retain their normal behavior. Commit tab selection and closure only after guarded navigation succeeds. Use tablist/tab/tabpanel semantics, roving focus and Arrow/Home/End navigation; close buttons have localized names.
+
+The page header contains breadcrumbs, document save status, copy link and a three-dot settings menu. Font, width and appearance choices use the existing revision-checked appearance contract. `PageChromeProvider` lets canonical documents and legacy pages publish their current title and status without rendering duplicate toolbars. Only expose export when the document supplies it; keep recovery, conflict and retry controls in the editor. Native connection controls belong in the menu, not in browser builds.
+
+The canonical block editor offers a compact Add block menu, undo/redo and linked-database insertion. Clicking or right-clicking a block grip opens structural actions without starting a drag. Paragraph transformations preserve block identity and text; duplicate, move and delete use the same adapter and undo history as keyboard editing. Keep slash commands, inline formatting, multi-selection and drag gestures available. The block insertion menu places content at the current selection or caret, including within columns. Existing legacy pages retain their data and editor until their workspace's canonical rollout is enabled.
 
 ### Editable workspace pages
 
-`ModuleWrapper` renders each area inside `WorkspaceCanvas`; retain the module's providers and native dashboard as its connected area block. Home uses the same canvas with live project, service and finance widgets. Custom pages use `/page/:id`. The host supplies `CanvasPageStorage` from the accessible workspace's page contract, including role and revision protection; the core `user.pages` contract remains a compatibility fallback. Do not copy records into dashboard configuration.
+`ModuleWrapper` renders optional addon areas inside `WorkspaceCanvas`; retain the addon's providers and native dashboard as its connected area block. Core system views use `canvas: false` to avoid duplicate editable titles and nested page shells. Custom pages use `/page/:id`. The host supplies `CanvasPageStorage` from the accessible workspace's page contract, including role and revision protection; the core `user.pages` contract remains a compatibility fallback. Do not copy records into dashboard configuration.
 
 `CanvasWidgetExtensionProvider` supplies installed widget descriptors and a render callback. Widget configuration may contain a name filter; it must never contain credentials or copied monitoring readings. Use the existing widget provider and module metadata to load widgets lazily. A missing module displays an explicit unavailable state.
 
@@ -1758,7 +1802,7 @@ Seed the content query with an already validated page from route metadata to avo
 
 ### Data visualization
 
-`HorizontalBarChart`, `LineChart` and `ProgressRing` are exported by `@lifeforge/ui`. Read `components/display/DataViz/DataViz.stories.tsx` before using them. Comparison bars use primitives; trends and rings use SVG geometry. All use existing theme variables without a charting dependency. Compose their panels, headings and controls with primitives.
+`HorizontalBarChart`, `LineChart` and `ProgressRing` are exported by `@monolith/ui`. Read `components/display/DataViz/DataViz.stories.tsx` before using them. Comparison bars use primitives; trends and rings use SVG geometry. All use existing theme variables without a charting dependency. Compose their panels, headings and controls with primitives.
 
 Pass real source data as `{ label, value, position?, detail?, color? }`. A null value is unknown, not zero; line charts preserve gaps, and bars display an em dash. Bar scales start at zero. Progress ratios clamp safely, including empty or zero goals. Line charts support explicit domains, inverted scales and reference lines; use numeric `position` for actual time spacing and retain duplicate-date sessions. Localize labels and units in the calling module. Source colors may be passed as CSS colors, while defaults use the theme accent.
 
@@ -1766,7 +1810,7 @@ Line points support hover/focus readouts, native titles and an accessible data t
 
 ### Documents, graphs and motion
 
-`BlockEditor` and `KnowledgeGraph` are exported by `@lifeforge/ui`; modules must not import their Tiptap or d3 dependencies directly. Read their stories under `components/display` before using them. Controls use primitives; third-party editor/graph styling uses scoped plain CSS and shared color/motion variables.
+`BlockEditor` and `KnowledgeGraph` are exported by `@monolith/ui`; modules must not import their Tiptap or d3 dependencies directly. Read their stories under `components/display` before using them. Controls use primitives; third-party editor/graph styling uses scoped plain CSS and shared color/motion variables.
 
 Pass the persisted body as `BlockEditor.value`, update the draft through `onChange`, and track `onValidityChange` so invalid blocks disable saving. Pass only owned `pages` and handle `onOpenPage` through application navigation. The editor preserves plain text until an actual content edit. Preview/edit switches and loading state must use `setEditable` without update emission. A page link stores identity independently of its display label; avoid replacing IDs with titles.
 
@@ -1775,6 +1819,8 @@ Formatting controls retain the editor selection on pointer activation. Reveal th
 Pass a `KnowledgeSnapshot`, selected page key and navigation callbacks to `KnowledgeGraph`. Keep an accessible page list alongside the visual graph. Stop force simulations on cleanup, honor `prefers-reduced-motion` for both initial layout and dragging, and keep wheel/pointer handlers scoped to the graph.
 
 Use `--motion-fast`, `--motion-normal`, `--motion-slow` and `--motion-ease` for transitions. Animate opacity/transform for route entry and explicit visual button properties; avoid `transition: all` and layout animation. Reduced motion disables entrance transitions and animated graph settlement.
+
+Selection, focused properties and menu hover inherit `--selection-color` from the active customization scope, including portalled popovers. Use translucent 8–9% fills and 35% outlines at rest, increasing to 14–15% and 85% on hover. Compact menus use 5px corners and the shared `monolith-popover-in` / `monolith-popover-out` animations: 145ms from the top-left origin, 110ms to dismiss. `FloatingPopover` retains an inert visual snapshot for exit; page surfaces keep their real editors mounted for a 160ms close. Changing side/center/full page presentation may transition its frame dimensions over 220ms without remounting the editor. Reduced motion removes these effects immediately.
 
 Interactive cards transition only their visual properties, without animating size or position. Shared CSS animations and transitions are disabled under `prefers-reduced-motion: reduce`; do not use a tiny duration for infinite animations. Modal removal must not depend solely on `transitionend`: the manager also schedules removal after the fade, or immediately with reduced motion. Nested transition events must not finish the outer modal's fade early. Icon-only close buttons have localized accessible names; switches accept `aria-label` and forward native disabled state.
 
@@ -1790,6 +1836,14 @@ Shared `TabbedView` and `ViewMode` factories keep state in their React 19 Root c
 
 ### Calendar views and smart properties
 
+Inline database insertion offers Table, Board, Calendar, Gallery and List, with either a new database or an existing saved view. Create the database and its chosen initial view atomically. Each embed owns its selected view, open record and calendar position; switching or editing inside it must not change the page URL or neighboring embeds. Modifier-click internal links open shared workspace tabs; external links retain normal browser navigation. Persist view and height changes through the enclosing document's normal save/undo path. Insert at the selected block or caret's parent, preserving columns.
+
+Use the shared `InlineDatabasePicker` in both page editors and render the regular database engine through `CanvasWidgetExtensionProvider`. Galleries and lists consume the same filtered records, visible properties and permissions as tables and boards. Let saved-view tabs wrap onto their own scrolling row in narrow embeds. Keep database summaries outside inline frames and hide empty property-count metadata there.
+
+Inline height is automatic at zero; explicit resizing is bounded to 240–1200px. Resize with pointer capture and one animation-frame write, commit on release, and cancel cleanly on Escape or capture loss. Up/Down adjust by 40px; Home or double-click restores automatic height. The resize control must remain focusable with a localized name and help.
+
+Expressive motion is brief and bounded: use `--motion-spring` for hover/handle feedback, `settleElement` for press/drop/resize settlement, and `elasticDragPreview` for native card/block drags. Canonical block drags retain text excerpts and use transform-only previews and settlement; clean up previews, listeners and animation frames on completion or cancellation. `elasticScrollEdge` adds a small boundary pulse while retaining native wheel momentum and nested scrolling. Honor reduced motion in both CSS and JavaScript, retaining every editing and keyboard action without wobble.
+
 Database browsing uses compact base rows with live record counts, horizontally scrolling view tabs and an overflow menu for secondary actions. Temporary title search filters the selected saved view without changing persisted filters, sorts or canonical rows; provide clear and Escape recovery and explicit no-results feedback. Read-only embedded views keep search, view selection and record navigation usable while disabling schema changes, item changes, dragging and date moves. Compact desktop controls become 44px touch targets.
 
 Database calendar layouts use civil dates, with an optional inclusive end-date property. Keep undated or invalid legacy pages reachable in an Unscheduled section. Month/week cells use table/row/cell semantics and ordinary keyboard-accessible buttons; date moves need a focused form alternative to dragging. Confine wide date grids to their own horizontal scroller on phones. Respect hidden properties on event cards and show person names rather than stored UUIDs.
@@ -1798,9 +1852,9 @@ Calendar source selections distinguish `null` (all sources) from `[]` (no source
 
 Built-in Type, Completed, Date and End date are canonical record properties. View filters/sorts and calendar bindings read these directly instead of duplicating them in custom property JSON. Date feeds receive the browser's IANA time zone; moving a canonical calendar item preserves its time and duration. Filter before deduplicating a native event and its database counterpart, so a source-specific selection still works. Native legacy timestamps are stored as UTC without a zone; raw SQL adapters must explicitly interpret them at UTC to prevent drift.
 
-### Connected workspaces and LifeForge modules
+### Connected workspaces and built-in addons
 
-Workspaces select modules and personal, collaborative or agent profiles. Excluding a module hides its navigation without deleting data. Collaborative sections use typed canonical collections for projects, tasks, notes, events and posts. Personal sections retain their specialized LifeForge dashboards and synchronize common item properties in both directions. Type changes preserve canonical IDs and relations; incompatible titles or recurring date changes reject atomically. Native journals are drained in the request transaction, under a consistent owner lock, before reading current canonical state. Background native writes are consumed on the next canonical read.
+Workspaces select modules and personal, collaborative or agent profiles. Excluding a module hides its navigation without deleting data. Collaborative sections use typed canonical collections for projects, tasks, notes, events and posts. Personal sections retain their specialized addon dashboards and synchronize common item properties in both directions. Type changes preserve canonical IDs and relations; incompatible titles or recurring date changes reject atomically. Native journals are drained in the request transaction, under a consistent owner lock, before reading current canonical state. Background native writes are consumed on the next canonical read.
 
 Scope every database identity, relation target, page parent, graph endpoint and agent project/task/run to the verified workspace. Membership permits access to its rows, never the owner's entire account. Agent identities, credentials and budgets remain reusable account resources; project work and activity are workspace-scoped. Agent controls currently require the workspace owner. Support human member roles in project management without implying real-time collaborative editor synchronization.
 
@@ -1812,4 +1866,48 @@ Collection/source forms own their drafts and guard query-only navigation. Keep d
 
 Agent playbooks contain reusable instructions and explicit completion checks. Selection belongs to the agent profile; each dispatch captures immutable revisions. Show review requirements and worker-reported evidence on the run. Required checks need a connected worker, and evidence remains subject to human review. Playbook text must never itself grant permissions or run shell hooks. Preserve existing runtime, budget and usage controls.
 
-Global system search lives at `/search` and is reachable from the app bar. Show current index coverage and Mac mini connectivity, allow workspace/module filters and resumable indexing, and retain keyword results when model services fail. Generated answer statements link to numbered evidence; image-derived text is labeled as an AI interpretation. Clear private result state on account/scope changes and discard late responses from the prior scope. Keep original source links, keyboard-accessible controls and visible file coverage warnings. Host credentials remain on the backend.
+Global workspace search opens a filterable overlay from the sidebar or Command/Control+K. The advanced index and retrieval tools remain available at `/search` and in Settings. Show current index coverage and configured host connectivity, allow workspace/module filters and resumable indexing, and retain keyword results when model services fail. Generated answer statements link to numbered evidence; image-derived text is labeled as an AI interpretation. Clear private result state on account/scope changes and discard late responses from the prior scope. Keep original source links, keyboard-accessible controls and visible file coverage warnings. Host credentials remain on the backend.
+
+### Appearance builder
+
+Appearance inherits from the authenticated account to the selected workspace and then to the current page or addon. `AppearanceContext` exposes the resolved tokens and editor action to shared headers, canvas shells and icons. Identity icons belong to a workspace or page; do not inherit a workspace icon as every page's icon. Resolve surface tokens using the active light/dark CSS theme and choose foreground contrast from the actual background. Preserve semantic and button icon colors. Hosted fonts use the selected provider stylesheet; system fonts remain available offline.
+
+The builder keeps independent drafts for each scope, previews them before saving and confirms discarding unsaved choices. Global appearance is a revisioned record at `dashboardLayout.__appearance`; ordinary dashboard layout writes must preserve it atomically. Workspace and route appearance live in the workspace navigation JSON and use its revision and editor permissions. Save only the requested scope, retaining navigation metadata and document content. Store uploaded covers by file key, resolving their media URL in the current session. An explicit null cover hides an inherited cover; unset fields inherit. Keep all appearance strings in all four common locales.
+
+### Atlas knowledge maps
+
+Atlas can overlay canonical links with explicit tag hubs, inferred topics and contextual suggestions from the system RAG index. Keep the shell neutral while giving nodes and edges deterministic identity colors, with an optional type palette. Hollow topic dots, tag outlines and dashed contextual edges supplement color. Provide an accessible entity list and relationship evidence; never rely on color alone. Keep dots legible at distant zoom and constrain low-degree nodes so the fit action does not shrink the connected map around isolated outliers.
+
+Context discovery reuses authorized, freshness-checked search passages and embeddings. It must not create a separate index, send background inference requests, or save suggestions as authored links. Topic and tag hubs have no page-edit or relationship-write controls. Explain the retrieval method and label similarity as a score rather than a probability. Editors can explicitly save a contextual connection through the regular workspace mutation. RAG results keep source citations and offer graph navigation; scope index management to the same workspace and discard late results after scope changes. Toggle layers and similarity thresholds without altering canonical records. Report bounded analysis coverage and model-index coverage honestly; keyword discovery remains available without embeddings.
+
+Derive lexical topics from canonical titles, prose and properties. Search display metadata such as the containing database's name must not manufacture topic clusters. Keep explicit tags separate from inferred topics. Update graph focus and neighborhood scope together so search-to-map navigation survives history and reloads. Changing a query from the inspector also clears previous results and invalidates pending responses.
+
+Atlas is an optional addon over canonical workspace pages and records. It uses the shared `KnowledgeGraph` with `presentation="atlas"`, force/radial layouts, pause, spacing and label controls. The force engine updates SVG coordinates directly; React owns selection and controls. Keep an accessible, filterable page list alongside the map, stop simulations and pointer actions on cleanup, and settle the graph immediately for reduced motion. Hover and selection emphasize actual neighbors. At distant zoom levels, suppress low-degree labels to avoid unreadable overlap.
+
+Atlas is a dashboard reached directly below Dashboard in the existing main sidebar when its addon is enabled. Keep one application shell and the normal page and database editors; do not nest a second rail, tab manager, vault tree or editor in Atlas. Counts and database collections derive from the shared workspace graph response, including empty databases, record membership and inline-view references. Database collections open their canonical database route. Page and record nodes open the existing page and record routes. The graph, discovery list and relationship inspector use shared primitives and stack on phones.
+
+Core document saves publish an identity-only workspace change notification after a successful commit. Atlas refreshes its contract-derived graph, preview and contextual-search queries for the same server/account/workspace; it also refreshes on focus and polls saved graph/previews every 15 seconds while visible for changes from other devices. Canonical document titles, bodies and timestamps take precedence over legacy projections. Drafts stay in the normal editor and are never copied into Atlas. Derived mentions, hierarchy, database membership and inline embeds are read-only; only explicit semantic connections can be removed, without deleting pages. Respect viewer permissions, scope boundaries, empty/offline/error and bounded-result states. A dashboard addon can use `canvas: false` without changing other addons' canvas behavior.
+
+### Widgets and motion across clients
+
+The shared workspace fills its parent's available height below the workspace strip; nesting another viewport-height shell clips the sidebar account menu. Connection & drafts is a floating desktop panel opened from page settings. Global search uses Command+K on macOS and Control+K elsewhere, keeps the active workspace scope, and yields to focused text editors and inputs. The macOS host supplies native confirmation sheets for the bundled main frame so Cancel preserves edits and Continue completes the requested action.
+
+Default Inter and JetBrains Mono font files and their OFL licenses ship in `apps/web/public/fonts`. Shared UI declares them in `styles/fonts.css`; web, Windows and macOS resolve the same local assets. Keep default typography independent of Google Fonts availability and compatible with the desktop content security policies. Explicit user-selected hosted fonts remain separate appearance choices.
+
+A **Widget** is a connected block on a dashboard or addon. `WidgetBoard` is shared by web, the Rust Windows host and the Swift macOS host. Addon insertion is limited to widgets registered to that addon; the dashboard offers installed widgets plus core workspace pulse, Actions agenda, projects, navigation and weather. The Homelab template uses the existing Tech Lab/Homepage service widgets. Templates are explicit, reversible layout changes. Preserve historical document blocks and IDs, including through remove/undo. Do not store copies of task or project data in widget configurations.
+
+Retained historical content keeps its page-block appearance, without a duplicate card heading in viewing mode. Canonical historical content remains full-width and does not offer widget dimension controls. Only registered widgets and the native addon view receive canonical widget dimensions. Widget menus must remain above neighboring tiles, including when container queries establish a stacking context.
+
+Use `widgetScope` on area canvases. Legacy layouts retain revision-checked page persistence; canonical layouts retain the Go document endpoint and encrypted native draft/conflict flow. Widget dimensions live in module configuration (`width`: full/half/third, `height`: zero for automatic or up to 1000px). Go, Rust and Swift enforce the same dimension bounds. Editable templates, handles, settings and resize controls are absent for viewers. Core widgets query and mutate canonical workspace records with account/workspace cache scope and optimistic concurrency. Weather is opt-in by city, attributed to Open-Meteo, with loading/failure/retry states.
+
+`spring.ts` defines the shared seconds-based motion model, with bounded timesteps for high-refresh displays and resumed tabs. `kineticPose` supplies velocity-driven tilt, squash and a maximum 24px visual lag. The actual drop target always tracks the pointer directly. Reorders use FLIP, resize commits once on release, and native scroll momentum is retained with a bounded 18px spring at its edges. Graph zoom is anchored at the pointer and uses the same spring integrator. No permanent idle wobble. Cancel pointer actions on Escape, capture loss, blur, unmount or permission changes; restore provisional styles and never persist cancelled gestures. Keyboard arrows move widgets and resize them; Home restores automatic height. Reduced motion removes all decorative lag, deformation and overshoot while preserving every control.
+
+Workspace search and Settings use the shared modal stack. Keep the page mounted behind a lightly translucent surface, trap focus in the frontmost overlay, restore focus on dismissal, and support Escape and reduced motion. Search offers immediate workspace results, scoped content retrieval, preview, type filters and keyboard navigation. The new-tab control opens the same search with results directed to a fresh workspace tab.
+
+Sidebar width (220–420px), density, section visibility and widget choices are per account/workspace/device. Commit resize once on release; Escape restores its starting width. Group names/icons/order and page archive state use revision-checked workspace navigation. Archiving hides descendants without deleting documents; Archive restores the original tree. Never represent archival as permanent deletion. Drag previews use the actual navigation card, a bounded velocity spring and the workspace accent.
+
+Addon manifests may declare an experience kind (`widget`, `dashboard`, `database`, `workbench`, `overhaul`, `standard`) and supported surfaces. Widget-only addons are offered in widget catalogs rather than occupying top-level navigation. Sidebar widgets reuse the same connected catalog as pages and dashboards; no copied records or independent timer stores. Journal projects canonical Docs records tagged `journal`, including historical posts, with dated writing activity. Capability declarations for future overhauls describe their intended surfaces; they do not grant runtime privileges.
+
+Database colors belong to saved view configuration. Tables, lists, galleries, boards and calendars share one property-to-color rule, with muted fallbacks and explicit palette overrides. Multiple tags use the first tag; completed status overrides stale active status. Color is decorative: keep titles, status labels and keyboard controls usable without color.
+
+Native HTML dragging uses the shared `setInternalDragData`, `hasInternalDragData` and `getInternalDragData` helpers. They retain a gesture-scoped, same-document payload when WebKit omits custom MIME types. Clear it after drop, cancellation or focus loss; never treat plain text as permission to move a workspace item. Keep workspace, item membership and editor-permission checks at the drop destination. The spring preview changes only the visual feedback, not these data checks.

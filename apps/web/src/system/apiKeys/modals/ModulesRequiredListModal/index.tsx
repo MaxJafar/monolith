@@ -1,46 +1,59 @@
 import { useTranslation } from 'react-i18next'
 
-import { useFederation } from '@lifeforge/federation'
-import { Box, ModalHeader, Stack, Text } from '@lifeforge/ui'
+import { useFederation } from '@monolith/federation'
+import { Card, Flex, Icon, ModalHeader, Stack, Text } from '@monolith/ui'
 
-import ModuleRequiredCard from './components/ModuleRequiredCard'
+import { credentialUsers } from '../../model'
 
-function ModulesRequiredListModal({
-  onClose,
-  data: { keyId }
+export default function ModulesRequiredListModal({
+  data: { keyId },
+  onClose
 }: {
+  data: { keyId: string }
   onClose: () => void
-  data: {
-    keyId: string
-  }
 }) {
-  const { t } = useTranslation('common.api-keys')
   const { moduleGroups } = useFederation()
-
-  const modulesRequired = moduleGroups
-    .flatMap(cat => cat.items)
-    .filter(item => item.APIKeyAccess?.[keyId])
+  const { t, i18n } = useTranslation('common.api-keys')
+  const consumers = credentialUsers(moduleGroups, keyId)
 
   return (
-    <Box minWidth="40vw">
+    <Stack width="520px" maxWidth="100%" gap="md">
       <ModalHeader
-        icon="tabler:cube"
         namespace="common.api-keys"
         title="modulesRequired.title"
+        icon="tabler:apps"
         onClose={onClose}
       />
-      <Text as="p" color="muted">
+      <Text color="muted">
         {t('modals.modulesRequired.totalModulesRequire', {
-          count: modulesRequired.length
+          count: consumers.length
         })}
       </Text>
-      <Stack mt="lg">
-        {modulesRequired.map(module => (
-          <ModuleRequiredCard key={module.name} keyId={keyId} module={module} />
-        ))}
+      <Stack role="list" gap="sm">
+        {consumers.map(addon => {
+          const access = addon.APIKeyAccess![keyId]!
+          return (
+            <Card key={addon.name} role="listitem" gap="sm">
+              <Flex align="center" gap="sm">
+                <Icon icon={addon.icon} color="muted" />
+                <Text weight="medium">
+                  {i18n.t('title', {
+                    ns: 'apps.' + addon.name,
+                    defaultValue: addon.name
+                  })}
+                </Text>
+              </Flex>
+              <Text color="muted">{access.usage}</Text>
+              <Text size="sm">
+                {t(
+                  'modals.modulesRequired.' +
+                    (access.required ? 'required' : 'optional')
+                )}
+              </Text>
+            </Card>
+          )
+        })}
       </Stack>
-    </Box>
+    </Stack>
   )
 }
-
-export default ModulesRequiredListModal

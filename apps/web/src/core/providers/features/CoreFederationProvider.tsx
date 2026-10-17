@@ -1,7 +1,7 @@
-import { useEffect } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 
-import { useAuth } from '@lifeforge/api'
-import { bootstrapModules, useFederation } from '@lifeforge/federation'
+import { useAuth } from '@monolith/api'
+import { bootstrapModules, useFederation } from '@monolith/federation'
 
 import { CORE_MODULES } from '@/system'
 
@@ -11,7 +11,6 @@ export default function CoreFederationProvider({
   children: React.ReactNode
 }) {
   const { auth } = useAuth()
-
   const {
     setModuleGroups,
     setGlobalProviders,
@@ -20,37 +19,70 @@ export default function CoreFederationProvider({
     setError,
     refetch
   } = useFederation()
+  const generation = useRef(0)
+  const authenticated = Boolean(auth)
 
-  async function fetchModules() {
+  const refresh = useCallback(async () => {
+    const request = ++generation.current
+    if (!authenticated) return
     setLoading(true)
     setError(null)
-
     try {
+      if (import.meta.env.DEV) {
+        const { registerDevelopmentShares } =
+          await import('./developmentShares')
+        await registerDevelopmentShares()
+      }
       const result = await bootstrapModules(
         import.meta.env.VITE_API_HOST || '',
         CORE_MODULES
       )
-
+      if (request !== generation.current) return
       setModuleGroups(result.moduleGroups)
       setGlobalProviders(result.globalProviders)
       setCategoryTranslations(result.categoryTranslations)
-    } catch (e) {
-      setError(e instanceof Error ? e : new Error('Failed to load modules'))
+    } catch (error) {
+      if (request === generation.current) {
+        setError(
+          error instanceof Error ? error : new Error('Unable to load addons')
+        )
+      }
     } finally {
-      setLoading(false)
+      if (request === generation.current) setLoading(false)
     }
-  }
+  }, [
+    authenticated,
+    setModuleGroups,
+    setGlobalProviders,
+    setCategoryTranslations,
+    setLoading,
+    setError
+  ])
 
   useEffect(() => {
-    if (!auth) {
+    refetch.current = refresh
+    if (authenticated) void refresh()
+    else {
+      setModuleGroups([])
+      setGlobalProviders([])
+      setCategoryTranslations({})
+      setError(null)
       setLoading(false)
-
-      return
     }
-
-    fetchModules()
-    refetch.current = fetchModules
-  }, [auth])
+    return () => {
+      ++generation.current
+      refetch.current = async () => {}
+    }
+  }, [
+    authenticated,
+    refresh,
+    refetch,
+    setModuleGroups,
+    setGlobalProviders,
+    setCategoryTranslations,
+    setLoading,
+    setError
+  ])
 
   return children
 }

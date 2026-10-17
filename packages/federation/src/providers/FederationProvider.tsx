@@ -1,16 +1,24 @@
-import { createContext, useContext, useMemo, useRef, useState } from 'react'
+import {
+  type Dispatch,
+  type FC,
+  type ReactNode,
+  type RefObject,
+  type SetStateAction,
+  createContext,
+  useContext,
+  useMemo,
+  useRef,
+  useState
+} from 'react'
 
-import type { ModuleGroup } from '@lifeforge/configs'
+import type { ModuleGroup } from '@monolith/configs'
 
 import type { FederatedModule } from '../utils/fetchModuleData'
 
 export interface FederatedModuleGroup {
   title: string
-  items: (ModuleGroup['items'][number] & {
-    rawModule?: FederatedModule
-  })[]
+  items: (ModuleGroup['items'][number] & { rawModule?: FederatedModule })[]
 }
-
 export const SYSTEM_CATEGORIES = [
   '<START>',
   'Miscellaneous',
@@ -19,76 +27,76 @@ export const SYSTEM_CATEGORIES = [
   '<END>'
 ]
 
-interface FederationContextValue {
+type State = {
   moduleGroups: FederatedModuleGroup[]
-  setModuleGroups: React.Dispatch<React.SetStateAction<FederatedModuleGroup[]>>
-  globalProviders: React.FC<{ children: React.ReactNode }>[]
-  setGlobalProviders: React.Dispatch<
-    React.SetStateAction<React.FC<{ children: React.ReactNode }>[]>
-  >
+  globalProviders: FC<{ children: ReactNode }>[]
   categoryTranslations: Record<string, Record<string, string>>
-  setCategoryTranslations: React.Dispatch<
-    React.SetStateAction<Record<string, Record<string, string>>>
-  >
   loading: boolean
-  setLoading: React.Dispatch<React.SetStateAction<boolean>>
   error: Error | null
-  setError: React.Dispatch<React.SetStateAction<Error | null>>
-  refetch: React.RefObject<() => Promise<void>>
 }
+type ContextValue = State & {
+  [K in keyof State as `set${Capitalize<K>}`]: Dispatch<
+    SetStateAction<State[K]>
+  >
+} & { refetch: RefObject<() => Promise<void>> }
 
-const defaultValue: FederationContextValue = {
+const fallback: ContextValue = {
   moduleGroups: [],
-  setModuleGroups: () => {},
   globalProviders: [],
-  setGlobalProviders: () => {},
   categoryTranslations: {},
-  setCategoryTranslations: () => {},
   loading: true,
-  setLoading: () => {},
   error: null,
-  setError: () => {},
+  setModuleGroups() {},
+  setGlobalProviders() {},
+  setCategoryTranslations() {},
+  setLoading() {},
+  setError() {},
   refetch: { current: async () => {} }
 }
-
-const FederationContext = createContext<FederationContextValue>(defaultValue)
-
-export function useFederation(): FederationContextValue {
-  return useContext(FederationContext)
+const Context = createContext<ContextValue>(fallback)
+export function useFederation(): ContextValue {
+  return useContext(Context)
 }
 
-function FederationProvider({ children }: { children: React.ReactNode }) {
-  const [moduleGroups, setModuleGroups] = useState<FederatedModuleGroup[]>([])
-
-  const [globalProviders, setGlobalProviders] = useState<
-    React.FC<{ children: React.ReactNode }>[]
-  >([])
-  const [categoryTranslations, setCategoryTranslations] = useState<
-    Record<string, Record<string, string>>
-  >({})
-
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<Error | null>(null)
+export default function FederationProvider({
+  children
+}: {
+  children: ReactNode
+}) {
+  const [state, update] = useState<State>({
+    moduleGroups: [],
+    globalProviders: [],
+    categoryTranslations: {},
+    loading: true,
+    error: null
+  })
   const refetch = useRef<() => Promise<void>>(async () => {})
-
+  const actions = useMemo(() => {
+    function field<K extends keyof State>(
+      name: K
+    ): Dispatch<SetStateAction<State[K]>> {
+      return value =>
+        update(current => {
+          const next =
+            typeof value === 'function'
+              ? (value as (old: State[K]) => State[K])(current[name])
+              : value
+          return Object.is(next, current[name])
+            ? current
+            : { ...current, [name]: next }
+        })
+    }
+    return {
+      setModuleGroups: field('moduleGroups'),
+      setGlobalProviders: field('globalProviders'),
+      setCategoryTranslations: field('categoryTranslations'),
+      setLoading: field('loading'),
+      setError: field('error')
+    }
+  }, [])
   const value = useMemo(
-    () => ({
-      moduleGroups,
-      setModuleGroups,
-      globalProviders,
-      setGlobalProviders,
-      categoryTranslations,
-      setCategoryTranslations,
-      loading,
-      setLoading,
-      error,
-      setError,
-      refetch
-    }),
-    [moduleGroups, globalProviders, categoryTranslations, loading, error]
+    () => ({ ...state, ...actions, refetch }),
+    [state, actions]
   )
-
-  return <FederationContext value={value}>{children}</FederationContext>
+  return <Context value={value}>{children}</Context>
 }
-
-export default FederationProvider

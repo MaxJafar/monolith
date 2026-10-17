@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { type DataRouter, createBrowserRouter } from 'react-router'
 
-import { useAuth } from '@lifeforge/api'
-import { useFederation } from '@lifeforge/federation'
+import { useAuth } from '@monolith/api'
+import { useFederation } from '@monolith/federation'
 
 import {
   createAuthLoadingConfig,

@@ -5,11 +5,11 @@ import {
 } from '@tanstack/react-query'
 import type React from 'react'
 
-import type { ForgeEndpoint, InferOutput } from '@lifeforge/api'
+import type { EndpointClient, InferOutput } from '@monolith/api'
 
 import { WithQuery } from '..'
 
-export function WithQueryData<T extends ForgeEndpoint>({
+export function WithQueryData<T extends EndpointClient>({
   contract,
   queryOptions,
   children

@@ -1,62 +1,33 @@
 import { log } from '@clack/prompts'
 import dayjs from 'dayjs'
 import weekOfYear from 'dayjs/plugin/weekOfYear'
-import fs from 'fs'
-import path from 'path'
+import { mkdirSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
+
+import { ROOT_DIR } from '@/utils/constants'
 
 dayjs.extend(weekOfYear)
-
-const boilerPlate = `import Commit from "../../components/Commit";
-import Code from "@/components/Code";
-
-### 🏗️ Infrastructure & Technical Improvements
-
-### 🎨 UI Components & Design System
-    
-### 🐛 Bug Fixes & Chores
-
-### 📖 Documentation & Tooling
-`
-
-const [rootDir] = import.meta.dirname.split(/tools[\\/]/)
-
-if (rootDir === undefined) {
-  throw new Error(
-    'Could not resolve the project root directory from import.meta.dirname'
-  )
-}
-
-const CHANGELOG_PATH = path.resolve(
-  rootDir,
-  'docs/src/contents/04.progress/versions'
-)
-
 export default function createChangelogHandler(year?: string, week?: string) {
-  const targetYear = Number(year) || dayjs().year()
-
-  const currentWeek = Number(week) || dayjs().week()
-
-  if (!fs.existsSync(CHANGELOG_PATH)) {
-    log.error(`Changelog directory not found at path: ${CHANGELOG_PATH}`)
-    process.exit(1)
-  }
-
-  const yearPath = `${CHANGELOG_PATH}/${targetYear}`
-
-  if (!fs.existsSync(yearPath) || !fs.lstatSync(yearPath).isDirectory()) {
-    fs.mkdirSync(yearPath)
-  }
-
-  const filePath = `${yearPath}/${String(currentWeek).padStart(2, '0')}.mdx`
-
-  if (fs.existsSync(filePath)) {
-    log.error(
-      `Changelog file for year ${targetYear} week ${currentWeek} already exists at path: ${filePath}`
-    )
-    process.exit(1)
-  }
-
-  fs.writeFileSync(filePath, boilerPlate)
-
-  log.success(`Created changelog file at path: ${filePath}`)
+  const date = dayjs()
+  const selectedYear = year === undefined ? date.year() : Number(year)
+  const selectedWeek = week === undefined ? date.week() : Number(week)
+  if (
+    !Number.isInteger(selectedYear) ||
+    selectedYear < 2000 ||
+    selectedYear > 9999 ||
+    !Number.isInteger(selectedWeek) ||
+    selectedWeek < 1 ||
+    selectedWeek > 53
+  )
+    throw new Error('Use a four-digit year and a week between 1 and 53')
+  const directory = join(ROOT_DIR, 'docs', 'changelog', String(selectedYear))
+  mkdirSync(directory, { recursive: true })
+  const destination = join(
+    directory,
+    String(selectedWeek).padStart(2, '0') + '.md'
+  )
+  const content =
+    '# Monolith release notes\n\n## Added\n\n## Changed\n\n## Fixed\n\n## Upgrade notes\n'
+  writeFileSync(destination, content, { flag: 'wx' })
+  log.success('Created ' + destination)
 }

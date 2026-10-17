@@ -1,13 +1,12 @@
 {
+  "extends": "./tsconfig.blocksuite.json",
   "compilerOptions": {
-    "target": "es2016",
+    "target": "es2022",
     "jsx": "react-jsx",
     "module": "esnext",
     "moduleResolution": "bundler",
+    "resolveJsonModule": true,
     "lib": ["dom", "dom.iterable", "esnext"],
-    "paths": {
-      "@/*": ["./src/*"]
-    },
     "declaration": true,
     "declarationMap": true,
     "emitDeclarationOnly": true,

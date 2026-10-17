@@ -4,8 +4,8 @@ import express from 'express'
 import helmet from 'helmet'
 
 import { db } from './drizzle'
-import morganMiddleware from './middlewares/morganMiddleware'
 import rateLimitingMiddleware from './middlewares/rateLimitingMiddleware'
+import requestLogging from './middlewares/requestLogging'
 import router from './routes'
 import { CORS_ALLOWED_ORIGINS } from './routes/constants/corsAllowedOrigins'
 
@@ -44,7 +44,7 @@ app.use(express.raw())
 app.use(express.json({ limit: '50mb' }))
 
 // HTTP request logger
-app.use(morganMiddleware)
+app.use(requestLogging)
 
 // Rate limiting
 app.use(rateLimitingMiddleware)

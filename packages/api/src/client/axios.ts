@@ -1,13 +1,17 @@
 import axios from 'axios'
 import type { AxiosRequestConfig, AxiosResponse } from 'axios'
 
+import { nativeAxiosAdapter } from '../desktop/axiosAdapter'
+import { getNativeRuntime } from '../desktop/runtime'
 import { withSessionRefreshLock } from './refreshLock'
 import { clearAccessToken, getAccessToken, setAccessToken } from './tokenStore'
 
 let isRefreshing = false
 let refreshPromise: Promise<boolean> | null = null
 
-async function refreshAccessToken(apiHost: string): Promise<boolean> {
+export async function refreshAccessToken(apiHost: string): Promise<boolean> {
+  const native = getNativeRuntime()
+  if (native) return native.transport.refresh()
   if (isRefreshing) {
     return refreshPromise!
   }
@@ -28,12 +32,11 @@ async function refreshAccessToken(apiHost: string): Promise<boolean> {
         return true
       }
 
-      clearAccessToken()
+      // A transient outage must not erase an otherwise usable session.
+      if (res.status === 401 || res.status === 403) clearAccessToken()
 
       return false
     } catch {
-      clearAccessToken()
-
       return false
     } finally {
       isRefreshing = false
@@ -67,11 +70,15 @@ function getHeader(headers: unknown, name: string): string | undefined {
 export function createAxiosInstance(apiHost: string, isExternal: boolean) {
   const instance = axios.create({
     baseURL: isExternal ? undefined : apiHost,
+    ...(!isExternal && getNativeRuntime()
+      ? { adapter: nativeAxiosAdapter }
+      : {}),
     withCredentials: true
   })
 
   instance.interceptors.request.use(config => {
     if (!isExternal) {
+      config.headers['X-Monolith-Package-Names'] = '1'
       const token = getAccessToken()
 
       if (token) {
@@ -95,7 +102,7 @@ export function createAxiosInstance(apiHost: string, isExternal: boolean) {
 
       // Reject early if:
       // 1. There is no response, or the HTTP status code is not 401.
-      // 2. The target endpoint is external (not part of the LifeForge API).
+      // 2. The target endpoint is external (not part of the Monolith API).
       // 3. No request URL path is present.
       // 4. The path is an unauthenticated auth endpoint (login, refresh, or logout).
       // 5. This request is already a retry attempt (prevents infinite refresh loops).
@@ -144,7 +151,9 @@ export function createAxiosInstance(apiHost: string, isExternal: boolean) {
           }
         }
       } else {
-        const token = getAccessToken()
+        let token = getAccessToken()
+        if (!token && (await refreshAccessToken(apiHost)))
+          token = getAccessToken()
 
         if (token) {
           originalRequest.headers = {

@@ -1,14 +1,14 @@
 import { useEffect } from 'react'
 
-import { useAuth } from '@lifeforge/api'
-import { toast } from '@lifeforge/ui'
+import { useAuth } from '@monolith/api'
+import { toast } from '@monolith/ui'
 import {
   type IBackdropFilters,
   type IDashboardLayout,
   usePersonalization
-} from '@lifeforge/ui'
+} from '@monolith/ui'
 
-import forgeAPI from '@/core/utils/forgeAPI'
+import workspaceAPI from '@/core/utils/workspaceAPI'
 
 import { UserPersonalizationContext } from './UserPersonalizationContext'
 
@@ -17,7 +17,7 @@ async function syncUserData(
   setUserData: React.Dispatch<React.SetStateAction<any>>
 ) {
   try {
-    await forgeAPI.user.personalization.updatePersonalization.mutate({
+    await workspaceAPI.user.personalization.updatePersonalization.mutate({
       data
     })
 
@@ -133,7 +133,7 @@ function UserPersonalizationProvider({
 
     if (userData.bgImage) {
       setBgImage(
-        forgeAPI.getMedia({
+        workspaceAPI.getMedia({
           key: userData.bgImage.key
         })
       )

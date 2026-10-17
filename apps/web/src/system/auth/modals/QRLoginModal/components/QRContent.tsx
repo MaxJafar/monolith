@@ -9,7 +9,7 @@ import {
   Text,
   Transition,
   colorWithOpacity
-} from '@lifeforge/ui'
+} from '@monolith/ui'
 
 import useQRLoginSession, { type QRStatus } from '../hooks/useQRLoginSession'
 import QRByStatus from './QRByStatus'

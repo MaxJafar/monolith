@@ -29,6 +29,7 @@ const federationStubPlugin = {
 }
 
 const config: StorybookConfig = {
+  staticDirs: [{ from: '../../../apps/web/public/fonts', to: '/fonts' }],
   stories: ['../src/**/*.mdx', '../src/**/*.stories.@(js|jsx|mjs|ts|tsx)'],
   addons: [
     getAbsolutePath('@chromatic-com/storybook'),

@@ -3,13 +3,13 @@ import dayjs from 'dayjs'
 import { eq } from 'drizzle-orm'
 import z from 'zod'
 
-import { fileReferenceSchema } from '@lifeforge/file-storage'
+import { fileReferenceSchema } from '@monolith/file-storage'
 
 import { verifyPassword } from '../../auth/utils/password'
-import forge from '../forge'
+import endpoints from '../endpoints'
 import { users } from '../schema.drizzle'
 
-export const updateAvatar = forge
+export const updateAvatar = endpoints
   .mutation({
     description: 'Upload new user avatar',
     input: {},
@@ -53,7 +53,7 @@ export const updateAvatar = forge
     return response.ok(avatarRef)
   })
 
-export const deleteAvatar = forge
+export const deleteAvatar = endpoints
   .mutation({
     description: 'Remove user avatar',
     input: {},
@@ -85,7 +85,7 @@ export const deleteAvatar = forge
     return response.noContent()
   })
 
-export const updateProfile = forge
+export const updateProfile = endpoints
   .mutation({
     description: 'Update user profile information',
     input: {
@@ -138,7 +138,7 @@ export const updateProfile = forge
     return response.noContent()
   })
 
-export const updatePassword = forge
+export const updatePassword = endpoints
   .mutation({
     description: 'Update user password directly',
     input: {

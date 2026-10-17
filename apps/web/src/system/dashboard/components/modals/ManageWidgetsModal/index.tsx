@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 
-import { Box, ModalHeader, Stack } from '@lifeforge/ui'
+import { Box, ModalHeader, Stack } from '@monolith/ui'
 
 import type { WidgetEntry } from '@/system/dashboard/providers/WidgetProvider'
 

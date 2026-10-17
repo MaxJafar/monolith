@@ -10,18 +10,12 @@ import {
   extractReferences,
   pageKey,
   serializeDocument
-} from '@lifeforge/blocks'
-import type { ForgeContract } from '@lifeforge/server-utils'
+} from '@monolith/blocks'
+import type { EndpointContract } from '@monolith/server-utils'
 
-import * as noteRoutes from '../../../../modules/lifeforge--notes/server/routes/entries'
-import {
-  entries,
-  subjects,
-  workspaces
-} from '../../../../modules/lifeforge--notes/server/schema.drizzle'
-import * as docs from '../../../../modules/zillion--databases/server/documentRoutes'
-import * as knowledge from '../../../../modules/zillion--databases/server/knowledgeRoutes'
-import * as databases from '../../../../modules/zillion--databases/server/routes'
+import * as docs from '../../../../modules/monolith--databases/server/documentRoutes'
+import * as knowledge from '../../../../modules/monolith--databases/server/knowledgeRoutes'
+import * as databases from '../../../../modules/monolith--databases/server/routes'
 import {
   bases,
   documents,
@@ -30,7 +24,13 @@ import {
   records,
   relations,
   tables
-} from '../../../../modules/zillion--databases/server/schema.drizzle'
+} from '../../../../modules/monolith--databases/server/schema.drizzle'
+import * as noteRoutes from '../../../../modules/monolith--notes/server/routes/entries'
+import {
+  entries,
+  subjects,
+  workspaces
+} from '../../../../modules/monolith--notes/server/schema.drizzle'
 
 const enabled = process.env.ZILLION_INTEGRATION === '1'
 const connection = process.env.DATABASE_URL ?? ''
@@ -46,7 +46,7 @@ if (enabled) {
     !/^\/(zillion_dev|zillion_test(?:_[a-z0-9]+)?)$/.test(target.pathname)
   )
     throw new Error(
-      'Knowledge tests require an isolated local Zillion database on port 55432'
+      'Knowledge tests require an isolated local Monolith database on port 55432'
     )
 }
 
@@ -63,7 +63,9 @@ beforeAll(async () => {
       await client`insert into users(id,email,username,name) values(${id},${id + '@example.invalid'},${id},'Synthetic knowledge owner')`
 })
 
-type Context = Parameters<ReturnType<ForgeContract['getValue']>['callback']>[0]
+type Context = Parameters<
+  ReturnType<EndpointContract['getValue']>['callback']
+>[0]
 type Doc = {
   id: string
   title: string
@@ -98,7 +100,7 @@ async function owned<T>(
 }
 
 async function invoke<T>(
-  route: ForgeContract,
+  route: EndpointContract,
   user: string | undefined,
   body?: unknown,
   query: Record<string, string> = {}

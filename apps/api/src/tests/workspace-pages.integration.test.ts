@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto'
 import postgres from 'postgres'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
-import type { CanvasPage } from '@lifeforge/blocks'
+import type { CanvasPage } from '@monolith/blocks'
 
 const enabled = process.env.MONOLITH_PAGE_INTEGRATION === '1'
 const api = process.env.TEST_API_URL ?? 'http://127.0.0.1:3636'

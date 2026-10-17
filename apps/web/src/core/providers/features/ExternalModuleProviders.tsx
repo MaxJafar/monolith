@@ -1,89 +1,89 @@
-import React, { useEffect, useState } from 'react'
+import {
+  type ComponentType,
+  Fragment,
+  type ReactNode,
+  useEffect,
+  useState
+} from 'react'
 
-import type { ModuleGroup } from '@lifeforge/configs'
 import {
   type FederatedModule,
   loadRemoteModuleConfig,
   useFederation
-} from '@lifeforge/federation'
+} from '@monolith/federation'
 
 import { devModeImports, devModePkgs } from '@/core/utils/devModeImports'
 
-function FallbackProvider({ children }: { children: React.ReactNode }) {
-  return <>{children}</>
-}
+type ExtensionProvider = ComponentType<{ children: ReactNode }>
 
-function LazyProvider({
-  item,
+function InstalledProvider({
+  module,
   children
 }: {
-  item: ModuleGroup['items'][number] & { rawModule?: FederatedModule }
-  children: React.ReactNode
+  module: FederatedModule
+  children: ReactNode
 }) {
-  const [Provider, setProvider] = useState<React.ComponentType<{
-    children: React.ReactNode
-  }> | null>(null)
+  const identity = JSON.stringify([
+    module.id,
+    module.remoteId,
+    module.remoteEntryUrl,
+    module.APIKeyAccess
+  ])
+  const [loaded, setLoaded] = useState<{
+    identity: string
+    component: ExtensionProvider
+  } | null>(null)
 
   useEffect(() => {
-    let active = true
-
-    async function load() {
-      if (!item.rawModule || !item.rawModule.hasProvider) {
-        setProvider(() => FallbackProvider)
-
-        return
+    let cancelled = false
+    void loadRemoteModuleConfig(module, devModeImports, devModePkgs).then(
+      config => {
+        if (!cancelled)
+          setLoaded({ identity, component: config.provider ?? Fragment })
+      },
+      error => {
+        if (!cancelled) {
+          console.error(
+            'Unable to activate addon provider ' + module.name,
+            error
+          )
+          setLoaded({ identity, component: Fragment })
+        }
       }
-
-      try {
-        const unwrapped = await loadRemoteModuleConfig(
-          item.rawModule,
-          devModeImports,
-          devModePkgs
-        )
-
-        if (!active) return
-
-        setProvider(() => unwrapped.provider || FallbackProvider)
-      } catch (err) {
-        console.error(`Failed to load provider for ${item.name}:`, err)
-
-        if (!active) return
-
-        setProvider(() => FallbackProvider)
-      }
-    }
-    load()
-
+    )
     return () => {
-      active = false
+      cancelled = true
     }
-  }, [item])
+  }, [module, identity])
 
-  if (!Provider) {
-    return <>{children}</>
-  }
-
+  const Provider = loaded?.identity === identity ? loaded.component : Fragment
   return <Provider>{children}</Provider>
 }
 
 export default function ExternalModuleProviders({
   children
 }: {
-  children: React.ReactNode
+  children: ReactNode
 }) {
   const { moduleGroups, globalProviders } = useFederation()
-
-  const federatedItems = moduleGroups
-    .flatMap(cat => cat.items)
-    .filter(item => item.rawModule)
-
-  const lazyWrapped = federatedItems.reduce<React.ReactNode>(
-    (acc, item) => <LazyProvider item={item}>{acc}</LazyProvider>,
-    children
-  )
-
-  return globalProviders.reduce<React.ReactNode>(
-    (acc, ProviderComponent) => <ProviderComponent>{acc}</ProviderComponent>,
-    lazyWrapped
-  )
+  let tree = children
+  for (const group of moduleGroups) {
+    for (const item of group.items) {
+      const module = item.rawModule
+      if (!module?.hasProvider) continue
+      const identity = JSON.stringify([
+        module.id,
+        module.remoteId,
+        module.remoteEntryUrl,
+        module.APIKeyAccess
+      ])
+      tree = (
+        <InstalledProvider key={identity} module={module}>
+          {tree}
+        </InstalledProvider>
+      )
+    }
+  }
+  for (const Provider of globalProviders) tree = <Provider>{tree}</Provider>
+  return tree
 }

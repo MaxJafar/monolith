@@ -1,47 +1,27 @@
-import searchLocations from '@functions/external/location'
-import z from 'zod'
+import { z } from 'zod'
 
-import { createForge, forgeRouter } from '@lifeforge/server-utils'
+import {
+  LocationSchema,
+  createMonolith,
+  defineRoutes
+} from '@monolith/server-utils'
 
-const forge = createForge({ moduleId: 'locations' })
+import searchLocations from '../../core/functions/external/location'
 
-const search = forge
-  .query({
-    description: 'Search for locations using Google Places API',
-    input: {
-      query: z.object({
-        q: z.string()
-      })
-    },
-    output: {
-      OK: z.array(
-        z.object({
-          name: z.string(),
-          formattedAddress: z.string(),
-          location: z.object({
-            latitude: z.number(),
-            longitude: z.number()
-          })
-        })
-      )
-    }
-  })
-  .callback(
-    async ({
-      query: { q },
-      core: {
-        api: { getAPIKey }
-      },
-      response
-    }) => {
-      const key = await getAPIKey('gcloud')
-
-      if (!key) {
-        return response.badRequest('API key not found')
-      }
-
-      return response.ok(await searchLocations(key, q))
-    }
-  )
-
-export default forgeRouter({ search })
+const api = createMonolith({ moduleId: 'locations' })
+export default defineRoutes({
+  search: api
+    .query({
+      description: 'Find places by name or address',
+      input: { query: z.object({ q: z.string().trim().min(1).max(1000) }) },
+      output: { OK: z.array(LocationSchema) }
+    })
+    .callback(async ({ core, query, response }) => {
+      const credential = await core.api.getAPIKey('gcloud')
+      if (!credential)
+        return response.badRequest(
+          'Configure a Google Places API key to search'
+        )
+      return response.ok(await searchLocations(credential, query.q))
+    })
+})

@@ -2,7 +2,7 @@ import { Suspense } from 'react'
 import { Responsive as ResponsiveGridLayout } from 'react-grid-layout'
 import { useTranslation } from 'react-i18next'
 
-import { ModuleMetadataProvider } from '@lifeforge/federation'
+import { ModuleMetadataProvider } from '@monolith/federation'
 import {
   Box,
   Card,
@@ -11,7 +11,7 @@ import {
   colorWithOpacity,
   useDivSize,
   usePersonalization
-} from '@lifeforge/ui'
+} from '@monolith/ui'
 
 import { useUserPersonalization } from '@/core/providers/features/UserPersonalizationProvider'
 

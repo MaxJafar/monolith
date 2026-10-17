@@ -1,0 +1,1299 @@
+{
+  "compilerOptions": {
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "yjs": [
+        "./node_modules/yjs/dist/src/index.d.ts"
+      ],
+      "@blocksuite/affine/components/tooltip-content-with-shortcut": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/components/tooltip-content-with-shortcut.d.ts"
+      ],
+      "@blocksuite/affine-components/tooltip-content-with-shortcut": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-components/dist/tooltip-content-with-shortcut/index.d.ts"
+      ],
+      "@blocksuite/affine-components/edgeless-shape-color-picker": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-components/dist/edgeless-shape-color-picker/index.d.ts"
+      ],
+      "@blocksuite/affine-components/edgeless-line-styles-panel": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-components/dist/edgeless-line-styles-panel/index.d.ts"
+      ],
+      "@blocksuite/affine-components/edgeless-line-width-panel": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-components/dist/edgeless-line-width-panel/index.d.ts"
+      ],
+      "@blocksuite/affine/widgets/edgeless-dragging-area/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/widgets/edgeless-dragging-area/view.d.ts"
+      ],
+      "@blocksuite/affine/components/card-style-dropdown-menu": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/components/card-style-dropdown-menu.d.ts"
+      ],
+      "@blocksuite/affine-components/card-style-dropdown-menu": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-components/dist/card-style-dropdown-menu/index.d.ts"
+      ],
+      "@blocksuite/affine/widgets/edgeless-auto-connect/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/widgets/edgeless-auto-connect/view.d.ts"
+      ],
+      "@blocksuite/affine/components/highlight-dropdown-menu": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/components/highlight-dropdown-menu.d.ts"
+      ],
+      "@blocksuite/affine-components/highlight-dropdown-menu": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-components/dist/highlight-dropdown-menu/index.d.ts"
+      ],
+      "@blocksuite/affine-widget-edgeless-dragging-area/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-widget-edgeless-dragging-area/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-widget-edgeless-selected-rect/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-widget-edgeless-selected-rect/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-components/open-doc-dropdown-menu": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-components/dist/open-doc-dropdown-menu/index.d.ts"
+      ],
+      "@blocksuite/affine-widget-edgeless-auto-connect/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-widget-edgeless-auto-connect/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-widget-edgeless-zoom-toolbar/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-widget-edgeless-zoom-toolbar/dist/view.d.ts"
+      ],
+      "@blocksuite/affine/widgets/page-dragging-area/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/widgets/page-dragging-area/view.d.ts"
+      ],
+      "@blocksuite/affine/widgets/edgeless-dragging-area": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/widgets/edgeless-dragging-area/index.d.ts"
+      ],
+      "@blocksuite/affine-widget-page-dragging-area/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-widget-page-dragging-area/dist/view.d.ts"
+      ],
+      "@blocksuite/affine/widgets/edgeless-auto-connect": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/widgets/edgeless-auto-connect/index.d.ts"
+      ],
+      "@blocksuite/affine/widgets/edgeless-toolbar/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/widgets/edgeless-toolbar/view.d.ts"
+      ],
+      "@blocksuite/affine/widgets/remote-selection/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/widgets/remote-selection/view.d.ts"
+      ],
+      "@blocksuite/affine/widgets/scroll-anchoring/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/widgets/scroll-anchoring/view.d.ts"
+      ],
+      "@blocksuite/affine/widgets/keyboard-toolbar/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/widgets/keyboard-toolbar/view.d.ts"
+      ],
+      "@blocksuite/affine/widgets/viewport-overlay/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/widgets/viewport-overlay/view.d.ts"
+      ],
+      "@blocksuite/affine/components/view-dropdown-menu": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/components/view-dropdown-menu.d.ts"
+      ],
+      "@blocksuite/affine-block-paragraph/turbo-painter": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-paragraph/dist/turbo/paragraph-painter.worker.d.ts"
+      ],
+      "@blocksuite/affine-components/view-dropdown-menu": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-components/dist/view-dropdown-menu/index.d.ts"
+      ],
+      "@blocksuite/affine-components/size-dropdown-menu": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-components/dist/size-dropdown-menu/index.d.ts"
+      ],
+      "@blocksuite/affine-widget-edgeless-dragging-area": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-widget-edgeless-dragging-area/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-widget-edgeless-selected-rect": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-widget-edgeless-selected-rect/dist/index.d.ts"
+      ],
+      "@blocksuite/affine/fragments/adapter-panel/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/fragments/adapter-panel/view.d.ts"
+      ],
+      "@blocksuite/affine-widget-edgeless-auto-connect": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-widget-edgeless-auto-connect/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-widget-edgeless-toolbar/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-widget-edgeless-toolbar/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-widget-edgeless-zoom-toolbar": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-widget-edgeless-zoom-toolbar/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-widget-keyboard-toolbar/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-widget-keyboard-toolbar/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-widget-remote-selection/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-widget-remote-selection/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-widget-scroll-anchoring/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-widget-scroll-anchoring/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-widget-viewport-overlay/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-widget-viewport-overlay/dist/view.d.ts"
+      ],
+      "@blocksuite/affine/components/block-zero-width": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/components/block-zero-width.d.ts"
+      ],
+      "@blocksuite/affine/components/embed-card-modal": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/components/embed-card-modal.d.ts"
+      ],
+      "@blocksuite/affine/components/linked-doc-title": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/components/linked-doc-title.d.ts"
+      ],
+      "@blocksuite/affine-components/block-zero-width": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-components/dist/block-zero-width/index.d.ts"
+      ],
+      "@blocksuite/affine-components/embed-card-modal": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-components/dist/embed-card-modal/index.d.ts"
+      ],
+      "@blocksuite/affine-components/linked-doc-title": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-components/dist/linked-doc-title/index.d.ts"
+      ],
+      "@blocksuite/affine-fragment-adapter-panel/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-fragment-adapter-panel/dist/view.d.ts"
+      ],
+      "@blocksuite/affine/blocks/edgeless-text/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/edgeless-text/store.d.ts"
+      ],
+      "@blocksuite/affine/widgets/page-dragging-area": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/widgets/page-dragging-area/index.d.ts"
+      ],
+      "@blocksuite/affine/fragments/frame-panel/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/fragments/frame-panel/view.d.ts"
+      ],
+      "@blocksuite/affine/components/block-selection": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/components/block-selection.d.ts"
+      ],
+      "@blocksuite/affine/components/filterable-list": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/components/filterable-list.d.ts"
+      ],
+      "@blocksuite/affine-components/filterable-list": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-components/dist/filterable-list/index.d.ts"
+      ],
+      "@blocksuite/affine-components/block-selection": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-components/dist/block-selection/index.d.ts"
+      ],
+      "@blocksuite/affine-gfx-turbo-renderer/painter": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-gfx-turbo-renderer/dist/painter/painter.worker.d.ts"
+      ],
+      "@blocksuite/affine/blocks/edgeless-text/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/edgeless-text/view.d.ts"
+      ],
+      "@blocksuite/affine/components/drop-indicator": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/components/drop-indicator.d.ts"
+      ],
+      "@blocksuite/affine-block-edgeless-text/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-edgeless-text/dist/store.d.ts"
+      ],
+      "@blocksuite/affine-block-image/turbo-painter": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-image/dist/turbo/image-painter.worker.d.ts"
+      ],
+      "@blocksuite/affine-components/drop-indicator": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-components/dist/drop-indicator/index.d.ts"
+      ],
+      "@blocksuite/affine-fragment-frame-panel/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-fragment-frame-panel/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-widget-page-dragging-area": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-widget-page-dragging-area/dist/index.d.ts"
+      ],
+      "@blocksuite/affine/blocks/surface-ref/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/surface-ref/store.d.ts"
+      ],
+      "@blocksuite/affine/widgets/drag-handle/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/widgets/drag-handle/view.d.ts"
+      ],
+      "@blocksuite/affine/widgets/edgeless-toolbar": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/widgets/edgeless-toolbar/index.d.ts"
+      ],
+      "@blocksuite/affine/widgets/frame-title/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/widgets/frame-title/view.d.ts"
+      ],
+      "@blocksuite/affine/widgets/remote-selection": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/widgets/remote-selection/index.d.ts"
+      ],
+      "@blocksuite/affine/widgets/scroll-anchoring": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/widgets/scroll-anchoring/index.d.ts"
+      ],
+      "@blocksuite/affine/widgets/keyboard-toolbar": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/widgets/keyboard-toolbar/index.d.ts"
+      ],
+      "@blocksuite/affine/widgets/viewport-overlay": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/widgets/viewport-overlay/index.d.ts"
+      ],
+      "@blocksuite/affine/fragments/doc-title/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/fragments/doc-title/view.d.ts"
+      ],
+      "@blocksuite/affine/components/smooth-corner": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/components/smooth-corner.d.ts"
+      ],
+      "@blocksuite/affine/components/toggle-button": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/components/toggle-button.d.ts"
+      ],
+      "@blocksuite/affine/components/toggle-switch": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/components/toggle-switch.d.ts"
+      ],
+      "@blocksuite/affine-block-code/turbo-painter": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-code/dist/turbo/code-painter.worker.d.ts"
+      ],
+      "@blocksuite/affine-block-edgeless-text/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-edgeless-text/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-block-list/turbo-painter": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-list/dist/turbo/list-painter.worker.d.ts"
+      ],
+      "@blocksuite/affine-block-note/turbo-painter": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-note/dist/turbo/note-painter.worker.d.ts"
+      ],
+      "@blocksuite/affine-components/smooth-corner": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-components/dist/smooth-corner/index.d.ts"
+      ],
+      "@blocksuite/affine-components/toggle-button": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-components/dist/toggle-button/index.d.ts"
+      ],
+      "@blocksuite/affine-components/toggle-switch": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-components/dist/toggle-switch/index.d.ts"
+      ],
+      "@blocksuite/data-view/property-pure-presets": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/data-view/dist/property-presets/pure-index.d.ts"
+      ],
+      "@blocksuite/affine/blocks/attachment/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/attachment/store.d.ts"
+      ],
+      "@blocksuite/affine/blocks/surface-ref/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/surface-ref/view.d.ts"
+      ],
+      "@blocksuite/affine/inlines/reference/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/inlines/reference/store.d.ts"
+      ],
+      "@blocksuite/affine/widgets/linked-doc/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/widgets/linked-doc/view.d.ts"
+      ],
+      "@blocksuite/affine/widgets/slash-menu/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/widgets/slash-menu/view.d.ts"
+      ],
+      "@blocksuite/affine/fragments/adapter-panel": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/fragments/adapter-panel/index.d.ts"
+      ],
+      "@blocksuite/affine/components/color-picker": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/components/color-picker.d.ts"
+      ],
+      "@blocksuite/affine/components/context-menu": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/components/context-menu.d.ts"
+      ],
+      "@blocksuite/affine/components/link-preview": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/components/link-preview.d.ts"
+      ],
+      "@blocksuite/affine/components/notification": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/components/notification.d.ts"
+      ],
+      "@blocksuite/affine-block-surface-ref/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-surface-ref/dist/store.d.ts"
+      ],
+      "@blocksuite/affine-components/color-picker": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-components/dist/color-picker/index.d.ts"
+      ],
+      "@blocksuite/affine-components/context-menu": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-components/dist/context-menu/index.d.ts"
+      ],
+      "@blocksuite/affine-components/notification": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-components/dist/notification/index.d.ts"
+      ],
+      "@blocksuite/affine-components/link-preview": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-components/dist/link-preview/index.d.ts"
+      ],
+      "@blocksuite/affine-fragment-doc-title/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-fragment-doc-title/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-widget-drag-handle/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-widget-drag-handle/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-widget-edgeless-toolbar": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-widget-edgeless-toolbar/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-widget-frame-title/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-widget-frame-title/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-widget-keyboard-toolbar": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-widget-keyboard-toolbar/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-widget-note-slicer/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-widget-note-slicer/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-widget-remote-selection": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-widget-remote-selection/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-widget-scroll-anchoring": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-widget-scroll-anchoring/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-widget-viewport-overlay": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-widget-viewport-overlay/dist/index.d.ts"
+      ],
+      "@blocksuite/affine/blocks/attachment/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/attachment/view.d.ts"
+      ],
+      "@blocksuite/affine/blocks/data-view/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/data-view/store.d.ts"
+      ],
+      "@blocksuite/affine/blocks/embed-doc/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/embed-doc/store.d.ts"
+      ],
+      "@blocksuite/affine/blocks/paragraph/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/paragraph/store.d.ts"
+      ],
+      "@blocksuite/affine/inlines/reference/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/inlines/reference/view.d.ts"
+      ],
+      "@blocksuite/affine/inlines/footnote/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/inlines/footnote/store.d.ts"
+      ],
+      "@blocksuite/affine/fragments/outline/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/fragments/outline/view.d.ts"
+      ],
+      "@blocksuite/affine/components/date-picker": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/components/date-picker.d.ts"
+      ],
+      "@blocksuite/affine/components/icon-button": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/components/icon-button.d.ts"
+      ],
+      "@blocksuite/affine-block-attachment/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-attachment/dist/store.d.ts"
+      ],
+      "@blocksuite/affine-block-surface-ref/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-surface-ref/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-components/icon-button": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-components/dist/icon-button/index.d.ts"
+      ],
+      "@blocksuite/affine-components/date-picker": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-components/dist/date-picker/index.d.ts"
+      ],
+      "@blocksuite/affine-fragment-adapter-panel": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-fragment-adapter-panel/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-inline-reference/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-inline-reference/dist/store.d.ts"
+      ],
+      "@blocksuite/affine-widget-linked-doc/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-widget-linked-doc/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-widget-slash-menu/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-widget-slash-menu/dist/view.d.ts"
+      ],
+      "@blocksuite/affine/blocks/bookmark/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/bookmark/store.d.ts"
+      ],
+      "@blocksuite/affine/blocks/data-view/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/data-view/view.d.ts"
+      ],
+      "@blocksuite/affine/blocks/database/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/database/store.d.ts"
+      ],
+      "@blocksuite/affine/blocks/embed-doc/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/embed-doc/view.d.ts"
+      ],
+      "@blocksuite/affine/blocks/paragraph/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/paragraph/view.d.ts"
+      ],
+      "@blocksuite/affine/inlines/footnote/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/inlines/footnote/view.d.ts"
+      ],
+      "@blocksuite/affine/fragments/frame-panel": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/fragments/frame-panel/index.d.ts"
+      ],
+      "@blocksuite/affine-block-attachment/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-attachment/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-block-data-view/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-data-view/dist/store.d.ts"
+      ],
+      "@blocksuite/affine-block-embed-doc/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-embed-doc/dist/store.d.ts"
+      ],
+      "@blocksuite/affine-block-paragraph/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-paragraph/dist/store.d.ts"
+      ],
+      "@blocksuite/affine-fragment-outline/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-fragment-outline/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-inline-footnote/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-inline-footnote/dist/store.d.ts"
+      ],
+      "@blocksuite/affine-inline-reference/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-inline-reference/dist/view.d.ts"
+      ],
+      "@blocksuite/affine/blocks/bookmark/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/bookmark/view.d.ts"
+      ],
+      "@blocksuite/affine/blocks/callout/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/callout/store.d.ts"
+      ],
+      "@blocksuite/affine/blocks/database/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/database/view.d.ts"
+      ],
+      "@blocksuite/affine/blocks/divider/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/divider/store.d.ts"
+      ],
+      "@blocksuite/affine/blocks/edgeless-text": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/edgeless-text/index.d.ts"
+      ],
+      "@blocksuite/affine/blocks/surface/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/surface/store.d.ts"
+      ],
+      "@blocksuite/affine/inlines/preset/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/inlines/preset/store.d.ts"
+      ],
+      "@blocksuite/affine/inlines/mention/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/inlines/mention/view.d.ts"
+      ],
+      "@blocksuite/affine/widgets/toolbar/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/widgets/toolbar/view.d.ts"
+      ],
+      "@blocksuite/affine-block-bookmark/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-bookmark/dist/store.d.ts"
+      ],
+      "@blocksuite/affine-block-data-view/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-data-view/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-block-database/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-database/dist/store.d.ts"
+      ],
+      "@blocksuite/affine-block-embed-doc/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-embed-doc/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-block-paragraph/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-paragraph/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-fragment-frame-panel": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-fragment-frame-panel/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-inline-footnote/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-inline-footnote/dist/view.d.ts"
+      ],
+      "@blocksuite/affine/blocks/callout/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/callout/view.d.ts"
+      ],
+      "@blocksuite/affine/blocks/divider/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/divider/view.d.ts"
+      ],
+      "@blocksuite/affine/blocks/surface/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/surface/view.d.ts"
+      ],
+      "@blocksuite/affine/inlines/preset/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/inlines/preset/view.d.ts"
+      ],
+      "@blocksuite/affine/inlines/latex/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/inlines/latex/store.d.ts"
+      ],
+      "@blocksuite/affine/widgets/drag-handle": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/widgets/drag-handle/index.d.ts"
+      ],
+      "@blocksuite/affine/widgets/frame-title": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/widgets/frame-title/index.d.ts"
+      ],
+      "@blocksuite/affine/fragments/doc-title": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/fragments/doc-title/index.d.ts"
+      ],
+      "@blocksuite/affine/gfx/connector/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/gfx/connector/store.d.ts"
+      ],
+      "@blocksuite/affine/components/citation": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/components/citation.d.ts"
+      ],
+      "@blocksuite/affine/components/resource": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/components/resource.d.ts"
+      ],
+      "@blocksuite/affine-block-bookmark/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-bookmark/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-block-callout/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-callout/dist/store.d.ts"
+      ],
+      "@blocksuite/affine-block-database/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-database/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-block-divider/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-divider/dist/store.d.ts"
+      ],
+      "@blocksuite/affine-block-edgeless-text": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-edgeless-text/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-block-surface/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-surface/dist/store.d.ts"
+      ],
+      "@blocksuite/affine-components/resource": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-components/dist/resource/index.d.ts"
+      ],
+      "@blocksuite/affine-components/citation": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-components/dist/citation/index.d.ts"
+      ],
+      "@blocksuite/affine-gfx-connector/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-gfx-connector/dist/store.d.ts"
+      ],
+      "@blocksuite/affine-inline-mention/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-inline-mention/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-inline-preset/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-inline-preset/dist/store.d.ts"
+      ],
+      "@blocksuite/affine-widget-toolbar/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-widget-toolbar/dist/view.d.ts"
+      ],
+      "@blocksuite/data-view/property-presets": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/data-view/dist/property-presets/index.d.ts"
+      ],
+      "@blocksuite/affine/blocks/embed/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/embed/store.d.ts"
+      ],
+      "@blocksuite/affine/blocks/frame/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/frame/store.d.ts"
+      ],
+      "@blocksuite/affine/blocks/image/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/image/store.d.ts"
+      ],
+      "@blocksuite/affine/blocks/latex/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/latex/store.d.ts"
+      ],
+      "@blocksuite/affine/blocks/surface-ref": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/surface-ref/index.d.ts"
+      ],
+      "@blocksuite/affine/blocks/table/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/table/store.d.ts"
+      ],
+      "@blocksuite/affine/inlines/link/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/inlines/link/store.d.ts"
+      ],
+      "@blocksuite/affine/inlines/latex/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/inlines/latex/view.d.ts"
+      ],
+      "@blocksuite/affine/widgets/linked-doc": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/widgets/linked-doc/index.d.ts"
+      ],
+      "@blocksuite/affine/widgets/slash-menu": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/widgets/slash-menu/index.d.ts"
+      ],
+      "@blocksuite/affine/gfx/connector/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/gfx/connector/view.d.ts"
+      ],
+      "@blocksuite/affine/gfx/turbo-renderer": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/gfx/turbo-renderer.d.ts"
+      ],
+      "@blocksuite/affine/components/caption": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/components/caption.d.ts"
+      ],
+      "@blocksuite/affine/components/toolbar": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/components/toolbar.d.ts"
+      ],
+      "@blocksuite/affine-block-callout/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-callout/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-block-divider/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-divider/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-block-root/effects": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-root/dist/effects.d.ts"
+      ],
+      "@blocksuite/affine-block-surface/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-surface/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-components/toolbar": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-components/dist/toolbar/index.d.ts"
+      ],
+      "@blocksuite/affine-components/caption": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-components/dist/caption/index.d.ts"
+      ],
+      "@blocksuite/affine-fragment-doc-title": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-fragment-doc-title/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-gfx-connector/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-gfx-connector/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-gfx-turbo-renderer": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-gfx-turbo-renderer/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-inline-latex/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-inline-latex/dist/store.d.ts"
+      ],
+      "@blocksuite/affine-inline-preset/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-inline-preset/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-widget-drag-handle": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-widget-drag-handle/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-widget-frame-title": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-widget-frame-title/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-widget-note-slicer": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-widget-note-slicer/dist/index.d.ts"
+      ],
+      "@blocksuite/affine/global/exceptions": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/global/exceptions.d.ts"
+      ],
+      "@blocksuite/affine/global/disposable": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/global/disposable.d.ts"
+      ],
+      "@blocksuite/affine/blocks/attachment": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/attachment/index.d.ts"
+      ],
+      "@blocksuite/affine/blocks/code/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/code/store.d.ts"
+      ],
+      "@blocksuite/affine/blocks/embed/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/embed/view.d.ts"
+      ],
+      "@blocksuite/affine/blocks/frame/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/frame/view.d.ts"
+      ],
+      "@blocksuite/affine/blocks/image/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/image/view.d.ts"
+      ],
+      "@blocksuite/affine/blocks/latex/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/latex/view.d.ts"
+      ],
+      "@blocksuite/affine/blocks/list/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/list/store.d.ts"
+      ],
+      "@blocksuite/affine/blocks/note/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/note/store.d.ts"
+      ],
+      "@blocksuite/affine/blocks/root/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/root/store.d.ts"
+      ],
+      "@blocksuite/affine/blocks/table/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/table/view.d.ts"
+      ],
+      "@blocksuite/affine/data-view/effects": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/data-view/effects.d.ts"
+      ],
+      "@blocksuite/affine/inlines/link/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/inlines/link/view.d.ts"
+      ],
+      "@blocksuite/affine/inlines/reference": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/inlines/reference/index.d.ts"
+      ],
+      "@blocksuite/affine/fragments/outline": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/fragments/outline/index.d.ts"
+      ],
+      "@blocksuite/affine/gfx/mindmap/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/gfx/mindmap/store.d.ts"
+      ],
+      "@blocksuite/affine/gfx/template/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/gfx/template/view.d.ts"
+      ],
+      "@blocksuite/affine/components/portal": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/components/portal.d.ts"
+      ],
+      "@blocksuite/affine/rich-text/effects": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/rich-text/effects.d.ts"
+      ],
+      "@blocksuite/affine-block-embed/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-embed/dist/store.d.ts"
+      ],
+      "@blocksuite/affine-block-frame/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-frame/dist/store.d.ts"
+      ],
+      "@blocksuite/affine-block-image/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-image/dist/store.d.ts"
+      ],
+      "@blocksuite/affine-block-latex/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-latex/dist/store.d.ts"
+      ],
+      "@blocksuite/affine-block-surface-ref": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-surface-ref/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-block-table/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-table/dist/store.d.ts"
+      ],
+      "@blocksuite/affine-components/portal": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-components/dist/portal/index.d.ts"
+      ],
+      "@blocksuite/affine-components/slider": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-components/dist/slider/index.d.ts"
+      ],
+      "@blocksuite/affine-gfx-mindmap/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-gfx-mindmap/dist/store.d.ts"
+      ],
+      "@blocksuite/affine-gfx-template/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-gfx-template/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-inline-latex/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-inline-latex/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-inline-link/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-inline-link/dist/store.d.ts"
+      ],
+      "@blocksuite/affine-rich-text/effects": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-rich-text/dist/effects.d.ts"
+      ],
+      "@blocksuite/affine-widget-linked-doc": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-widget-linked-doc/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-widget-slash-menu": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-widget-slash-menu/dist/index.d.ts"
+      ],
+      "@blocksuite/data-view/widget-presets": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/data-view/dist/widget-presets/index.d.ts"
+      ],
+      "@blocksuite/affine/blocks/code/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/code/view.d.ts"
+      ],
+      "@blocksuite/affine/blocks/data-view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/data-view/index.d.ts"
+      ],
+      "@blocksuite/affine/blocks/embed-doc": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/embed-doc/index.d.ts"
+      ],
+      "@blocksuite/affine/blocks/list/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/list/view.d.ts"
+      ],
+      "@blocksuite/affine/blocks/note/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/note/view.d.ts"
+      ],
+      "@blocksuite/affine/blocks/paragraph": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/paragraph/index.d.ts"
+      ],
+      "@blocksuite/affine/blocks/root/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/root/view.d.ts"
+      ],
+      "@blocksuite/affine/inlines/footnote": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/inlines/footnote/index.d.ts"
+      ],
+      "@blocksuite/affine/gfx/pointer/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/gfx/pointer/view.d.ts"
+      ],
+      "@blocksuite/affine/gfx/mindmap/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/gfx/mindmap/view.d.ts"
+      ],
+      "@blocksuite/affine/components/hover": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/components/hover.d.ts"
+      ],
+      "@blocksuite/affine/components/icons": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/components/icons.d.ts"
+      ],
+      "@blocksuite/affine/components/toast": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/components/toast.d.ts"
+      ],
+      "@blocksuite/affine/shared/selection": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/shared/selection.d.ts"
+      ],
+      "@blocksuite/affine/extensions/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/extensions/store.d.ts"
+      ],
+      "@blocksuite/affine/foundation/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/foundation/store.d.ts"
+      ],
+      "@blocksuite/affine-block-attachment": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-attachment/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-block-code/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-code/dist/store.d.ts"
+      ],
+      "@blocksuite/affine-block-embed/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-embed/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-block-frame/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-frame/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-block-image/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-image/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-block-latex/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-latex/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-block-list/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-list/dist/store.d.ts"
+      ],
+      "@blocksuite/affine-block-note/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-note/dist/store.d.ts"
+      ],
+      "@blocksuite/affine-block-root/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-root/dist/store.d.ts"
+      ],
+      "@blocksuite/affine-block-table/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-table/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-components/icons": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-components/dist/icons/index.d.ts"
+      ],
+      "@blocksuite/affine-components/hover": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-components/dist/hover/index.d.ts"
+      ],
+      "@blocksuite/affine-components/toast": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-components/dist/toast/index.d.ts"
+      ],
+      "@blocksuite/affine-foundation/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-foundation/dist/store.d.ts"
+      ],
+      "@blocksuite/affine-fragment-outline": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-fragment-outline/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-gfx-mindmap/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-gfx-mindmap/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-gfx-pointer/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-gfx-pointer/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-inline-link/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-inline-link/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-inline-reference": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-inline-reference/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-shared/selection": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-shared/dist/selection/index.d.ts"
+      ],
+      "@blocksuite/affine/blocks/bookmark": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/bookmark/index.d.ts"
+      ],
+      "@blocksuite/affine/blocks/database": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/database/index.d.ts"
+      ],
+      "@blocksuite/affine/inlines/mention": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/inlines/mention/index.d.ts"
+      ],
+      "@blocksuite/affine/widgets/toolbar": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/widgets/toolbar/index.d.ts"
+      ],
+      "@blocksuite/affine/gfx/brush/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/gfx/brush/store.d.ts"
+      ],
+      "@blocksuite/affine/gfx/shape/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/gfx/shape/store.d.ts"
+      ],
+      "@blocksuite/affine/gfx/group/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/gfx/group/store.d.ts"
+      ],
+      "@blocksuite/affine/components/peek": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/components/peek.d.ts"
+      ],
+      "@blocksuite/affine/shared/adapters": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/shared/adapters.d.ts"
+      ],
+      "@blocksuite/affine/shared/commands": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/shared/commands.d.ts"
+      ],
+      "@blocksuite/affine/shared/services": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/shared/services.d.ts"
+      ],
+      "@blocksuite/affine/extensions/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/extensions/view.d.ts"
+      ],
+      "@blocksuite/affine/foundation/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/foundation/view.d.ts"
+      ],
+      "@blocksuite/affine-block-code/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-code/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-block-data-view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-data-view/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-block-embed-doc": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-embed-doc/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-block-list/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-list/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-block-note/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-note/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-block-paragraph": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-paragraph/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-block-root/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-root/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-components/peek": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-components/dist/peek/index.d.ts"
+      ],
+      "@blocksuite/affine-foundation/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-foundation/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-gfx-brush/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-gfx-brush/dist/store.d.ts"
+      ],
+      "@blocksuite/affine-gfx-group/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-gfx-group/dist/store.d.ts"
+      ],
+      "@blocksuite/affine-gfx-shape/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-gfx-shape/dist/store.d.ts"
+      ],
+      "@blocksuite/affine-inline-footnote": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-inline-footnote/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-shared/commands": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-shared/dist/commands/index.d.ts"
+      ],
+      "@blocksuite/affine-shared/services": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-shared/dist/services/index.d.ts"
+      ],
+      "@blocksuite/affine-shared/adapters": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-shared/dist/adapters/index.d.ts"
+      ],
+      "@blocksuite/data-view/view-presets": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/data-view/dist/view-presets/index.d.ts"
+      ],
+      "@blocksuite/affine/blocks/callout": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/callout/index.d.ts"
+      ],
+      "@blocksuite/affine/blocks/divider": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/divider/index.d.ts"
+      ],
+      "@blocksuite/affine/blocks/surface": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/surface/index.d.ts"
+      ],
+      "@blocksuite/affine/inlines/preset": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/inlines/preset/index.d.ts"
+      ],
+      "@blocksuite/affine/gfx/text/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/gfx/text/store.d.ts"
+      ],
+      "@blocksuite/affine/gfx/brush/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/gfx/brush/view.d.ts"
+      ],
+      "@blocksuite/affine/gfx/shape/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/gfx/shape/view.d.ts"
+      ],
+      "@blocksuite/affine/gfx/group/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/gfx/group/view.d.ts"
+      ],
+      "@blocksuite/affine-block-bookmark": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-bookmark/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-block-database": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-database/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-gfx-brush/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-gfx-brush/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-gfx-group/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-gfx-group/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-gfx-shape/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-gfx-shape/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-gfx-text/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-gfx-text/dist/store.d.ts"
+      ],
+      "@blocksuite/affine-inline-mention": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-inline-mention/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-widget-toolbar": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-widget-toolbar/dist/index.d.ts"
+      ],
+      "@blocksuite/affine/inlines/latex": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/inlines/latex/index.d.ts"
+      ],
+      "@blocksuite/affine/gfx/text/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/gfx/text/view.d.ts"
+      ],
+      "@blocksuite/affine/gfx/link/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/gfx/link/view.d.ts"
+      ],
+      "@blocksuite/affine/gfx/note/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/gfx/note/view.d.ts"
+      ],
+      "@blocksuite/affine/gfx/connector": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/gfx/connector/index.d.ts"
+      ],
+      "@blocksuite/affine/shared/consts": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/shared/consts.d.ts"
+      ],
+      "@blocksuite/affine/shared/styles": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/shared/styles.d.ts"
+      ],
+      "@blocksuite/affine-block-callout": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-callout/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-block-divider": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-divider/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-block-surface": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-surface/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-gfx-connector": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-gfx-connector/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-gfx-link/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-gfx-link/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-gfx-note/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-gfx-note/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-gfx-text/view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-gfx-text/dist/view.d.ts"
+      ],
+      "@blocksuite/affine-inline-preset": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-inline-preset/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-shared/consts": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-shared/dist/consts/index.d.ts"
+      ],
+      "@blocksuite/affine-shared/styles": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-shared/dist/styles/index.d.ts"
+      ],
+      "@blocksuite/affine/global/utils": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/global/utils.d.ts"
+      ],
+      "@blocksuite/affine/global/types": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/global/types.d.ts"
+      ],
+      "@blocksuite/affine/blocks/embed": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/embed/index.d.ts"
+      ],
+      "@blocksuite/affine/blocks/frame": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/frame/index.d.ts"
+      ],
+      "@blocksuite/affine/blocks/image": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/image/index.d.ts"
+      ],
+      "@blocksuite/affine/blocks/latex": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/latex/index.d.ts"
+      ],
+      "@blocksuite/affine/blocks/table": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/table/index.d.ts"
+      ],
+      "@blocksuite/affine/inlines/link": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/inlines/link/index.d.ts"
+      ],
+      "@blocksuite/affine/gfx/template": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/gfx/template/index.d.ts"
+      ],
+      "@blocksuite/affine/shared/theme": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/shared/theme.d.ts"
+      ],
+      "@blocksuite/affine/shared/types": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/shared/types.d.ts"
+      ],
+      "@blocksuite/affine/shared/utils": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/shared/utils.d.ts"
+      ],
+      "@blocksuite/affine-gfx-template": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-gfx-template/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-inline-latex": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-inline-latex/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-shared/utils": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-shared/dist/utils/index.d.ts"
+      ],
+      "@blocksuite/affine-shared/types": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-shared/dist/types/index.d.ts"
+      ],
+      "@blocksuite/affine-shared/theme": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-shared/dist/theme/index.d.ts"
+      ],
+      "@blocksuite/affine/std/effects": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/std/effects.d.ts"
+      ],
+      "@blocksuite/affine/blocks/code": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/code/index.d.ts"
+      ],
+      "@blocksuite/affine/blocks/list": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/list/index.d.ts"
+      ],
+      "@blocksuite/affine/blocks/note": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/note/index.d.ts"
+      ],
+      "@blocksuite/affine/blocks/root": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/blocks/root/index.d.ts"
+      ],
+      "@blocksuite/affine/gfx/pointer": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/gfx/pointer/index.d.ts"
+      ],
+      "@blocksuite/affine/gfx/mindmap": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/gfx/mindmap/index.d.ts"
+      ],
+      "@blocksuite/affine-block-embed": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-embed/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-block-frame": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-frame/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-block-image": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-image/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-block-latex": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-latex/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-block-table": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-table/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-gfx-mindmap": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-gfx-mindmap/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-gfx-pointer": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-gfx-pointer/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-inline-link": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-inline-link/dist/index.d.ts"
+      ],
+      "@blocksuite/affine/ext-loader": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/ext-loader/index.d.ts"
+      ],
+      "@blocksuite/affine/std/inline": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/std/inline.d.ts"
+      ],
+      "@blocksuite/affine/global/env": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/global/env.d.ts"
+      ],
+      "@blocksuite/affine/global/gfx": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/global/gfx.d.ts"
+      ],
+      "@blocksuite/affine/global/lit": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/global/lit.d.ts"
+      ],
+      "@blocksuite/affine/store/test": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/store/test.d.ts"
+      ],
+      "@blocksuite/affine-block-code": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-code/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-block-list": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-list/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-block-note": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-note/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-block-root": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-block-root/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-components": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-components/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-ext-loader": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-ext-loader/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-foundation": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-foundation/dist/index.d.ts"
+      ],
+      "@blocksuite/data-view/effects": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/data-view/dist/effects.d.ts"
+      ],
+      "@blocksuite/global/exceptions": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/global/dist/exceptions/index.d.ts"
+      ],
+      "@blocksuite/global/disposable": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/global/dist/disposable/index.d.ts"
+      ],
+      "@blocksuite/affine/global/di": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/global/di.d.ts"
+      ],
+      "@blocksuite/affine/data-view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/data-view/index.d.ts"
+      ],
+      "@blocksuite/affine/gfx/brush": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/gfx/brush/index.d.ts"
+      ],
+      "@blocksuite/affine/gfx/shape": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/gfx/shape/index.d.ts"
+      ],
+      "@blocksuite/affine/gfx/group": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/gfx/group/index.d.ts"
+      ],
+      "@blocksuite/affine/rich-text": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/rich-text/index.d.ts"
+      ],
+      "@blocksuite/affine-gfx-brush": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-gfx-brush/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-gfx-group": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-gfx-group/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-gfx-shape": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-gfx-shape/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-rich-text": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-rich-text/dist/index.d.ts"
+      ],
+      "@blocksuite/affine/gfx/text": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/gfx/text/index.d.ts"
+      ],
+      "@blocksuite/affine/gfx/link": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/gfx/link/index.d.ts"
+      ],
+      "@blocksuite/affine/gfx/note": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/gfx/note/index.d.ts"
+      ],
+      "@blocksuite/affine-gfx-link": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-gfx-link/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-gfx-note": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-gfx-note/dist/index.d.ts"
+      ],
+      "@blocksuite/affine-gfx-text": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-gfx-text/dist/index.d.ts"
+      ],
+      "@blocksuite/affine/effects": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/effects.d.ts"
+      ],
+      "@blocksuite/affine/std/gfx": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/std/gfx.d.ts"
+      ],
+      "@blocksuite/affine/schemas": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/schemas.d.ts"
+      ],
+      "@blocksuite/affine/global": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/global/index.d.ts"
+      ],
+      "@blocksuite/affine-shared": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-shared/dist/index.d.ts"
+      ],
+      "@blocksuite/affine/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/store/index.d.ts"
+      ],
+      "@blocksuite/affine/model": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/model/index.d.ts"
+      ],
+      "@blocksuite/affine-model": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine-model/dist/index.d.ts"
+      ],
+      "@blocksuite/global/utils": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/global/dist/utils/index.d.ts"
+      ],
+      "@blocksuite/global/types": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/global/dist/types/index.d.ts"
+      ],
+      "@blocksuite/affine/sync": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/sync/index.d.ts"
+      ],
+      "@blocksuite/std/effects": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/std/dist/effects.d.ts"
+      ],
+      "@blocksuite/affine/std": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/std/index.d.ts"
+      ],
+      "@blocksuite/global/env": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/global/dist/env/index.d.ts"
+      ],
+      "@blocksuite/global/gfx": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/global/dist/gfx/index.d.ts"
+      ],
+      "@blocksuite/global/lit": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/global/dist/lit/index.d.ts"
+      ],
+      "@blocksuite/std/inline": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/std/dist/inline/index.d.ts"
+      ],
+      "@blocksuite/store/test": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/store/dist/test/index.d.ts"
+      ],
+      "@blocksuite/data-view": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/data-view/dist/index.d.ts"
+      ],
+      "@blocksuite/global/di": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/global/dist/di/index.d.ts"
+      ],
+      "@blocksuite/std/gfx": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/std/dist/gfx/index.d.ts"
+      ],
+      "@blocksuite/affine": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/affine/dist/index.d.ts"
+      ],
+      "@blocksuite/global": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/global/dist/index.d.ts"
+      ],
+      "@blocksuite/store": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/store/dist/index.d.ts"
+      ],
+      "@blocksuite/sync": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/sync/dist/index.d.ts"
+      ],
+      "@blocksuite/std": [
+        "./../../node_modules/.pnpm/node_modules/@blocksuite/std/dist/index.d.ts"
+      ]
+    }
+  }
+}

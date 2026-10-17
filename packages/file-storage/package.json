@@ -1,7 +1,7 @@
 {
-  "name": "@lifeforge/file-storage",
+  "name": "@monolith/file-storage",
   "version": "0.0.1",
-  "description": "File Storage SDK for LifeForge",
+  "description": "File Storage SDK for Monolith",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -28,14 +28,13 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.758.0",
     "@aws-sdk/lib-storage": "^3.1145.0",
-    "@lifeforge/configs": "workspace:*",
-    "@lifeforge/drizzle": "workspace:*",
-    "@lifeforge/log": "workspace:*",
+    "@monolith/configs": "workspace:*",
+    "@monolith/drizzle": "workspace:*",
+    "@monolith/log": "workspace:*",
     "drizzle-orm": "1.0.0-rc.4",
     "file-type": "^22.1.1",
     "mime-types": "^2.1.35",
     "multer": "^2.2.0",
-    "path-is-inside": "^1.0.2",
     "sharp": "^0.33.5",
     "uuid": "^11.1.0",
     "zod": "^4.3.5"
@@ -47,7 +46,7 @@
     "@types/mime-types": "^2.1.4",
     "@types/multer": "^2.2.0",
     "@types/node": "^22.13.10",
-    "@types/path-is-inside": "^1.0.3",
     "express": "^4.21.2"
-  }
+  },
+  "author": "Monolith contributors"
 }

@@ -12,20 +12,22 @@ import {
   Text,
   WithQuery,
   usePersonalization
-} from '@lifeforge/ui'
+} from '@monolith/ui'
 
 import { useUserPersonalization } from '@/core/providers/features/UserPersonalizationProvider'
-import forgeAPI from '@/core/utils/forgeAPI'
+import workspaceAPI from '@/core/utils/workspaceAPI'
 
 function LanguageSelector() {
   const { language } = usePersonalization()
   const { changeLanguage } = useUserPersonalization()
   const { t } = useTranslation('common.personalization')
-  const languagesQuery = useQuery(forgeAPI.locales.listLanguages.queryOptions())
+  const languagesQuery = useQuery(
+    workspaceAPI.locales.listLanguages.queryOptions()
+  )
 
   const unsupportedQuery = useQuery(
-    forgeAPI.locales.listUnsupportedModules.queryOptions({
-      queryKey: [...forgeAPI.locales.listUnsupportedModules.key, language]
+    workspaceAPI.locales.listUnsupportedModules.queryOptions({
+      queryKey: [...workspaceAPI.locales.listUnsupportedModules.key, language]
     })
   )
 

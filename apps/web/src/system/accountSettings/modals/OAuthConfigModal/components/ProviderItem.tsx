@@ -1,144 +1,117 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import dayjs from 'dayjs'
+import { useQueryClient } from '@tanstack/react-query'
+import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import type { InferOutput } from '@lifeforge/api'
+import type { InferOutput } from '@monolith/api'
 import {
   Button,
   Card,
   ConfirmationModal,
-  ContextMenu,
-  ContextMenuItem,
   Flex,
   Icon,
   Stack,
   Switch,
   Text,
-  colorWithOpacity,
-  surface,
-  useModalStore,
-  usePersonalization
-} from '@lifeforge/ui'
+  toast,
+  useModalStore
+} from '@monolith/ui'
 
-import forgeAPI from '@/core/utils/forgeAPI'
+import workspaceAPI from '@/core/utils/workspaceAPI'
 
 import ModifyOAuthProviderModal from '../../ModifyOAuthProviderModal'
 
-function ProviderItem({
+export default function ProviderItem({
   entry
 }: {
-  entry: InferOutput<typeof forgeAPI.auth.oauth.providers.listOptions>[number]
+  entry: InferOutput<
+    typeof workspaceAPI.auth.oauth.providers.listOptions
+  >[number]
 }) {
-  const { language } = usePersonalization()
-  const { t } = useTranslation('common.account-settings')
+  const { t, i18n } = useTranslation('common.account-settings')
   const { open } = useModalStore()
-  const queryClient = useQueryClient()
+  const cache = useQueryClient()
+  const [busy, setBusy] = useState(false)
+  const locked = useRef(false)
 
-  const toggleMutation = useMutation(
-    forgeAPI.auth.oauth.providers.toggle
-      .input({ id: entry.id || '' })
-      .mutationOptions({
-        onSuccess: () => {
-          queryClient.invalidateQueries({
-            queryKey: forgeAPI.auth.oauth.providers.key
-          })
-        }
-      })
-  )
-
-  const deleteMutation = useMutation(
-    forgeAPI.auth.oauth.providers.remove
-      .input({ id: entry.id || '' })
-      .mutationOptions({
-        onSuccess: () => {
-          queryClient.invalidateQueries({
-            queryKey: forgeAPI.auth.oauth.providers.key
-          })
-        }
-      })
-  )
-
-  const handleDelete = () =>
-    open(ConfirmationModal, {
-      title: `Delete ${entry.name}?`,
-      description:
-        'Are you sure you want to delete this OAuth provider? This action is irreversible!',
-      onConfirm: () => deleteMutation.mutateAsync(undefined)
-    })
+  async function change(operation: 'toggle' | 'remove') {
+    if (!entry.id || locked.current) return
+    locked.current = true
+    setBusy(true)
+    try {
+      await workspaceAPI.auth.oauth.providers[operation]
+        .input({ id: entry.id })
+        .mutateRaw(undefined)
+      await cache.invalidateQueries({ queryKey: workspaceAPI.auth.oauth.key })
+    } catch (error) {
+      toast.error(t('messages.oauth.saveFailed'))
+      throw error
+    } finally {
+      locked.current = false
+      setBusy(false)
+    }
+  }
 
   return (
-    <Card
-      key={entry.provider}
-      align="center"
-      bg={surface.light}
-      direction="row"
-      gap="2xl"
-      justify="between"
-    >
-      <Flex align="center" gap="md">
-        <Flex
-          centered
-          bg={colorWithOpacity('bg-500', '10%')}
-          flexShrink="0"
-          height="3em"
-          r="md"
-          width="3em"
-        >
-          <Icon color="muted" icon={entry.icon} size="1.5em" />
-        </Flex>
-        <Stack>
-          <Text size="lg" weight="medium">
-            {entry.name}
-          </Text>
-          {entry.updated && (
-            <Text color="muted" size="sm">
-              {entry.updated && t('misc.lastUpdated')}
-              {dayjs(entry.updated)
-                .locale(language)
-                .format('MMM DD, YYYY, HH:mm:ss')}
-            </Text>
-          )}
-        </Stack>
-      </Flex>
-      {entry.configured && entry.id ? (
+    <Card role="listitem" gap="md">
+      <Flex align="center" gap="md" justify="between" wrap="wrap">
         <Flex align="center" gap="md">
-          <Switch
-            value={entry.enabled}
-            onChange={() => toggleMutation.mutate(undefined)}
-          />
-          <ContextMenu>
-            <ContextMenuItem
-              icon="tabler:pencil"
-              label="Update"
-              onClick={() =>
-                open(ModifyOAuthProviderModal, {
-                  provider: entry.provider,
-                  type: 'update'
-                })
-              }
-            />
-            <ContextMenuItem
-              dangerous
-              icon="tabler:trash"
-              label="Delete"
-              onClick={handleDelete}
-            />
-          </ContextMenu>
+          <Icon icon={entry.icon} size="1.75em" color="muted" />
+          <Stack gap="xs">
+            <Text weight="medium">{entry.name}</Text>
+            {entry.updated && (
+              <Text color="muted" size="sm">
+                {t('misc.lastUpdated')}{' '}
+                {new Intl.DateTimeFormat(i18n.resolvedLanguage, {
+                  dateStyle: 'medium'
+                }).format(new Date(entry.updated))}
+              </Text>
+            )}
+          </Stack>
         </Flex>
-      ) : (
+        {entry.configured && (
+          <Switch
+            aria-label={t('actions.enableProvider', { provider: entry.name })}
+            disabled={busy}
+            value={entry.enabled}
+            onChange={() => {
+              void change('toggle').catch(() => {})
+            }}
+          />
+        )}
+      </Flex>
+      <Flex gap="sm" justify="end">
         <Button
-          icon="tabler:plus"
           variant="plain"
+          disabled={busy}
+          icon={entry.configured ? 'tabler:pencil' : 'tabler:plus'}
           onClick={() =>
             open(ModifyOAuthProviderModal, {
-              provider: entry.provider,
-              type: 'create'
+              type: entry.configured ? 'update' : 'create',
+              provider: entry.provider
             })
           }
-        />
-      )}
+        >
+          {entry.configured ? 'edit' : 'add'}
+        </Button>
+        {entry.configured && (
+          <Button
+            dangerous
+            variant="plain"
+            icon="tabler:trash"
+            disabled={busy}
+            onClick={() =>
+              open(ConfirmationModal, {
+                title: t('actions.removeProvider', { provider: entry.name }),
+                description: t('messages.oauth.removeDescription'),
+                confirmationButton: 'delete',
+                onConfirm: () => change('remove')
+              })
+            }
+          >
+            delete
+          </Button>
+        )}
+      </Flex>
     </Card>
   )
 }
-
-export default ProviderItem

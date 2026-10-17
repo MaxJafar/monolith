@@ -1,25 +1,35 @@
+import { ROOT_DIR } from '@constants'
 import { getPublicKey } from '@functions/encryption'
 import corsAnywhere from '@lib/corsAnywhere'
 import dayjs from 'dayjs'
+import { sql } from 'drizzle-orm'
+import { readFileSync } from 'node:fs'
 import path from 'path'
 import z from 'zod'
 
-import { forgeRouter, writeContractFileToClient } from '@lifeforge/server-utils'
+import { ModuleRegistry } from '@monolith/module-runtime/registry'
+import { defineRoutes, writeContractFileToClient } from '@monolith/server-utils'
 
-import forge from './forge'
+import { addonShop } from '../../lib/modules/shop'
+import { db } from '../drizzle'
+import endpoints from './endpoints'
 
-const welcome = forge
+const releaseVersion: string = JSON.parse(
+  readFileSync(path.join(ROOT_DIR, 'package.json'), 'utf8')
+).version
+
+const welcome = endpoints
   .query({
-    description: 'Welcome to ZillionOS API',
+    description: 'Welcome to Monolith API',
     noAuth: true,
     encrypted: false,
     output: {
-      OK: z.literal('Welcome to ZillionOS')
+      OK: z.literal('Welcome to Monolith')
     }
   })
-  .callback(async ({ response }) => response.ok('Welcome to ZillionOS'))
+  .callback(async ({ response }) => response.ok('Welcome to Monolith'))
 
-const ping = forge
+const ping = endpoints
   .mutation({
     description: 'Ping the server',
     noAuth: true,
@@ -37,7 +47,7 @@ const ping = forge
     response.ok(`Pong at ${dayjs(timestamp).format('YYYY-MM-DD HH:mm:ss')}`)
   )
 
-const status = forge
+const status = endpoints
   .query({
     description: 'Get server status',
     noAuth: true,
@@ -46,17 +56,25 @@ const status = forge
     input: {},
     output: {
       OK: z.object({
-        environment: z.string()
+        environment: z.string(),
+        version: z.string(),
+        healthy: z.boolean()
       })
     }
   })
-  .callback(async ({ response }) =>
-    response.ok({
-      environment: process.env.NODE_ENV || 'development'
+  .callback(async ({ response }) => {
+    await db.execute(sql`select 1`)
+    const installed = await addonShop.directories()
+    if (Object.keys(installed).some(id => !ModuleRegistry.isAvailable(id)))
+      throw Error('An installed addon failed to start')
+    return response.ok({
+      environment: process.env.NODE_ENV || 'development',
+      version: releaseVersion,
+      healthy: true
     })
-  )
+  })
 
-const encryptionPublicKey = forge
+const encryptionPublicKey = endpoints
   .query({
     description: 'Get server public key for end-to-end encryption',
     noAuth: true,
@@ -68,7 +86,7 @@ const encryptionPublicKey = forge
   })
   .callback(async ({ response }) => response.ok(getPublicKey()))
 
-const coreRoutes = forgeRouter({
+const coreRoutes = defineRoutes({
   '': welcome,
   locales: (await import('@lib/locales')).default,
   user: (await import('@lib/user')).default,
@@ -78,8 +96,11 @@ const coreRoutes = forgeRouter({
   pixabay: (await import('@lib/pixabay')).default,
   locations: (await import('@lib/locations')).default,
   modules: (await import('@lib/modules')).default,
+  updates: (await import('@lib/updates')).default,
   ai: (await import('@lib/ai')).default,
   search: (await import('@lib/search')).default,
+  rooms: (await import('@lib/rooms')).default,
+  entities: (await import('@lib/entities')).default,
   files: (await import('@lib/files')).default,
   ping,
   status,

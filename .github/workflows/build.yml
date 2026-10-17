@@ -1,122 +1,85 @@
-name: Build
+name: Monolith
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
-  pull-requests: write
+
+concurrency:
+  group: monolith-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build-backend:
-    name: Build Backend
-    runs-on: blacksmith-4vcpu-ubuntu-2404
-
+  core:
+    name: Core, web and gateway
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Type check server
-        run: pnpm run forge types server
-
-      - name: Build server
-        run: pnpm run forge build server
-
-  build-frontend:
-    name: Build Frontend
-    runs-on: blacksmith-4vcpu-ubuntu-2404
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build client
-        run: pnpm run forge build client
-
-  build-summary:
-    name: Build Summary
-    runs-on: blacksmith-4vcpu-ubuntu-2404
-    needs: [build-backend, build-frontend]
-    if: always() && github.event_name == 'pull_request'
-
-    steps:
-      - name: Comment PR
-        uses: actions/github-script@v7
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7
         with:
-          script: |
-            const { owner, repo, number } = context.issue;
-            const runId = context.runId;
-            const backendResult = '${{ needs.build-backend.result }}';
-            const frontendResult = '${{ needs.build-frontend.result }}';
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm core:check
+      - run: pnpm typecheck
+      - run: pnpm --filter @monolith/configs test
+      - run: pnpm --filter @monolith/module-runtime test
+      - run: pnpm --filter @monolith/blocks test
+      - run: pnpm --filter @monolith/api test
+      - run: pnpm --filter @monolith/server-utils test
+      - run: pnpm agent:test
+      - run: pnpm --filter @monolith/server exec vitest run src/lib/integrations/catalog.test.ts
+      - run: pnpm --filter @monolith/ui test
+      - run: pnpm --filter @monolith/client test
+      - run: pnpm exec vitest run --config tools/vitest.addons.config.ts
+      - run: pnpm gateway:test
+      - run: pnpm build
+      - run: pnpm --filter @monolith/site verify
+      - run: pnpm exec playwright install --with-deps chromium webkit
+      - run: pnpm site:test
 
-            let summary = '## 🔨 Build Results\n\n';
-            let allSuccess = true;
-
-            // Backend status
-            if (backendResult === 'success') {
-              summary += '✅ **Backend Build**: Passed\n';
-            } else {
-              summary += `❌ **Backend Build**: Failed (${backendResult})\n`;
-              allSuccess = false;
-            }
-
-            // Frontend status  
-            if (frontendResult === 'success') {
-              summary += '✅ **Frontend Build**: Passed\n';
-            } else {
-              summary += `❌ **Frontend Build**: Failed (${frontendResult})\n`;
-              allSuccess = false;
-            }
-
-            summary += '\n';
-
-            if (allSuccess) {
-              summary += '🎉 All builds completed successfully!';
-            } else {
-              summary += '⚠️ One or more builds failed. Please check the logs for details.';
-            }
-
-            summary += `\n\n🔗 [View full workflow run](https://github.com/${owner}/${repo}/actions/runs/${runId})`;
-
-            // Find existing comment to update
-            const comments = await github.rest.issues.listComments({
-              owner,
-              repo,
-              issue_number: number,
-            });
-
-            const botComment = comments.data.find(
-              comment => comment.user.type === 'Bot' && 
-              comment.body.includes('## 🔨 Build Results')
-            );
-
-            if (botComment) {
-              // Update existing comment
-              await github.rest.issues.updateComment({
-                owner,
-                repo,
-                comment_id: botComment.id,
-                body: summary
-              });
-            } else {
-              // Create new comment
-              await github.rest.issues.createComment({
-                owner,
-                repo,
-                issue_number: number,
-                body: summary
-              });
-            }
+  native:
+    name: Native (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm desktop:bundle
+      - run: pnpm agent:test
+      - name: Windows core tests
+        if: runner.os == 'Windows'
+        run: pnpm desktop:windows:test
+      - name: Windows application
+        if: runner.os == 'Windows'
+        run: pnpm --dir apps/desktop exec tauri build
+      - name: macOS native tests
+        if: runner.os == 'macOS'
+        run: pnpm exec node tools/macos-build.mjs --test
+      - name: macOS universal application
+        if: runner.os == 'macOS'
+        run: pnpm exec node tools/macos-build.mjs
+      - name: Preserve native build
+        uses: actions/upload-artifact@v4
+        with:
+          name: monolith-${{ runner.os }}-${{ github.sha }}
+          path: |
+            apps/desktop/src-tauri/target/release/bundle/nsis/*.exe
+            .temp/macos/*.dmg
+          if-no-files-found: error
+          retention-days: 14

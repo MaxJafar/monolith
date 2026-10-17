@@ -26,7 +26,7 @@ export interface LocaleData {
 }
 
 const localesPackageJSONSchema = z.object({
-  name: z.string().regex(/^@lifeforge\/.+--lang-.+$/),
+  name: z.string().regex(/^@monolith\/(?:.+--)?lang-.+$/),
   version: z.string().regex(/^\d+\.\d+\.\d+$/),
   description: z.string(),
   author: z.string(),
@@ -36,7 +36,7 @@ const localesPackageJSONSchema = z.object({
       url: z.string()
     })
     .optional(),
-  lifeforge: z.object({
+  monolith: z.object({
     code: z.string(),
     displayName: z.string(),
     icon: z.string(),
@@ -72,7 +72,7 @@ export class LocaleService {
   static validateAndLoad(): void {
     if (!fs.existsSync(LANGUAGE_PACK_PATH)) {
       localeLogger.error(
-        'Language pack path does not exist. Please install at least one language pack through the Forge CLI.'
+        'Language pack path does not exist. Please install at least one language pack through the Monolith CLI.'
       )
 
       process.exit(1)
@@ -84,7 +84,7 @@ export class LocaleService {
 
     if (!this.languagePacks.length) {
       localeLogger.error(
-        'Language pack path is empty. Please install at least one language pack through the Forge CLI.'
+        'Language pack path is empty. Please install at least one language pack through the Monolith CLI.'
       )
 
       process.exit(1)
@@ -127,10 +127,10 @@ export class LocaleService {
 
       return {
         packName: e,
-        name: content.data.lifeforge.code,
-        icon: content.data.lifeforge.icon,
-        displayName: content.data.lifeforge.displayName,
-        alternative: content.data.lifeforge.alternative
+        name: content.data.monolith.code,
+        icon: content.data.monolith.icon,
+        displayName: content.data.monolith.displayName,
+        alternative: content.data.monolith.alternative
       }
     })
 

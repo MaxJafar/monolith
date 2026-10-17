@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import { usePromiseLoading } from '@lifeforge/api'
+import { usePromiseLoading } from '@monolith/api'
 
 import { Button, type FilePickerSourceConfig } from '@/components/inputs'
 import { ModalHeader } from '@/components/overlays'

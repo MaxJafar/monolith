@@ -15,34 +15,34 @@ export type ColorProps = Partial<
 
 export const COLOR_PROP_DEFS = {
   bg: {
-    className: 'lf-bg',
+    className: 'monolith-bg',
     cssProperty: 'backgroundColor',
-    varPrefix: '--lf-bg'
+    varPrefix: '--monolith-bg'
   },
   color: {
-    className: 'lf-color',
+    className: 'monolith-color',
     cssProperty: 'color',
-    varPrefix: '--lf-color'
+    varPrefix: '--monolith-color'
   },
   borderColor: {
-    className: 'lf-border-color',
+    className: 'monolith-border-color',
     cssProperty: 'borderColor',
-    varPrefix: '--lf-border-color'
+    varPrefix: '--monolith-border-color'
   },
   ringColor: {
-    className: 'lf-ring-color',
-    cssProperty: '--lf-ring-color',
-    varPrefix: '--lf-ring-color'
+    className: 'monolith-ring-color',
+    cssProperty: '--monolith-ring-color-resolved',
+    varPrefix: '--monolith-ring-color'
   },
   ringOffsetColor: {
-    className: 'lf-ring-offset-color',
-    cssProperty: '--lf-ring-offset-color',
-    varPrefix: '--lf-ring-offset-color'
+    className: 'monolith-ring-offset-color',
+    cssProperty: '--monolith-ring-offset-color-resolved',
+    varPrefix: '--monolith-ring-offset-color'
   },
   divideColor: {
-    className: 'lf-divide-color',
-    cssProperty: '--lf-divide-color',
-    varPrefix: '--lf-divide-color'
+    className: 'monolith-divide-color',
+    cssProperty: '--monolith-divide-color-resolved',
+    varPrefix: '--monolith-divide-color'
   }
 } as const satisfies Record<
   ColorPropName,

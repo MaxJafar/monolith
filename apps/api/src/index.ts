@@ -15,8 +15,9 @@ import type { Express } from 'express'
 import { createServer } from 'node:http'
 import path from 'node:path'
 
-import { sweepStagingDir } from '@lifeforge/file-storage/server'
-import { traceRouteStack } from '@lifeforge/server-utils'
+import { sweepStagingDir } from '@monolith/file-storage/server'
+import { ModuleRegistry } from '@monolith/module-runtime/registry'
+import { traceRouteStack } from '@monolith/server-utils'
 
 import './loadEnv'
 
@@ -89,73 +90,77 @@ async function main(): Promise<void> {
   const { users } = await import('./lib/user/schema.drizzle')
   const { asc, gt } = await import('drizzle-orm')
   const { startGymPushDispatcher } =
-    await import('../../../modules/zillion--gym/server/push')
+    await import('../../../modules/monolith--gym/server/push')
   const { startTechLabDispatcher } =
-    await import('../../../modules/zillion--tech-lab/server/collectors')
+    await import('../../../modules/monolith--tech-lab/server/collectors')
   const pushLogger = createServiceLogger('Gym notifications')
   const techLabLogger = createServiceLogger('Tech Lab monitoring')
 
   let pushOwnerCursor: string | null = null
   let techLabOwnerCursor: string | null = null
 
-  const techLab = startTechLabDispatcher({
-    db: db as unknown as import('../../../modules/zillion--tech-lab/server/store').TechLabDatabase,
-    async listOwners(limit) {
-      let owners = await db
-        .select({ id: users.id })
-        .from(users)
-        .where(
-          techLabOwnerCursor ? gt(users.id, techLabOwnerCursor) : undefined
-        )
-        .orderBy(asc(users.id))
-        .limit(limit)
+  const techLab = ModuleRegistry.isAvailable('monolith--tech-lab')
+    ? startTechLabDispatcher({
+        db: db as unknown as import('../../../modules/monolith--tech-lab/server/store').TechLabDatabase,
+        async listOwners(limit) {
+          let owners = await db
+            .select({ id: users.id })
+            .from(users)
+            .where(
+              techLabOwnerCursor ? gt(users.id, techLabOwnerCursor) : undefined
+            )
+            .orderBy(asc(users.id))
+            .limit(limit)
 
-      if (!owners.length && techLabOwnerCursor) {
-        techLabOwnerCursor = null
-        owners = await db
-          .select({ id: users.id })
-          .from(users)
-          .orderBy(asc(users.id))
-          .limit(limit)
-      }
-      techLabOwnerCursor = owners.at(-1)?.id ?? null
+          if (!owners.length && techLabOwnerCursor) {
+            techLabOwnerCursor = null
+            owners = await db
+              .select({ id: users.id })
+              .from(users)
+              .orderBy(asc(users.id))
+              .limit(limit)
+          }
+          techLabOwnerCursor = owners.at(-1)?.id ?? null
 
-      return owners.map(owner => owner.id)
-    },
-    onError: code => techLabLogger.warn(code)
-  })
+          return owners.map(owner => owner.id)
+        },
+        onError: code => techLabLogger.warn(code)
+      })
+    : undefined
 
-  const gymPush = startGymPushDispatcher({
-    db: db as unknown as import('../../../modules/zillion--gym/server/store').GymDatabase,
-    async listOwners(limit) {
-      let owners = await db
-        .select({ id: users.id })
-        .from(users)
-        .where(pushOwnerCursor ? gt(users.id, pushOwnerCursor) : undefined)
-        .orderBy(asc(users.id))
-        .limit(limit)
+  const gymPush = ModuleRegistry.isAvailable('monolith--gym')
+    ? startGymPushDispatcher({
+        db: db as unknown as import('../../../modules/monolith--gym/server/store').GymDatabase,
+        async listOwners(limit) {
+          let owners = await db
+            .select({ id: users.id })
+            .from(users)
+            .where(pushOwnerCursor ? gt(users.id, pushOwnerCursor) : undefined)
+            .orderBy(asc(users.id))
+            .limit(limit)
 
-      if (!owners.length && pushOwnerCursor) {
-        pushOwnerCursor = null
-        owners = await db
-          .select({ id: users.id })
-          .from(users)
-          .orderBy(asc(users.id))
-          .limit(limit)
-      }
-      pushOwnerCursor = owners.at(-1)?.id ?? null
+          if (!owners.length && pushOwnerCursor) {
+            pushOwnerCursor = null
+            owners = await db
+              .select({ id: users.id })
+              .from(users)
+              .orderBy(asc(users.id))
+              .limit(limit)
+          }
+          pushOwnerCursor = owners.at(-1)?.id ?? null
 
-      return owners.map(owner => owner.id)
-    },
-    onError: code => pushLogger.warn(code)
-  })
+          return owners.map(owner => owner.id)
+        },
+        onError: code => pushLogger.warn(code)
+      })
+    : undefined
   server.once('close', () => {
-    techLab.stop()
-    void gymPush.stop()
+    techLab?.stop()
+    void gymPush?.stop()
   })
   const stopNotifications = () => {
-    techLab.stop()
-    void gymPush.stop().finally(() => process.exit(0))
+    techLab?.stop()
+    void Promise.resolve(gymPush?.stop()).finally(() => process.exit(0))
   }
   process.once('SIGINT', stopNotifications)
   process.once('SIGTERM', stopNotifications)

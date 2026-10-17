@@ -29,12 +29,18 @@ export const inputWrapperRecipe = recipe({
         }
       },
       false: {
-        borderColor: COLORS['bg-500'],
+        borderColor: 'var(--border-subtle)',
         selectors: {
           '&:focus-within': {
-            borderColor: COLORS['primary'],
-            outline: '2px solid var(--accent-teal)',
-            outlineOffset: '2px'
+            borderColor:
+              'color-mix(in srgb, var(--selection-color, #2383e2) 35%, transparent)',
+            outline:
+              '1px solid color-mix(in srgb, var(--selection-color, #2383e2) 35%, transparent)',
+            outlineOffset: '-1px'
+          },
+          '&:focus-within:hover': {
+            outlineColor:
+              'color-mix(in srgb, var(--selection-color, #2383e2) 75%, transparent)'
           }
         }
       }

@@ -1,113 +1,72 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation } from '@tanstack/react-query'
-import _ from 'lodash'
 import { useForm } from 'react-hook-form'
-import z from 'zod'
+import { useTranslation } from 'react-i18next'
 
-import { type UserData, useAuth } from '@lifeforge/api'
-import {
-  DateField,
-  FormModal,
-  TextField,
-  createDefaultValues,
-  toast
-} from '@lifeforge/ui'
+import { useAuth } from '@monolith/api'
+import { FormModal, TextField, toast } from '@monolith/ui'
 
-import forgeAPI from '@/core/utils/forgeAPI'
+import workspaceAPI from '@/core/utils/workspaceAPI'
 
-const baseSchema = z.object({
-  username: z.string(),
-  name: z.string(),
-  email: z.string(),
-  dateOfBirth: z.date()
-})
+import { type ProfileField, profileFields, profileSchema } from '../profile'
 
-function ModifyModal<TType extends 'datetime' | 'text'>({
-  data: { type, title, id, icon },
+export default function ModifyModal({
+  data: { id },
   onClose
 }: {
-  data: {
-    type: TType
-    title: string
-    id: 'username' | 'name' | 'email' | 'dateOfBirth'
-    icon: string
-  }
+  data: { id: ProfileField }
   onClose: () => void
 }) {
   const { userData, setUserData } = useAuth()
-
-  const schema = baseSchema.pick({ [id]: true } as never)
-
-  const mutation = useMutation(
-    forgeAPI.user.settings.updateProfile.mutationOptions({
-      onSuccess: (_, newData) => {
-        if (!userData) return
-
-        if (id === 'email') {
-          toast.info('A verification email has been sent to your new email.')
-        } else {
-          setUserData(oldData => {
-            if (!oldData) return null
-
-            return { ...oldData, ...newData.data } as UserData
-          })
-        }
-        toast.success('Profile updated successfully')
-      },
-      onError: () => {
-        if (id === 'email') {
-          toast.error('Failed to send verification email.')
-        } else {
-          toast.error('An error occurred.')
-        }
-      }
-    })
-  )
+  const { t } = useTranslation('common.account-settings')
+  const field = profileFields.find(item => item.id === id)!
+  const raw = userData?.[id]
   const form = useForm({
     defaultValues: {
-      ...createDefaultValues(schema),
-      [id]: userData?.[id as keyof typeof userData] || ''
+      value: raw
+        ? String(raw).slice(0, id === 'dateOfBirth' ? 10 : undefined)
+        : ''
     },
-    mode: 'all',
-    resolver: zodResolver(schema)
+    resolver: zodResolver(
+      profileSchema(
+        id,
+        t('validation.profile', { field: t('settings.title.' + field.label) })
+      )
+    )
   })
 
   return (
     <FormModal
       form={form}
-      submissionConfig={{
-        handler: async data => {
-          await mutation.mutateAsync({ data: { [id]: data[id] } } as never)
-        },
-        template: 'update'
-      }}
       uiConfig={{
-        icon: 'tabler:pencil',
+        title: field.label + '.update',
+        icon: field.icon,
         namespace: 'common.account-settings',
-        title: `${_.camelCase(title)}.update`,
         onClose
       }}
+      submissionConfig={{
+        template: 'update',
+        handler: async ({ value }) => {
+          await workspaceAPI.user.settings.updateProfile.mutateRaw({
+            data: { [id]: value }
+          })
+          setUserData(current =>
+            current ? { ...current, [id]: value } : current
+          )
+          toast.success(t('messages.profileSaved'))
+        }
+      }}
     >
-      {type === 'datetime' ? (
-        <DateField
-          required
-          control={form.control}
-          icon={icon}
-          label={title}
-          name={id}
-        />
-      ) : (
-        <TextField
-          required
-          control={form.control}
-          icon={icon}
-          label={title}
-          name={id as never}
-          placeholder={`Enter new ${title}`}
-        />
-      )}
+      <TextField
+        control={form.control}
+        name="value"
+        label={field.label}
+        icon={field.icon}
+        type={field.type}
+        required
+        placeholder=""
+        autoComplete={id === 'dateOfBirth' ? 'bday' : id}
+        disabled={form.formState.isSubmitting}
+      />
     </FormModal>
   )
 }
-
-export default ModifyModal

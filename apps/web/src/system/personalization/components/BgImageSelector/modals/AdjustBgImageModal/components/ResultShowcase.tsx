@@ -7,7 +7,7 @@ import {
   colorWithOpacity,
   surface,
   usePersonalization
-} from '@lifeforge/ui'
+} from '@monolith/ui'
 
 import { BG_BLURS } from '../constants/bg_blurs'
 

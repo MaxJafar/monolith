@@ -24,15 +24,15 @@ const DEFAULT_PACKAGE_JSON: Record<
   PackageJson
 > = {
   modules: {
-    name: '@lifeforge/modules',
+    name: '@monolith/modules',
     private: true,
-    description: 'LifeForge modules',
+    description: 'Monolith addons',
     dependencies: {}
   },
   locales: {
-    name: '@lifeforge/locales',
+    name: '@monolith/locales',
     private: true,
-    description: 'LifeForge locale packages',
+    description: 'Monolith locale packages',
     dependencies: {}
   }
 }

@@ -1,12 +1,12 @@
 import { readFile } from 'node:fs/promises'
 import z from 'zod'
 
-import { ClientError } from '@lifeforge/server-utils'
+import { ClientError } from '@monolith/server-utils'
 
 export const sharedModels = () => ({
   embedding:
-    process.env.SHARED_AI_EMBEDDING_MODEL || 'lifeforge-embeddinggemma',
-  generation: process.env.SHARED_AI_GENERATION_MODEL || 'lifeforge-gemma',
+    process.env.SHARED_AI_EMBEDDING_MODEL || 'monolith-embeddinggemma',
+  generation: process.env.SHARED_AI_GENERATION_MODEL || 'monolith-gemma',
   relevance: 'laya'
 })
 

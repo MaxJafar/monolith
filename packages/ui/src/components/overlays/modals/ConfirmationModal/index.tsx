@@ -1,132 +1,134 @@
-import clsx from 'clsx'
-import React, { useState } from 'react'
+import {
+  type ComponentProps,
+  type ReactNode,
+  useEffect,
+  useId,
+  useRef,
+  useState
+} from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { usePromiseLoading } from '@lifeforge/api'
-
 import { Button, TextInput } from '@/components/inputs'
-import { Box, Flex, Text } from '@/components/primitives'
+import { Flex, Stack, Text } from '@/components/primitives'
+
+type ConfirmationData = {
+  title: string
+  description: string
+  confirmationButton?: 'delete' | 'confirm' | ComponentProps<typeof Button>
+  confirmationPrompt?: string
+  onConfirm?: () => Promise<void> | void
+  onReject?: () => void
+  renderChildren?: (onClose: () => void) => ReactNode
+}
 
 export function ConfirmationModal({
-  onClose,
-  data: {
-    title,
-    description,
-    confirmationButton = 'confirm',
-    confirmationPrompt,
-    onConfirm,
-    onReject,
-    renderChildren
-  }
+  data,
+  onClose
 }: {
+  data: ConfirmationData
   onClose: () => void
-  data: {
-    title: string
-    description: string
-    confirmationButton?:
-      'delete' | 'confirm' | React.ComponentProps<typeof Button>
-    confirmationPrompt?: string
-    onConfirm?: () => Promise<void> | void
-    onReject?: () => void
-    renderChildren?: (onClose: () => void) => React.ReactNode
-  }
 }) {
-  const { t } = useTranslation(['common.modals', 'common.buttons'])
-  const [confirmationTextState, setConfirmationTextState] = useState('')
+  const { t } = useTranslation('common.modals')
+  const titleId = useId()
+  const [text, setText] = useState('')
+  const [error, setError] = useState('')
+  const [pending, setPending] = useState(false)
+  const locked = useRef(false)
+  const active = useRef(false)
+  const specification = data.confirmationButton ?? 'confirm'
+  const action =
+    typeof specification === 'string'
+      ? {
+          children: specification,
+          dangerous: specification === 'delete',
+          icon: specification === 'delete' ? 'tabler:trash' : 'tabler:check'
+        }
+      : specification
+  const matches = !data.confirmationPrompt || data.confirmationPrompt === text
 
-  const handleClick = async () => {
+  useEffect(() => {
+    active.current = true
+    return () => {
+      active.current = false
+    }
+  }, [])
+
+  function cancel() {
+    if (locked.current) return
+    data.onReject?.()
+    onClose()
+  }
+
+  async function confirm() {
+    if (locked.current || !matches || action.disabled) return
+    locked.current = true
+    setPending(true)
+    setError('')
     try {
-      await onConfirm?.()
-      onClose()
-    } catch (error) {
-      console.error('Error during confirmation:', error)
+      await data.onConfirm?.()
+      if (active.current) onClose()
+    } catch (reason) {
+      if (active.current)
+        setError(
+          reason instanceof Error
+            ? reason.message
+            : t('confirmationFailed', {
+                defaultValue:
+                  'Unable to complete this action. Please try again.'
+              })
+        )
+    } finally {
+      locked.current = false
+      if (active.current) setPending(false)
     }
   }
 
-  const [isLoading, onClick] = usePromiseLoading(handleClick)
-
   return (
-    <Box minWidth="40vw">
-      <Text as="h1" size="2xl" weight="semibold">
-        {title}
+    <Stack
+      width="440px"
+      maxWidth="100%"
+      gap="md"
+      role="dialog"
+      aria-labelledby={titleId}
+      aria-busy={pending}
+    >
+      <Text as="h1" id={titleId} size="xl" weight="semibold">
+        {data.title}
       </Text>
-      <Text as="p" color="muted" mt="sm">
-        {description}
-      </Text>
-      {confirmationPrompt && (
-        <Box asChild mt="md">
-          <TextInput
-            icon="tabler:alert-triangle"
-            label="deleteConfirmation.inputs.confirmation.label"
-            namespace="common.modals"
-            placeholder={t(
-              [
-                'common.modals:deleteConfirmation.inputs.confirmation.placeholder',
-                'Type your confirmation text here'
-              ],
-              {
-                text: confirmationPrompt
-              }
-            )}
-            value={confirmationTextState}
-            onChange={setConfirmationTextState}
-          />
-        </Box>
+      <Text color="muted">{data.description}</Text>
+      {data.confirmationPrompt && (
+        <TextInput
+          value={text}
+          onChange={setText}
+          disabled={pending}
+          icon="tabler:alert-triangle"
+          label="deleteConfirmation.inputs.confirmation.label"
+          namespace="common.modals"
+          placeholder={t('deleteConfirmation.inputs.confirmation.placeholder', {
+            text: data.confirmationPrompt
+          })}
+        />
       )}
-      {renderChildren?.(onClose) || (
-        <Flex
-          direction={{ base: 'column-reverse', md: 'row' }}
-          gap="sm"
-          justify="around"
-          mt="xl"
-          width="100%"
-        >
-          <Button
-            flex="1"
-            icon=""
-            variant="secondary"
-            onClick={() => {
-              onClose()
-              onReject?.()
-            }}
-          >
-            Cancel
+      {error && (
+        <Text color="dangerous" role="alert">
+          {error}
+        </Text>
+      )}
+      {data.renderChildren ? (
+        data.renderChildren(cancel)
+      ) : (
+        <Flex gap="sm" justify="end" wrap="wrap">
+          <Button variant="secondary" disabled={pending} onClick={cancel}>
+            cancel
           </Button>
-          {typeof confirmationButton === 'string' ? (
-            <Button
-              dangerous={confirmationButton === 'delete'}
-              disabled={
-                !!confirmationPrompt &&
-                confirmationPrompt !== confirmationTextState
-              }
-              flex="1"
-              icon={
-                confirmationButton === 'delete'
-                  ? 'tabler:trash'
-                  : 'tabler:check'
-              }
-              loading={isLoading}
-              style={{ width: '100%' }}
-              onClick={onClick}
-            >
-              {confirmationButton}
-            </Button>
-          ) : (
-            <Button
-              {...confirmationButton}
-              className={clsx(confirmationButton.className)}
-              disabled={
-                !!confirmationPrompt &&
-                confirmationPrompt !== confirmationTextState
-              }
-              flex="1"
-              loading={isLoading}
-              style={{ ...confirmationButton.style }}
-              onClick={onClick}
-            />
-          )}
+          <Button
+            {...action}
+            loading={pending}
+            disabled={pending || !matches || action.disabled}
+            onClick={confirm}
+          />
         </Flex>
       )}
-    </Box>
+    </Stack>
   )
 }

@@ -16,7 +16,8 @@ export function BackgroundProvider({
 
   return (
     <Flex
-      height="100dvh"
+      height="100%"
+      minHeight="0"
       style={
         bgImage !== ''
           ? {

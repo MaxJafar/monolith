@@ -1,10 +1,10 @@
 import { hash } from 'argon2'
 import z from 'zod'
 
-import forge from '../forge'
+import endpoints from '../endpoints'
 import { users } from '../schema.drizzle'
 
-export const createFirstUser = forge
+export const createFirstUser = endpoints
   .mutation({
     description: 'Create the first user (only works when no users exist)',
     noAuth: true,

@@ -31,12 +31,12 @@ export const SERVICE_COMMANDS: Record<string, ServiceConfig> = {
     command: () => {
       return 'pnpm run dev'
     },
-    cwd: 'docs'
+    cwd: 'apps/site'
   },
   client: {
     command: () => {
       if (!fs.existsSync('packages/ui/dist')) {
-        executeCommand('pnpm forge build ui')
+        executeCommand('pnpm monolith build ui')
       }
 
       return 'pnpm run dev'

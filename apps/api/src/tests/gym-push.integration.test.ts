@@ -4,22 +4,22 @@ import { createECDH, randomBytes, randomUUID } from 'node:crypto'
 import postgres from 'postgres'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 
-import type { ForgeContract } from '@lifeforge/server-utils'
+import type { EndpointContract } from '@monolith/server-utils'
 
 import {
   type GymPushSubscription,
   type PushStatus,
   pushSubscriptionInputSchema
-} from '../../../../modules/zillion--gym/pushShared'
+} from '../../../../modules/monolith--gym/pushShared'
 import {
   startGymPushDispatcher,
   withPushOwner
-} from '../../../../modules/zillion--gym/server/push'
-import * as pushRoutes from '../../../../modules/zillion--gym/server/pushRoutes'
+} from '../../../../modules/monolith--gym/server/push'
+import * as pushRoutes from '../../../../modules/monolith--gym/server/pushRoutes'
 import {
   pushDeliveries,
   pushSubscriptions
-} from '../../../../modules/zillion--gym/server/pushSchema'
+} from '../../../../modules/monolith--gym/server/pushSchema'
 import {
   claimDeliveries,
   deliveryCurrent,
@@ -29,11 +29,11 @@ import {
   queueTest,
   saveSubscription,
   settleDelivery
-} from '../../../../modules/zillion--gym/server/pushStore'
+} from '../../../../modules/monolith--gym/server/pushStore'
 import {
   PushDeliveryError,
   type PushSender
-} from '../../../../modules/zillion--gym/server/pushTransport'
+} from '../../../../modules/monolith--gym/server/pushTransport'
 import {
   commands,
   exercises,
@@ -43,16 +43,16 @@ import {
   settings,
   tables,
   workouts
-} from '../../../../modules/zillion--gym/server/schema.drizzle'
-import { settingsInputSchema } from '../../../../modules/zillion--gym/shared'
+} from '../../../../modules/monolith--gym/server/schema.drizzle'
+import { settingsInputSchema } from '../../../../modules/monolith--gym/shared'
 
 // Every DNS lookup is fake. The real transport is never called by these tests.
 vi.mock(
-  '../../../../modules/zillion--gym/server/pushTransport',
+  '../../../../modules/monolith--gym/server/pushTransport',
   async importOriginal => {
     const original =
       await importOriginal<
-        typeof import('../../../../modules/zillion--gym/server/pushTransport')
+        typeof import('../../../../modules/monolith--gym/server/pushTransport')
       >()
 
     return {
@@ -89,7 +89,9 @@ const client = postgres(
 )
 const db = drizzle({ client, relations: defineRelations(tables, relations) })
 
-type Context = Parameters<ReturnType<ForgeContract['getValue']>['callback']>[0]
+type Context = Parameters<
+  ReturnType<EndpointContract['getValue']>['callback']
+>[0]
 
 const owners = new Set<string>()
 const owner = () => {
@@ -116,7 +118,7 @@ const browser = (name = randomUUID()) => ({
 })
 
 async function invoke<T>(
-  route: ForgeContract,
+  route: EndpointContract,
   who: string | undefined,
   body?: unknown,
   actingAgent = false

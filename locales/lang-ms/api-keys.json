@@ -1,11 +1,11 @@
 {
   "title": "Kunci API",
-  "description": "Urus semua kunci API yang diperlukan untuk modul",
-  "lockedMessage": "Modul konfigurasi kunci API dikunci",
+  "description": "Urus semua kunci API yang diperlukan untuk addon",
+  "lockedMessage": "Tetapan kunci API dikunci",
   "passwordRequired": "Kata laluan diperlukan untuk menyahsulit kunci API",
   "missing": {
     "title": "Kunci API Hilang",
-    "description": "Satu atau lebih kunci API hilang. Sila pergi ke modul konfigurasi kunci API untuk menetapkannya",
+    "description": "Satu atau lebih kunci API tiada. Buka tetapan kunci API untuk mengkonfigurasikannya.",
     "requiredKeysAre": "Kunci API yang diperlukan hilang:"
   },
   "modals": {
@@ -14,8 +14,8 @@
       "update": "Kemas kini Kunci API"
     },
     "modulesRequired": {
-      "title": "Modul Diperlukan",
-      "totalModulesRequire": "Sebanyak {{count}} modul memerlukan Kunci API ini.",
+      "title": "Addon Diperlukan",
+      "totalModulesRequire": "Sebanyak {{count}} addon memerlukan Kunci API ini.",
       "required": "Diperlukan",
       "optional": "Pilihan"
     }
@@ -42,9 +42,25 @@
     }
   },
   "misc": {
-    "requiredBy": "Diperlukan oleh: {{count}} modul",
+    "requiredBy": "Diperlukan oleh: {{count}} addon",
     "lastUpdated": "Terakhir dikemas kini: {{time}}",
     "exposable": "Boleh Didedahkan",
     "internalOnly": "Dalaman Sahaja"
+  },
+  "validation": {
+    "id": "Gunakan pengecam huruf kecil seperti my-api-key.",
+    "required": "Medan ini diperlukan."
+  },
+  "actions": {
+    "remove": "Buang {{name}}?"
+  },
+  "messages": {
+    "missingEntry": "Kelayakan ini tidak lagi wujud.",
+    "saved": "Kelayakan disimpan.",
+    "copied": "Kunci disalin ke papan keratan.",
+    "copyFailed": "Kunci tidak dapat disalin.",
+    "removeDescription": "Buang kelayakan ini? Addon yang menggunakannya memerlukan kunci lain.",
+    "removed": "Kelayakan dibuang.",
+    "removeFailed": "Kelayakan tidak dapat dibuang."
   }
 }

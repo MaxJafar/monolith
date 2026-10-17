@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import { useModuleTranslation } from '@lifeforge/localization'
+import { useModuleTranslation } from '@monolith/localization'
 
 import { Button } from '@/components/inputs'
 import { Flex, Text, Transition } from '@/components/primitives'
@@ -17,7 +17,7 @@ type SidebarTitleProps = {
         icon: string
         onClick: () => void
       }
-  /** The i18n namespace for internationalization. See the [main documentation](https://docs.lifeforge.melvinchia.dev) for more details. */
+  /** The i18n namespace for internationalization. See the [main documentation](https://github.com/MaxJafar/monolith/tree/main/docs) for more details. */
   namespace?: string | false
 }
 

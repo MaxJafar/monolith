@@ -1,5 +1,5 @@
 {
-  "name": "@lifeforge/localization",
+  "name": "@monolith/localization",
   "version": "0.0.1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -10,6 +10,8 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@lifeforge/federation": "workspace:*"
-  }
+    "@monolith/configs": "workspace:*",
+    "@monolith/federation": "workspace:*"
+  },
+  "author": "Monolith contributors"
 }

@@ -1,15 +1,16 @@
 import z from 'zod'
 
 import {
+  addonWireName,
   moduleManifestSchema,
   moduleSchema,
   moduleWidgetSchema
-} from '@lifeforge/configs'
-import { ModuleRegistry } from '@lifeforge/module-runtime/registry'
+} from '@monolith/configs'
+import { ModuleRegistry } from '@monolith/module-runtime/registry'
 
-import forge from '../forge'
+import endpoints from '../endpoints'
 
-export const manifest = forge
+export const manifest = endpoints
   .query({
     description: 'Get installed modules manifest for runtime loading',
     input: {},
@@ -19,11 +20,20 @@ export const manifest = forge
       })
     }
   })
-  .callback(async ({ response }) =>
-    response.ok({ modules: ModuleRegistry.manifests })
-  )
+  .callback(async ({ req, res, response }) => {
+    res.vary('X-Monolith-Package-Names')
+    return response.ok({
+      modules: ModuleRegistry.manifests.map(entry => ({
+        ...entry,
+        name: addonWireName(
+          entry.name,
+          req.get('X-Monolith-Package-Names') === '1'
+        )
+      }))
+    })
+  })
 
-export const list = forge
+export const list = endpoints
   .query({
     description: 'List installed modules with metadata',
     input: {},
@@ -31,9 +41,20 @@ export const list = forge
       OK: z.array(moduleSchema)
     }
   })
-  .callback(async ({ response }) => response.ok(ModuleRegistry.list))
+  .callback(async ({ req, res, response }) => {
+    res.vary('X-Monolith-Package-Names')
+    return response.ok(
+      ModuleRegistry.list.map(entry => ({
+        ...entry,
+        name: addonWireName(
+          entry.name,
+          req.get('X-Monolith-Package-Names') === '1'
+        )
+      }))
+    )
+  })
 
-export const checkModuleAvailability = forge
+export const checkModuleAvailability = endpoints
   .query({
     description: 'Check if a module is available (installed)',
     input: {
@@ -49,7 +70,7 @@ export const checkModuleAvailability = forge
     response.ok(ModuleRegistry.isAvailable(id))
   )
 
-export const widgets = forge
+export const widgets = endpoints
   .query({
     description: 'Get all available widgets configuration',
     input: {},
@@ -57,4 +78,15 @@ export const widgets = forge
       OK: z.array(moduleWidgetSchema)
     }
   })
-  .callback(async ({ response }) => response.ok(ModuleRegistry.widgets))
+  .callback(async ({ req, res, response }) => {
+    res.vary('X-Monolith-Package-Names')
+    return response.ok(
+      ModuleRegistry.widgets.map(entry => ({
+        ...entry,
+        moduleName: addonWireName(
+          entry.moduleName,
+          req.get('X-Monolith-Package-Names') === '1'
+        )
+      }))
+    )
+  })

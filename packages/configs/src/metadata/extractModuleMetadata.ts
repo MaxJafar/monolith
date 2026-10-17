@@ -11,7 +11,7 @@ import parseManifest from './parseManifest'
  * of a server directory.
  *
  * This is the single extractor used both at build time (to emit
- * `forge-manifest.json`) and in development (invoked live by the server).
+ * `monolith-manifest.json`) and in development (invoked live by the server).
  *
  * @param moduleDir - Absolute path to the module directory.
  * @returns The bundled module metadata.

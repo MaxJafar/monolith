@@ -1,4 +1,4 @@
-import { useModuleTranslation } from '@lifeforge/localization'
+import { useModuleTranslation } from '@monolith/localization'
 
 import { ContextMenuGroup, ContextMenuItem } from '@/components/overlays'
 

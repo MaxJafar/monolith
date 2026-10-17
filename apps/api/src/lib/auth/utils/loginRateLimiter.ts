@@ -1,51 +1,18 @@
 import { createCache } from '@functions/cache'
 
-interface AttemptRecord {
-  count: number
-  blockedUntil: number
+const attempts = createCache<{ failures: number; until: number }>(
+  'monolith-login-attempts',
+  { stdTTL: 3600 }
+)
+export function checkLoginRateLimit(address: string): boolean {
+  return (attempts.get(address)?.until ?? 0) <= Date.now()
 }
-
-const cache = createCache<AttemptRecord>('login-rate-limiter', { stdTTL: 3600 })
-
-const THRESHOLDS = [
-  { maxAttempts: 3, cooldownMs: 0 },
-  { maxAttempts: 6, cooldownMs: 5_000 },
-  { maxAttempts: 9, cooldownMs: 30_000 },
-  { maxAttempts: Infinity, cooldownMs: 300_000 }
-]
-
-function getCooldown(count: number): number {
-  for (const tier of THRESHOLDS) {
-    if (count <= tier.maxAttempts) return tier.cooldownMs
-  }
-
-  return 300_000
+export function recordFailedLogin(address: string): void {
+  const failures = (attempts.get(address)?.failures ?? 0) + 1
+  const tier = Math.min(3, Math.floor((failures - 1) / 3))
+  const delay = [0, 5000, 30000, 300000][tier]!
+  attempts.set(address, { failures, until: Date.now() + delay })
 }
-
-export function checkLoginRateLimit(ip: string): boolean {
-  const record = cache.get(ip)
-
-  if (!record) return true
-
-  if (record.blockedUntil > 0 && Date.now() < record.blockedUntil) {
-    return false
-  }
-
-  return true
-}
-
-export function recordFailedLogin(ip: string): void {
-  const record = cache.get(ip) || { count: 0, blockedUntil: 0 }
-
-  record.count++
-
-  const cooldown = getCooldown(record.count)
-
-  record.blockedUntil = cooldown > 0 ? Date.now() + cooldown : 0
-
-  cache.set(ip, record)
-}
-
-export function clearLoginRateLimit(ip: string): void {
-  cache.del(ip)
+export function clearLoginRateLimit(address: string): void {
+  attempts.del(address)
 }

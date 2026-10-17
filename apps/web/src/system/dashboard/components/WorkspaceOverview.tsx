@@ -1,9 +1,9 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
-import { useAuth } from '@lifeforge/api'
-import { useFederation } from '@lifeforge/federation'
-import { Box, Button, Card, Flex, Grid, Icon, Text } from '@lifeforge/ui'
+import { useAuth } from '@monolith/api'
+import { useFederation } from '@monolith/federation'
+import { Box, Button, Card, Flex, Grid, Icon, Text } from '@monolith/ui'
 
 import MonolithLogo from '@/core/components/MonolithLogo'
 import { modulePath } from '@/core/routing/utils/navigation'

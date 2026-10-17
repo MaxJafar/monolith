@@ -1,3 +1,5 @@
+import { applicationFetch } from '../desktop/runtime'
+
 export async function checkAPIStatus(
   apiEndpoint: string
 ): Promise<'production' | 'development' | false> {
@@ -5,7 +7,7 @@ export async function checkAPIStatus(
   const timeout = setTimeout(() => controller.abort(), 5000)
 
   try {
-    const response = await fetch(`${apiEndpoint}/status`, {
+    const response = await applicationFetch(`${apiEndpoint}/status`, {
       signal: controller.signal
     })
 

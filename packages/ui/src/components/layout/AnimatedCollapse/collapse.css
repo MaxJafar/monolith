@@ -1,0 +1,38 @@
+.monolith-collapse {
+  min-width: 0;
+  transition:
+    grid-template-rows 220ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    opacity 160ms ease;
+  opacity: 1;
+}
+.monolith-collapse[data-open='false'] {
+  opacity: 0;
+}
+.monolith-disclosure > svg {
+  transition: transform 180ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.monolith-disclosure[aria-expanded='true'] > svg {
+  transform: rotate(90deg);
+}
+.database-more-properties > svg {
+  transition: transform 180ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.database-more-properties[aria-expanded='true'] > svg {
+  transform: rotate(180deg);
+}
+.monolith-collapse-content {
+  visibility: visible;
+  transition: visibility 0s;
+}
+.monolith-collapse[data-open='false'] > .monolith-collapse-content {
+  visibility: hidden;
+  transition-delay: 220ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  .monolith-collapse,
+  .monolith-collapse-content,
+  .monolith-disclosure > svg,
+  .database-more-properties > svg {
+    transition: none !important;
+  }
+}

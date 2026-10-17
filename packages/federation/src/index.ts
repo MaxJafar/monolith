@@ -5,6 +5,7 @@ export {
 } from './providers/FederationProvider'
 
 export { bootstrapModules } from './loaders/bootstrapModules'
+export { configureBundledModules } from './loaders/bundledModules'
 
 export { loadRemoteModuleConfig } from './loaders/loadRemoteModuleConfig'
 
@@ -15,4 +16,4 @@ export {
   useModuleMetadata
 } from './providers/ModuleMetadataProvider'
 
-export { default as createForgeModule } from './api/createForgeModule'
+export { default as defineAddon } from './api/defineAddon'

@@ -1,3 +1,3 @@
-const SERVICES = ['server', 'client', 'ui', 'docs', 'forgeCLI'] as const
+const SERVICES = ['server', 'client', 'ui', 'docs', 'cli'] as const
 
 export default SERVICES

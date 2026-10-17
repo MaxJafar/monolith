@@ -6,7 +6,7 @@ import {
   useState
 } from 'react'
 
-import { useModuleTranslation } from '@lifeforge/localization'
+import { useModuleTranslation } from '@monolith/localization'
 
 import { Tabs as TabsComponent } from '@/components/navigation'
 import useNuqsOrBasicState from '@/hooks/useNuqsOrBasicState'

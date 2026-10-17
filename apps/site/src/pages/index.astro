@@ -1,0 +1,486 @@
+---
+import Site from '../layouts/Site.astro'
+import Icon from '../components/Icon.astro'
+import ProductPreview from '../components/ProductPreview.astro'
+import AddonCard from '../components/AddonCard.astro'
+import CallToAction from '../components/CallToAction.astro'
+import { addons, repository } from '../data/products'
+const cards = [
+  [
+    'Docs & knowledge',
+    'A clear place to think, write and connect your ideas.',
+    'book',
+    'knowledge'
+  ],
+  [
+    'Projects & actions',
+    'Turn the bigger picture into your next meaningful step.',
+    'board',
+    'projects'
+  ],
+  [
+    'Connected databases',
+    'One collection. Tables, boards and calendars that stay connected.',
+    'layers',
+    'projects'
+  ],
+  [
+    'Your daily dashboard',
+    'A small set of useful widgets. A space that feels like you.',
+    'grid',
+    'workspace'
+  ],
+  [
+    'Automations',
+    'Connect triggers and actions, then follow every step.',
+    'flow',
+    'automations'
+  ],
+  [
+    'MCP & CLI',
+    'Let your favorite agents work with your real workspace.',
+    'terminal',
+    'agents'
+  ]
+]
+const featured = [
+  'atlas',
+  'automations',
+  'agents',
+  'pomodoro',
+  'flashcards',
+  'code-time'
+]
+---
+
+<Site
+  title="Monolith"
+  description="Make space for what matters. Monolith is a self-hosted workspace for docs, projects, connected databases, addons and widgets. Available for web, Windows and macOS."
+>
+  <section class="hero">
+    <span class="hero-index micro" aria-hidden="true">
+      MONOLITH / WORKSPACE 001
+    </span>
+    <span class="hero-index right micro" aria-hidden="true">
+      DESIGNED TO BE YOURS
+    </span>
+    <div class="hero-content">
+      <span class="eyebrow">Your workspace. Your tools.</span>
+      <h1>
+        Make space
+        <br />
+        <span>for what matters.</span>
+      </h1>
+      <p class="hero-description">
+        Your notes, projects and everyday tools.
+        <br />
+        One connected workspace, on your own terms.
+      </p>
+      <div class="button-row">
+        <a href="/docs/installation" class="button primary">
+          Get started <Icon name="arrow" size={18} />
+        </a>
+        <a href={repository} class="button secondary">
+          <Icon name="github" size={18} /> Explore on GitHub
+        </a>
+      </div>
+      <div class="platforms">
+        <span>Self-hosted</span>
+        <i></i>
+        <span>Web</span>
+        <i></i>
+        <span>Windows</span>
+        <i></i>
+        <span>macOS</span>
+      </div>
+    </div>
+  </section>
+  <ProductPreview />
+  <div class="beliefs container">
+    <span>
+      <Icon name="server" />
+      Your infrastructure
+    </span>
+    <span>
+      <Icon name="layers" />
+      Connected by design
+    </span>
+    <span>
+      <Icon name="puzzle" />
+      Room to make it yours
+    </span>
+  </div>
+  <section class="section container" id="product">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Everything has a place</span>
+        <h2>
+          A home for your work.
+          <br />
+          <span>And the way you work.</span>
+        </h2>
+      </div>
+      <p>
+        Write it down. Put a plan around it. Bring the right tools closer.
+        Monolith connects the little things that make up your day.
+      </p>
+    </div>
+    <div class="feature-grid">
+      {cards.map(([name, description, icon, slug], index) => (
+        <a href={`/product/${slug}`} class="feature-card">
+          <div class="card-top">
+            <Icon name={icon} size={25} />
+            <span class="micro">0{index + 1}</span>
+          </div>
+          <h3>{name}</h3>
+          <p>{description}</p>
+          <span class="text-link">
+            Take a closer look <Icon name="arrow" size={15} />
+          </span>
+        </a>
+      ))}
+    </div>
+  </section>
+  <section class="story container section-rule">
+    <div class="story-copy">
+      <span class="eyebrow">An idea is a good start</span>
+      <h2>
+        Give your thinking
+        <br />
+        room to grow.
+      </h2>
+      <p>
+        Some thoughts need a sentence. Others need a page, a database and a few
+        connections. Keep them together, with a writing space that stays out of
+        your way.
+      </p>
+      <ul class="check-list">
+        <li>
+          <Icon name="check" size={17} /> Rich documents and nested pages
+        </li>
+        <li>
+          <Icon name="check" size={17} /> Live database views inside your notes
+        </li>
+        <li>
+          <Icon name="check" size={17} /> References, backlinks and connected
+          records
+        </li>
+      </ul>
+      <a class="text-link" href="/product/knowledge">
+        Explore Docs & knowledge <Icon name="arrow" size={17} />
+      </a>
+    </div>
+    <div class="story-visual">
+      <img
+        src="/images/documents.webp"
+        alt="Monolith page with a connected database gallery"
+        width="1440"
+        height="1050"
+        loading="lazy"
+      />
+    </div>
+  </section>
+  <section class="story story-reverse container">
+    <div class="story-copy">
+      <span class="eyebrow">A workspace, your way</span>
+      <h2>
+        Build a day
+        <br />
+        that feels like yours.
+      </h2>
+      <p>
+        A focused agenda. A project in motion. A little room for the weather.
+        Arrange connected widgets, adjust the sidebar and choose what deserves
+        your attention.
+      </p>
+      <a class="text-link" href="/product/workspace">
+        Make yourself at home <Icon name="arrow" size={17} />
+      </a>
+    </div>
+    <div class="story-visual">
+      <img
+        src="/images/workspace.webp"
+        alt="Monolith dashboard with configurable project, action and weather widgets"
+        width="1440"
+        height="1060"
+        loading="lazy"
+      />
+    </div>
+  </section>
+  <section class="agent-section container">
+    <div>
+      <span class="eyebrow">Made for the way work is changing</span>
+      <h2>
+        Your favorite agent.
+        <br />
+        Your actual workspace.
+      </h2>
+      <p>
+        Give your agent context it can work with. Read pages, organize records
+        and move projects forward through Monolith’s MCP bridge and CLI.
+      </p>
+      <a class="text-link" href="/product/agents">
+        Connect your agent <Icon name="arrow" size={17} />
+      </a>
+      <div class="agent-names">
+        <span>Codex</span>
+        <span>Claude Code</span>
+        <span>OpenClaw</span>
+        <span>Cursor</span>
+        <span>+ any stdio MCP client</span>
+      </div>
+    </div>
+    <div class="terminal-block">
+      <div class="terminal-title">
+        <span>monolith / agent bridge</span>
+        <Icon name="terminal" size={15} />
+      </div>
+      <pre><code><span class="comment"># Connect your tools. Keep your context.</span>{'\n'}pnpm agent:build{'\n'}pnpm --silent agent doctor{'\n\n'}<span class="comment"># After signing in, generate your config</span>{'\n'}pnpm --silent agent config --client codex</code></pre>
+      <div class="terminal-foot">
+        Read mode by default. Your account permissions apply.
+      </div>
+    </div>
+  </section>
+  <section class="section container">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">A collection of possibilities</span>
+        <h2>
+          Start with what you need.
+          <br />
+          <span>Add what you love.</span>
+        </h2>
+      </div>
+      <p>
+        Full tools for deeper work. Small widgets for the everyday. Install the
+        pieces that make your workspace feel complete.
+      </p>
+    </div>
+    <div class="addon-grid">
+      {featured.map((slug) => (
+        <AddonCard addon={addons.find((addon) => addon.slug === slug)!} />
+      ))}
+    </div>
+    <div class="collection-foot">
+      <p>
+        Addons open full tools. Widgets bring compact, configurable views to
+        your dashboard and sidebar. Availability follows your host’s installed
+        packages.
+      </p>
+      <a href="/addons" class="text-link">
+        Explore the collection <Icon name="arrow" size={18} />
+      </a>
+    </div>
+  </section>
+  <section class="story container section-rule">
+    <div class="story-copy">
+      <span class="eyebrow">Built to be yours</span>
+      <h2>
+        Your server.
+        <br />
+        Your space.
+      </h2>
+      <p>
+        Host Monolith on your own infrastructure. Bring your browser and desktop
+        clients to the same workspace, choose your integrations and decide when
+        updates are installed.
+      </p>
+      <a href="/docs/self-hosting" class="text-link">
+        Read the self-hosting guide <Icon name="arrow" size={17} />
+      </a>
+    </div>
+    <div
+      class="hosting-illustration"
+      aria-label="Web, Windows and macOS connect to your Monolith host"
+    >
+      <div class="hosting-clients">
+        <span>
+          <Icon name="globe" size={24} />
+          Web
+        </span>
+        <span>
+          <Icon name="grid" size={24} />
+          Windows
+        </span>
+        <span>
+          <Icon name="layers" size={24} />
+          macOS
+        </span>
+      </div>
+      <div class="hosting-lines" aria-hidden="true"></div>
+      <div class="hosting-server">
+        <img src="/icon.svg" alt="" width="42" height="42" />
+        <div>
+          <strong>Your Monolith</strong>
+          <span>One host. Connected work.</span>
+        </div>
+        <Icon name="shield" size={22} />
+      </div>
+      <span class="micro hosting-caption">
+        YOUR INFRASTRUCTURE / YOUR WORKSPACE
+      </span>
+    </div>
+  </section>
+  <section class="section container section-rule faq-grid">
+    <div class="faq-intro">
+      <span class="eyebrow">A few things to know</span>
+      <h2>
+        A little clarity
+        <br />
+        before you start.
+      </h2>
+      <p>
+        More answers live in the{' '}
+        <a class="text-link" href="/docs/faq">
+          documentation <Icon name="arrow" size={15} />
+        </a>
+        .
+      </p>
+    </div>
+    <div>
+      <details class="faq-item">
+        <summary>What is Monolith?</summary>
+        <p>
+          Monolith is a self-hosted workspace for pages, projects, connected
+          databases and daily tools. Its native sections work together; optional
+          addons and widgets let you shape the rest.
+        </p>
+      </details>
+      <details class="faq-item">
+        <summary>Can I use it today?</summary>
+        <p>
+          You can build and run the current source. Monolith is in active
+          development, and the repository is version 0.0.0. Follow the{' '}
+          <a href="/docs/installation">installation guide</a> and check{' '}
+          <a href="/docs/availability">release availability</a> before choosing
+          a desktop download.
+        </p>
+      </details>
+      <details class="faq-item">
+        <summary>What is the difference between an addon and a widget?</summary>
+        <p>
+          An addon is a full tool, such as Atlas or Automations. A widget is a
+          compact, connected view on your dashboard or sidebar, such as Pomodoro
+          or Flashcards. Configure widgets in a small overlay.
+        </p>
+      </details>
+      <details class="faq-item">
+        <summary>Can I connect my AI agent?</summary>
+        <p>
+          Yes. The MCP bridge supports clients that can launch a stdio MCP
+          server, including Codex, Claude Code and OpenClaw. A JSON CLI exposes
+          the same operations.{' '}
+          <a href="/docs/agents">Start with the connection guide.</a>
+        </p>
+      </details>
+      <details class="faq-item">
+        <summary>Does Monolith manage hosting for me?</summary>
+        <p>
+          You run the workspace on your own host. This website contains product
+          information and documentation; it is separate from your workspace
+          installation. The <a href="/docs/self-hosting">container guide</a>{' '}
+          covers the host setup.
+        </p>
+      </details>
+    </div>
+  </section>
+  <CallToAction />
+</Site>
+<style>
+  .hosting-illustration {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 48px 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .hosting-clients {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    gap: 16px;
+  }
+  .hosting-clients > span {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 12px;
+    background: var(--canvas);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 20px 12px;
+    flex: 1;
+    font-size: 12px;
+  }
+  .hosting-lines {
+    width: 72%;
+    height: 42px;
+    border: 1px solid var(--strong-line);
+    border-top: 0;
+    position: relative;
+    margin-bottom: 32px;
+  }
+  .hosting-lines::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    height: 32px;
+    top: 100%;
+    border-left: 1px solid var(--strong-line);
+  }
+  .hosting-server {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--canvas);
+    border: 1px solid var(--strong-line);
+    border-radius: 8px;
+    padding: 22px;
+    box-shadow: var(--shadow);
+  }
+  .hosting-server div {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .hosting-server strong {
+    font-size: 15px;
+    font-weight: 550;
+  }
+  .hosting-server span {
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .hosting-server > svg {
+    margin-left: auto;
+    color: var(--muted);
+  }
+  .hosting-caption {
+    font-size: 9px;
+    margin-top: 28px;
+  }
+  @media (max-width: 700px) {
+    .hosting-illustration {
+      padding: 28px 20px;
+    }
+    .hosting-clients > span {
+      font-size: 10px;
+      padding: 16px 8px;
+    }
+    .hosting-server {
+      padding: 16px;
+    }
+    .hosting-server strong {
+      font-size: 13px;
+    }
+    .hosting-server span {
+      font-size: 10px;
+    }
+    .hosting-caption {
+      font-size: 8px;
+    }
+  }
+</style>

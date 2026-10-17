@@ -1,0 +1,52 @@
+{
+  "name": "@monolith/pomodoro-timer",
+  "displayName": "Pomodoro Timer",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MaxJafar/monolith.git",
+    "directory": "modules/monolith--pomodoro-timer"
+  },
+  "version": "0.0.1",
+  "type": "module",
+  "author": "Monolith contributors",
+  "description": "Stay focused with timed work sessions and built-in break reminders.",
+  "scripts": {
+    "typecheck": "pnpm run typecheck:client && pnpm run typecheck:server",
+    "typecheck:client": "cd client && tsc",
+    "typecheck:server": "cd server && tsc",
+    "build": "pnpm run build:client && pnpm run build:server",
+    "build:client": "cd client && vite build",
+    "build:server": "cd server && vite build"
+  },
+  "dependencies": {
+    "culori": "^4.0.2",
+    "react-virtualized": "^9.22.6"
+  },
+  "devDependencies": {
+    "@types/react-virtualized": "^9.22.3"
+  },
+  "peerDependencies": {
+    "@monolith/api": "workspace:*",
+    "@monolith/configs": "workspace:*",
+    "@monolith/drizzle": "workspace:*",
+    "@monolith/federation": "workspace:*",
+    "@monolith/file-storage": "workspace:*",
+    "@monolith/localization": "workspace:*",
+    "@monolith/server-utils": "workspace:*",
+    "@monolith/ui": "workspace:*"
+  },
+  "monolith": {
+    "icon": "tabler:clock-bolt",
+    "category": "Productivity",
+    "id": "monolith--pomodoro-timer",
+    "routeId": "0efe7c7379331b57a51de119ff86ef9c1b6b89ef44872f4c02ecf68bd2a80a36",
+    "experience": {
+      "kind": "widget",
+      "surfaces": [
+        "dashboard",
+        "widget",
+        "sidebar"
+      ]
+    }
+  }
+}

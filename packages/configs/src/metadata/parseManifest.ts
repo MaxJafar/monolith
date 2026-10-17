@@ -1,9 +1,13 @@
 import * as ts from '@typescript/typescript6'
-import fs from 'fs'
-import path from 'path'
+import { readFileSync, statSync } from 'node:fs'
+import { dirname, join, resolve } from 'node:path'
 
-import { type WidgetConfig } from '../interfaces/widget.types'
-import resolveExpressionMap, { findNode, parseObjectLiteral } from './ast-utils'
+import type { WidgetConfig } from '../interfaces/widget.types'
+import resolveExpressionMap, {
+  findNode,
+  parseObjectLiteral,
+  unwrapExpression
+} from './ast-utils'
 import parseWidgetConfig from './parseWidgetConfig'
 
 export interface ParsedSubsection {
@@ -11,12 +15,10 @@ export interface ParsedSubsection {
   icon: string
   path: string
 }
-
 export interface ParsedWidget {
   filePath: string
   config: WidgetConfig
 }
-
 export interface ParsedManifest {
   hasProvider: boolean
   hidden?: boolean
@@ -24,171 +26,101 @@ export interface ParsedManifest {
   widgets: ParsedWidget[]
 }
 
-function findImportPath(node: ts.Node): string | null {
-  if (
-    ts.isCallExpression(node) &&
-    node.expression.kind === ts.SyntaxKind.ImportKeyword &&
-    node.arguments.length > 0
-  ) {
-    const arg = node.arguments[0]
-
-    if (
-      arg &&
-      (ts.isStringLiteral(arg) || ts.isNoSubstitutionTemplateLiteral(arg))
-    ) {
-      return arg.text
-    }
-  }
-
-  let foundPath: string | null = null
-  ts.forEachChild(node, child => {
-    if (!foundPath) {
-      foundPath = findImportPath(child)
+function widgetSource(
+  importName: string,
+  directory: string
+): string | undefined {
+  const candidate = importName.startsWith('@/')
+    ? join(directory, 'src', importName.slice(2))
+    : resolve(directory, importName)
+  return [
+    candidate,
+    candidate + '.tsx',
+    candidate + '.ts',
+    join(candidate, 'index.tsx'),
+    join(candidate, 'index.ts')
+  ].find(file => {
+    try {
+      return statSync(file).isFile()
+    } catch {
+      return false
     }
   })
-
-  return foundPath
 }
 
-function resolveWidgetFilePath(
-  importPath: string,
-  manifestDir: string
-): string | null {
-  const absolutePath = importPath.startsWith('@/')
-    ? path.join(manifestDir, 'src', importPath.slice(2))
-    : path.resolve(manifestDir, importPath)
-
-  const extensions = ['.tsx', '.ts', '/index.tsx', '/index.ts']
-
-  for (const ext of extensions) {
-    const fullPath = absolutePath + ext
-
-    if (fs.existsSync(fullPath)) {
-      return fullPath
-    }
-  }
-
-  return null
-}
-
-function parseSubsections(
-  properties: Record<string, ts.Expression>
-): ParsedSubsection[] | undefined {
-  const subsectionExpr = properties['subsection']
-
-  if (!subsectionExpr || !ts.isArrayLiteralExpression(subsectionExpr)) {
-    return undefined
-  }
-
-  const subsections: ParsedSubsection[] = []
-
-  for (const element of subsectionExpr.elements) {
-    if (ts.isObjectLiteralExpression(element)) {
-      const resolved = resolveExpressionMap(parseObjectLiteral(element))
-
-      if (
-        typeof resolved.label === 'string' &&
-        typeof resolved.icon === 'string' &&
-        typeof resolved.path === 'string'
-      ) {
-        subsections.push({
-          label: resolved.label,
-          icon: resolved.icon,
-          path: resolved.path
-        })
-      }
-    }
-  }
-
-  return subsections.length > 0 ? subsections : undefined
-}
-
-function parseWidgets(
-  properties: Record<string, ts.Expression>,
-  manifestPath: string
+function widgets(
+  expression: ts.Expression | undefined,
+  directory: string
 ): ParsedWidget[] {
-  const widgetsExpr = properties['widgets']
-
-  if (!widgetsExpr || !ts.isArrayLiteralExpression(widgetsExpr)) {
-    return []
+  if (!expression || !ts.isArrayLiteralExpression(expression)) return []
+  const result: ParsedWidget[] = []
+  for (const element of expression.elements) {
+    const call = findNode(
+      element,
+      node =>
+        ts.isCallExpression(node) &&
+        node.expression.kind === ts.SyntaxKind.ImportKeyword
+    ) as ts.CallExpression | null
+    const argument = call?.arguments[0]
+    if (!argument || !ts.isStringLiteralLike(argument)) continue
+    const filePath = widgetSource(argument.text, directory)
+    const config = filePath && parseWidgetConfig(filePath)
+    if (filePath && config) result.push({ filePath, config })
   }
-
-  const manifestDir = path.dirname(manifestPath)
-  const widgets: ParsedWidget[] = []
-
-  for (const element of widgetsExpr.elements) {
-    const importPath = findImportPath(element)
-
-    if (!importPath) continue
-
-    const resolvedPath = resolveWidgetFilePath(importPath, manifestDir)
-
-    if (!resolvedPath) continue
-
-    const config = parseWidgetConfig(resolvedPath)
-
-    if (config) {
-      widgets.push({
-        filePath: resolvedPath,
-        config
-      })
-    }
-  }
-
-  return widgets
+  return result
 }
 
-/**
- * Parses a module's manifest file in a single pass, extracting the
- * `provider`, `hidden`, `subsection`, and `widgets` metadata from the
- * `createForgeModule(...)` call.
- *
- * @param manifestPath - Path to the module's client manifest file.
- * @returns The parsed manifest metadata.
- */
-export default function parseManifest(manifestPath: string): ParsedManifest {
-  const empty: ParsedManifest = {
-    hasProvider: false,
-    widgets: []
+function sections(
+  expression: ts.Expression | undefined
+): ParsedSubsection[] | undefined {
+  if (!expression || !ts.isArrayLiteralExpression(expression)) return undefined
+  const result: ParsedSubsection[] = []
+  for (const element of expression.elements) {
+    const value = unwrapExpression(element)
+    if (!ts.isObjectLiteralExpression(value)) continue
+    const { label, icon, path } = resolveExpressionMap(
+      parseObjectLiteral(value)
+    )
+    if (
+      typeof label === 'string' &&
+      typeof icon === 'string' &&
+      typeof path === 'string'
+    )
+      result.push({ label, icon, path })
   }
+  return result.length ? result : undefined
+}
 
-  if (!fs.existsSync(manifestPath)) return empty
-
+export default function parseManifest(filePath: string): ParsedManifest {
+  const empty = (): ParsedManifest => ({ hasProvider: false, widgets: [] })
   try {
-    const sourceCode = fs.readFileSync(manifestPath, 'utf-8')
-    const sourceFile = ts.createSourceFile(
-      manifestPath,
-      sourceCode,
+    const source = ts.createSourceFile(
+      filePath,
+      readFileSync(filePath, 'utf8'),
       ts.ScriptTarget.Latest,
-      true
+      true,
+      ts.ScriptKind.TSX
     )
-
-    const callExpr = findNode(
-      sourceFile,
-      n =>
-        ts.isCallExpression(n) &&
-        n.expression.getText(sourceFile) === 'createForgeModule'
-    )
-
-    if (!callExpr) return empty
-
-    const arg = (callExpr as ts.CallExpression).arguments[0]
-
-    if (!arg || !ts.isObjectLiteralExpression(arg)) return empty
-
-    const properties = parseObjectLiteral(arg)
-    const resolved = resolveExpressionMap(properties)
-
+    const call = findNode(
+      source,
+      node =>
+        ts.isCallExpression(node) &&
+        ts.isIdentifier(node.expression) &&
+        node.expression.text === 'defineAddon'
+    ) as ts.CallExpression | null
+    const argument = call?.arguments[0] && unwrapExpression(call.arguments[0])
+    if (!argument || !ts.isObjectLiteralExpression(argument)) return empty()
+    const properties = parseObjectLiteral(argument)
+    const { hidden } = resolveExpressionMap(properties)
     return {
-      hasProvider: 'provider' in properties,
-      hidden:
-        typeof resolved.hidden === 'boolean' ? resolved.hidden : undefined,
-      subsection: parseSubsections(properties),
-      widgets: parseWidgets(properties, manifestPath)
+      hasProvider: Object.hasOwn(properties, 'provider'),
+      hidden: typeof hidden === 'boolean' ? hidden : undefined,
+      subsection: sections(properties.subsection),
+      widgets: widgets(properties.widgets, dirname(filePath))
     }
   } catch (error) {
-    console.error(`Failed to parse manifest AST for ${manifestPath}: ${error}`)
-
-    return empty
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT')
+      console.error('Cannot read addon manifest', filePath, error)
+    return empty()
   }
 }

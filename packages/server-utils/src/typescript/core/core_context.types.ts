@@ -2,8 +2,8 @@ import type OpenAI from 'openai'
 import { Server } from 'socket.io'
 import z from 'zod'
 
-import type { FileStorage } from '@lifeforge/file-storage'
-import type { Logger } from '@lifeforge/log'
+import type { FileStorage } from '@monolith/file-storage'
+import type { Logger } from '@monolith/log'
 
 import { ITempFileManagerConstructor } from './tempfile_manager.types'
 

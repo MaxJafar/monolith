@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react'
 
-import type { IBackdropFilters, IDashboardLayout } from '@lifeforge/ui'
+import type { IBackdropFilters, IDashboardLayout } from '@monolith/ui'
 
 export const UserPersonalizationContext = createContext<{
   changeFontFamily: (font: string) => Promise<void>

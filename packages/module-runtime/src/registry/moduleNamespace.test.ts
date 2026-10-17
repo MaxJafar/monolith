@@ -5,28 +5,28 @@ import { deriveModuleNamespace, resolveCallerModuleId } from './moduleNamespace'
 
 describe('deriveModuleNamespace', () => {
   it('strips the npm scope before deriving', () => {
-    expect(deriveModuleNamespace('@lifeforge/lifeforge--achievements')).toBe(
+    expect(deriveModuleNamespace('@monolith/achievements')).toBe(
       'achievements'
     )
-    expect(deriveModuleNamespace('@lifeforge/lifeforge--calendar')).toBe(
+    expect(deriveModuleNamespace('@monolith/calendar')).toBe(
       'calendar'
     )
-    expect(deriveModuleNamespace('@lifeforge/lifeforge--owntracks')).toBe(
+    expect(deriveModuleNamespace('@monolith/monolith--owntracks')).toBe(
       'owntracks'
     )
   })
 
   it('prefixes non-official authors with a triple underscore', () => {
     expect(
-      deriveModuleNamespace('@lifeforge/melvinchia3636--truckers-log')
-    ).toBe('melvinchia3636___truckers_log')
-    expect(deriveModuleNamespace('melvinchia3636--invoice-maker')).toBe(
-      'melvinchia3636___invoice_maker'
+      deriveModuleNamespace('@monolith/example-author--truckers-log')
+    ).toBe('example-author___truckers_log')
+    expect(deriveModuleNamespace('example-author--invoice-maker')).toBe(
+      'example-author___invoice_maker'
     )
   })
 
   it('handles unscoped ids', () => {
-    expect(deriveModuleNamespace('lifeforge--app')).toBe('app')
+    expect(deriveModuleNamespace('monolith--app')).toBe('app')
     expect(deriveModuleNamespace('dashboard')).toBe('dashboard')
   })
 })
@@ -37,9 +37,9 @@ describe('resolveCallerModuleId', () => {
   })
 
   it('returns the id the loader is currently importing', () => {
-    setLoadingModuleId('lifeforge--calendar')
+    setLoadingModuleId('monolith--calendar')
 
-    expect(resolveCallerModuleId()).toBe('lifeforge--calendar')
+    expect(resolveCallerModuleId()).toBe('monolith--calendar')
   })
 
   it('returns undefined when nothing is being imported', () => {

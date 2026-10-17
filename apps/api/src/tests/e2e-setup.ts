@@ -2,7 +2,7 @@ import { and, eq, notInArray } from 'drizzle-orm'
 
 import { db } from '../core/drizzle'
 import { authRefreshTokens } from '../lib/auth/schema.drizzle'
-import { forgeAPI } from './utils'
+import { workspaceAPI } from './utils'
 
 let cachedEmail = ''
 let cachedPassword = ''
@@ -76,7 +76,7 @@ export async function initAuthTests(): Promise<{
 
   console.log(`\nTesting with user: ${cachedEmail} (${cachedName})\n`)
 
-  const loginRes = await forgeAPI.auth.login.mutateRaw(
+  const loginRes = await workspaceAPI.auth.login.mutateRaw(
     { email: cachedEmail, password: cachedPassword },
     { raw: true }
   )

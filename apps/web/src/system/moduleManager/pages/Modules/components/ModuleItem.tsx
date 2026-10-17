@@ -1,62 +1,128 @@
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router'
 
-import type { Module } from '@lifeforge/configs'
-import { Box, Card, Flex, Icon, Text, colorWithOpacity } from '@lifeforge/ui'
+import type { Module } from '@monolith/configs'
+import { Box, Button, Flex, Icon, Stack, Switch, Text } from '@monolith/ui'
 
-function ModuleItem({ module }: { module: Module }) {
-  const { t, i18n } = useTranslation([
-    `apps.${module.name}`,
-    'common.module-manager'
-  ])
+import { addonSlug } from '../filters'
 
-  const translatedTitle = i18n.exists(`apps.${module.name}:title`)
-    ? t(`apps.${module.name}:title`)
-    : module.displayName
-
+export default function ModuleItem({
+  module,
+  title,
+  description,
+  category,
+  enabled,
+  pending,
+  disabled,
+  workspace,
+  onToggle
+}: {
+  module: Module
+  title: string
+  description: string
+  category: string
+  enabled: boolean
+  pending: boolean
+  disabled: boolean
+  workspace?: string
+  onToggle: () => void
+}) {
+  const { t } = useTranslation('common.module-manager'),
+    { t: ui } = useTranslation('common.workspaceUI')
+  const kind = module.experience?.kind ?? 'standard'
+  const widget = kind === 'widget'
   return (
-    <Card gap="md" minWidth="0">
-      <Flex align="start" gap="md">
+    <Stack
+      as="article"
+      className="addon-card"
+      data-addon={addonSlug(module.name)}
+      data-enabled={enabled}
+      aria-busy={pending}
+      p="lg"
+      gap="md"
+      minWidth="0"
+    >
+      <Flex align="center" justify="between" gap="sm">
         <Flex
+          className="addon-icon"
           centered
-          shadow
-          bg={colorWithOpacity('custom-500', '20%')}
-          flexShrink="0"
-          height="3em"
-          r="lg"
-          width="3em"
+          width="2.5rem"
+          height="2.5rem"
+          r="md"
         >
-          <Icon color="primary" icon={module.icon} size="1.5em" />
+          <Icon icon={module.icon} size="1.35rem" />
         </Flex>
-        <Flex align="start" flex="1" gap="md" justify="between" minWidth="0">
-          <Box minWidth="0">
-            <Flex align="center" gap="sm">
-              <Text truncate as="h3" size="lg" weight="semibold">
-                {translatedTitle}
-              </Text>
-            </Flex>
-            <Text color="muted" size="sm">
-              v{module.version}
-            </Text>
-          </Box>
+        <Flex className="addon-toggle" align="center" gap="sm">
+          <Text size="xs" color="muted" role="status">
+            {t(
+              pending
+                ? 'catalog.saving'
+                : enabled
+                  ? 'catalog.on'
+                  : 'catalog.off'
+            )}
+          </Text>
+          <Switch
+            value={enabled}
+            disabled={disabled}
+            onChange={onToggle}
+            aria-label={t('catalog.toggle', { name: title })}
+          />
         </Flex>
       </Flex>
-      <Text as="p" color="muted" leading="relaxed" lineClamp={2}>
-        {i18n.exists(`apps.${module.name}:description`)
-          ? t([`apps.${module.name}:description`])
-          : module.description}
-      </Text>
-      <Box style={{ marginTop: 'auto' }}>
-        {module.author && (
-          <Flex asChild align="center" gap="sm">
-            <Text color="muted">
-              <Icon icon="tabler:user" size="1.1rem" />
-              <span>{module.author.split('<')[0]?.trim()}</span>
-            </Text>
-          </Flex>
+      <Stack gap="sm">
+        <Text as="h2" size="lg" weight="semibold">
+          {title}
+        </Text>
+        <Text as="p" color="muted" size="sm" leading="relaxed">
+          {description}
+        </Text>
+      </Stack>
+      <Flex align="center" wrap="wrap" gap="xs">
+        <Text className="addon-tag" size="xs">
+          {ui('addonKinds.' + kind)}
+        </Text>
+        <Text color="muted" size="xs">
+          {category}
+        </Text>
+      </Flex>
+      <Flex
+        className="addon-card-footer"
+        align="center"
+        justify="between"
+        gap="sm"
+      >
+        <Text size="xs" color="muted">
+          v{module.version}
+        </Text>
+        {enabled ? (
+          <Button
+            as={Link}
+            to={
+              '/' +
+              (widget ? 'dashboard' : addonSlug(module.name)) +
+              '?workspace=' +
+              (workspace ?? '')
+            }
+            namespace={false}
+            variant="plain"
+            icon="lucide:arrow-up-right"
+          >
+            {t(widget ? 'catalog.openDashboard' : 'catalog.open')}
+          </Button>
+        ) : (
+          <Text size="xs" color="muted">
+            {t('catalog.availableHint')}
+          </Text>
         )}
-      </Box>
-    </Card>
+      </Flex>
+      {widget && enabled && (
+        <Box>
+          <Text size="xs" color="muted">
+            {ui('widgetAddonHelp')}
+          </Text>
+        </Box>
+      )}
+    </Stack>
   )
 }
-
-export default ModuleItem

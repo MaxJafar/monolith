@@ -1,53 +1,42 @@
-import fs from 'fs'
-import path from 'path'
+import { mkdirSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { type RotatingFileStream, createStream } from 'rotating-file-stream'
 
-import { getConfig } from './config'
+import { type FileOptions, getConfig } from './config'
 
-let stream: RotatingFileStream | null = null
+const destinations = new Map<string, RotatingFileStream>()
 
-function ensureLogDir(directory: string): void {
-  const logPath = path.resolve(process.cwd(), directory)
-
-  if (!fs.existsSync(logPath)) {
-    fs.mkdirSync(logPath, { recursive: true })
-  }
-}
-
-function createLogFilename(time: Date | number, index?: number): string {
-  const date = time instanceof Date ? time : time ? new Date(time) : new Date()
-
-  const year = date.getFullYear()
-
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-
-  const day = String(date.getDate()).padStart(2, '0')
-
-  const suffix = index ? `.${index}` : ''
-
-  return `${year}-${month}-${day}${suffix}.log`
-}
-
-export function getFileStream(): RotatingFileStream {
-  if (stream) return stream
-
-  const config = getConfig()
-
-  ensureLogDir(config.directory)
-  stream = createStream(createLogFilename, {
-    path: path.resolve(process.cwd(), config.directory),
-    size: '10M',
-    interval: '1d',
-    maxFiles: config.retention,
-    compress: 'gzip'
+export function getFileStream(options: FileOptions = {}): RotatingFileStream {
+  const defaults = getConfig()
+  const directory = resolve(options.directory || defaults.directory)
+  const retention = options.retention ?? defaults.retention
+  const size = options.maxSize || '10M'
+  const key = JSON.stringify([directory, retention, size])
+  const existing = destinations.get(key)
+  if (existing && !existing.destroyed) return existing
+  mkdirSync(directory, { recursive: true })
+  const stream = createStream(
+    (time, index) => {
+      if (!time) return 'monolith.log'
+      const date = new Date(time).toISOString().slice(0, 10)
+      return `monolith-${date}${index ? '-' + index : ''}.log`
+    },
+    {
+      path: directory,
+      size,
+      interval: '1d',
+      maxFiles: retention,
+      compress: 'gzip'
+    }
+  )
+  destinations.set(key, stream)
+  stream.once('close', () => {
+    if (destinations.get(key) === stream) destinations.delete(key)
   })
-
   return stream
 }
 
 export function closeFileStream(): void {
-  if (stream) {
-    stream.end()
-    stream = null
-  }
+  for (const stream of destinations.values()) stream.end()
+  destinations.clear()
 }

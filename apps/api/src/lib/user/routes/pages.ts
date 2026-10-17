@@ -5,10 +5,10 @@ import {
   type CanvasPage,
   canvasKey,
   validateCanvasPage
-} from '@lifeforge/blocks'
-import { ClientError } from '@lifeforge/server-utils'
+} from '@monolith/blocks'
+import { ClientError } from '@monolith/server-utils'
 
-import forge from '../forge'
+import endpoints from '../endpoints'
 import { users } from '../schema.drizzle'
 
 const keySchema = z.string().refine(canvasKey, 'Use a workspace page path')
@@ -22,7 +22,7 @@ const pageSchema = z.custom<CanvasPage>(value => {
   }
 }, 'Invalid block page')
 
-export const get = forge
+export const get = endpoints
   .query({
     description: 'Get an owned block page',
     input: { query: z.object({ key: keySchema }) },
@@ -40,7 +40,7 @@ export const get = forge
     return response.ok({ page: user.pages[key] ?? null })
   })
 
-export const list = forge
+export const list = endpoints
   .query({
     description: 'List owned workspace pages',
     input: {},
@@ -74,7 +74,7 @@ export const list = forge
     )
   })
 
-export const save = forge
+export const save = endpoints
   .mutation({
     description: 'Save an owned block page with optimistic revision protection',
     input: {

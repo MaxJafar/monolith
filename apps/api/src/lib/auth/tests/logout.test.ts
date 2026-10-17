@@ -1,5 +1,5 @@
 import { cleanupTestTokens, initAuthTests } from '@tests/e2e-setup'
-import { extractCookies, forgeAPI, unwrap } from '@tests/utils'
+import { extractCookies, unwrap, workspaceAPI } from '@tests/utils'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 let email = ''
@@ -16,7 +16,7 @@ function creds() {
 }
 
 function loginAndCookies() {
-  return forgeAPI.auth.login
+  return workspaceAPI.auth.login
     .mutateRaw(creds(), { raw: true })
     .then(res => extractCookies(res.headers['set-cookie']))
 }
@@ -27,7 +27,7 @@ describe('POST /auth/logout', () => {
   it('returns 200 with cleared cookie for valid session', async () => {
     const cookies = await loginAndCookies()
 
-    const logout = await forgeAPI.auth.logout.mutateRaw(undefined, {
+    const logout = await workspaceAPI.auth.logout.mutateRaw(undefined, {
       raw: true,
       headers: { Cookie: cookies }
     })
@@ -38,13 +38,15 @@ describe('POST /auth/logout', () => {
   })
 
   it('returns 401 when no cookie is sent', async () => {
-    const res = await forgeAPI.auth.logout.mutateRaw(undefined, { raw: true })
+    const res = await workspaceAPI.auth.logout.mutateRaw(undefined, {
+      raw: true
+    })
 
     expect(res.status).toBe(401)
   })
 
   it('returns 401 with invalid cookie', async () => {
-    const res = await forgeAPI.auth.logout.mutateRaw(undefined, {
+    const res = await workspaceAPI.auth.logout.mutateRaw(undefined, {
       raw: true,
       headers: { Cookie: 'refresh_token=somegarbage123456' }
     })
@@ -55,12 +57,12 @@ describe('POST /auth/logout', () => {
   it('logged-out cookie cannot be reused', async () => {
     const cookies = await loginAndCookies()
 
-    await forgeAPI.auth.logout.mutateRaw(undefined, {
+    await workspaceAPI.auth.logout.mutateRaw(undefined, {
       raw: true,
       headers: { Cookie: cookies }
     })
 
-    const after = await forgeAPI.auth.refresh.mutateRaw(undefined, {
+    const after = await workspaceAPI.auth.refresh.mutateRaw(undefined, {
       raw: true,
       headers: { Cookie: cookies }
     })
@@ -71,22 +73,22 @@ describe('POST /auth/logout', () => {
   it('all tokens in the family are invalidated after logout', async () => {
     const cookies = await loginAndCookies()
 
-    const refreshRes = await forgeAPI.auth.refresh.mutateRaw(undefined, {
+    const refreshRes = await workspaceAPI.auth.refresh.mutateRaw(undefined, {
       raw: true,
       headers: { Cookie: cookies }
     })
     const rotatedCookie = extractCookies(refreshRes.headers['set-cookie'])
 
-    await forgeAPI.auth.logout.mutateRaw(undefined, {
+    await workspaceAPI.auth.logout.mutateRaw(undefined, {
       raw: true,
       headers: { Cookie: cookies }
     })
 
-    const after1 = await forgeAPI.auth.refresh.mutateRaw(undefined, {
+    const after1 = await workspaceAPI.auth.refresh.mutateRaw(undefined, {
       raw: true,
       headers: { Cookie: cookies }
     })
-    const after2 = await forgeAPI.auth.refresh.mutateRaw(undefined, {
+    const after2 = await workspaceAPI.auth.refresh.mutateRaw(undefined, {
       raw: true,
       headers: { Cookie: rotatedCookie }
     })
@@ -98,12 +100,12 @@ describe('POST /auth/logout', () => {
   it('double logout is safe', async () => {
     const cookies = await loginAndCookies()
 
-    await forgeAPI.auth.logout.mutateRaw(undefined, {
+    await workspaceAPI.auth.logout.mutateRaw(undefined, {
       raw: true,
       headers: { Cookie: cookies }
     })
 
-    const again = await forgeAPI.auth.logout.mutateRaw(undefined, {
+    const again = await workspaceAPI.auth.logout.mutateRaw(undefined, {
       raw: true,
       headers: { Cookie: cookies }
     })

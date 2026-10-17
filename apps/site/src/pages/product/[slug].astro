@@ -1,0 +1,63 @@
+---
+import Site from '../../layouts/Site.astro'
+import Icon from '../../components/Icon.astro'
+import CallToAction from '../../components/CallToAction.astro'
+import { products } from '../../data/products'
+export function getStaticPaths() {
+  return products.map((product) => ({
+    params: { slug: product.slug },
+    props: { product }
+  }))
+}
+const { product } = Astro.props
+---
+
+<Site title={product.name} description={product.description}>
+  <section class="page-hero centered container">
+    <span class="eyebrow">
+      <Icon name={product.icon} size={16} />
+      {product.label}
+    </span>
+    <h1>{product.title}</h1>
+    <p class="lead">{product.description}</p>
+    <div class="button-row">
+      <a class="button primary" href={`/docs/${product.guide}`}>
+        Explore the guide <Icon name="arrow" size={17} />
+      </a>
+      <a class="button secondary" href="/docs/installation">
+        Get started
+      </a>
+    </div>
+  </section>
+  <div class="container">
+    <figure class="product-image">
+      <img
+        src={`/images/${product.image}.webp`}
+        alt={product.alt}
+        width="1440"
+        height="1060"
+      />
+    </figure>
+    <section class="product-feature-grid">
+      {product.features.map(([heading, body], index) => (
+        <article>
+          <span class="micro">
+            0{index + 1} / {product.name.toUpperCase()}
+          </span>
+          <h2>{heading}</h2>
+          <p>{body}</p>
+        </article>
+      ))}
+    </section>
+    <div class="product-notice">
+      <p>
+        Monolith is in active development. The guides cover configuration,
+        permissions and current release availability for this feature.
+      </p>
+      <a class="text-link" href={`/docs/${product.guide}`}>
+        Read the docs <Icon name="arrow" size={16} />
+      </a>
+    </div>
+  </div>
+  <CallToAction />
+</Site>

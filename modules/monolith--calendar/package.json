@@ -1,0 +1,57 @@
+{
+  "name": "@monolith/calendar",
+  "displayName": "Calendar",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MaxJafar/monolith.git",
+    "directory": "modules/monolith--calendar"
+  },
+  "version": "0.0.1",
+  "type": "module",
+  "author": "Monolith contributors",
+  "description": "Don't miss appointments with destiny (or the dentist).",
+  "scripts": {
+    "typecheck": "pnpm run typecheck:client && pnpm run typecheck:server",
+    "typecheck:client": "cd client && tsc",
+    "typecheck:server": "cd server && tsc",
+    "build": "pnpm run build:client && pnpm run build:server",
+    "build:client": "cd client && vite build",
+    "build:server": "cd server && vite build"
+  },
+  "dependencies": {
+    "node-ical": "^0.21.0",
+    "react-big-calendar": "^1.20.0",
+    "react-markdown": "^10.1.0",
+    "rrule": "^2.8.1",
+    "zustand": "^5.0.8"
+  },
+  "devDependencies": {
+    "@types/react-big-calendar": "^1.16.3"
+  },
+  "peerDependencies": {
+    "@monolith/api": "workspace:*",
+    "@monolith/configs": "workspace:*",
+    "@monolith/drizzle": "workspace:*",
+    "@monolith/federation": "workspace:*",
+    "@monolith/localization": "workspace:*",
+    "@monolith/module-runtime": "workspace:*",
+    "@monolith/server-utils": "workspace:*",
+    "@monolith/ui": "workspace:*"
+  },
+  "monolith": {
+    "icon": "tabler:calendar",
+    "category": "Productivity",
+    "APIKeyAccess": {
+      "openai": {
+        "usage": "Create event from natural language and images using llm",
+        "required": false
+      },
+      "gcloud": {
+        "usage": "Retrieve location during natural language processing for event creation",
+        "required": false
+      }
+    },
+    "id": "monolith--calendar",
+    "routeId": "0e5139be94f57ae6824a6bc79c53c8ef778296589b80882de4c03651f50e28b8"
+  }
+}

@@ -1,14 +1,28 @@
-import { useQuery , useQueryClient } from '@tanstack/react-query'
-import { Suspense, useEffect, useMemo, useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  type ComponentType,
+  Suspense,
+  useEffect,
+  useMemo,
+  useRef,
+  useState
+} from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate } from 'react-router'
 
-import { useAuth } from '@lifeforge/api'
-import { type CanvasPage, validateCanvasPage } from '@lifeforge/blocks'
-import { ModuleMetadataProvider } from '@lifeforge/federation'
-import { CanvasWidgetExtensionProvider, Text } from '@lifeforge/ui'
+import { useAPIEndpoint, useAuth } from '@monolith/api'
+import { type CanvasPage, validateCanvasPage } from '@monolith/blocks'
+import { ModuleMetadataProvider } from '@monolith/federation'
+import {
+  Box,
+  type CanvasWidgetConfiguration,
+  CanvasWidgetExtensionProvider,
+  type InlineDatabaseMode,
+  Text
+} from '@monolith/ui'
 
+import { CharacterWidget } from '@/addons/urpg/Character'
 import { useWorkspace } from '@/core/workspaces/WorkspaceProvider'
 import { workspaceArea } from '@/core/workspaces/areaPage'
 import { workspaceAPI } from '@/core/workspaces/workspaceAPI'
@@ -16,23 +30,40 @@ import WidgetProvider, {
   useWidgets
 } from '@/system/dashboard/providers/WidgetProvider'
 
+import { coreAddonPaths } from '../../../../../../modules/monolith--databases/navigationShared'
 import { modulePath } from '../utils/navigation'
+import { WorkspaceWidget, coreWidgets } from './WorkspaceWidgets'
+
+const rpgWidgets = {
+  rpgProfile: 'profile',
+  rpgVitals: 'vitals',
+  rpgXP: 'xp'
+} as const
 
 function Bridge({ children }: { children: React.ReactNode }) {
   const { active } = useWorkspace(),
     { userData } = useAuth()
-  
-const cache = useQueryClient()
+
+  const endpoint = useAPIEndpoint()
+  const cache = useQueryClient()
   const location = useLocation()
   const navigate = useNavigate()
-  
-const databaseEndpoint = workspaceAPI.workspaceDatabases.snapshot.input({
+  const [requestedWidget, setRequestedWidget] = useState<{
+    id: string
+    filter: string
+  }>()
+  useEffect(
+    () => setRequestedWidget(undefined),
+    [active?.id, endpoint, userData?.id]
+  )
+
+  const databaseEndpoint = workspaceAPI.workspaceDatabases.snapshot.input({
     workspace_id: active?.id ?? '00000000-0000-4000-8000-000000000000'
   })
   const options = databaseEndpoint.queryOptions()
   const databases = useQuery({
     ...options,
-    queryKey: [...options.queryKey, userData?.id],
+    queryKey: [...options.queryKey, endpoint, userData?.id],
     enabled: !!active
   })
   const pageEndpoint = workspaceAPI.workspaces.pages.input({
@@ -41,12 +72,24 @@ const databaseEndpoint = workspaceAPI.workspaceDatabases.snapshot.input({
   const pageOptions = pageEndpoint.queryOptions()
   const pages = useQuery({
     ...pageOptions,
-    queryKey: [...pageOptions.queryKey, userData?.id],
+    queryKey: [...pageOptions.queryKey, endpoint, userData?.id],
     enabled: !!active
   })
-  
-const { widgets, getComponent, loading } = useWidgets()
-  const { t, i18n } = useTranslation('common.canvas')
+
+  const { widgets, getComponent, loading } = useWidgets()
+
+  const resourceOptions = workspaceAPI.workspaceGraph.resources
+    .input({
+      workspace_id: active?.id ?? '00000000-0000-4000-8000-000000000000'
+    })
+    .queryOptions({ refetchInterval: 5000 })
+  const resources = useQuery({
+    ...resourceOptions,
+    queryKey: [...resourceOptions.queryKey, endpoint, userData?.id],
+    enabled: !!active && !!userData?.id
+  })
+
+  const { t, i18n } = useTranslation(['common.canvas', 'common.widgets'])
   const [labelsReady, setLabelsReady] = useState('')
 
   const namespaceKey = [
@@ -75,6 +118,13 @@ const { widgets, getComponent, loading } = useWidgets()
 
   const value = useMemo(
     () => ({
+      requestedWidget,
+      consumeRequestedWidget: () => setRequestedWidget(undefined),
+      addToDashboard: (id: string, filter: string) => {
+        if (!active || active.role === 'viewer') return
+        setRequestedWidget({ id, filter })
+        navigate(`/dashboard?workspace=${active.id}`)
+      },
       pageStorage: (key: string) => {
         if (!active) return undefined
 
@@ -85,6 +135,15 @@ const { widgets, getComponent, loading } = useWidgets()
         })
 
         return {
+          canonical: pages.data?.some(page => page.route_key === area.key)
+            ? {
+                workspaceId: active.id,
+                source: {
+                  kind: 'page' as const,
+                  id: pages.data.find(page => page.route_key === area.key)!.id
+                }
+              }
+            : undefined,
           title: area.titleKey ? t(area.titleKey) : undefined,
           queryKey: [...endpoint.queryOptions().queryKey, userData?.id],
           readOnly: active.role === 'viewer',
@@ -110,6 +169,7 @@ const { widgets, getComponent, loading } = useWidgets()
         }
       },
       pages: [
+        ...(resources.data ?? []),
         ...(pages.data ?? [])
           .filter(page => page.route_key.startsWith('/page/'))
           .map(page => ({
@@ -128,7 +188,18 @@ const { widgets, getComponent, loading } = useWidgets()
         }))
       ],
       openPage: (page: { id: string; kind: string }) => {
-        if (page.kind === 'document') navigate(`/page/${page.id}`)
+        if (page.kind === 'redraw') {
+          const file = resources.data?.find(
+            file => file.kind === 'redraw' && file.id === page.id
+          )
+
+          if (file?.href) navigate(file.href)
+
+          return
+        }
+
+        if (page.kind === 'document')
+          navigate(`/page/${page.id}?workspace=${active?.id ?? ''}`)
         else {
           const record = databases.data?.records.find(
             record => record.id === page.id
@@ -140,6 +211,28 @@ const { widgets, getComponent, loading } = useWidgets()
             )
         }
       },
+      createDatabase:
+        active?.role === 'viewer' || !active
+          ? undefined
+          : async (name: string, mode: InlineDatabaseMode = 'table') => {
+              const base = await workspaceAPI.workspaceDatabases.createBase
+                .input({ workspace_id: active.id })
+                .mutate({
+                  name,
+                  description: '',
+                  initial_view: mode,
+                  view_name: t(`common:inlineDatabase.modes.${mode}`)
+                })
+              const latest = await databases.refetch()
+
+              return {
+                workspaceId: active.id,
+                baseId: base.id,
+                viewId:
+                  latest.data?.views.find(view => view.base_id === base.id)
+                    ?.id ?? ''
+              }
+            },
       databases: (databases.data?.bases ?? []).map(base => ({
         id: base.id,
         name: base.name,
@@ -148,46 +241,105 @@ const { widgets, getComponent, loading } = useWidgets()
           .filter(view => view.base_id === base.id)
           .map(view => ({ id: view.id, name: view.name }))
       })),
-      widgets: Object.fromEntries(
-        Object.entries(widgets)
-          .filter(
-            ([, widget]) =>
-              !active ||
-              active.enabled_modules.some(
-                module => module === modulePath(widget.moduleName).slice(1)
-              )
-          )
-          .map(([id, widget]) => [
+      widgets: {
+        ...(active?.enabled_modules.includes('urpg')
+          ? Object.fromEntries(
+              Object.keys(rpgWidgets).map(id => [
+                id,
+                {
+                  title: t(`common:urpg.widgets.${id}`),
+                  icon: 'lucide:swords',
+                  module: 'urpg'
+                }
+              ])
+            )
+          : {}),
+        ...Object.fromEntries(
+          Object.entries(coreWidgets).map(([id, icon]) => [
             id,
-            {
-              title: (() => {
-                const keys = [
-                  `common.canvas:widgets.${id}`,
-                  `apps.${widget.moduleName}:widgets.${id}.title`,
-                  `apps.${widget.moduleName}:widgets.${id}`
-                ]
-                const key = keys.find(key => i18n.exists(key))
-
-                return key
-                  ? t(key)
-                  : id
-                      .replace(/([a-z])([A-Z])/g, '$1 $2')
-                      .replace(/^./, letter => letter.toUpperCase())
-              })(),
-              icon: widget.icon,
-              filterable: [
-                'projectOverview',
-                'techLabServices',
-                'techLabDevice'
-              ].includes(id)
-            }
+            { title: t(`common.widgets:catalog.${id}`), icon, module: 'core' }
           ])
-      ),
-      render: (id: string, configuration?: { filter: string }) => {
+        ),
+        ...Object.fromEntries(
+          Object.entries(widgets)
+            .filter(
+              ([, widget]) =>
+                !active ||
+                coreAddonPaths.has(modulePath(widget.moduleName).slice(1)) ||
+                active.enabled_modules.some(
+                  module => module === modulePath(widget.moduleName).slice(1)
+                )
+            )
+            .map(([id, widget]) => [
+              id,
+              {
+                title: (() => {
+                  const keys = [
+                    `common.canvas:widgets.${id}`,
+                    `apps.${widget.moduleName}:widgets.${id}.title`,
+                    `apps.${widget.moduleName}:widgets.${id}`
+                  ]
+                  const key = keys.find(key => i18n.exists(key))
+
+                  return key
+                    ? t(key)
+                    : id
+                        .replace(/([a-z])([A-Z])/g, '$1 $2')
+                        .replace(/^./, letter => letter.toUpperCase())
+                })(),
+                icon: widget.icon,
+                module: widget.moduleName,
+                filterable: [
+                  'projectOverview',
+                  'techLabServices',
+                  'techLabDevice'
+                ].includes(id)
+              }
+            ])
+        )
+      },
+      render: (id: string, configuration?: CanvasWidgetConfiguration) => {
+        if (id in rpgWidgets && active?.enabled_modules.includes('urpg'))
+          return (
+            <CharacterWidget
+              key={`${active.id}:${id}`}
+              mode={rpgWidgets[id as keyof typeof rpgWidgets]}
+              readOnly={active.role === 'viewer' || configuration?.readOnly}
+            />
+          )
+        if (Object.prototype.hasOwnProperty.call(coreWidgets, id))
+          return (
+            <WorkspaceWidget
+              key={`${active?.id}:${userData?.id}:${id}`}
+              configuration={configuration}
+              data={databases.data}
+              failed={databases.isError}
+              id={id}
+              loading={databases.isPending}
+              readOnly={
+                active?.role === 'viewer' ||
+                !active ||
+                !!configuration?.readOnly
+              }
+              retry={() => {
+                void databases.refetch()
+              }}
+              workspaceId={active?.id ?? ''}
+            />
+          )
+
         const widget = widgets[id]
 
         if (loading) return <Text role="status">{t('loading')}</Text>
-        if (!widget) return <Text color="muted">{t('unavailableWidget')}</Text>
+        if (
+          !widget ||
+          (active &&
+            !coreAddonPaths.has(modulePath(widget.moduleName).slice(1)) &&
+            !active.enabled_modules.includes(
+              modulePath(widget.moduleName).slice(1)
+            ))
+        )
+          return <Text color="muted">{t('unavailableWidget')}</Text>
 
         const { component: Component, name } = getComponent(id)
 
@@ -204,10 +356,17 @@ const { widgets, getComponent, loading } = useWidgets()
               }}
             >
               <Suspense fallback={<Text role="status">{t('loading')}</Text>}>
-                <Component
-                  dimension={{ w: 600, h: 300 }}
-                  filter={configuration?.filter ?? ''}
-                  widgetId={id}
+                <MeasuredWidget
+                  component={Component}
+                  configuration={{
+                    ...configuration,
+                    filter: configuration?.filter ?? '',
+                    readOnly:
+                      active?.role === 'viewer' ||
+                      !active ||
+                      !!configuration?.readOnly
+                  }}
+                  id={id}
                 />
               </Suspense>
             </ModuleMetadataProvider>
@@ -216,6 +375,7 @@ const { widgets, getComponent, loading } = useWidgets()
       }
     }),
     [
+      requestedWidget,
       widgets,
       getComponent,
       loading,
@@ -223,8 +383,12 @@ const { widgets, getComponent, loading } = useWidgets()
       i18n,
       labelsReady,
       databases.data,
+      databases.isPending,
+      databases.isError,
       active,
       pages.data,
+      resources.data,
+      endpoint,
       userData?.id,
       cache,
       location.search,
@@ -248,5 +412,63 @@ export default function CanvasWidgetBridge({
     <WidgetProvider>
       <Bridge>{children}</Bridge>
     </WidgetProvider>
+  )
+}
+
+function MeasuredWidget({
+  component: Component,
+  id,
+  configuration
+}: {
+  component: ComponentType<{
+    dimension: { w: number; h: number }
+    filter: string
+    widgetId: string
+    readOnly?: boolean
+    onViewChange?: (id: string) => void
+    onHeightChange?: (height: number) => void
+    onConfigChange?: (filter: string) => void
+  }>
+  id: string
+  configuration?: CanvasWidgetConfiguration
+}) {
+  const element = useRef<HTMLDivElement>(null)
+  const [dimension, setDimension] = useState({ w: 600, h: 300 })
+
+  useEffect(() => {
+    if (!element.current) return
+    let frame = 0
+
+    const observer = new ResizeObserver(([entry]) => {
+      if (!entry) return
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(() =>
+        setDimension(current => {
+          const w = Math.round(entry.contentRect.width)
+
+          return w === current.w ? current : { w, h: current.h }
+        })
+      )
+    })
+    observer.observe(element.current)
+
+    return () => {
+      observer.disconnect()
+      cancelAnimationFrame(frame)
+    }
+  }, [])
+
+  return (
+    <Box ref={element} minWidth="0">
+      <Component
+        dimension={dimension}
+        filter={configuration?.filter ?? ''}
+        readOnly={configuration?.readOnly}
+        widgetId={id}
+        onConfigChange={configuration?.onConfigChange}
+        onHeightChange={configuration?.onHeightChange}
+        onViewChange={configuration?.onViewChange}
+      />
+    </Box>
   )
 }

@@ -4,7 +4,7 @@ import { randomUUID } from 'node:crypto'
 import postgres from 'postgres'
 import { afterAll, describe, expect, it } from 'vitest'
 
-import getEvents from '../../../../modules/zillion--gym/server/events'
+import getEvents from '../../../../modules/monolith--gym/server/events'
 import {
   relations,
   routines,
@@ -12,8 +12,8 @@ import {
   settings,
   tables,
   workouts
-} from '../../../../modules/zillion--gym/server/schema.drizzle'
-import { settingsInputSchema } from '../../../../modules/zillion--gym/shared'
+} from '../../../../modules/monolith--gym/server/schema.drizzle'
+import { settingsInputSchema } from '../../../../modules/monolith--gym/shared'
 
 const enabled = process.env.ZILLION_INTEGRATION === '1'
 const connection = process.env.DATABASE_URL || ''

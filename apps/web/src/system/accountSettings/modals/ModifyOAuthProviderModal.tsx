@@ -1,134 +1,100 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import z from 'zod'
+import { z } from 'zod'
 
-import {
-  Alert,
-  ConfirmationModal,
-  FormModal,
-  TextField,
-  TextInput,
-  createDefaultValues,
-  toast,
-  useModalStore
-} from '@lifeforge/ui'
+import { Alert, FormModal, Text, TextField, toast } from '@monolith/ui'
 
-import forgeAPI from '@/core/utils/forgeAPI'
+import workspaceAPI from '@/core/utils/workspaceAPI'
 
-const schema = z.object({
-  provider: z.string(),
-  clientId: z.string().min(1),
-  clientSecret: z.string().min(1)
-})
-
-function ModifyOAuthProviderModal({
+export default function ModifyOAuthProviderModal({
   data,
   onClose
 }: {
-  data: {
-    type: 'create' | 'update'
-    provider: string
-  }
+  data: { type: 'create' | 'update'; provider: string }
   onClose: () => void
 }) {
   const { t } = useTranslation('common.account-settings')
-  const { open } = useModalStore()
-  const queryClient = useQueryClient()
-
-  const upsertMutation = useMutation(
-    forgeAPI.auth.oauth.providers.upsert
-      .input({
-        provider: data.provider
-      })
-      .mutationOptions({
-        onSuccess: () => {
-          queryClient.invalidateQueries({
-            queryKey: forgeAPI.auth.oauth.providers.key
+  const cache = useQueryClient()
+  const creating = data.type === 'create'
+  const schema = z
+    .object({
+      clientId: z.string().trim().max(255),
+      clientSecret: z.string().max(255)
+    })
+    .superRefine((value, context) => {
+      for (const name of ['clientId', 'clientSecret'] as const) {
+        if (creating && !value[name])
+          context.addIssue({
+            code: 'custom',
+            path: [name],
+            message: t('validation.required')
           })
-          toast.success('OAuth provider created')
-        }
-      })
-  )
-
-  const defaultValues =
-    data.type === 'update'
-      ? {
-          provider: data.provider || '',
-          clientId: '',
-          clientSecret: ''
-        }
-      : createDefaultValues(schema)
-
+      }
+      if (!creating && !value.clientId && !value.clientSecret) {
+        context.addIssue({
+          code: 'custom',
+          path: ['clientId'],
+          message: t('validation.credentialChange')
+        })
+      }
+    })
   const form = useForm({
-    defaultValues,
+    defaultValues: { clientId: '', clientSecret: '' },
     resolver: zodResolver(schema)
   })
 
   return (
     <FormModal
       form={form}
-      submissionConfig={{
-        handler: async formData => {
-          if (data.type === 'update') {
-            try {
-              await new Promise((resolve, reject) =>
-                open(ConfirmationModal, {
-                  title: t('messages.oauth.changeConfirm'),
-                  description: t('messages.oauth.changeAlert'),
-                  onConfirm: async () => {
-                    await upsertMutation.mutateAsync(formData)
-                    resolve(undefined)
-                  },
-                  onReject: reject
-                })
-              )
-            } catch {
-              throw new Error('Operation aborted')
-            }
-          } else {
-            upsertMutation.mutateAsync(formData)
-          }
-        },
-        template: data.type
-      }}
       uiConfig={{
-        icon: data.type === 'create' ? 'tabler:plus' : 'tabler:pencil',
+        title: 'oauthProvider.' + data.type,
+        icon: 'tabler:login',
         namespace: 'common.account-settings',
-        title: `oauthProvider.${data.type}`,
         onClose
       }}
+      submissionConfig={{
+        template: data.type,
+        handler: async values => {
+          await workspaceAPI.auth.oauth.providers.upsert
+            .input({ provider: data.provider })
+            .mutateRaw(values)
+          await cache.invalidateQueries({
+            queryKey: workspaceAPI.auth.oauth.key
+          })
+          form.reset()
+          toast.success(t('messages.oauth.saved'))
+        }
+      }}
     >
-      <Alert type="caution">{t('messages.oauth.changeAlert')}</Alert>
-      <TextInput
-        disabled
-        icon="tabler:login"
-        label="oauthProvider.provider"
-        namespace="common.account-settings"
-        placeholder=""
-        value={data.provider}
-        onChange={() => {}}
-      />
+      <Text as="h3" weight="medium">
+        {data.provider}
+      </Text>
+      {!creating && (
+        <Alert type="caution">{t('messages.oauth.keepBlank')}</Alert>
+      )}
       <TextField
-        required
         control={form.control}
+        name="clientId"
         icon="tabler:key"
         label="oauthProvider.clientId"
-        name="clientId"
-        placeholder="Client ID"
+        required={creating}
+        placeholder=""
+        autoComplete="off"
+        disabled={form.formState.isSubmitting}
       />
       <TextField
-        isPassword
-        required
         control={form.control}
+        name="clientSecret"
         icon="tabler:lock"
         label="oauthProvider.clientSecret"
-        name="clientSecret"
-        placeholder="Client Secret"
+        required={creating}
+        placeholder=""
+        autoComplete="new-password"
+        isPassword
+        disabled={form.formState.isSubmitting}
       />
     </FormModal>
   )
 }
-
-export default ModifyOAuthProviderModal

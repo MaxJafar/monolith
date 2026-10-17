@@ -1,27 +1,99 @@
-/**
- * @fileoverview Hybrid RSA-AES Encryption for Forge API
- *
- * This module implements a hybrid encryption scheme for securing API request/response data:
- * 1. Client generates a random AES key for each request
- * 2. Client encrypts the AES key using server's RSA public key
- * 3. Client encrypts the request body using AES-GCM
- * 4. Server decrypts the AES key using its RSA private key
- * 5. Server decrypts the request body using the AES key
- * 6. Server encrypts the response using the same AES key
- * 7. Client decrypts the response using the same AES key
- *
- * This approach provides:
- * - End-to-end encryption on top of HTTPS
- * - Forward secrecy (each request uses a unique AES key)
- * - No client-side private key storage needed
- * - Protection against proxy/log interception
- */
-export { default as decryptAESKey } from './functions/decryptAESKey'
+import {
+  type KeyObject,
+  constants,
+  createCipheriv,
+  createDecipheriv,
+  generateKeyPairSync,
+  privateDecrypt,
+  randomBytes
+} from 'node:crypto'
 
-export { default as getPublicKey } from './functions/getPublicKey'
+import { ClientError } from '@monolith/server-utils'
 
-export { default as decryptPayload } from './functions/decryptPayload'
+export type EncryptedResponse = { iv: string; data: string; tag: string }
+export type EncryptedPayload = EncryptedResponse & { k: string }
 
-export { default as encryptResponse } from './functions/encryptResponse'
+let keypair: { publicKey: KeyObject; privateKey: KeyObject } | undefined
+function keys() {
+  return (keypair ??= generateKeyPairSync('rsa', { modulusLength: 4096 }))
+}
 
-export { default as ensureKeysExist } from './functions/ensureKeyExists'
+export function ensureKeysExist(): void {
+  keys()
+}
+export function getPublicKey(): string {
+  return keys().publicKey.export({ type: 'spki', format: 'pem' }).toString()
+}
+
+function bytes(value: string, length?: number): Buffer {
+  if (
+    !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(
+      value
+    )
+  )
+    throw new Error('Invalid base64 encoding')
+  const decoded = Buffer.from(value, 'base64')
+  if (length !== undefined && decoded.length !== length)
+    throw new Error('Invalid encrypted field length')
+  return decoded
+}
+
+export function decryptAESKey(wrapped: string): Buffer {
+  const raw = privateDecrypt(
+    {
+      key: keys().privateKey,
+      padding: constants.RSA_PKCS1_OAEP_PADDING,
+      oaepHash: 'sha256'
+    },
+    bytes(wrapped)
+  )
+  if (raw.length !== 32) throw new Error('Expected an AES-256 key')
+  return raw
+}
+
+export function decryptPayload<T = unknown>(value: unknown): T {
+  if (
+    !value ||
+    typeof value !== 'object' ||
+    !['k', 'iv', 'data', 'tag'].every(
+      field => typeof (value as Record<string, unknown>)[field] === 'string'
+    )
+  )
+    return value as T
+  const message = value as EncryptedPayload
+  try {
+    const cipher = createDecipheriv(
+      'aes-256-gcm',
+      decryptAESKey(message.k),
+      bytes(message.iv, 12),
+      { authTagLength: 16 }
+    )
+    cipher.setAuthTag(bytes(message.tag, 16))
+    const plaintext = Buffer.concat([
+      cipher.update(bytes(message.data)),
+      cipher.final()
+    ])
+    return JSON.parse(plaintext.toString('utf8')) as T
+  } catch {
+    throw new ClientError('Failed to decrypt payload', 400)
+  }
+}
+
+export function encryptResponse(
+  value: unknown,
+  key: Buffer
+): EncryptedResponse {
+  const nonce = randomBytes(12)
+  const cipher = createCipheriv('aes-256-gcm', key, nonce, {
+    authTagLength: 16
+  })
+  const ciphertext = Buffer.concat([
+    cipher.update(JSON.stringify(value ?? null), 'utf8'),
+    cipher.final()
+  ])
+  return {
+    iv: nonce.toString('base64'),
+    data: ciphertext.toString('base64'),
+    tag: cipher.getAuthTag().toString('base64')
+  }
+}

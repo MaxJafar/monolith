@@ -1,0 +1,48 @@
+{
+  "name": "@monolith/automations",
+  "displayName": "Automations",
+  "version": "0.1.0",
+  "type": "module",
+  "author": "Monolith contributors",
+  "description": "Connect triggers, data and actions in visual workflows.",
+  "scripts": {
+    "build": "pnpm build:server && pnpm build:client",
+    "build:server": "vite build --config server/vite.config.ts",
+    "build:client": "node client/build.mjs",
+    "typecheck": "tsc -p client/tsconfig.json && tsc -p server/tsconfig.json",
+    "test": "vitest run --config vitest.config.ts",
+    "contract": "tsx server/index.ts",
+    "worker": "tsx server/worker.ts"
+  },
+  "monolith": {
+    "id": "monolith--automations",
+    "icon": "lucide:workflow",
+    "category": "Productivity",
+    "experience": {
+      "kind": "workbench",
+      "surfaces": [
+        "page",
+        "sidebar"
+      ]
+    },
+    "routeId": "78a77a01f2483a753d175dbc031afca4b80554d71863f1bb31f9786a0eb87a5b"
+  },
+  "peerDependencies": {
+    "@monolith/api": "workspace:*",
+    "@monolith/configs": "workspace:*",
+    "@monolith/drizzle": "workspace:*",
+    "@monolith/federation": "workspace:*",
+    "@monolith/localization": "workspace:*",
+    "@monolith/server-utils": "workspace:*",
+    "@monolith/ui": "workspace:*",
+    "react": "^19.2.0"
+  },
+  "dependencies": {
+    "dayjs": "^1.11.19",
+    "drizzle-orm": "1.0.0-rc.4",
+    "zod": "4.3.5",
+    "postgres": "^3.4.9",
+    "ipaddr.js": "2.5.0",
+    "dotenv": "^17.2.3"
+  }
+}

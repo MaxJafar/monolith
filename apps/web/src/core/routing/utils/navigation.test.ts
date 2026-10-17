@@ -33,8 +33,8 @@ describe('Workspace module navigation', () => {
     }
   })
   it('retains a module name after removing its package scope and publisher', () => {
-    expect(modulePath('@lifeforge/lifeforge--todo-list')).toBe('/todo-list')
-    expect(modulePath('zillion--agents')).toBe('/agents')
+    expect(modulePath('@monolith/todo-list')).toBe('/todo-list')
+    expect(modulePath('monolith--agents')).toBe('/agents')
     expect(modulePath('publisher--name--detail')).toBe('/name--detail')
   })
 

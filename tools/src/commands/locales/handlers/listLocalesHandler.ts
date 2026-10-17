@@ -9,7 +9,7 @@ export function listLocalesHandler(): void {
   if (locales.length === 0) {
     log.step('No language packs installed')
     log.step(
-      'Use "pnpm forge locales install <lang>" to install a language pack'
+      'Use "pnpm monolith locales install <lang>" to install a language pack'
     )
 
     return

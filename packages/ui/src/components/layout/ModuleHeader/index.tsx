@@ -1,9 +1,10 @@
 import _ from 'lodash'
 
-import { useModuleMetadata } from '@lifeforge/federation'
-import { useModuleTranslation } from '@lifeforge/localization'
+import { useModuleMetadata } from '@monolith/federation'
+import { useModuleTranslation } from '@monolith/localization'
 
 import { Box, Flex, Icon, Text } from '@/components/primitives'
+import { useAppearance } from '@/providers/AppearanceProvider'
 import { colorWithOpacity } from '@/system'
 
 function getTKeys(
@@ -44,9 +45,10 @@ export function ModuleHeader({
   namespace
 }: ModuleHeaderProps) {
   const { title: innerTitle, icon: innerIcon } = useModuleMetadata()
+  const { appearance } = useAppearance()
 
   title = title ?? innerTitle
-  icon = icon ?? innerIcon
+  icon = appearance.icon ?? icon ?? innerIcon
 
   const { t } = useModuleTranslation(
     typeof namespace === 'string'
@@ -76,7 +78,12 @@ export function ModuleHeader({
           r="md"
           width="2.75em"
         >
-          <Icon color="primary" icon={icon} size="1.25rem" />
+          <Icon
+            color="primary"
+            icon={icon}
+            preserveStyle={!!appearance.icon}
+            size="1.25rem"
+          />
         </Flex>
         <Flex direction="column" gap="xs" minWidth="0" width="100%">
           <Text

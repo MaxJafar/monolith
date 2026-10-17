@@ -12,6 +12,8 @@
   --text-dim: #91918e;
   --text-tertiary: var(--text-muted);
   --accent-primary: #252525;
+  --selection-color: #2383e2;
+  --block-selection: color-mix(in srgb, var(--selection-color) 8%, transparent);
   --interactive-primary: #252525;
   --interactive-primary-hover: #404040;
   --interactive-on-primary: #ffffff;
@@ -50,6 +52,7 @@
   --motion-slow: var(--motion-expressive);
   --motion-ease: cubic-bezier(0.2, 0, 0, 1);
   --motion-ease-expressive: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --motion-spring: cubic-bezier(0.2, 1.35, 0.35, 1);
   --radius-sm: var(--shape-sm);
   --radius-md: var(--shape-md);
   --radius-lg: var(--shape-lg);
@@ -90,8 +93,12 @@ body {
 }
 
 ::selection {
-  background: var(--interactive-primary) !important;
-  color: var(--interactive-on-primary) !important;
+  background: color-mix(
+    in srgb,
+    var(--selection-color) 28%,
+    transparent
+  ) !important;
+  color: inherit !important;
 }
 
 * {
@@ -118,11 +125,91 @@ body {
   [role='button'],
   [tabindex='0']
 ):focus-visible {
-  outline: 2px solid var(--md-sys-color-primary) !important;
-  outline-offset: 3px;
+  outline: 1px solid
+    color-mix(in srgb, var(--selection-color, #2383e2) 35%, transparent) !important;
+  outline-offset: 1px;
 }
 :where(input, textarea):focus-visible {
-  outline-offset: 2px;
+  outline-offset: -1px;
+}
+:where(
+    a,
+    button,
+    input,
+    select,
+    textarea,
+    [role='button'],
+    [tabindex='0']
+  ):focus-visible:hover {
+  outline-color: color-mix(
+    in srgb,
+    var(--selection-color, #2383e2) 85%,
+    transparent
+  ) !important;
+}
+:where(button, a, input, textarea, select, [role='option'], [role='menuitem']) {
+  transition:
+    background-color 140ms var(--motion-ease),
+    color 140ms var(--motion-ease),
+    outline-color 140ms var(--motion-ease),
+    border-color 140ms var(--motion-ease);
+}
+:where(
+  [role='option'][aria-selected='true'],
+  [role='tab'][aria-selected='true'],
+  button[aria-pressed='true']
+) {
+  background-color: color-mix(
+    in srgb,
+    var(--selection-color, #2383e2) 8%,
+    transparent
+  );
+}
+:where(
+  [role='option'][aria-selected='true'],
+  [role='tab'][aria-selected='true'],
+  button[aria-pressed='true']
+):hover {
+  background-color: color-mix(
+    in srgb,
+    var(--selection-color, #2383e2) 14%,
+    transparent
+  );
+}
+@keyframes monolith-popover-in {
+  from {
+    opacity: 0;
+    transform: translate(-2px, -2px) scale(0.98);
+    clip-path: inset(0 6% 10% 0 round 5px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    clip-path: inset(0 0 0 0 round 5px);
+  }
+}
+@keyframes monolith-popover-out {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translate(-2px, -2px) scale(0.985);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :where(
+    button,
+    a,
+    input,
+    textarea,
+    select,
+    [role='option'],
+    [role='menuitem']
+  ) {
+    transition: none;
+  }
 }
 
 h1,
@@ -146,20 +233,166 @@ h4 {
   touch-action: manipulation;
 }
 
-:where([role='menu'], [role='listbox'])[data-state='open'] {
-  animation: monolith-menu-enter var(--motion-fast) var(--motion-ease);
-  transform-origin: var(--radix-dropdown-menu-content-transform-origin, top);
+:where([role='menu'], [role='listbox'])[data-state='open'],
+:where([role='menu'], [role='listbox'])[data-open] {
+  animation: monolith-popover-in 145ms var(--motion-ease);
+  transform-origin: top left;
   box-shadow: var(--floating-shadow);
 }
 
-@keyframes monolith-menu-enter {
-  from {
-    opacity: 0;
-    transform: translateY(-4px) scale(0.98);
+.monolith-database-picker {
+  padding: 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 5px;
+  background: var(--bg-surface);
+  box-shadow: var(--floating-shadow);
+  animation: monolith-popover-in 145ms var(--motion-ease);
+  transform-origin: top left;
+}
+.monolith-inline-input {
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border-medium);
+  border-radius: 6px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font: inherit;
+}
+input.monolith-inline-input {
+  width: 100%;
+}
+.monolith-database-picker-link {
+  margin-top: 4px;
+  border-top: 1px solid var(--border-subtle);
+  border-radius: 0 !important;
+}
+.monolith-database-layouts > button {
+  white-space: normal;
+  font-size: 12px;
+  font-weight: 400;
+  border: 1px solid transparent;
+}
+.monolith-database-layouts > button > span {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: center;
+  line-height: 1.25;
+}
+.monolith-database-layouts > button[aria-pressed='true'] {
+  background: color-mix(in srgb, var(--selection-color) 8%, transparent);
+  border-color: color-mix(in srgb, var(--selection-color) 35%, transparent);
+}
+.monolith-database-layouts > button[aria-pressed='true']:hover {
+  border-color: color-mix(in srgb, var(--selection-color) 65%, transparent);
+}
+.monolith-database-picker-row {
+  padding: 6px 8px;
+  text-align: left;
+}
+.monolith-picker-search {
+  border: 1px solid var(--border-subtle);
+  border-radius: 5px;
+  background: var(--bg-primary);
+}
+.monolith-picker-search input {
+  padding: 7px 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 13px;
+}
+.monolith-picker-search:focus-within {
+  border-color: color-mix(in srgb, var(--selection-color) 55%, transparent);
+}
+.monolith-picker-search input:focus-visible {
+  outline: none !important;
+}
+.monolith-picker-error {
+  overflow-wrap: anywhere;
+}
+.monolith-form-actions {
+  border-top: 1px solid var(--border-subtle);
+}
+@media (max-width: 380px) {
+  .monolith-database-layouts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
+}
+.monolith-native-drag-preview {
+  position: fixed;
+  inset: 0 auto auto 0;
+  z-index: 9999;
+  width: min(280px, calc(100vw - 24px));
+  padding: 16px;
+  border: 1px solid
+    color-mix(in srgb, var(--accent-primary) 50%, var(--border-medium));
+  border-radius: 8px;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  box-shadow: var(--floating-shadow);
+  font: 550 14px/1.5 var(--font-inter);
+  pointer-events: none;
+  max-height: min(280px, 50vh);
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  transform-origin: 16px 12px;
+  will-change: transform;
+}
+.monolith-block-drag-preview {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 9998;
+  padding: 0;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border-radius: 5px;
+  box-shadow:
+    0 12px 36px #0002,
+    0 2px 8px #0001,
+    0 0 0 1px var(--border-medium);
+  pointer-events: none;
+  will-change: transform;
+}
+.monolith-block-drop {
+  position: fixed;
+  z-index: 9999;
+  height: 3px;
+  pointer-events: none;
+  border-radius: 3px;
+  background: var(--selection-color, #2383e2);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--selection-color, #2383e2) 10%, transparent);
+  transition:
+    top 85ms ease-out,
+    left 85ms ease-out,
+    width 85ms ease-out;
+}
+.monolith-block-drop::before {
+  content: '';
+  position: absolute;
+  left: -4px;
+  top: -2px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--selection-color, #2383e2);
+}
+.monolith-block-drop[hidden],
+.monolith-block-drag-preview[hidden] {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .monolith-block-drop {
+    transition: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :where([role='menu'], [role='listbox'])[data-state='open'],
+  :where([role='menu'], [role='listbox'])[data-open],
+  .monolith-database-picker {
+    animation: none;
   }
 }
 .monolith-module-content h3 {
@@ -177,5 +410,63 @@ kbd {
   textarea,
   select {
     font-size: 16px !important;
+  }
+}
+
+/* Shared selection and menu motion use the nearest customization accent. */
+.monolith-listbox-surface {
+  background: var(--bg-surface) !important;
+  border-radius: 5px;
+  box-shadow: var(--floating-shadow);
+  transform-origin: top left;
+  transition:
+    opacity 110ms ease,
+    transform 145ms var(--motion-ease);
+}
+.monolith-listbox-surface[data-enter] {
+  animation: monolith-popover-in 145ms var(--motion-ease);
+}
+.monolith-listbox-surface[data-leave] {
+  opacity: 0;
+  transform: translate(-2px, -2px) scale(0.985);
+}
+.monolith-listbox-surface [role='option'][data-focus],
+.monolith-listbox-surface [role='option'][aria-selected='true'] {
+  background: color-mix(
+    in srgb,
+    var(--selection-color, #2383e2) 9%,
+    transparent
+  );
+}
+.canvas-block[data-selected='true'],
+.monolith-document-host [data-monolith-selected='true'],
+.zillion-prose > .ProseMirror-selectednode {
+  background: color-mix(
+    in srgb,
+    var(--selection-color, #2383e2) 8%,
+    transparent
+  );
+  transition: background-color 140ms var(--motion-ease);
+}
+.canvas-block[data-selected='true']:hover,
+.monolith-document-host [data-monolith-selected='true']:hover,
+.zillion-prose > .ProseMirror-selectednode:hover {
+  background: color-mix(
+    in srgb,
+    var(--selection-color, #2383e2) 15%,
+    transparent
+  );
+}
+.zillion-prose .ProseMirror-selectednode::selection,
+.zillion-prose .ProseMirror-selectednode ::selection {
+  background: transparent !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .monolith-listbox-surface,
+  .canvas-block[data-selected='true'],
+  .monolith-document-host [data-monolith-selected='true'],
+  .zillion-prose > .ProseMirror-selectednode {
+    animation: none !important;
+    transition: none !important;
   }
 }

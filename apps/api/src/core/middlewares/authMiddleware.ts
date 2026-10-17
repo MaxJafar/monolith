@@ -1,19 +1,17 @@
 import type { NextFunction, Request, Response } from 'express'
-import jwt from 'jsonwebtoken'
 
 import {
   agentRuntimeEndpoint,
   authenticateAgent
-} from '../../../../../modules/zillion--agents/server/auth'
-import type { Database } from '../../../../../modules/zillion--agents/server/store'
+} from '../../../../../modules/monolith--agents/server/auth'
+import type { Database } from '../../../../../modules/monolith--agents/server/store'
+import { verifyApplicationToken } from '../functions/deviceSession'
 
-const JWT_SECRET = process.env.JWT_SIGNING_KEY!
-
-function isAuthTokenValid(
+async function isAuthTokenValid(
   req: Request<unknown, unknown, unknown, unknown>,
   res: Response,
   noAuth: boolean
-): boolean {
+): Promise<boolean> {
   if (noAuth) {
     return true
   }
@@ -36,9 +34,7 @@ function isAuthTokenValid(
   }
 
   try {
-    const payload = jwt.verify(bearerToken, JWT_SECRET, {
-      algorithms: ['HS512']
-    })
+    const payload = await verifyApplicationToken(bearerToken)
 
     if (
       typeof payload === 'string' ||
@@ -110,7 +106,7 @@ export default function authMiddleware(noAuth: boolean) {
       return
     }
 
-    if (isAuthTokenValid(req, res, noAuth)) {
+    if (await isAuthTokenValid(req, res, noAuth)) {
       next()
     }
   }

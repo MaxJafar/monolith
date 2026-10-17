@@ -6,6 +6,6 @@ if [ ! -f env/.env.docker ]; then
     exit 1
 fi
 docker compose --env-file env/.env.docker config --quiet
-docker compose --env-file env/.env.docker build migrate client
-printf '%s\n' 'ZillionOS images built. Start the isolated stack with:' \
+docker compose --env-file env/.env.docker build migrate
+printf '%s\n' 'Monolith images built. Start the isolated stack with:' \
     'docker compose --env-file env/.env.docker up -d'

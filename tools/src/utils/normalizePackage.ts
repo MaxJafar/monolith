@@ -1,63 +1,42 @@
-import fs from 'fs'
-import path from 'path'
+import { addonPackageName } from '@monolith/configs'
+import fs from 'node:fs'
+import path from 'node:path'
 
 import { ROOT_DIR } from '@/utils/constants'
 
-type PackageType = 'module' | 'locale'
-
-const TYPE_CONFIG = {
-  module: {
-    dir: 'modules'
-  },
-  locale: {
-    dir: 'locales'
-  }
-} as const
-
-/**
- * Normalizes a package name and resolves its file system location.
- *
- * Takes a package name (with or without the `@lifeforge/` prefix) and returns
- * the fully qualified package name, short name, and absolute path to the package directory.
- *
- * @param packageName - The package name to normalize (e.g., "movies" or "@lifeforge/movies")
- * @param type - The type of package: 'module' (default) or 'locale'
- * @returns Object containing:
- *   - `fullName` - The fully qualified package name (e.g., "@lifeforge/movies")
- *   - `shortName` - The package name without the prefix (e.g., "movies")
- *   - `targetDir` - The absolute path to the package directory
- *
- * @example
- * // Module example
- * normalizePackage('movies')
- * // { fullName: '@lifeforge/movies', shortName: 'movies', targetDir: '/path/to/modules/movies' }
- *
- * @example
- * // Locale example
- * normalizePackage('zh-TW', 'locale')
- * // { fullName: '@lifeforge/lang-zh-TW', shortName: 'zh-TW', targetDir: '/path/to/locales/zh-TW' }
- */
+/** Resolve installed packages by manifest; folder names are durable storage IDs. */
 export default function normalizePackage(
   packageName: string,
-  type: PackageType = 'module'
+  type: 'module' | 'locale' = 'module'
 ) {
-  const { dir } = TYPE_CONFIG[type]
-
-  const fullName = packageName.startsWith('@lifeforge/')
-    ? packageName
-    : `@lifeforge/${packageName}`
-
-  const shortName = fullName.replace('@lifeforge/', '')
-
-  const targetDir = path.join(ROOT_DIR, dir, shortName)
-
-  if (!fs.existsSync(path.dirname(targetDir))) {
-    fs.mkdirSync(path.dirname(targetDir), { recursive: true })
+  if (!/^(?:@[a-zA-Z0-9_.-]+\/)?[a-zA-Z0-9][a-zA-Z0-9_-]*$/.test(packageName))
+    throw new Error(
+      'Use an addon or locale package name, not a filesystem path'
+    )
+  const directory = path.join(
+    ROOT_DIR,
+    type === 'module' ? 'modules' : 'locales'
+  )
+  const fullName = addonPackageName(
+    packageName.startsWith('@') ? packageName : '@monolith/' + packageName
+  )
+  for (const entry of fs.existsSync(directory)
+    ? fs.readdirSync(directory)
+    : []) {
+    const manifestPath = path.join(directory, entry, 'package.json')
+    if (!fs.existsSync(manifestPath)) continue
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'))
+    if (
+      manifest.name === fullName ||
+      entry === packageName ||
+      manifest.monolith?.id === packageName
+    )
+      return {
+        fullName: manifest.name as string,
+        shortName: entry,
+        targetDir: path.join(directory, entry)
+      }
   }
-
-  return {
-    fullName,
-    shortName,
-    targetDir
-  }
+  const shortName = fullName.replace(/^@[^/]+\//, '')
+  return { fullName, shortName, targetDir: path.join(directory, shortName) }
 }

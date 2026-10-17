@@ -6,7 +6,7 @@ import { devHandler } from './handlers/devHandler'
 export default function setup(program: Command): void {
   program
     .command('dev')
-    .description('Start LifeForge services for development')
+    .description('Start Monolith services for development')
     .argument(
       '[service]',
       `Service to start. Leave blank for starting db, server, and client. Available: ${SERVICES.join(', ')}`

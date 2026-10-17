@@ -132,7 +132,7 @@ export function serverAliasResolver(dirname: string): Plugin {
           suffix = source.slice(splitIndex)
         }
 
-        // Extract the bare package name (e.g. "zod" or "@lifeforge/server-utils")
+        // Extract the bare package name (e.g. "zod" or "@monolith/server-utils")
         const parts = cleanSource.split('/')
         const packageName = cleanSource.startsWith('@')
           ? parts.slice(0, 2).join('/')
@@ -144,7 +144,7 @@ export function serverAliasResolver(dirname: string): Plugin {
 
         // 5. Determine if this package is a shared core dependency dynamically
         const isCoreExternal =
-          packageName.startsWith('@lifeforge/') ||
+          packageName.startsWith('@monolith/') ||
           coreDeps.has(packageName) ||
           NODE_BUILT_INS.has(packageName)
 

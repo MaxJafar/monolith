@@ -1,0 +1,123 @@
+{
+  "title": "Automations",
+  "deleteConfirm": "Delete {{name}} and its execution history?",
+  "deleteWorkflow": "Delete {{name}}",
+  "description": "Connect your data and actions. Build a workflow, run it, and see every step.",
+  "loading": "Loading automations…",
+  "back": "Back",
+  "active": "Active",
+  "paused": "Paused",
+  "all": "All workflows",
+  "unsaved": "Unsaved changes",
+  "revision": "Revision",
+  "enableWorkflow": "Enable workflow",
+  "discard": "Discard unsaved workflow changes?",
+  "saveFirst": "Save your changes before running this workflow.",
+  "canvas": "Workflow canvas",
+  "canvasHint": "Drag to arrange · select an output, then an input to connect",
+  "connectHint": "Select a node’s input to connect · Escape to cancel",
+  "connectTo": "Connect to",
+  "input": "Input",
+  "output": "Output",
+  "startHere": "Start here",
+  "selectNode": "Select a node to configure its behavior.",
+  "nodeSettings": "Node settings",
+  "invalidJSON": "Enter valid JSON data.",
+  "expressionHelp": "Set fields with JSON values. Use {{ field.path }} to insert incoming data. Apply changes before saving.",
+  "triggerHelp": "Run manually with the input below, call the authenticated event endpoint, or set an interval.",
+  "httpHelp": "Public HTTP(S) endpoints only. Responses are limited to 100 KB. Redirects are not followed.",
+  "outputHelp": "Capture the incoming data in the execution inspector.",
+  "comparison": "Comparison",
+  "connections": "Connections",
+  "disconnect": "Remove connection",
+  "recentRuns": "Recent executions · latest 50",
+  "noRuns": "Run this workflow to see its execution history.",
+  "selectRun": "Select an execution to inspect each step’s input and output.",
+  "steps": "steps",
+  "zoomIn": "Zoom in",
+  "zoomOut": "Zoom out",
+  "undo": "Undo",
+  "redo": "Redo",
+  "nodeLibrary": "Add a step",
+  "readOnly": "You can inspect this workflow. Editing requires workspace edit access.",
+  "scheduleHelp": "0 means manual/event runs only. A positive interval runs while the Automations worker is connected. Paused workflows never run on a schedule.",
+  "inputHelp": "A JSON object passed to the trigger. Runs execute the saved revision.",
+  "fileTooLarge": "Choose a JSON file smaller than 500 KB.",
+  "noMatches": "No matching workflows",
+  "adjustFilters": "Try a different search or clear the filters.",
+  "emptyTitle": "Your first flow starts here",
+  "emptyDescription": "Choose a template or connect a trigger to your own actions.",
+  "workflowUnavailable": "This workflow is unavailable. Reload the list or go back.",
+  "workspaceUnavailable": "This workspace is unavailable.",
+  "nodes": {
+    "trigger": "Trigger",
+    "set": "Set fields",
+    "condition": "Condition",
+    "http": "HTTP request",
+    "delay": "Delay",
+    "output": "Output"
+  },
+  "ports": {
+    "main": "Next",
+    "true": "True",
+    "false": "False"
+  },
+  "operators": {
+    "equals": "Equals",
+    "notEquals": "Does not equal",
+    "contains": "Contains",
+    "greater": "Greater than",
+    "exists": "Exists"
+  },
+  "status": {
+    "success": "Completed",
+    "error": "Failed"
+  },
+  "inputs": {
+    "nodeName": "Node name",
+    "values": "Fields (JSON)",
+    "dataPath": "Data path",
+    "compareValue": "Comparison value (JSON)",
+    "url": "URL",
+    "requestBody": "Request body (JSON)",
+    "milliseconds": "Milliseconds",
+    "workflowName": "Workflow name",
+    "description": "Description",
+    "intervalMinutes": "Schedule interval (minutes)",
+    "triggerData": "Trigger data (JSON)",
+    "search": "Search workflows"
+  },
+  "buttons": {
+    "apply": "Apply fields",
+    "reset": "Reset",
+    "removeNode": "Remove node",
+    "showNode": "Show node",
+    "save": "Save",
+    "run": "Run workflow",
+    "editor": "Editor",
+    "history": "Executions",
+    "export": "Export",
+    "inspectRun": "Inspect execution",
+    "import": "Import",
+    "newWorkflow": "New workflow",
+    "useTemplate": "Use template",
+    "clearFilters": "Clear filters",
+    "retry": "Retry",
+    "back": "Back"
+  },
+  "templates": {
+    "starter": {
+      "name": "A simple flow",
+      "description": "Start with a trigger, prepare some data, and capture the result."
+    },
+    "branch": {
+      "name": "Choose a path",
+      "description": "Route high-priority input down a different branch."
+    },
+    "request": {
+      "name": "Fetch and inspect",
+      "description": "Request public JSON and inspect the response."
+    }
+  },
+  "applyFields": "Apply the edited JSON fields before saving. Your field drafts are retained when you switch nodes."
+}

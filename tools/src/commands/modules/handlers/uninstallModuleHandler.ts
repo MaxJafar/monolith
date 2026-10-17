@@ -29,6 +29,16 @@ export async function uninstallModuleHandler(
 
   for (const moduleName of moduleNames) {
     const { targetDir, fullName, shortName } = normalizePackage(moduleName)
+    if (
+      ['databases', 'calendar', 'projects', 'todo-list', 'notes'].includes(
+        shortName.split('--').pop() ?? ''
+      )
+    ) {
+      log.error(
+        `${shortName} provides core workspace data and cannot be uninstalled as an addon.`
+      )
+      continue
+    }
 
     if (!findPackageName(fullName, 'modules')) {
       log.error(

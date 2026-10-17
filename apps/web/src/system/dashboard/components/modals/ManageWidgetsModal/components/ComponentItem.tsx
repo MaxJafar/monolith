@@ -13,7 +13,7 @@ import {
   colorWithOpacity,
   surface,
   usePersonalization
-} from '@lifeforge/ui'
+} from '@monolith/ui'
 
 import { useUserPersonalization } from '@/core/providers/features/UserPersonalizationProvider'
 import { addDashboardWidget } from '@/system/dashboard/utils/layout'

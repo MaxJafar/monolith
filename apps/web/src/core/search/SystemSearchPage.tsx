@@ -1,16 +1,16 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 
-import { useAuth } from '@lifeforge/api'
-import { Box, Button, Flex, Stack, Text, TextInput } from '@lifeforge/ui'
+import { useAuth } from '@monolith/api'
+import { Box, Button, Flex, Stack, Text, TextInput } from '@monolith/ui'
 
-import forgeAPI from '@/core/utils/forgeAPI'
+import workspaceAPI from '@/core/utils/workspaceAPI'
 import { useWorkspace } from '@/core/workspaces/WorkspaceProvider'
 
-type Results = Awaited<ReturnType<typeof forgeAPI.search.query.mutate>>
-type Progress = Awaited<ReturnType<typeof forgeAPI.search.index.mutate>>
+type Results = Awaited<ReturnType<typeof workspaceAPI.search.query.mutate>>
+type Progress = Awaited<ReturnType<typeof workspaceAPI.search.index.mutate>>
 
 /** Remounting on account change clears private results before a new session. */
 export default function SystemSearchPage() {
@@ -25,7 +25,10 @@ function SearchScreen({ actor }: { actor: string }) {
   const { t } = useTranslation('common.systemSearch')
   const { workspaces } = useWorkspace()
   const cache = useQueryClient()
-  const [workspace, setWorkspace] = useState('')
+  const [params] = useSearchParams()
+  const [workspace, setWorkspace] = useState(
+    () => params.get('workspace') ?? ''
+  )
   const [module, setModule] = useState('')
   const [query, setQuery] = useState('')
   const [keyword, setKeyword] = useState(false)
@@ -42,13 +45,13 @@ function SearchScreen({ actor }: { actor: string }) {
     workspace_id: workspace || undefined,
     module: module || undefined
   }
-  const options = forgeAPI.search.status.input(scope).queryOptions()
+  const options = workspaceAPI.search.status.input(scope).queryOptions()
   const status = useQuery({
     ...options,
     queryKey: [...options.queryKey, actor],
     retry: false
   })
-  const healthOptions = forgeAPI.search.host.queryOptions()
+  const healthOptions = workspaceAPI.search.host.queryOptions()
   const health = useQuery({
     ...healthOptions,
     queryKey: [...healthOptions.queryKey, actor],
@@ -104,7 +107,7 @@ function SearchScreen({ actor }: { actor: string }) {
     setResults(undefined)
 
     try {
-      const result = await forgeAPI.search.query.mutate({
+      const result = await workspaceAPI.search.query.mutate({
         ...scope,
         query: query.trim(),
         mode: keyword ? 'keyword' : 'hybrid',
@@ -132,11 +135,13 @@ function SearchScreen({ actor }: { actor: string }) {
 
     try {
       while (canContinue()) {
-        const batch = await forgeAPI.search.index.mutate(scope)
+        const batch = await workspaceAPI.search.index.mutate(scope)
 
         if (run.current !== id) break
         setProgress(batch)
-        await cache.invalidateQueries({ queryKey: forgeAPI.search.status.key })
+        await cache.invalidateQueries({
+          queryKey: workspaceAPI.search.status.key
+        })
         if (!batch.pending) break
       }
     } catch (err) {
@@ -156,13 +161,15 @@ function SearchScreen({ actor }: { actor: string }) {
     setError('')
 
     try {
-      await forgeAPI.search.clear.mutate({})
+      await workspaceAPI.search.clear.mutate({})
 
       if (run.current === id) {
         setProgress(undefined)
         setResults(undefined)
       }
-      await cache.invalidateQueries({ queryKey: forgeAPI.search.status.key })
+      await cache.invalidateQueries({
+        queryKey: workspaceAPI.search.status.key
+      })
     } catch (err) {
       if (run.current === id)
         setError(err instanceof Error ? err.message : t('failed'))
@@ -435,7 +442,8 @@ function SearchScreen({ actor }: { actor: string }) {
                     <Button
                       as="a"
                       href={
-                        forgeAPI.files.get.input({ key: hit.file_key }).endpoint
+                        workspaceAPI.files.get.input({ key: hit.file_key })
+                          .endpoint
                       }
                       icon="lucide:arrow-up-right"
                       namespace={false}

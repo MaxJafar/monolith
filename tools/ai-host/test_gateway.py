@@ -12,7 +12,7 @@ from server import Gateway, handler
 
 class GatewayTests(unittest.TestCase):
     def setUp(self):
-        self.gateway = Gateway({"tokens": {"lifeforge": "a" * 43, "golden_retriever": "b" * 43},
+        self.gateway = Gateway({"tokens": {"monolith": "a" * 43, "golden_retriever": "b" * 43},
             "embedding_model": "embedding", "generation_model": "gemma", "engines": {"laya": {"port": 1236}}})
         self.gateway.ready = True
         self.gateway.upstream = Mock(return_value={"answers": {"relevance": {"probabilities": {"A": .9},

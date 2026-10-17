@@ -1,12 +1,15 @@
-import { eq } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import z from 'zod'
 
-import { fileReferenceSchema } from '@lifeforge/file-storage'
+import { APPEARANCE_LAYOUT_KEY } from '@monolith/blocks'
+import { fileReferenceSchema } from '@monolith/file-storage'
 
-import forge from '../forge'
+import endpoints from '../endpoints'
 import { users } from '../schema.drizzle'
 
-export const updateBgImage = forge
+export { getAppearance, saveAppearance, uploadCover } from './appearance'
+
+export const updateBgImage = endpoints
   .mutation({
     description: 'Upload new background image',
     input: {},
@@ -59,7 +62,7 @@ export const updateBgImage = forge
     return response.ok(bgImageRef)
   })
 
-export const deleteBgImage = forge
+export const deleteBgImage = endpoints
   .mutation({
     description: 'Remove background image',
     input: {},
@@ -91,7 +94,7 @@ export const deleteBgImage = forge
     return response.noContent()
   })
 
-export const updatePersonalization = forge
+export const updatePersonalization = endpoints
   .mutation({
     description: 'Update user personalization preferences',
     input: {
@@ -147,6 +150,13 @@ export const updatePersonalization = forge
     }
 
     toBeUpdated.updated = new Date()
+
+    // The builder owns this reserved setting; dashboard layout saves preserve it atomically.
+    if (data.dashboardLayout !== undefined) {
+      const { [APPEARANCE_LAYOUT_KEY]: _appearance, ...layout } =
+        data.dashboardLayout
+      toBeUpdated.dashboardLayout = sql`${JSON.stringify(layout)}::jsonb || jsonb_build_object(${APPEARANCE_LAYOUT_KEY}::text, ${users.dashboardLayout}::jsonb -> ${APPEARANCE_LAYOUT_KEY}::text)`
+    }
 
     await db.update(users).set(toBeUpdated).where(eq(users.id, user.id))
 

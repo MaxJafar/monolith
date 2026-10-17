@@ -1,0 +1,49 @@
+.monolith-icon-palette input[type='search'] {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-subtle);
+}
+.monolith-icon-choice {
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  transition: background-color 100ms;
+}
+.monolith-icon-choice:hover,
+.monolith-icon-choice[aria-pressed='true'] {
+  background: var(--interaction-hover, rgba(127, 127, 127, 0.14));
+}
+.monolith-icon-choice[aria-pressed='true'] {
+  box-shadow: inset 0 0 0 1px var(--border-medium);
+}
+.monolith-color-swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--swatch);
+  border: 3px solid var(--bg-lifted, var(--bg-primary));
+}
+.monolith-color-swatch:hover,
+.monolith-color-swatch[aria-pressed='true'] {
+  box-shadow: 0 0 0 1px var(--text-muted);
+}
+.monolith-custom-color {
+  display: grid;
+  place-items: center;
+  position: relative;
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+}
+.monolith-custom-color input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+.monolith-custom-color:focus-within {
+  outline: 2px solid var(--focus-color, #2383e2);
+  border-radius: 4px;
+}

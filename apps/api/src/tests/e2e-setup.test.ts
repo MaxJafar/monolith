@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 const database = vi.hoisted(() => ({ delete: vi.fn() }))
 vi.mock('../core/drizzle', () => ({ db: database }))
-vi.mock('./utils', () => ({ forgeAPI: {} }))
+vi.mock('./utils', () => ({ workspaceAPI: {} }))
 afterEach(() => {
   vi.unstubAllGlobals()
   vi.unstubAllEnvs()

@@ -1,24 +1,19 @@
 import { createWorker } from 'tesseract.js'
 
-import { ParseOCRFunc } from '@lifeforge/server-utils'
+import type { ParseOCRFunc } from '@monolith/server-utils'
 
-const parseOCR: ParseOCRFunc = async imagePath => {
+const parseOCR: ParseOCRFunc = async source => {
   const worker = await createWorker('eng', 3, {
     langPath: './src/core/models',
     cachePath: './src/core/models',
     cacheMethod: 'readOnly',
     gzip: false
   })
-
   try {
-    const ret = await worker.recognize(imagePath)
-
+    const { data } = await worker.recognize(source)
+    return data.text
+  } finally {
     await worker.terminate()
-
-    return ret.data.text
-  } catch {
-    await worker.terminate()
-    throw new Error('Error parsing OCR')
   }
 }
 

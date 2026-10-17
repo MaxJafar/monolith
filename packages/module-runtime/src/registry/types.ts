@@ -14,7 +14,7 @@ export type ModuleTable = Table | View
 /**
  * The raw schema a module declares in `schema.drizzle.ts`: its tables plus the
  * `defineRelations` callback. Consumed by `defineModuleSchema` /
- * `createForgeContractBuilder`.
+ * `defineEndpoints`.
  */
 export interface ModuleSchema<
   TTables extends Record<string, any> = Record<string, any>

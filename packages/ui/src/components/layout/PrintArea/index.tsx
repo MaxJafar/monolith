@@ -71,7 +71,7 @@ export function PrintArea({
   return (
     <div
       ref={contentRef}
-      className={`${themeClasses} ${className} lf-statement-print-wrapper`}
+      className={`${themeClasses} ${className} monolith-statement-print-wrapper`}
       style={{
         ...nonBackgroundStyles,
         width: '100%',
@@ -85,11 +85,11 @@ export function PrintArea({
           ${rootStylesCss}
         }
         @media print {
-          .lf-statement-print-wrapper {
+          .monolith-statement-print-wrapper {
             display: block !important;
             color: black !important;
           }
-           .lf-statement-print-wrapper > * {
+           .monolith-statement-print-wrapper > * {
             height: auto !important;
           }
           * {

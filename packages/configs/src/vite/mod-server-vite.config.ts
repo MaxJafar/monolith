@@ -63,6 +63,24 @@ export function defineModuleServerConfig(dirname: string) {
   }
 
   return defineConfig({
+    ssr:
+      process.env.MONOLITH_ADDON_RELEASE === '1'
+        ? {
+            noExternal: true,
+            external: [
+              '@monolith/server-utils',
+              '@monolith/drizzle',
+              '@monolith/blocks',
+              '@monolith/configs',
+              '@monolith/module-runtime',
+              '@monolith/file-storage',
+              '@monolith/log',
+              'drizzle-orm',
+              'zod',
+              'dayjs'
+            ]
+          }
+        : undefined,
     resolve: {
       alias: [
         { find: /^@\/(.*)$/, replacement: `${dirname}/$1` },

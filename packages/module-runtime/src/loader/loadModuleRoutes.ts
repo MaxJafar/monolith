@@ -3,16 +3,24 @@ import fs from 'fs'
 import path from 'path'
 import { pathToFileURL } from 'url'
 
-import type { ModuleEntry } from '@lifeforge/configs'
+import type { ModuleEntry } from '@monolith/configs'
 
 import { ModuleRegistry } from '../registry/ModuleRegistry'
 import { setLoadingModuleId } from '../registry/loadingModule'
 import gatherModuleMetadata from './gatherModuleMetadata'
 import { loaderLogger } from './logger'
 import registerDevResolverHooks from './registerDevResolverHooks'
+import { registerManagedResolver } from './registerManagedResolver'
 
 /** Cache of remoteId -> imported server route tree, reused across reloads. */
 const routeTrees = new Map<string, ModuleEntry>()
+const loadedFiles = new Map<string, string>()
+// Node caches imported modules. Retain their schema too so returning to an
+// earlier immutable slot restores registrations without re-running its code.
+const artifacts = new Map<
+  string,
+  { routes: ModuleEntry; schema?: (typeof ModuleRegistry.schemaParts)[number] }
+>()
 
 let hooksRegistered = false
 
@@ -27,6 +35,9 @@ let hooksRegistered = false
  */
 export async function loadModuleRoutes(options: {
   modulesDir: string
+  additionalDirectories?: () => Promise<Record<string, string>>
+  hostPackageFile?: string
+  bundledIds?: readonly string[]
   isProduction: boolean
 }): Promise<Record<string, ModuleEntry>> {
   const { modulesDir, isProduction } = options
@@ -47,13 +58,33 @@ export async function loadModuleRoutes(options: {
     return {}
   }
 
-  // Drop modules whose directory has been removed from disk.
+  const managed = (await options.additionalDirectories?.()) ?? {}
+  registerManagedResolver(Object.values(managed), options.hostPackageFile)
+  const directories = new Map(
+    fs
+      .readdirSync(modulesDir, { withFileTypes: true })
+      .filter(
+        entry =>
+          entry.isDirectory() &&
+          !entry.name.startsWith('.') &&
+          (!options.bundledIds || options.bundledIds.includes(entry.name))
+      )
+      .map(entry => [entry.name, path.join(modulesDir, entry.name)])
+  )
+  for (const [id, directory] of Object.entries(managed))
+    directories.set(id, directory)
+  // Drop removed or replaced modules before importing their immutable replacement.
   for (const entry of ModuleRegistry.entries) {
     const moduleDir = ModuleRegistry.getPath(entry.id)
 
-    if (!moduleDir || !fs.existsSync(moduleDir)) {
+    if (
+      !moduleDir ||
+      !fs.existsSync(moduleDir) ||
+      directories.get(entry.id)?.replace(/\\/g, '/') !== moduleDir
+    ) {
       ModuleRegistry.unregister(entry.name)
       routeTrees.delete(entry.remoteId)
+      loadedFiles.delete(entry.remoteId)
 
       loaderLogger.info(
         `Unregistered removed module ${chalk.yellow(entry.displayName)}`
@@ -61,16 +92,14 @@ export async function loadModuleRoutes(options: {
     }
   }
 
-  for (const dirent of fs.readdirSync(modulesDir, { withFileTypes: true })) {
-    // Only treat real, non-hidden directories as modules.
-    if (!dirent.isDirectory() || dirent.name.startsWith('.')) {
-      continue
-    }
+  for (const [modDir, moduleDir] of directories) {
+    const managedPackage = managed[modDir] === moduleDir
+    const metadata = await gatherModuleMetadata(
+      moduleDir,
+      isProduction || managedPackage
+    )
 
-    const modDir = dirent.name
-    const moduleDir = path.join(modulesDir, modDir)
-
-    const metadata = await gatherModuleMetadata(moduleDir, isProduction)
+    if (metadata && managedPackage) metadata.remoteEntryUrl += '&managed=1'
 
     // Continue if failing to parse metadata
     if (!metadata) {
@@ -91,7 +120,7 @@ export async function loadModuleRoutes(options: {
     // In production, always load distPath.
     // In development, prefer source path, falling back to dist path if exists.
     const modulePath = (() => {
-      if (isProduction) {
+      if (isProduction || managedPackage) {
         return fs.existsSync(distPath) ? distPath : null
       } else {
         return fs.existsSync(sourcePath)
@@ -114,10 +143,23 @@ export async function loadModuleRoutes(options: {
     ModuleRegistry.register(entry, moduleDir)
 
     // Already imported in a previous load: reuse the cached route tree.
-    if (routeTrees.has(metadata.remoteId)) {
+    const fingerprint = `${modulePath}:${fs.statSync(modulePath).mtimeMs}`
+    const cached = artifacts.get(fingerprint)
+    if (cached) {
+      if (cached.schema)
+        ModuleRegistry.registerSchemaPart(entry.id, cached.schema)
+      routeTrees.set(metadata.remoteId, cached.routes)
+      loadedFiles.set(metadata.remoteId, fingerprint)
+      continue
+    }
+    if (
+      routeTrees.has(metadata.remoteId) &&
+      loadedFiles.get(metadata.remoteId) === fingerprint
+    ) {
       continue
     }
 
+    routeTrees.delete(metadata.remoteId)
     try {
       const version = fs.statSync(modulePath).mtimeMs
 
@@ -135,6 +177,13 @@ export async function loadModuleRoutes(options: {
 
       if (mod.default) {
         routeTrees.set(metadata.remoteId, mod.default)
+        loadedFiles.set(metadata.remoteId, fingerprint)
+        artifacts.set(fingerprint, {
+          routes: mod.default,
+          schema: ModuleRegistry.schemaParts.find(
+            part => part.moduleId === entry.id
+          )
+        })
       } else {
         ModuleRegistry.unregister(entry.name)
         loaderLogger.warn(

@@ -1,12 +1,15 @@
 import express, { type Router } from 'express'
 
-import { type ModuleEntry } from '@lifeforge/configs'
+import { type ModuleEntry } from '@monolith/configs'
 
 import { createModuleLoader } from './createModuleLoader'
 
 export interface ModuleRuntimeOptions {
   /** Absolute path to the directory containing module folders. */
   modulesDir: string
+  additionalDirectories?: () => Promise<Record<string, string>>
+  hostPackageFile?: string
+  bundledIds?: readonly string[]
   /** Whether the server is running in production. */
   isProduction: boolean
   /** The express router the application mounts; the module sub-router is mounted here. */
@@ -26,11 +29,20 @@ export interface ModuleRuntimeOptions {
  */
 export function createModuleRuntime({
   modulesDir,
+  additionalDirectories,
+  hostPackageFile,
+  bundledIds,
   isProduction,
   outerRouter,
   buildRouter
 }: ModuleRuntimeOptions) {
-  const loader = createModuleLoader({ modulesDir, isProduction })
+  const loader = createModuleLoader({
+    modulesDir,
+    isProduction,
+    additionalDirectories,
+    bundledIds,
+    hostPackageFile
+  })
 
   // Mount a placeholder so the caller controls the outer stack order
   // (e.g. static assets → module routes → 404).

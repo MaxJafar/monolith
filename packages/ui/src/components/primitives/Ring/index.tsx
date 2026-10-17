@@ -1,168 +1,48 @@
-import { clsx } from 'clsx'
-import {
-  type CSSProperties,
-  type ComponentPropsWithRef,
-  type ElementType,
-  type ReactNode,
-  type Ref
-} from 'react'
+import type { ElementType } from 'react'
 
 import {
-  type ArbitraryProps,
   type ColorValue,
   type ResponsiveProp,
   type ThemeConditionProp,
-  type TokenizedCommonProps,
-  normalizeResponsiveProp,
-  resolveCommonSprinkleProps,
-  resolveStyles,
-  shadowClass
+  mergeStyle,
+  resolveColorProp
 } from '@/system'
-import { normalizeGridSpan } from '@/system/grid-utils'
+import { getResponsiveLayoutStyles } from '@/system/responsive/utils/getResponsiveLayoutStyles'
 
-import { Slot } from '../Slot'
-import { ringBase, ringSprinkles } from './Ring.css'
+import { Box, type BoxProps } from '../Box'
+import type { SurfaceOwnProps, SurfaceProps } from '../surface'
+import { ring } from './Ring.css'
 
-type DisplayValue = 'block' | 'inline' | 'inline-block' | 'none' | 'contents'
-type RingProps<T extends ElementType = 'div'> = TokenizedCommonProps &
-  ArbitraryProps & {
-    as?: T
-    asChild?: boolean
-    ref?: Ref<HTMLElement>
-    display?: ResponsiveProp<DisplayValue>
-    ringWidth?: ResponsiveProp<string>
-    ringColor?: ThemeConditionProp<ColorValue>
-    ringOffsetWidth?: ResponsiveProp<string>
-    shadow?: boolean
-    className?: string
-    style?: CSSProperties
-    children?: ReactNode
-  } & Omit<
-    ComponentPropsWithRef<T>,
-    | 'as'
-    | 'asChild'
-    | 'ref'
-    | 'display'
-    | 'ringWidth'
-    | 'ringColor'
-    | 'ringOffsetWidth'
-    | 'shadow'
-    | 'className'
-    | 'style'
-    | 'children'
-  >
+interface RingOwnProps<T extends ElementType> extends SurfaceOwnProps<
+  T,
+  'block' | 'inline' | 'inline-block' | 'none' | 'contents'
+> {
+  ringWidth?: ResponsiveProp<string>
+  ringColor?: ThemeConditionProp<ColorValue>
+  ringOffsetWidth?: ResponsiveProp<string>
+}
+export type RingProps<T extends ElementType = 'div'> = SurfaceProps<
+  T,
+  RingOwnProps<T>
+>
 
 export function Ring<T extends ElementType = 'div'>({
-  as,
-  asChild = false,
-  ref,
-  display,
   ringWidth = '3px',
-  ringColor = 'custom-500',
   ringOffsetWidth = '0px',
-  shadow = false,
-  p,
-  pb,
-  pl,
-  pr,
-  pt,
-  px,
-  py,
-  m,
-  mb,
-  ml,
-  mr,
-  mt,
-  mx,
-  my,
-  r,
-  rtl,
-  rtr,
-  rbl,
-  rbr,
-  position,
-  overflow,
-  overflowX,
-  overflowY,
-  width,
-  minWidth,
-  maxWidth,
-  height,
-  minHeight,
-  maxHeight,
-  aspectRatio,
-  zIndex,
-  inset,
-  top,
-  right,
-  bottom,
-  left,
-  flex,
-  flexBasis,
-  flexGrow,
-  flexShrink,
-  gridArea,
-  gridColumnSpan,
-  gridRowSpan,
+  ringColor = 'custom-500',
   className,
   style,
-  children,
-  ...rest
+  ...surface
 }: RingProps<T>) {
-  const Component = asChild ? Slot : (as ?? 'div')
-
-  const styles = resolveStyles({
-    sprinkles: ringSprinkles,
-    sprinkleProps: {
-      display: normalizeResponsiveProp(display),
-      ...resolveCommonSprinkleProps(
-        { p, px, py, pt, pr, pb, pl, m, mx, my, mt, mr, mb, ml },
-        {
-          position,
-          overflow,
-          overflowX,
-          overflowY
-        },
-        { r, rtl, rtr, rbl, rbr }
-      )
-    },
-    arbitraryProps: {
-      bottom,
-      flex,
-      flexBasis,
-      flexGrow,
-      flexShrink,
-      gridArea,
-      height,
-      inset,
-      left,
-      maxHeight,
-      maxWidth,
-      minHeight,
-      minWidth,
-      right,
-      top,
-      width,
-      zIndex,
-      aspectRatio,
-      gridColumnSpan: normalizeResponsiveProp(
-        gridColumnSpan,
-        normalizeGridSpan
-      ),
-      gridRowSpan: normalizeResponsiveProp(gridRowSpan, normalizeGridSpan)
-    },
-    componentArbitraryProps: {
-      ringWidth: normalizeResponsiveProp(ringWidth),
-      ringOffsetWidth: normalizeResponsiveProp(ringOffsetWidth)
-    },
-    colorProps: { ringColor },
-    className: clsx('_ring', ringBase(), shadow && shadowClass, className),
-    style
-  })
-
-  return (
-    <Component ref={ref as Ref<never>} {...styles} {...rest}>
-      {children}
-    </Component>
+  const resolved = mergeStyle(
+    resolveColorProp('ringColor', ringColor),
+    getResponsiveLayoutStyles({ ringWidth, ringOffsetWidth }),
+    {
+      className: ['_ring', ring, className].filter(Boolean).join(' '),
+      style: style ?? {}
+    }
   )
+  // Rest destructuring loses the element-specific prop relation in TypeScript 7.
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+  return <Box<T> {...(surface as BoxProps<T>)} {...resolved} />
 }

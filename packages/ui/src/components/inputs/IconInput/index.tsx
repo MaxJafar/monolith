@@ -88,6 +88,7 @@ export function IconInput({
           >
             <Box asChild width="100%">
               <input
+                aria-label={inputLabel || undefined}
                 ref={autoFocusableRef(autoFocus, ref)}
                 autoComplete="off"
                 disabled={disabled}

@@ -1,6 +1,6 @@
-import { Box } from '@lifeforge/ui'
+import { Box } from '@monolith/ui'
 
-/** An original architectural M, shared with the app and desktop icons. */
+/** The shared right-facing monolith, with a gray left side and black tile. */
 export default function MonolithLogo({
   size = '32px'
 }: {
@@ -10,23 +10,14 @@ export default function MonolithLogo({
 
   return (
     <Box
+      alt=""
       aria-hidden="true"
-      as="svg"
-      focusable="false"
+      as="img"
+      draggable={false}
+      flexShrink="0"
       height={dimension}
-      viewBox="0 0 64 64"
+      src="/icon.svg"
       width={dimension}
-    >
-      <rect
-        width="64"
-        height="64"
-        rx="12"
-        fill="var(--text-primary, #252525)"
-      />
-      <path
-        d="M16 48V16h8l8 14 8-14h8v32h-8V30l-8 13-8-13v18z"
-        fill="var(--bg-primary, #fff)"
-      />
-    </Box>
+    />
   )
 }

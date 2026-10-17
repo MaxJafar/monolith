@@ -19,6 +19,7 @@ function _InputIcon({
     <Transition>
       <Box
         asChild
+        className="monolith-input-icon"
         flexShrink="0"
         mx="md"
         style={{

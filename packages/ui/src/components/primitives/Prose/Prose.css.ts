@@ -1,433 +1,148 @@
-import { globalStyle, style } from '@vanilla-extract/css'
+import { type GlobalStyleRule, globalStyle, style } from '@vanilla-extract/css'
 
-import { COLORS, colorWithOpacity, vars } from '@/system'
+import { COLORS, vars } from '@/system'
 
-export const root = style({})
-
-/* ---- Base body/reset ---- */
-
-globalStyle(`${root} *`, {
-  color: COLORS['bg-600'],
-  marginTop: 0,
-  marginBottom: 0,
-  lineHeight: 'normal',
-  WebkitUserSelect: 'text',
-  userSelect: 'text'
-})
-
-globalStyle(`.dark ${root} *`, {
-  color: COLORS['bg-400']
-})
-
-/* ---- Font size / line-height scale ---- */
-
-globalStyle(`${root}`, {
+export const root = style({
   fontSize: vars.fontSize.base,
-  lineHeight: vars.lineHeight.base
+  lineHeight: 1.65,
+  overflowWrap: 'anywhere',
+  userSelect: 'text',
+  color: 'var(--monolith-prose-ink)',
+  vars: {
+    '--monolith-prose-ink': COLORS['bg-600'],
+    '--monolith-prose-heading': COLORS['bg-800'],
+    '--monolith-prose-muted': COLORS['bg-500'],
+    '--monolith-prose-line': COLORS['bg-300'],
+    '--monolith-prose-panel': COLORS['bg-100']
+  },
+  selectors: {
+    '.dark &': {
+      vars: {
+        '--monolith-prose-ink': COLORS['bg-300'],
+        '--monolith-prose-heading': COLORS['bg-50'],
+        '--monolith-prose-muted': COLORS['bg-400'],
+        '--monolith-prose-line': COLORS['bg-700'],
+        '--monolith-prose-panel': COLORS['bg-900']
+      }
+    }
+  }
 })
+const rule = (selector: string, declaration: GlobalStyleRule) =>
+  globalStyle(root + ' ' + selector, declaration)
 
-/* ---- Headings ---- */
-
-globalStyle(`${root} :is(h1, h2, h3, h4, h5, h6)`, {
-  color: COLORS['bg-800'],
-  fontWeight: vars.fontWeight.bold,
-  marginBottom: '0.5em'
+rule(':where(p, ul, ol, dl, pre, blockquote, figure, table)', {
+  marginBlock: '0.9em'
 })
-
-globalStyle(`.dark ${root} :is(h1, h2, h3, h4, h5, h6)`, {
-  color: COLORS['bg-50']
-})
-
-globalStyle(`${root} h1`, {
-  fontSize: vars.fontSize['4xl'],
-  lineHeight: vars.lineHeight['4xl'],
-  fontWeight: '800',
-  marginTop: '1.5em',
-  marginBottom: '0.5em'
-})
-
-globalStyle(`${root} h2`, {
-  fontSize: vars.fontSize['2xl'],
-  lineHeight: vars.lineHeight['2xl'],
-  fontWeight: vars.fontWeight.bold,
-  marginTop: '1.75em',
-  marginBottom: '0.5em'
-})
-
-globalStyle(`${root} h3`, {
-  fontSize: vars.fontSize.xl,
-  lineHeight: vars.lineHeight.xl,
+rule(':where(h1, h2, h3, h4, h5, h6)', {
+  color: 'var(--monolith-prose-heading)',
+  lineHeight: 1.25,
   fontWeight: vars.fontWeight.semibold,
-  marginTop: '1.5em',
-  marginBottom: '0.4em'
+  marginBlock: '1.6em 0.55em',
+  textWrap: 'balance'
 })
+for (const [heading, size] of Object.entries({
+  h1: vars.fontSize['4xl'],
+  h2: vars.fontSize['2xl'],
+  h3: vars.fontSize.xl,
+  h4: vars.fontSize.lg,
+  h5: vars.fontSize.base,
+  h6: vars.fontSize.sm
+}))
+  rule(heading, { fontSize: size })
 
-globalStyle(`${root} h4`, {
-  fontSize: vars.fontSize.lg,
-  lineHeight: vars.lineHeight.lg,
-  fontWeight: vars.fontWeight.semibold,
-  marginTop: '1.25em',
-  marginBottom: '0.3em'
-})
-
-/* ---- Paragraphs ---- */
-
-globalStyle(`${root} p`, {
-  marginBottom: '0.75em'
-})
-
-/* ---- Links ---- */
-
-globalStyle(`${root} a`, {
+rule('a', {
   color: COLORS['custom-500'],
   textDecoration: 'underline',
-  textDecorationThickness: '1.5px',
-  textUnderlineOffset: '2px',
-  fontWeight: vars.fontWeight.medium
+  textUnderlineOffset: '0.18em'
 })
-
-globalStyle(`${root} a:hover`, {
-  color: COLORS['custom-600']
+rule('a:hover', { textDecorationThickness: '2px' })
+rule('a:focus-visible', {
+  outline: '2px solid currentColor',
+  outlineOffset: '3px',
+  borderRadius: '2px'
 })
-
-/* ---- Bold / Strong ---- */
-
-globalStyle(`${root} strong`, {
-  color: COLORS['bg-800'],
-  fontWeight: vars.fontWeight.semibold
-})
-
-globalStyle(`.dark ${root} strong`, {
-  color: COLORS['bg-50']
-})
-
-globalStyle(
-  `${root} :is(a strong, h1 strong, h2 strong, h3 strong, h4 strong, h5 strong, h6 strong)`,
-  {
-    color: 'inherit'
-  }
-)
-
-/* ---- Horizontal rule ---- */
-
-globalStyle(`${root} hr`, {
-  borderColor: COLORS['bg-300'],
-  borderTopWidth: '1px',
-  marginTop: '1.75em',
-  marginBottom: '1.75em'
-})
-
-globalStyle(`.dark ${root} hr`, {
-  borderColor: COLORS['bg-700']
-})
-
-/* ---- Lists ---- */
-
-globalStyle(`${root} ul`, {
-  listStyleType: 'disc',
-  marginLeft: '1.5em',
-  marginBottom: '0.75em'
-})
-
-globalStyle(`${root} ol`, {
-  listStyleType: 'decimal',
-  marginLeft: '1.5em',
-  marginBottom: '0.75em'
-})
-
-globalStyle(`${root} li`, {
-  marginTop: '0.25em',
-  marginBottom: '0.25em',
-  paddingInlineStart: '0.375em'
-})
-
-globalStyle(`${root} li::marker`, {
-  color: COLORS['bg-400']
-})
-
-globalStyle(`${root} :is(ul ul, ul ol, ol ul, ol ol)`, {
-  marginTop: '0.25em',
-  marginBottom: '0.25em'
-})
-
-globalStyle(`${root} :is(ul > li > p, ol > li > p)`, {
-  marginTop: '0.25em',
-  marginBottom: '0.25em'
-})
-
-/* ---- Blockquote ---- */
-
-globalStyle(`${root} blockquote`, {
-  borderColor: COLORS['bg-300'],
-  backgroundColor: COLORS['bg-200'],
-  borderLeftWidth: '4px',
-  borderRadius: `0 ${vars.radii.sm} ${vars.radii.sm} 0`,
-  padding: '0.75em 1em',
-  marginTop: '1em',
-  marginBottom: '1em',
-  color: COLORS['bg-700'],
-  quotes: '"\\201C""\\201D""\\2018""\\2019"'
-})
-
-globalStyle(`.dark ${root} blockquote`, {
-  borderColor: COLORS['bg-700'],
-  backgroundColor: COLORS['bg-900'],
-  color: COLORS['bg-500']
-})
-
-globalStyle(`${root} blockquote p:first-of-type::before`, {
-  content: 'open-quote'
-})
-
-globalStyle(`${root} blockquote p:last-of-type::after`, {
-  content: 'close-quote'
-})
-
-/* ---- Code (inline) ---- */
-
-globalStyle(`${root} code:not(pre > code)`, {
-  backgroundColor: COLORS['bg-200'],
-  color: COLORS['bg-800'],
-  borderRadius: vars.radii.sm,
-  border: 0,
-  paddingLeft: '0.375em',
-  paddingRight: '0.375em',
-  paddingTop: '0.125em',
-  paddingBottom: '0.125em',
-  fontSize: '0.875em',
+rule(':where(strong, dt, th)', {
   fontWeight: vars.fontWeight.semibold,
-  boxShadow: '0 1px 0 0 var(--color-bg-300)'
+  color: 'var(--monolith-prose-heading)'
 })
-
-globalStyle(`.dark ${root} code:not(pre > code)`, {
-  backgroundColor: COLORS['bg-800'],
-  boxShadow: `0 1px 0 0 ${colorWithOpacity('bg-500', '20%')}`,
-  color: COLORS['bg-50']
+rule(':where(a, h1, h2, h3, h4, h5, h6) strong', { color: 'inherit' })
+rule(':where(ul, ol)', { paddingInlineStart: '1.65em' })
+rule('ul', { listStyleType: 'disc' })
+rule('ol', { listStyleType: 'decimal' })
+rule('li', { paddingInlineStart: '0.2em', marginBlock: '0.25em' })
+rule('li::marker', { color: 'var(--monolith-prose-muted)' })
+rule('li :where(p, ul, ol)', { marginBlock: '0.35em' })
+rule('blockquote', {
+  borderInlineStart: '3px solid var(--monolith-prose-line)',
+  padding: '0.6em 1em',
+  background: 'var(--monolith-prose-panel)',
+  borderRadius: vars.radii.sm
 })
-
-globalStyle(`${root} :is(h1 code, h2 code, h3 code, h4 code, a code)`, {
-  color: 'inherit'
+rule('blockquote > :first-child', { marginTop: 0 })
+rule('blockquote > :last-child', { marginBottom: 0 })
+rule(':where(code, pre, kbd)', {
+  fontFamily: 'ui-monospace, SFMono-Regular, Consolas, monospace',
+  fontSize: '0.875em'
 })
-
-/* ---- Pre (code blocks) ---- */
-
-globalStyle(`${root} pre`, {
-  backgroundColor: COLORS['bg-50'],
-  padding: '1em 1.25em',
-  marginTop: '1.25em',
-  marginBottom: '1.25em',
-  borderRadius: vars.radii.lg,
-  boxShadow: 'var(--custom-shadow)',
+rule(':where(code, kbd)', {
+  background: 'var(--monolith-prose-panel)',
+  padding: '0.12em 0.35em',
+  borderRadius: vars.radii.sm
+})
+rule('kbd', {
+  border: '1px solid var(--monolith-prose-line)',
+  borderBottomWidth: '2px'
+})
+rule('pre', {
+  background: 'var(--monolith-prose-panel)',
+  padding: '1em 1.2em',
+  border: '1px solid var(--monolith-prose-line)',
+  borderRadius: vars.radii.md,
+  lineHeight: 1.6,
   overflowX: 'auto',
-  fontSize: '0.875em',
-  lineHeight: 1.7,
-  fontFamily:
-    'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace'
+  overflowWrap: 'normal',
+  whiteSpace: 'pre'
 })
-
-globalStyle(`.dark ${root} pre`, {
-  backgroundColor: COLORS['bg-900']
-})
-
-globalStyle(`${root} pre code`, {
-  backgroundColor: 'transparent',
-  borderWidth: 0,
-  borderRadius: 0,
-  padding: 0,
-  fontWeight: vars.fontWeight.normal,
+rule('pre code', {
   color: 'inherit',
   fontSize: 'inherit',
-  fontFamily: 'inherit',
-  lineHeight: 'inherit'
+  lineHeight: 'inherit',
+  padding: 0,
+  background: 'transparent',
+  border: 0
 })
-
-/* ---- Kbd ---- */
-
-globalStyle(`${root} kbd`, {
-  fontFamily: 'inherit',
-  fontWeight: vars.fontWeight.medium,
-  color: COLORS['bg-800'],
-  backgroundColor: COLORS['bg-200'],
-  borderRadius: vars.radii.sm,
-  padding: '0.125em 0.375em',
-  fontSize: '0.875em',
-  boxShadow: '0 1px 0 0 var(--color-bg-300)'
+rule('hr', {
+  border: 0,
+  borderTop: '1px solid var(--monolith-prose-line)',
+  marginBlock: '1.8em'
 })
-
-globalStyle(`.dark ${root} kbd`, {
-  color: COLORS['bg-50'],
-  backgroundColor: COLORS['bg-800'],
-  boxShadow: `0 1px 0 0 ${colorWithOpacity('bg-500', '20%')}`
-})
-
-/* ---- Tables ---- */
-
-globalStyle(`${root} table`, {
+rule('table', {
   width: '100%',
-  tableLayout: 'auto',
-  marginTop: '1.25em',
-  marginBottom: '1.25em',
-  fontSize: vars.fontSize.sm,
-  borderCollapse: 'collapse'
+  borderCollapse: 'collapse',
+  fontSize: vars.fontSize.sm
 })
-
-globalStyle(`${root} thead`, {
-  borderBottomWidth: '1px',
-  borderBottomColor: COLORS['bg-300']
+rule(':where(th, td)', {
+  padding: '0.6em 0.8em',
+  textAlign: 'start',
+  verticalAlign: 'top',
+  borderBottom: '1px solid var(--monolith-prose-line)'
 })
-
-globalStyle(`.dark ${root} thead`, {
-  borderBottomColor: COLORS['bg-700']
-})
-
-globalStyle(`${root} thead th`, {
-  color: COLORS['bg-800'],
-  fontWeight: vars.fontWeight.semibold,
-  verticalAlign: 'bottom',
-  paddingTop: '0.5em',
-  paddingBottom: '0.5em',
-  paddingLeft: '0.75em',
-  paddingRight: '0.75em',
-  textAlign: 'start'
-})
-
-globalStyle(`${root} thead th:first-child`, {
-  paddingLeft: 0
-})
-
-globalStyle(`${root} thead th:last-child`, {
-  paddingRight: 0
-})
-
-globalStyle(`.dark ${root} thead th`, {
-  color: COLORS['bg-50']
-})
-
-globalStyle(`${root} tbody tr`, {
-  borderBottomWidth: '1px',
-  borderBottomColor: COLORS['bg-200']
-})
-
-globalStyle(`.dark ${root} tbody tr`, {
-  borderBottomColor: COLORS['bg-700']
-})
-
-globalStyle(`${root} tbody tr:last-child`, {
-  borderBottomWidth: 0
-})
-
-globalStyle(`${root} :is(tbody td, tfoot td)`, {
-  verticalAlign: 'baseline',
-  paddingTop: '0.5em',
-  paddingBottom: '0.5em',
-  paddingLeft: '0.75em',
-  paddingRight: '0.75em',
-  textAlign: 'start'
-})
-
-globalStyle(`${root} :is(tbody td:first-child, tfoot td:first-child)`, {
-  paddingLeft: 0
-})
-
-globalStyle(`${root} :is(tbody td:last-child, tfoot td:last-child)`, {
-  paddingRight: 0
-})
-
-globalStyle(`${root} tfoot`, {
-  borderTopWidth: '1px',
-  borderTopColor: COLORS['bg-300']
-})
-
-globalStyle(`.dark ${root} tfoot`, {
-  borderTopColor: COLORS['bg-700']
-})
-
-/* ---- Definition list ---- */
-
-globalStyle(`${root} dl`, {
-  marginTop: '1em',
-  marginBottom: '1em'
-})
-
-globalStyle(`${root} dt`, {
-  color: COLORS['bg-800'],
-  fontWeight: vars.fontWeight.semibold,
-  marginTop: '1em'
-})
-
-globalStyle(`.dark ${root} dt`, {
-  color: COLORS['bg-50']
-})
-
-globalStyle(`${root} dd`, {
-  marginTop: '0.25em',
-  paddingInlineStart: '1.5em'
-})
-
-/* ---- Figure / Figcaption ---- */
-
-globalStyle(`${root} figure`, {
-  marginTop: '1.5em',
-  marginBottom: '1.5em'
-})
-
-globalStyle(`${root} figure > *`, {
-  marginTop: 0,
-  marginBottom: 0
-})
-
-globalStyle(`${root} figcaption`, {
-  color: COLORS['bg-500'],
-  fontSize: vars.fontSize.sm,
-  lineHeight: 1.4,
-  marginTop: '0.5em',
-  textAlign: 'center'
-})
-
-/* ---- Images / Video / Picture ---- */
-
-globalStyle(`${root} img`, {
-  marginTop: '1.5em',
-  marginBottom: '1.5em',
-  borderRadius: vars.radii.lg,
-  maxWidth: '100%',
-  height: 'auto'
-})
-
-globalStyle(`${root} video`, {
-  marginTop: '1.5em',
-  marginBottom: '1.5em',
-  borderRadius: vars.radii.lg,
-  maxWidth: '100%'
-})
-
-globalStyle(`${root} picture`, {
+rule('thead', { background: 'var(--monolith-prose-panel)' })
+rule('tfoot', { borderTop: '2px solid var(--monolith-prose-line)' })
+rule('dt', { marginBlockStart: '0.8em' })
+rule('dd', { marginInlineStart: '1.5em', marginBlockStart: '0.25em' })
+rule(':where(img, video)', {
   display: 'block',
-  marginTop: '1.5em',
-  marginBottom: '1.5em'
+  maxWidth: '100%',
+  height: 'auto',
+  borderRadius: vars.radii.md
 })
-
-globalStyle(`${root} picture > img`, {
-  marginTop: 0,
-  marginBottom: 0
+rule('picture', { display: 'block' })
+rule('figcaption', {
+  marginBlockStart: '0.6em',
+  fontSize: vars.fontSize.sm,
+  textAlign: 'center',
+  color: 'var(--monolith-prose-muted)'
 })
-
-/* ---- First / last child margin reset ---- */
-
-globalStyle(`${root} > :first-child`, {
-  marginTop: 0
-})
-
-globalStyle(`${root} > :last-child`, {
-  marginBottom: 0
-})
-
-/* ---- Heading + sibling reset ---- */
-
-globalStyle(`${root} :is(h1 + *, h2 + *, h3 + *, h4 + *, h5 + *, h6 + *)`, {
-  marginTop: 0
-})
-
-globalStyle(`${root} hr + *`, {
-  marginTop: 0
-})
+rule('> :first-child', { marginTop: 0 })
+rule('> :last-child', { marginBottom: 0 })

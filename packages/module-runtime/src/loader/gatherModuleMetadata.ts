@@ -1,5 +1,4 @@
 import { execSync } from 'child_process'
-import crypto from 'crypto'
 import fs from 'fs'
 import path from 'path'
 
@@ -8,13 +7,14 @@ import {
   type ModuleEntry,
   type ModuleWidget,
   moduleBundledMetadataSchema
-} from '@lifeforge/configs'
+} from '@monolith/configs'
+import { resolveAddonIdentity } from '@monolith/configs/node'
 
 import { loaderLogger } from './logger'
 
 /**
  * Resolves a module's complete metadata from its bundle. In production this is
- * read from the build artifact (`client/dist/forge-manifest.json`); otherwise
+ * read from the build artifact (`client/dist/monolith-manifest.json`); otherwise
  * it is extracted live from source using the shared extractor.
  *
  * Returns `null` when the metadata cannot be resolved (a module is rejected).
@@ -25,8 +25,7 @@ async function resolveBundledMetadata(
   isProduction: boolean
 ): Promise<ModuleBundledMetadata | null> {
   if (!isProduction) {
-    const { extractModuleMetadata } =
-      await import('@lifeforge/configs/metadata')
+    const { extractModuleMetadata } = await import('@monolith/configs/metadata')
 
     return extractModuleMetadata(moduleDir)
   }
@@ -35,12 +34,12 @@ async function resolveBundledMetadata(
     moduleDir,
     'client',
     'dist',
-    'forge-manifest.json'
+    'monolith-manifest.json'
   )
 
   if (!fs.existsSync(bundledPath)) {
     loaderLogger.error(
-      `Skipping module ${displayName}: missing client/dist/forge-manifest.json. Rebuild or reinstall the module.`
+      `Skipping module ${displayName}: missing client/dist/monolith-manifest.json. Rebuild or reinstall the module.`
     )
 
     return null
@@ -52,7 +51,7 @@ async function resolveBundledMetadata(
     )
   } catch (error) {
     loaderLogger.error(
-      `Skipping module ${displayName}: invalid forge-manifest.json - ${error}`
+      `Skipping module ${displayName}: invalid monolith-manifest.json - ${error}`
     )
 
     return null
@@ -86,12 +85,7 @@ export default async function gatherModuleMetadata(
 
     const { package: packageJSON } = bundledMetadata
 
-    const id = packageJSON.name.replace(/^@lifeforge\//, '')
-
-    const remoteId = crypto
-      .createHash('sha256')
-      .update(packageJSON.name)
-      .digest('hex')
+    const { id, remoteId } = resolveAddonIdentity(packageJSON)
 
     const localesPath = path.join(moduleDir, 'locales')
     const supportedLangs =
@@ -154,11 +148,12 @@ export default async function gatherModuleMetadata(
       version: packageJSON.version,
       description: packageJSON.description,
       author: packageJSON.author,
-      icon: packageJSON.lifeforge.icon,
-      category: packageJSON.lifeforge.category,
+      icon: packageJSON.monolith.icon,
+      category: packageJSON.monolith.category,
+      experience: packageJSON.monolith.experience,
       supportedLangs,
-      remoteEntryUrl: `/modules/${modDir}/remoteEntry.js`,
-      APIKeyAccess: packageJSON.lifeforge.APIKeyAccess,
+      remoteEntryUrl: `/modules/${id}/remoteEntry.js?v=${packageJSON.version}`,
+      APIKeyAccess: packageJSON.monolith.APIKeyAccess,
       subsection: bundledMetadata.subsection,
       hasProvider: bundledMetadata.hasProvider,
       hidden: bundledMetadata.hidden,

@@ -1,62 +1,32 @@
 import { decrypt } from '@functions/auth/encryption'
-import { OAuth2Tokens } from 'arctic'
+import type { OAuth2Tokens } from 'arctic'
 
 import { db } from '../../../core/drizzle'
-import {
-  OAUTH_PROVIDER_CONFIGS,
-  ProviderConfig
-} from '../constants/oauth_providers'
+import { oauthProvider } from '../constants/oauth_providers'
 
-const MASTER_KEY = process.env.MASTER_KEY!
-
-export async function getProvider(
-  providerName: string,
-  origin: string
-): Promise<{
-  client: any
-  redirectUri: string
-  config: ProviderConfig
-} | null> {
-  const record = await db.query.authOAuthProviders.findFirst({
-    where: {
-      provider: providerName,
-      enabled: true
-    }
+export async function getProvider(name: string, origin: string) {
+  const config = oauthProvider(name)
+  const masterKey = process.env.MASTER_KEY
+  if (!config || !masterKey) return null
+  const stored = await db.query.authOAuthProviders.findFirst({
+    where: { provider: name, enabled: true }
   })
-
-  if (!record || !record.client_id || !record.client_secret) {
-    return null
-  }
-
-  let clientId: string
-  let clientSecret: string
-
+  if (!stored?.client_id || !stored.client_secret) return null
   try {
-    clientId = decrypt(
-      Buffer.from(record.client_id, 'base64'),
-      MASTER_KEY
-    ).toString('utf-8')
-
-    clientSecret = decrypt(
-      Buffer.from(record.client_secret, 'base64'),
-      MASTER_KEY
-    ).toString('utf-8')
+    const open = (value: string) =>
+      decrypt(Buffer.from(value, 'base64'), masterKey).toString('utf8')
+    const redirectUri = new URL('/auth', origin).toString()
+    return {
+      client: config.create(
+        open(stored.client_id),
+        open(stored.client_secret),
+        redirectUri
+      ),
+      redirectUri,
+      config
+    }
   } catch {
     return null
-  }
-
-  const providerConfig = OAUTH_PROVIDER_CONFIGS[record.provider]
-
-  if (!providerConfig) {
-    return null
-  }
-
-  const redirectUri = `${origin}/auth`
-
-  return {
-    client: new providerConfig.client(clientId, clientSecret, redirectUri),
-    redirectUri,
-    config: providerConfig
   }
 }
 
@@ -64,33 +34,11 @@ export async function fetchUserEmail(
   provider: string,
   tokens: OAuth2Tokens
 ): Promise<string | null> {
-  const config = OAUTH_PROVIDER_CONFIGS[provider]
-
+  const config = oauthProvider(provider)
   if (!config) return null
-
-  if (config.emailStrategy === 'id_token') {
-    const idToken = tokens.idToken()
-    const payloadSegment = idToken.split('.')[1]
-
-    if (!payloadSegment) return null
-
-    const payload = JSON.parse(
-      Buffer.from(payloadSegment, 'base64').toString('utf-8')
-    )
-
-    return payload.email || null
+  try {
+    return await config.email(tokens.accessToken())
+  } catch {
+    return null
   }
-
-  if (!config.userinfoUrl || !config.extractEmail) return null
-
-  const accessToken = tokens.accessToken()
-  const res = await fetch(config.userinfoUrl, {
-    headers: { Authorization: `Bearer ${accessToken}` }
-  })
-
-  if (!res.ok) return null
-
-  const data = await res.json()
-
-  return config.extractEmail(data)
 }

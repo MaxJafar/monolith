@@ -1,15 +1,17 @@
 import { sql } from 'drizzle-orm'
 import z from 'zod'
 
-import { createForge, forgeRouter } from '@lifeforge/server-utils'
+import { createMonolith, defineRoutes } from '@monolith/server-utils'
 
 import { sharedInference, sharedModels } from '../ai/shared/client'
+import { sourceKey } from './contextGraph'
+import { map } from './graph'
 import { answer, embed, rank } from './inference'
 import { retrieve } from './retrieval'
 import { collectSources } from './sources'
 import { indexBatch, snapshot } from './store'
 
-const forge = createForge({ moduleId: 'search' })
+const endpoints = createMonolith({ moduleId: 'search' })
 const scope = z.object({
   workspace_id: z.uuid().optional(),
   module: z
@@ -29,6 +31,8 @@ const progress = z.object({
 })
 const hit = z.object({
   id: z.string(),
+  source_id: z.string(),
+  graph_key: z.string().optional(),
   title: z.string(),
   module: z.string(),
   workspace: z.string().nullable(),
@@ -41,7 +45,7 @@ const hit = z.object({
   inferred: z.boolean()
 })
 
-const status = forge
+const status = endpoints
   .query({
     description: 'Current authorized system search coverage',
     input: { query: scope },
@@ -67,7 +71,7 @@ const status = forge
     })
   })
 
-const host = forge
+const host = endpoints
   .query({
     description: 'Shared Mac mini model health',
     output: {
@@ -93,7 +97,7 @@ const host = forge
     )
   )
 
-const index = forge
+const index = endpoints
   .mutation({
     description: 'Index one resumable batch through the Mac mini',
     input: { body: scope },
@@ -103,7 +107,7 @@ const index = forge
     response.ok(await indexBatch(db, res.locals.userId, body))
   )
 
-const clear = forge
+const clear = endpoints
   .mutation({
     description: 'Remove only the signed-in account search cache',
     input: { body: z.object({}) },
@@ -120,7 +124,7 @@ const clear = forge
     return response.ok(true)
   })
 
-const query = forge
+export const query = endpoints
   .mutation({
     description: 'Retrieve whole-system evidence and a grounded answer',
     input: {
@@ -253,6 +257,8 @@ const query = forge
     return response.ok({
       hits: candidates.map(p => ({
         id: p.id,
+        source_id: p.source.id,
+        graph_key: sourceKey(p.source),
         title: p.source.title,
         module: p.source.module,
         workspace: p.source.workspace,
@@ -273,4 +279,4 @@ const query = forge
     })
   })
 
-export default forgeRouter({ status, host, index, clear, query })
+export default defineRoutes({ status, host, index, clear, query, map })

@@ -1,7 +1,7 @@
 export const contract = {
   '': {
     method: 'get',
-    description: 'Welcome to ZillionOS API',
+    description: 'Welcome to Monolith API',
     noAuth: true,
     encrypted: false,
     isDownloadable: false,
@@ -11,7 +11,7 @@ export const contract = {
       OK: {
         $schema: 'https://json-schema.org/draft/2020-12/schema',
         type: 'string',
-        const: 'Welcome to ZillionOS'
+        const: 'Welcome to Monolith'
       }
     }
   },
@@ -666,6 +666,449 @@ export const contract = {
           NO_CONTENT: true
         }
       },
+      getAppearance: {
+        method: 'get',
+        description: 'Read the authenticated account appearance',
+        noAuth: false,
+        encrypted: true,
+        isDownloadable: false,
+        media: null,
+        input: {},
+        output: {
+          OK: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            type: 'object',
+            properties: {
+              revision: {
+                type: 'integer',
+                minimum: 0,
+                maximum: 9007199254740991
+              },
+              appearance: {
+                type: 'object',
+                properties: {
+                  background: {
+                    type: 'string',
+                    pattern: '^#[0-9a-f]{6}$'
+                  },
+                  accent: {
+                    type: 'string',
+                    pattern: '^#[0-9a-f]{6}$'
+                  },
+                  button: {
+                    type: 'string',
+                    pattern: '^#[0-9a-f]{6}$'
+                  },
+                  icons: {
+                    type: 'string',
+                    pattern: '^#[0-9a-f]{6}$'
+                  },
+                  iconSet: {
+                    type: 'string',
+                    enum: [
+                      'lucide',
+                      'tabler',
+                      'ph',
+                      'ph-fill',
+                      'ri-line',
+                      'ri-fill',
+                      'mdi'
+                    ]
+                  },
+                  icon: {
+                    type: 'string',
+                    maxLength: 80,
+                    pattern: '^[a-z0-9][a-z0-9-]{0,31}:[a-z0-9-]{1,60}$'
+                  },
+                  font: {
+                    type: 'object',
+                    properties: {
+                      provider: {
+                        type: 'string',
+                        enum: ['system', 'google', 'bunny', 'fontsource']
+                      },
+                      family: {
+                        type: 'string',
+                        enum: [
+                          'Inter',
+                          'Lato',
+                          'Nunito Sans',
+                          'Open Sans',
+                          'Roboto',
+                          'Source Sans 3',
+                          'Lora',
+                          'JetBrains Mono',
+                          'system-ui',
+                          'serif',
+                          'monospace'
+                        ]
+                      }
+                    },
+                    required: ['provider', 'family'],
+                    additionalProperties: false
+                  },
+                  cover: {
+                    anyOf: [
+                      {
+                        oneOf: [
+                          {
+                            type: 'object',
+                            properties: {
+                              type: {
+                                type: 'string',
+                                const: 'color'
+                              },
+                              value: {
+                                type: 'string',
+                                pattern: '^#[0-9a-f]{6}$'
+                              }
+                            },
+                            required: ['type', 'value'],
+                            additionalProperties: false
+                          },
+                          {
+                            type: 'object',
+                            properties: {
+                              type: {
+                                type: 'string',
+                                const: 'image'
+                              },
+                              value: {
+                                type: 'string',
+                                maxLength: 2048
+                              },
+                              fileKey: {
+                                type: 'string',
+                                maxLength: 2048,
+                                pattern: '^[a-zA-Z0-9][a-zA-Z0-9/_\\-.]+$'
+                              },
+                              position: {
+                                default: 50,
+                                type: 'number',
+                                minimum: 0,
+                                maximum: 100
+                              }
+                            },
+                            required: ['type', 'value', 'position'],
+                            additionalProperties: false
+                          }
+                        ]
+                      },
+                      {
+                        type: 'null'
+                      }
+                    ]
+                  },
+                  radius: {
+                    type: 'integer',
+                    minimum: 0,
+                    maximum: 24
+                  },
+                  contentWidth: {
+                    type: 'string',
+                    enum: ['standard', 'full']
+                  }
+                },
+                additionalProperties: false
+              }
+            },
+            required: ['revision', 'appearance'],
+            additionalProperties: false
+          }
+        }
+      },
+      saveAppearance: {
+        method: 'post',
+        description: 'Save global appearance with revision protection',
+        noAuth: false,
+        encrypted: true,
+        isDownloadable: false,
+        media: null,
+        input: {
+          body: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            type: 'object',
+            properties: {
+              appearance: {
+                type: 'object',
+                properties: {
+                  background: {
+                    type: 'string',
+                    pattern: '^#[0-9a-f]{6}$'
+                  },
+                  accent: {
+                    type: 'string',
+                    pattern: '^#[0-9a-f]{6}$'
+                  },
+                  button: {
+                    type: 'string',
+                    pattern: '^#[0-9a-f]{6}$'
+                  },
+                  icons: {
+                    type: 'string',
+                    pattern: '^#[0-9a-f]{6}$'
+                  },
+                  iconSet: {
+                    type: 'string',
+                    enum: [
+                      'lucide',
+                      'tabler',
+                      'ph',
+                      'ph-fill',
+                      'ri-line',
+                      'ri-fill',
+                      'mdi'
+                    ]
+                  },
+                  icon: {
+                    type: 'string',
+                    maxLength: 80,
+                    pattern: '^[a-z0-9][a-z0-9-]{0,31}:[a-z0-9-]{1,60}$'
+                  },
+                  font: {
+                    type: 'object',
+                    properties: {
+                      provider: {
+                        type: 'string',
+                        enum: ['system', 'google', 'bunny', 'fontsource']
+                      },
+                      family: {
+                        type: 'string',
+                        enum: [
+                          'Inter',
+                          'Lato',
+                          'Nunito Sans',
+                          'Open Sans',
+                          'Roboto',
+                          'Source Sans 3',
+                          'Lora',
+                          'JetBrains Mono',
+                          'system-ui',
+                          'serif',
+                          'monospace'
+                        ]
+                      }
+                    },
+                    required: ['provider', 'family'],
+                    additionalProperties: false
+                  },
+                  cover: {
+                    anyOf: [
+                      {
+                        oneOf: [
+                          {
+                            type: 'object',
+                            properties: {
+                              type: {
+                                type: 'string',
+                                const: 'color'
+                              },
+                              value: {
+                                type: 'string',
+                                pattern: '^#[0-9a-f]{6}$'
+                              }
+                            },
+                            required: ['type', 'value'],
+                            additionalProperties: false
+                          },
+                          {
+                            type: 'object',
+                            properties: {
+                              type: {
+                                type: 'string',
+                                const: 'image'
+                              },
+                              value: {
+                                type: 'string',
+                                maxLength: 2048
+                              },
+                              fileKey: {
+                                type: 'string',
+                                maxLength: 2048,
+                                pattern: '^[a-zA-Z0-9][a-zA-Z0-9/_\\-.]+$'
+                              },
+                              position: {
+                                default: 50,
+                                type: 'number',
+                                minimum: 0,
+                                maximum: 100
+                              }
+                            },
+                            required: ['type', 'value', 'position'],
+                            additionalProperties: false
+                          }
+                        ]
+                      },
+                      {
+                        type: 'null'
+                      }
+                    ]
+                  },
+                  radius: {
+                    type: 'integer',
+                    minimum: 0,
+                    maximum: 24
+                  },
+                  contentWidth: {
+                    type: 'string',
+                    enum: ['standard', 'full']
+                  }
+                },
+                additionalProperties: false
+              },
+              expected_revision: {
+                type: 'integer',
+                minimum: 0,
+                maximum: 9007199254740991
+              }
+            },
+            required: ['appearance', 'expected_revision'],
+            additionalProperties: false
+          }
+        },
+        output: {
+          OK: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            type: 'object',
+            properties: {
+              revision: {
+                type: 'integer',
+                minimum: 0,
+                maximum: 9007199254740991
+              },
+              appearance: {
+                type: 'object',
+                properties: {
+                  background: {
+                    type: 'string',
+                    pattern: '^#[0-9a-f]{6}$'
+                  },
+                  accent: {
+                    type: 'string',
+                    pattern: '^#[0-9a-f]{6}$'
+                  },
+                  button: {
+                    type: 'string',
+                    pattern: '^#[0-9a-f]{6}$'
+                  },
+                  icons: {
+                    type: 'string',
+                    pattern: '^#[0-9a-f]{6}$'
+                  },
+                  iconSet: {
+                    type: 'string',
+                    enum: [
+                      'lucide',
+                      'tabler',
+                      'ph',
+                      'ph-fill',
+                      'ri-line',
+                      'ri-fill',
+                      'mdi'
+                    ]
+                  },
+                  icon: {
+                    type: 'string',
+                    maxLength: 80,
+                    pattern: '^[a-z0-9][a-z0-9-]{0,31}:[a-z0-9-]{1,60}$'
+                  },
+                  font: {
+                    type: 'object',
+                    properties: {
+                      provider: {
+                        type: 'string',
+                        enum: ['system', 'google', 'bunny', 'fontsource']
+                      },
+                      family: {
+                        type: 'string',
+                        enum: [
+                          'Inter',
+                          'Lato',
+                          'Nunito Sans',
+                          'Open Sans',
+                          'Roboto',
+                          'Source Sans 3',
+                          'Lora',
+                          'JetBrains Mono',
+                          'system-ui',
+                          'serif',
+                          'monospace'
+                        ]
+                      }
+                    },
+                    required: ['provider', 'family'],
+                    additionalProperties: false
+                  },
+                  cover: {
+                    anyOf: [
+                      {
+                        oneOf: [
+                          {
+                            type: 'object',
+                            properties: {
+                              type: {
+                                type: 'string',
+                                const: 'color'
+                              },
+                              value: {
+                                type: 'string',
+                                pattern: '^#[0-9a-f]{6}$'
+                              }
+                            },
+                            required: ['type', 'value'],
+                            additionalProperties: false
+                          },
+                          {
+                            type: 'object',
+                            properties: {
+                              type: {
+                                type: 'string',
+                                const: 'image'
+                              },
+                              value: {
+                                type: 'string',
+                                maxLength: 2048
+                              },
+                              fileKey: {
+                                type: 'string',
+                                maxLength: 2048,
+                                pattern: '^[a-zA-Z0-9][a-zA-Z0-9/_\\-.]+$'
+                              },
+                              position: {
+                                default: 50,
+                                type: 'number',
+                                minimum: 0,
+                                maximum: 100
+                              }
+                            },
+                            required: ['type', 'value', 'position'],
+                            additionalProperties: false
+                          }
+                        ]
+                      },
+                      {
+                        type: 'null'
+                      }
+                    ]
+                  },
+                  radius: {
+                    type: 'integer',
+                    minimum: 0,
+                    maximum: 24
+                  },
+                  contentWidth: {
+                    type: 'string',
+                    enum: ['standard', 'full']
+                  }
+                },
+                additionalProperties: false
+              }
+            },
+            required: ['revision', 'appearance'],
+            additionalProperties: false
+          }
+        }
+      },
       updateBgImage: {
         method: 'post',
         description: 'Upload new background image',
@@ -780,6 +1223,63 @@ export const contract = {
         },
         output: {
           NO_CONTENT: true
+        }
+      },
+      uploadCover: {
+        method: 'post',
+        description: 'Upload a page or workspace cover image',
+        noAuth: false,
+        encrypted: true,
+        isDownloadable: false,
+        media: {
+          file: {
+            optional: false
+          }
+        },
+        input: {},
+        output: {
+          OK: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            type: 'object',
+            properties: {
+              key: {
+                type: 'string'
+              },
+              originalName: {
+                type: 'string'
+              },
+              mimeType: {
+                type: 'string'
+              },
+              size: {
+                type: 'number'
+              },
+              thumbs: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    size: {
+                      type: 'string'
+                    },
+                    key: {
+                      type: 'string'
+                    },
+                    width: {
+                      type: 'number'
+                    },
+                    height: {
+                      type: 'number'
+                    }
+                  },
+                  required: ['size', 'key', 'width', 'height'],
+                  additionalProperties: false
+                }
+              }
+            },
+            required: ['key', 'originalName', 'mimeType', 'size', 'thumbs'],
+            additionalProperties: false
+          }
         }
       }
     },
@@ -2910,6 +3410,45 @@ export const contract = {
           items: {
             type: 'object',
             properties: {
+              experience: {
+                type: 'object',
+                properties: {
+                  kind: {
+                    type: 'string',
+                    enum: [
+                      'widget',
+                      'dashboard',
+                      'database',
+                      'workbench',
+                      'overhaul',
+                      'standard'
+                    ]
+                  },
+                  surfaces: {
+                    type: 'array',
+                    items: {
+                      type: 'string',
+                      enum: ['sidebar', 'page', 'dashboard', 'widget']
+                    }
+                  },
+                  databases: {
+                    type: 'array',
+                    items: {
+                      type: 'string',
+                      maxLength: 80
+                    }
+                  },
+                  systemOverrides: {
+                    type: 'array',
+                    items: {
+                      type: 'string',
+                      enum: ['icons', 'labels', 'theme', 'navigation']
+                    }
+                  }
+                },
+                required: ['kind', 'surfaces'],
+                additionalProperties: false
+              },
               name: {
                 type: 'string'
               },
@@ -2972,6 +3511,45 @@ export const contract = {
               items: {
                 type: 'object',
                 properties: {
+                  experience: {
+                    type: 'object',
+                    properties: {
+                      kind: {
+                        type: 'string',
+                        enum: [
+                          'widget',
+                          'dashboard',
+                          'database',
+                          'workbench',
+                          'overhaul',
+                          'standard'
+                        ]
+                      },
+                      surfaces: {
+                        type: 'array',
+                        items: {
+                          type: 'string',
+                          enum: ['sidebar', 'page', 'dashboard', 'widget']
+                        }
+                      },
+                      databases: {
+                        type: 'array',
+                        items: {
+                          type: 'string',
+                          maxLength: 80
+                        }
+                      },
+                      systemOverrides: {
+                        type: 'array',
+                        items: {
+                          type: 'string',
+                          enum: ['icons', 'labels', 'theme', 'navigation']
+                        }
+                      }
+                    },
+                    required: ['kind', 'surfaces'],
+                    additionalProperties: false
+                  },
                   name: {
                     type: 'string'
                   },
@@ -3108,6 +3686,287 @@ export const contract = {
         }
       }
     },
+    shop: {
+      catalog: {
+        method: 'get',
+        description: 'Browse verified addon releases and installation progress',
+        noAuth: false,
+        encrypted: true,
+        isDownloadable: false,
+        media: null,
+        input: {},
+        output: {
+          OK: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            type: 'object',
+            properties: {
+              releases: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    id: {
+                      type: 'string',
+                      pattern: '^[a-z][a-z0-9-]{0,39}--[a-z][a-z0-9-]{0,39}$'
+                    },
+                    name: {
+                      type: 'string',
+                      minLength: 1,
+                      maxLength: 120
+                    },
+                    description: {
+                      type: 'string',
+                      maxLength: 1200
+                    },
+                    icon: {
+                      type: 'string',
+                      maxLength: 100
+                    },
+                    category: {
+                      type: 'string',
+                      maxLength: 80
+                    },
+                    kind: {
+                      type: 'string',
+                      enum: ['addon', 'widget']
+                    },
+                    version: {
+                      type: 'string',
+                      maxLength: 80,
+                      pattern: '^\\d+\\.\\d+\\.\\d+(?:-[a-zA-Z0-9.-]+)?$'
+                    },
+                    hostVersion: {
+                      type: 'string',
+                      maxLength: 80,
+                      pattern: '^\\d+\\.\\d+\\.\\d+(?:-[a-zA-Z0-9.-]+)?$'
+                    },
+                    url: {
+                      type: 'string',
+                      format: 'uri'
+                    },
+                    sha256: {
+                      type: 'string',
+                      pattern: '^[a-f0-9]{64}$'
+                    },
+                    bytes: {
+                      type: 'integer',
+                      exclusiveMinimum: 0,
+                      maximum: 100663296
+                    },
+                    schemaHash: {
+                      anyOf: [
+                        {
+                          type: 'string',
+                          pattern: '^[a-f0-9]{64}$'
+                        },
+                        {
+                          type: 'null'
+                        }
+                      ]
+                    },
+                    notes: {
+                      default: '',
+                      type: 'string',
+                      maxLength: 12000
+                    },
+                    widgets: {
+                      default: [],
+                      maxItems: 100,
+                      type: 'array',
+                      items: {
+                        type: 'string',
+                        maxLength: 100
+                      }
+                    }
+                  },
+                  required: [
+                    'id',
+                    'name',
+                    'description',
+                    'icon',
+                    'category',
+                    'kind',
+                    'version',
+                    'hostVersion',
+                    'url',
+                    'sha256',
+                    'bytes',
+                    'schemaHash',
+                    'notes',
+                    'widgets'
+                  ],
+                  additionalProperties: false
+                }
+              },
+              jobs: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    id: {
+                      type: 'string'
+                    },
+                    addonId: {
+                      type: 'string',
+                      pattern: '^[a-z][a-z0-9-]{0,39}--[a-z][a-z0-9-]{0,39}$'
+                    },
+                    version: {
+                      type: 'string',
+                      maxLength: 80,
+                      pattern: '^\\d+\\.\\d+\\.\\d+(?:-[a-zA-Z0-9.-]+)?$'
+                    },
+                    phase: {
+                      type: 'string',
+                      enum: [
+                        'queued',
+                        'downloading',
+                        'verifying',
+                        'installing',
+                        'complete',
+                        'failed'
+                      ]
+                    },
+                    received: {
+                      type: 'number'
+                    },
+                    total: {
+                      type: 'number'
+                    },
+                    error: {
+                      type: 'string'
+                    }
+                  },
+                  required: [
+                    'id',
+                    'addonId',
+                    'version',
+                    'phase',
+                    'received',
+                    'total'
+                  ],
+                  additionalProperties: false
+                }
+              },
+              configured: {
+                type: 'boolean'
+              },
+              canManage: {
+                type: 'boolean'
+              },
+              error: {
+                type: 'string'
+              },
+              hostVersion: {
+                type: 'string'
+              },
+              managed: {
+                type: 'array',
+                items: {
+                  type: 'string'
+                }
+              }
+            },
+            required: [
+              'releases',
+              'jobs',
+              'configured',
+              'canManage',
+              'error',
+              'hostVersion',
+              'managed'
+            ],
+            additionalProperties: false
+          }
+        }
+      },
+      checkUpdates: {
+        method: 'post',
+        description: 'Refresh the signed release catalog',
+        noAuth: false,
+        encrypted: true,
+        isDownloadable: false,
+        media: null,
+        input: {},
+        output: {
+          OK: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            type: 'boolean'
+          }
+        }
+      },
+      install: {
+        method: 'post',
+        description:
+          'Install a verified addon release as the host administrator',
+        noAuth: false,
+        encrypted: true,
+        isDownloadable: false,
+        media: null,
+        input: {
+          body: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            type: 'object',
+            properties: {
+              id: {
+                type: 'string',
+                pattern: '^[a-z][a-z0-9-]{0,39}--[a-z][a-z0-9-]{0,39}$'
+              }
+            },
+            required: ['id'],
+            additionalProperties: false
+          }
+        },
+        output: {
+          OK: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            type: 'object',
+            properties: {
+              id: {
+                type: 'string'
+              },
+              addonId: {
+                type: 'string',
+                pattern: '^[a-z][a-z0-9-]{0,39}--[a-z][a-z0-9-]{0,39}$'
+              },
+              version: {
+                type: 'string',
+                maxLength: 80,
+                pattern: '^\\d+\\.\\d+\\.\\d+(?:-[a-zA-Z0-9.-]+)?$'
+              },
+              phase: {
+                type: 'string',
+                enum: [
+                  'queued',
+                  'downloading',
+                  'verifying',
+                  'installing',
+                  'complete',
+                  'failed'
+                ]
+              },
+              received: {
+                type: 'number'
+              },
+              total: {
+                type: 'number'
+              },
+              error: {
+                type: 'string'
+              }
+            },
+            required: [
+              'id',
+              'addonId',
+              'version',
+              'phase',
+              'received',
+              'total'
+            ],
+            additionalProperties: false
+          }
+        }
+      }
+    },
     categories: {
       aiTranslate: {
         method: 'post',
@@ -3211,6 +4070,694 @@ export const contract = {
             required: ['success'],
             additionalProperties: false
           }
+        }
+      }
+    }
+  },
+  updates: {
+    status: {
+      method: 'get',
+      description: 'Get main server release and update progress',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {},
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            state: {
+              type: 'object',
+              properties: {
+                configured: {
+                  type: 'boolean'
+                },
+                target: {
+                  type: 'string'
+                },
+                currentVersion: {
+                  type: 'string'
+                },
+                phase: {
+                  type: 'string',
+                  enum: [
+                    'idle',
+                    'checking',
+                    'available',
+                    'downloading',
+                    'ready',
+                    'verifying',
+                    'installing',
+                    'restarting',
+                    'rollingBack',
+                    'rolledBack',
+                    'complete',
+                    'failed'
+                  ]
+                },
+                release: {
+                  anyOf: [
+                    {
+                      type: 'object',
+                      properties: {
+                        format: {
+                          type: 'number',
+                          const: 1
+                        },
+                        version: {
+                          type: 'string'
+                        },
+                        channel: {
+                          type: 'string',
+                          enum: ['stable', 'beta']
+                        },
+                        protocol: {
+                          type: 'number'
+                        },
+                        schemaHash: {
+                          type: 'string'
+                        },
+                        notes: {
+                          type: 'string'
+                        },
+                        artifacts: {
+                          type: 'array',
+                          items: {
+                            type: 'object',
+                            properties: {
+                              target: {
+                                type: 'string'
+                              },
+                              url: {
+                                type: 'string'
+                              },
+                              sha256: {
+                                type: 'string'
+                              },
+                              bytes: {
+                                type: 'number'
+                              },
+                              format: {
+                                type: 'string',
+                                enum: ['zip', 'docker-archive']
+                              },
+                              imageId: {
+                                type: 'string'
+                              },
+                              parts: {
+                                type: 'array',
+                                items: {
+                                  type: 'object',
+                                  properties: {
+                                    url: {
+                                      type: 'string'
+                                    },
+                                    sha256: {
+                                      type: 'string'
+                                    },
+                                    bytes: {
+                                      type: 'number'
+                                    }
+                                  },
+                                  required: ['url', 'sha256', 'bytes'],
+                                  additionalProperties: false
+                                }
+                              }
+                            },
+                            required: [
+                              'target',
+                              'url',
+                              'sha256',
+                              'bytes',
+                              'format'
+                            ],
+                            additionalProperties: false
+                          }
+                        }
+                      },
+                      required: [
+                        'format',
+                        'version',
+                        'channel',
+                        'protocol',
+                        'schemaHash',
+                        'notes',
+                        'artifacts'
+                      ],
+                      additionalProperties: false
+                    },
+                    {
+                      type: 'null'
+                    }
+                  ]
+                },
+                received: {
+                  type: 'number'
+                },
+                total: {
+                  type: 'number'
+                },
+                error: {
+                  type: 'string'
+                },
+                blocked: {
+                  type: 'string'
+                },
+                checkedAt: {
+                  type: 'string'
+                },
+                preferences: {
+                  type: 'object',
+                  properties: {
+                    channel: {
+                      type: 'string',
+                      enum: ['stable', 'beta']
+                    },
+                    autoDownload: {
+                      type: 'boolean'
+                    },
+                    autoInstall: {
+                      type: 'boolean'
+                    },
+                    installHourUTC: {
+                      type: 'integer',
+                      minimum: 0,
+                      maximum: 23
+                    }
+                  },
+                  required: [
+                    'channel',
+                    'autoDownload',
+                    'autoInstall',
+                    'installHourUTC'
+                  ],
+                  additionalProperties: false
+                },
+                previousVersion: {
+                  type: 'string'
+                },
+                failedVersion: {
+                  type: 'string'
+                },
+                canRollback: {
+                  type: 'boolean'
+                },
+                noticeId: {
+                  type: 'string'
+                }
+              },
+              required: [
+                'configured',
+                'target',
+                'currentVersion',
+                'phase',
+                'release',
+                'received',
+                'total',
+                'error',
+                'blocked',
+                'checkedAt',
+                'preferences',
+                'previousVersion',
+                'failedVersion',
+                'canRollback',
+                'noticeId'
+              ],
+              additionalProperties: false
+            },
+            canManage: {
+              type: 'boolean'
+            }
+          },
+          required: ['state', 'canManage'],
+          additionalProperties: false
+        }
+      }
+    },
+    action: {
+      method: 'post',
+      description: 'Manage verified host updates as a host administrator',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {
+        body: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            action: {
+              type: 'string',
+              enum: ['check', 'download', 'install', 'rollback']
+            }
+          },
+          required: ['action'],
+          additionalProperties: false
+        }
+      },
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            configured: {
+              type: 'boolean'
+            },
+            target: {
+              type: 'string'
+            },
+            currentVersion: {
+              type: 'string'
+            },
+            phase: {
+              type: 'string',
+              enum: [
+                'idle',
+                'checking',
+                'available',
+                'downloading',
+                'ready',
+                'verifying',
+                'installing',
+                'restarting',
+                'rollingBack',
+                'rolledBack',
+                'complete',
+                'failed'
+              ]
+            },
+            release: {
+              anyOf: [
+                {
+                  type: 'object',
+                  properties: {
+                    format: {
+                      type: 'number',
+                      const: 1
+                    },
+                    version: {
+                      type: 'string'
+                    },
+                    channel: {
+                      type: 'string',
+                      enum: ['stable', 'beta']
+                    },
+                    protocol: {
+                      type: 'number'
+                    },
+                    schemaHash: {
+                      type: 'string'
+                    },
+                    notes: {
+                      type: 'string'
+                    },
+                    artifacts: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          target: {
+                            type: 'string'
+                          },
+                          url: {
+                            type: 'string'
+                          },
+                          sha256: {
+                            type: 'string'
+                          },
+                          bytes: {
+                            type: 'number'
+                          },
+                          format: {
+                            type: 'string',
+                            enum: ['zip', 'docker-archive']
+                          },
+                          imageId: {
+                            type: 'string'
+                          },
+                          parts: {
+                            type: 'array',
+                            items: {
+                              type: 'object',
+                              properties: {
+                                url: {
+                                  type: 'string'
+                                },
+                                sha256: {
+                                  type: 'string'
+                                },
+                                bytes: {
+                                  type: 'number'
+                                }
+                              },
+                              required: ['url', 'sha256', 'bytes'],
+                              additionalProperties: false
+                            }
+                          }
+                        },
+                        required: [
+                          'target',
+                          'url',
+                          'sha256',
+                          'bytes',
+                          'format'
+                        ],
+                        additionalProperties: false
+                      }
+                    }
+                  },
+                  required: [
+                    'format',
+                    'version',
+                    'channel',
+                    'protocol',
+                    'schemaHash',
+                    'notes',
+                    'artifacts'
+                  ],
+                  additionalProperties: false
+                },
+                {
+                  type: 'null'
+                }
+              ]
+            },
+            received: {
+              type: 'number'
+            },
+            total: {
+              type: 'number'
+            },
+            error: {
+              type: 'string'
+            },
+            blocked: {
+              type: 'string'
+            },
+            checkedAt: {
+              type: 'string'
+            },
+            preferences: {
+              type: 'object',
+              properties: {
+                channel: {
+                  type: 'string',
+                  enum: ['stable', 'beta']
+                },
+                autoDownload: {
+                  type: 'boolean'
+                },
+                autoInstall: {
+                  type: 'boolean'
+                },
+                installHourUTC: {
+                  type: 'integer',
+                  minimum: 0,
+                  maximum: 23
+                }
+              },
+              required: [
+                'channel',
+                'autoDownload',
+                'autoInstall',
+                'installHourUTC'
+              ],
+              additionalProperties: false
+            },
+            previousVersion: {
+              type: 'string'
+            },
+            failedVersion: {
+              type: 'string'
+            },
+            canRollback: {
+              type: 'boolean'
+            },
+            noticeId: {
+              type: 'string'
+            }
+          },
+          required: [
+            'configured',
+            'target',
+            'currentVersion',
+            'phase',
+            'release',
+            'received',
+            'total',
+            'error',
+            'blocked',
+            'checkedAt',
+            'preferences',
+            'previousVersion',
+            'failedVersion',
+            'canRollback',
+            'noticeId'
+          ],
+          additionalProperties: false
+        }
+      }
+    },
+    settings: {
+      method: 'post',
+      description:
+        'Configure automatic host updates and the UTC maintenance hour',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {
+        body: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            channel: {
+              type: 'string',
+              enum: ['stable', 'beta']
+            },
+            autoDownload: {
+              type: 'boolean'
+            },
+            autoInstall: {
+              type: 'boolean'
+            },
+            installHourUTC: {
+              type: 'integer',
+              minimum: 0,
+              maximum: 23
+            }
+          },
+          required: [
+            'channel',
+            'autoDownload',
+            'autoInstall',
+            'installHourUTC'
+          ],
+          additionalProperties: false
+        }
+      },
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            configured: {
+              type: 'boolean'
+            },
+            target: {
+              type: 'string'
+            },
+            currentVersion: {
+              type: 'string'
+            },
+            phase: {
+              type: 'string',
+              enum: [
+                'idle',
+                'checking',
+                'available',
+                'downloading',
+                'ready',
+                'verifying',
+                'installing',
+                'restarting',
+                'rollingBack',
+                'rolledBack',
+                'complete',
+                'failed'
+              ]
+            },
+            release: {
+              anyOf: [
+                {
+                  type: 'object',
+                  properties: {
+                    format: {
+                      type: 'number',
+                      const: 1
+                    },
+                    version: {
+                      type: 'string'
+                    },
+                    channel: {
+                      type: 'string',
+                      enum: ['stable', 'beta']
+                    },
+                    protocol: {
+                      type: 'number'
+                    },
+                    schemaHash: {
+                      type: 'string'
+                    },
+                    notes: {
+                      type: 'string'
+                    },
+                    artifacts: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          target: {
+                            type: 'string'
+                          },
+                          url: {
+                            type: 'string'
+                          },
+                          sha256: {
+                            type: 'string'
+                          },
+                          bytes: {
+                            type: 'number'
+                          },
+                          format: {
+                            type: 'string',
+                            enum: ['zip', 'docker-archive']
+                          },
+                          imageId: {
+                            type: 'string'
+                          },
+                          parts: {
+                            type: 'array',
+                            items: {
+                              type: 'object',
+                              properties: {
+                                url: {
+                                  type: 'string'
+                                },
+                                sha256: {
+                                  type: 'string'
+                                },
+                                bytes: {
+                                  type: 'number'
+                                }
+                              },
+                              required: ['url', 'sha256', 'bytes'],
+                              additionalProperties: false
+                            }
+                          }
+                        },
+                        required: [
+                          'target',
+                          'url',
+                          'sha256',
+                          'bytes',
+                          'format'
+                        ],
+                        additionalProperties: false
+                      }
+                    }
+                  },
+                  required: [
+                    'format',
+                    'version',
+                    'channel',
+                    'protocol',
+                    'schemaHash',
+                    'notes',
+                    'artifacts'
+                  ],
+                  additionalProperties: false
+                },
+                {
+                  type: 'null'
+                }
+              ]
+            },
+            received: {
+              type: 'number'
+            },
+            total: {
+              type: 'number'
+            },
+            error: {
+              type: 'string'
+            },
+            blocked: {
+              type: 'string'
+            },
+            checkedAt: {
+              type: 'string'
+            },
+            preferences: {
+              type: 'object',
+              properties: {
+                channel: {
+                  type: 'string',
+                  enum: ['stable', 'beta']
+                },
+                autoDownload: {
+                  type: 'boolean'
+                },
+                autoInstall: {
+                  type: 'boolean'
+                },
+                installHourUTC: {
+                  type: 'integer',
+                  minimum: 0,
+                  maximum: 23
+                }
+              },
+              required: [
+                'channel',
+                'autoDownload',
+                'autoInstall',
+                'installHourUTC'
+              ],
+              additionalProperties: false
+            },
+            previousVersion: {
+              type: 'string'
+            },
+            failedVersion: {
+              type: 'string'
+            },
+            canRollback: {
+              type: 'boolean'
+            },
+            noticeId: {
+              type: 'string'
+            }
+          },
+          required: [
+            'configured',
+            'target',
+            'currentVersion',
+            'phase',
+            'release',
+            'received',
+            'total',
+            'error',
+            'blocked',
+            'checkedAt',
+            'preferences',
+            'previousVersion',
+            'failedVersion',
+            'canRollback',
+            'noticeId'
+          ],
+          additionalProperties: false
         }
       }
     }
@@ -3740,6 +5287,12 @@ export const contract = {
                   id: {
                     type: 'string'
                   },
+                  source_id: {
+                    type: 'string'
+                  },
+                  graph_key: {
+                    type: 'string'
+                  },
                   title: {
                     type: 'string'
                   },
@@ -3794,6 +5347,7 @@ export const contract = {
                 },
                 required: [
                   'id',
+                  'source_id',
                   'title',
                   'module',
                   'workspace',
@@ -3868,6 +5422,3461 @@ export const contract = {
             'model'
           ],
           additionalProperties: false
+        }
+      }
+    },
+    map: {
+      method: 'get',
+      description:
+        'Read contextual knowledge connections from the authorized RAG index',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {
+        query: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            workspace_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            }
+          },
+          required: ['workspace_id'],
+          additionalProperties: false
+        }
+      },
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            nodes: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  id: {
+                    type: 'string'
+                  },
+                  key: {
+                    type: 'string'
+                  },
+                  kind: {
+                    type: 'string',
+                    enum: [
+                      'document',
+                      'record',
+                      'note',
+                      'tag',
+                      'topic',
+                      'source',
+                      'redraw'
+                    ]
+                  },
+                  title: {
+                    type: 'string'
+                  },
+                  entityType: {
+                    type: 'string'
+                  },
+                  tags: {
+                    type: 'array',
+                    items: {
+                      type: 'string'
+                    }
+                  },
+                  context: {
+                    type: 'string'
+                  },
+                  excerpt: {
+                    type: 'string'
+                  },
+                  href: {
+                    type: 'string'
+                  }
+                },
+                required: ['id', 'key', 'kind', 'title'],
+                additionalProperties: false
+              }
+            },
+            edges: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  id: {
+                    type: 'string'
+                  },
+                  source: {
+                    type: 'string'
+                  },
+                  target: {
+                    type: 'string'
+                  },
+                  kind: {
+                    type: 'string',
+                    enum: ['tag', 'topic', 'context']
+                  },
+                  label: {
+                    type: 'string'
+                  },
+                  strength: {
+                    type: 'number'
+                  },
+                  evidence: {
+                    type: 'array',
+                    items: {
+                      type: 'string'
+                    }
+                  },
+                  method: {
+                    type: 'string',
+                    enum: ['tag', 'topic', 'lexical', 'embedding']
+                  }
+                },
+                required: ['id', 'source', 'target', 'kind', 'label'],
+                additionalProperties: false
+              }
+            },
+            unresolved: {
+              type: 'number'
+            },
+            coverage: {
+              type: 'object',
+              properties: {
+                eligible: {
+                  type: 'number'
+                },
+                analyzed: {
+                  type: 'number'
+                },
+                embedded: {
+                  type: 'number'
+                },
+                topics: {
+                  type: 'number'
+                },
+                tags: {
+                  type: 'number'
+                },
+                omittedTags: {
+                  type: 'number'
+                }
+              },
+              required: [
+                'eligible',
+                'analyzed',
+                'embedded',
+                'topics',
+                'tags',
+                'omittedTags'
+              ],
+              additionalProperties: false
+            }
+          },
+          required: ['nodes', 'edges', 'unresolved', 'coverage'],
+          additionalProperties: false
+        }
+      }
+    }
+  },
+  rooms: {
+    callState: {
+      method: 'get',
+      description:
+        'Read the active core call and your short-lived platform relay credentials',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {
+        query: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            workspace_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            room_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            }
+          },
+          required: ['workspace_id', 'room_id'],
+          additionalProperties: false
+        }
+      },
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            active: {
+              type: 'boolean'
+            },
+            participants: {
+              type: 'number'
+            },
+            video: {
+              type: 'boolean'
+            },
+            limit: {
+              type: 'number'
+            },
+            iceServers: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  urls: {
+                    type: 'array',
+                    items: {
+                      type: 'string'
+                    }
+                  },
+                  username: {
+                    type: 'string'
+                  },
+                  credential: {
+                    type: 'string'
+                  }
+                },
+                required: ['urls', 'username', 'credential'],
+                additionalProperties: false
+              }
+            }
+          },
+          required: ['active', 'participants', 'video', 'limit', 'iceServers'],
+          additionalProperties: false
+        }
+      }
+    },
+    notifications: {
+      method: 'get',
+      description:
+        'Catch up on unread room notifications using the platform connection only',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {},
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              workspace_id: {
+                type: 'string',
+                format: 'uuid',
+                pattern:
+                  '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+              },
+              room_id: {
+                type: 'string',
+                format: 'uuid',
+                pattern:
+                  '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+              },
+              message_id: {
+                type: 'string',
+                format: 'uuid',
+                pattern:
+                  '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+              },
+              seq: {
+                type: 'number'
+              }
+            },
+            required: ['workspace_id', 'room_id', 'message_id', 'seq'],
+            additionalProperties: false
+          }
+        }
+      }
+    },
+    keys: {
+      method: 'get',
+      description: 'Public keys of current room members and historical senders',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {
+        query: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            workspace_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            room_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            }
+          },
+          required: ['workspace_id', 'room_id'],
+          additionalProperties: false
+        }
+      },
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            identities: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  owner_id: {
+                    type: 'string',
+                    format: 'uuid',
+                    pattern:
+                      '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                  },
+                  agreement: {
+                    type: 'string',
+                    minLength: 1,
+                    maxLength: 200,
+                    pattern: '^[A-Za-z0-9_-]+$'
+                  },
+                  signing: {
+                    type: 'string',
+                    minLength: 1,
+                    maxLength: 200,
+                    pattern: '^[A-Za-z0-9_-]+$'
+                  }
+                },
+                required: ['owner_id', 'agreement', 'signing'],
+                additionalProperties: false
+              }
+            },
+            historical: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  owner_id: {
+                    type: 'string',
+                    format: 'uuid',
+                    pattern:
+                      '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                  },
+                  agreement: {
+                    type: 'string',
+                    minLength: 1,
+                    maxLength: 200,
+                    pattern: '^[A-Za-z0-9_-]+$'
+                  },
+                  signing: {
+                    type: 'string',
+                    minLength: 1,
+                    maxLength: 200,
+                    pattern: '^[A-Za-z0-9_-]+$'
+                  }
+                },
+                required: ['owner_id', 'agreement', 'signing'],
+                additionalProperties: false
+              }
+            },
+            missing: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  id: {
+                    type: 'string',
+                    format: 'uuid',
+                    pattern:
+                      '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                  },
+                  name: {
+                    type: 'string'
+                  }
+                },
+                required: ['id', 'name'],
+                additionalProperties: false
+              }
+            }
+          },
+          required: ['identities', 'historical', 'missing'],
+          additionalProperties: false
+        }
+      }
+    },
+    myIdentity: {
+      method: 'get',
+      description: 'Read your immutable Rooms public identity',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {},
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          anyOf: [
+            {
+              type: 'object',
+              properties: {
+                owner_id: {
+                  type: 'string',
+                  format: 'uuid',
+                  pattern:
+                    '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                },
+                agreement: {
+                  type: 'string',
+                  minLength: 1,
+                  maxLength: 200,
+                  pattern: '^[A-Za-z0-9_-]+$'
+                },
+                signing: {
+                  type: 'string',
+                  minLength: 1,
+                  maxLength: 200,
+                  pattern: '^[A-Za-z0-9_-]+$'
+                }
+              },
+              required: ['owner_id', 'agreement', 'signing'],
+              additionalProperties: false
+            },
+            {
+              type: 'null'
+            }
+          ]
+        }
+      }
+    },
+    registerIdentity: {
+      method: 'post',
+      description:
+        'Enroll a client-generated public encryption identity; private keys stay on the client',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {
+        body: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            identity: {
+              type: 'object',
+              properties: {
+                owner_id: {
+                  type: 'string',
+                  format: 'uuid',
+                  pattern:
+                    '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                },
+                agreement: {
+                  type: 'string',
+                  minLength: 1,
+                  maxLength: 200,
+                  pattern: '^[A-Za-z0-9_-]+$'
+                },
+                signing: {
+                  type: 'string',
+                  minLength: 1,
+                  maxLength: 200,
+                  pattern: '^[A-Za-z0-9_-]+$'
+                }
+              },
+              required: ['owner_id', 'agreement', 'signing'],
+              additionalProperties: false
+            },
+            proof: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 86,
+              pattern: '^[A-Za-z0-9_-]+$'
+            }
+          },
+          required: ['identity', 'proof'],
+          additionalProperties: false
+        }
+      },
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'boolean',
+          const: true
+        }
+      }
+    },
+    beginUpload: {
+      method: 'post',
+      description:
+        'Reserve a bounded encrypted upload; file names and keys stay on clients',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {
+        query: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            workspace_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            room_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            }
+          },
+          required: ['workspace_id', 'room_id'],
+          additionalProperties: false
+        },
+        body: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            size: {
+              type: 'integer',
+              minimum: 16,
+              maximum: 20971536
+            },
+            hash: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 43,
+              pattern: '^[A-Za-z0-9_-]+$'
+            }
+          },
+          required: ['id', 'size', 'hash'],
+          additionalProperties: false
+        }
+      },
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'boolean',
+          const: true
+        }
+      }
+    },
+    putChunk: {
+      method: 'post',
+      description: 'Retry-safe upload of one encrypted attachment chunk',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {
+        query: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            workspace_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            room_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            }
+          },
+          required: ['workspace_id', 'room_id', 'id'],
+          additionalProperties: false
+        },
+        body: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            part: {
+              type: 'integer',
+              minimum: 0,
+              maximum: 80
+            },
+            data: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 349526,
+              pattern: '^[A-Za-z0-9_-]+$'
+            }
+          },
+          required: ['part', 'data'],
+          additionalProperties: false
+        }
+      },
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'boolean',
+          const: true
+        }
+      }
+    },
+    finishUpload: {
+      method: 'post',
+      description:
+        'Verify ciphertext size and digest before an upload can be attached',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {
+        query: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            workspace_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            room_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            }
+          },
+          required: ['workspace_id', 'room_id', 'id'],
+          additionalProperties: false
+        }
+      },
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'boolean',
+          const: true
+        }
+      }
+    },
+    getChunk: {
+      method: 'get',
+      description:
+        'Read ciphertext only after checking current room and message access',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {
+        query: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            workspace_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            room_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            part: {
+              type: 'integer',
+              minimum: 0,
+              maximum: 80
+            }
+          },
+          required: ['workspace_id', 'room_id', 'id', 'part'],
+          additionalProperties: false
+        }
+      },
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            data: {
+              type: 'string'
+            },
+            size: {
+              type: 'number'
+            },
+            hash: {
+              type: 'string'
+            }
+          },
+          required: ['data', 'size', 'hash'],
+          additionalProperties: false
+        }
+      }
+    },
+    discardUpload: {
+      method: 'post',
+      description: 'Discard your uncommitted encrypted upload',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {
+        query: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            workspace_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            room_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            }
+          },
+          required: ['workspace_id', 'room_id', 'id'],
+          additionalProperties: false
+        }
+      },
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'boolean',
+          const: true
+        }
+      }
+    },
+    list: {
+      method: 'get',
+      description:
+        'Core room directory with account-specific unread and mention counts',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {
+        query: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            workspace_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            }
+          },
+          required: ['workspace_id'],
+          additionalProperties: false
+        }
+      },
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              id: {
+                type: 'string',
+                format: 'uuid',
+                pattern:
+                  '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+              },
+              workspace_id: {
+                type: 'string',
+                format: 'uuid',
+                pattern:
+                  '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+              },
+              created_by: {
+                type: 'string',
+                format: 'uuid',
+                pattern:
+                  '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+              },
+              name: {
+                type: 'string'
+              },
+              topic: {
+                type: 'string'
+              },
+              kind: {
+                type: 'string',
+                enum: ['channel', 'private', 'direct']
+              },
+              member_ids: {
+                type: 'array',
+                items: {
+                  type: 'string',
+                  format: 'uuid',
+                  pattern:
+                    '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                }
+              },
+              archived: {
+                type: 'boolean'
+              },
+              revision: {
+                type: 'number'
+              },
+              last_seq: {
+                type: 'number'
+              },
+              updated: {
+                type: 'string'
+              },
+              unread: {
+                type: 'number'
+              },
+              mentions: {
+                type: 'number'
+              },
+              muted: {
+                type: 'boolean'
+              },
+              can_write: {
+                type: 'boolean'
+              },
+              can_manage: {
+                type: 'boolean'
+              }
+            },
+            required: [
+              'id',
+              'workspace_id',
+              'created_by',
+              'name',
+              'topic',
+              'kind',
+              'member_ids',
+              'archived',
+              'revision',
+              'last_seq',
+              'updated',
+              'unread',
+              'mentions',
+              'muted',
+              'can_write',
+              'can_manage'
+            ],
+            additionalProperties: false
+          }
+        }
+      }
+    },
+    people: {
+      method: 'get',
+      description: 'List participants eligible for this workspace',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {
+        query: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            workspace_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            }
+          },
+          required: ['workspace_id'],
+          additionalProperties: false
+        }
+      },
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              id: {
+                type: 'string',
+                format: 'uuid',
+                pattern:
+                  '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+              },
+              name: {
+                type: 'string'
+              },
+              role: {
+                type: 'string'
+              }
+            },
+            required: ['id', 'name', 'role'],
+            additionalProperties: false
+          }
+        }
+      }
+    },
+    create: {
+      method: 'post',
+      description:
+        'Create a channel, private room or direct conversation inside a workspace',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {
+        body: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            workspace_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            name: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 100
+            },
+            topic: {
+              default: '',
+              type: 'string',
+              maxLength: 1000
+            },
+            kind: {
+              type: 'string',
+              enum: ['channel', 'private', 'direct']
+            },
+            member_ids: {
+              default: [],
+              maxItems: 99,
+              type: 'array',
+              items: {
+                type: 'string',
+                format: 'uuid',
+                pattern:
+                  '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+              }
+            }
+          },
+          required: [
+            'workspace_id',
+            'id',
+            'name',
+            'topic',
+            'kind',
+            'member_ids'
+          ],
+          additionalProperties: false
+        }
+      },
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            }
+          },
+          required: ['id'],
+          additionalProperties: false
+        }
+      }
+    },
+    update: {
+      method: 'post',
+      description: 'Manage a room with a revision guard',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {
+        query: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            workspace_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            room_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            }
+          },
+          required: ['workspace_id', 'room_id'],
+          additionalProperties: false
+        },
+        body: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            expected_revision: {
+              type: 'integer',
+              exclusiveMinimum: 0,
+              maximum: 9007199254740991
+            },
+            name: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 100
+            },
+            topic: {
+              type: 'string',
+              maxLength: 1000
+            },
+            archived: {
+              type: 'boolean'
+            },
+            member_ids: {
+              maxItems: 100,
+              type: 'array',
+              items: {
+                type: 'string',
+                format: 'uuid',
+                pattern:
+                  '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+              }
+            }
+          },
+          required: [
+            'expected_revision',
+            'name',
+            'topic',
+            'archived',
+            'member_ids'
+          ],
+          additionalProperties: false
+        }
+      },
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'boolean',
+          const: true
+        }
+      }
+    },
+    timeline: {
+      method: 'get',
+      description: 'Read a stable, paginated room timeline or thread',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {
+        query: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            workspace_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            room_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            before: {
+              type: 'integer',
+              exclusiveMinimum: 0,
+              maximum: 9007199254740991
+            },
+            thread_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            message_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            q: {
+              default: '',
+              type: 'string',
+              maxLength: 200
+            },
+            all_threads: {
+              default: 'false',
+              type: 'string',
+              enum: ['true', 'false']
+            },
+            pinned: {
+              default: 'false',
+              type: 'string',
+              enum: ['true', 'false']
+            }
+          },
+          required: ['workspace_id', 'room_id', 'q', 'all_threads', 'pinned'],
+          additionalProperties: false
+        }
+      },
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            room: {
+              type: 'object',
+              properties: {
+                id: {
+                  type: 'string',
+                  format: 'uuid',
+                  pattern:
+                    '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                },
+                workspace_id: {
+                  type: 'string',
+                  format: 'uuid',
+                  pattern:
+                    '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                },
+                created_by: {
+                  type: 'string',
+                  format: 'uuid',
+                  pattern:
+                    '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                },
+                name: {
+                  type: 'string'
+                },
+                topic: {
+                  type: 'string'
+                },
+                kind: {
+                  type: 'string',
+                  enum: ['channel', 'private', 'direct']
+                },
+                member_ids: {
+                  type: 'array',
+                  items: {
+                    type: 'string',
+                    format: 'uuid',
+                    pattern:
+                      '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                  }
+                },
+                archived: {
+                  type: 'boolean'
+                },
+                revision: {
+                  type: 'number'
+                },
+                last_seq: {
+                  type: 'number'
+                },
+                updated: {
+                  type: 'string'
+                },
+                unread: {
+                  type: 'number'
+                },
+                mentions: {
+                  type: 'number'
+                },
+                muted: {
+                  type: 'boolean'
+                },
+                can_write: {
+                  type: 'boolean'
+                },
+                can_manage: {
+                  type: 'boolean'
+                }
+              },
+              required: [
+                'id',
+                'workspace_id',
+                'created_by',
+                'name',
+                'topic',
+                'kind',
+                'member_ids',
+                'archived',
+                'revision',
+                'last_seq',
+                'updated',
+                'unread',
+                'mentions',
+                'muted',
+                'can_write',
+                'can_manage'
+              ],
+              additionalProperties: false
+            },
+            messages: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  id: {
+                    type: 'string',
+                    format: 'uuid',
+                    pattern:
+                      '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                  },
+                  room_id: {
+                    type: 'string',
+                    format: 'uuid',
+                    pattern:
+                      '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                  },
+                  author_id: {
+                    type: 'string',
+                    format: 'uuid',
+                    pattern:
+                      '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                  },
+                  author_name: {
+                    type: 'string'
+                  },
+                  seq: {
+                    type: 'number'
+                  },
+                  thread_id: {
+                    anyOf: [
+                      {
+                        type: 'string',
+                        format: 'uuid',
+                        pattern:
+                          '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                      },
+                      {
+                        type: 'null'
+                      }
+                    ]
+                  },
+                  transaction_id: {
+                    type: 'string',
+                    format: 'uuid',
+                    pattern:
+                      '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                  },
+                  sealed: {
+                    anyOf: [
+                      {
+                        type: 'object',
+                        properties: {
+                          version: {
+                            type: 'number',
+                            const: 1
+                          },
+                          context: {
+                            type: 'object',
+                            properties: {
+                              workspace_id: {
+                                type: 'string',
+                                format: 'uuid',
+                                pattern:
+                                  '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                              },
+                              room_id: {
+                                type: 'string',
+                                format: 'uuid',
+                                pattern:
+                                  '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                              },
+                              author_id: {
+                                type: 'string',
+                                format: 'uuid',
+                                pattern:
+                                  '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                              },
+                              transaction_id: {
+                                type: 'string',
+                                format: 'uuid',
+                                pattern:
+                                  '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                              },
+                              thread_id: {
+                                anyOf: [
+                                  {
+                                    type: 'string',
+                                    format: 'uuid',
+                                    pattern:
+                                      '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                                  },
+                                  {
+                                    type: 'null'
+                                  }
+                                ]
+                              },
+                              content_revision: {
+                                type: 'integer',
+                                exclusiveMinimum: 0,
+                                maximum: 9007199254740991
+                              },
+                              references: {
+                                maxItems: 20,
+                                type: 'array',
+                                items: {
+                                  type: 'string',
+                                  maxLength: 160
+                                }
+                              },
+                              attachment_ids: {
+                                maxItems: 4,
+                                type: 'array',
+                                items: {
+                                  type: 'string',
+                                  format: 'uuid',
+                                  pattern:
+                                    '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                                }
+                              }
+                            },
+                            required: [
+                              'workspace_id',
+                              'room_id',
+                              'author_id',
+                              'transaction_id',
+                              'thread_id',
+                              'content_revision',
+                              'references',
+                              'attachment_ids'
+                            ],
+                            additionalProperties: false
+                          },
+                          sender: {
+                            type: 'string',
+                            minLength: 1,
+                            maxLength: 43,
+                            pattern: '^[A-Za-z0-9_-]+$'
+                          },
+                          ephemeral: {
+                            type: 'string',
+                            minLength: 1,
+                            maxLength: 200,
+                            pattern: '^[A-Za-z0-9_-]+$'
+                          },
+                          iv: {
+                            type: 'string',
+                            minLength: 1,
+                            maxLength: 16,
+                            pattern: '^[A-Za-z0-9_-]+$'
+                          },
+                          ciphertext: {
+                            type: 'string',
+                            minLength: 1,
+                            maxLength: 110000,
+                            pattern: '^[A-Za-z0-9_-]+$'
+                          },
+                          recipients: {
+                            minItems: 1,
+                            maxItems: 100,
+                            type: 'array',
+                            items: {
+                              type: 'object',
+                              properties: {
+                                user_id: {
+                                  type: 'string',
+                                  format: 'uuid',
+                                  pattern:
+                                    '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                                },
+                                fingerprint: {
+                                  type: 'string',
+                                  minLength: 1,
+                                  maxLength: 43,
+                                  pattern: '^[A-Za-z0-9_-]+$'
+                                },
+                                iv: {
+                                  type: 'string',
+                                  minLength: 1,
+                                  maxLength: 16,
+                                  pattern: '^[A-Za-z0-9_-]+$'
+                                },
+                                key: {
+                                  type: 'string',
+                                  minLength: 1,
+                                  maxLength: 64,
+                                  pattern: '^[A-Za-z0-9_-]+$'
+                                }
+                              },
+                              required: ['user_id', 'fingerprint', 'iv', 'key'],
+                              additionalProperties: false
+                            }
+                          },
+                          signature: {
+                            type: 'string',
+                            minLength: 1,
+                            maxLength: 86,
+                            pattern: '^[A-Za-z0-9_-]+$'
+                          }
+                        },
+                        required: [
+                          'version',
+                          'context',
+                          'sender',
+                          'ephemeral',
+                          'iv',
+                          'ciphertext',
+                          'recipients',
+                          'signature'
+                        ],
+                        additionalProperties: false
+                      },
+                      {
+                        type: 'null'
+                      }
+                    ]
+                  },
+                  body: {
+                    type: 'string'
+                  },
+                  references: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        key: {
+                          type: 'string'
+                        },
+                        kind: {
+                          type: 'string'
+                        },
+                        title: {
+                          type: 'string'
+                        },
+                        href: {
+                          anyOf: [
+                            {
+                              type: 'string'
+                            },
+                            {
+                              type: 'null'
+                            }
+                          ]
+                        },
+                        available: {
+                          type: 'boolean'
+                        }
+                      },
+                      required: ['key', 'kind', 'title', 'href', 'available'],
+                      additionalProperties: false
+                    }
+                  },
+                  revision: {
+                    type: 'number'
+                  },
+                  deleted: {
+                    type: 'boolean'
+                  },
+                  pinned: {
+                    type: 'boolean'
+                  },
+                  created: {
+                    type: 'string'
+                  },
+                  edited: {
+                    anyOf: [
+                      {
+                        type: 'string'
+                      },
+                      {
+                        type: 'null'
+                      }
+                    ]
+                  },
+                  replies: {
+                    type: 'number'
+                  },
+                  reactions: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        emoji: {
+                          type: 'string'
+                        },
+                        count: {
+                          type: 'number'
+                        },
+                        mine: {
+                          type: 'boolean'
+                        }
+                      },
+                      required: ['emoji', 'count', 'mine'],
+                      additionalProperties: false
+                    }
+                  }
+                },
+                required: [
+                  'id',
+                  'room_id',
+                  'author_id',
+                  'author_name',
+                  'seq',
+                  'thread_id',
+                  'transaction_id',
+                  'sealed',
+                  'body',
+                  'references',
+                  'revision',
+                  'deleted',
+                  'pinned',
+                  'created',
+                  'edited',
+                  'replies',
+                  'reactions'
+                ],
+                additionalProperties: false
+              }
+            },
+            next_cursor: {
+              anyOf: [
+                {
+                  type: 'number'
+                },
+                {
+                  type: 'null'
+                }
+              ]
+            },
+            root: {
+              anyOf: [
+                {
+                  type: 'object',
+                  properties: {
+                    id: {
+                      type: 'string',
+                      format: 'uuid',
+                      pattern:
+                        '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                    },
+                    room_id: {
+                      type: 'string',
+                      format: 'uuid',
+                      pattern:
+                        '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                    },
+                    author_id: {
+                      type: 'string',
+                      format: 'uuid',
+                      pattern:
+                        '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                    },
+                    author_name: {
+                      type: 'string'
+                    },
+                    seq: {
+                      type: 'number'
+                    },
+                    thread_id: {
+                      anyOf: [
+                        {
+                          type: 'string',
+                          format: 'uuid',
+                          pattern:
+                            '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                        },
+                        {
+                          type: 'null'
+                        }
+                      ]
+                    },
+                    transaction_id: {
+                      type: 'string',
+                      format: 'uuid',
+                      pattern:
+                        '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                    },
+                    sealed: {
+                      anyOf: [
+                        {
+                          type: 'object',
+                          properties: {
+                            version: {
+                              type: 'number',
+                              const: 1
+                            },
+                            context: {
+                              type: 'object',
+                              properties: {
+                                workspace_id: {
+                                  type: 'string',
+                                  format: 'uuid',
+                                  pattern:
+                                    '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                                },
+                                room_id: {
+                                  type: 'string',
+                                  format: 'uuid',
+                                  pattern:
+                                    '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                                },
+                                author_id: {
+                                  type: 'string',
+                                  format: 'uuid',
+                                  pattern:
+                                    '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                                },
+                                transaction_id: {
+                                  type: 'string',
+                                  format: 'uuid',
+                                  pattern:
+                                    '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                                },
+                                thread_id: {
+                                  anyOf: [
+                                    {
+                                      type: 'string',
+                                      format: 'uuid',
+                                      pattern:
+                                        '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                                    },
+                                    {
+                                      type: 'null'
+                                    }
+                                  ]
+                                },
+                                content_revision: {
+                                  type: 'integer',
+                                  exclusiveMinimum: 0,
+                                  maximum: 9007199254740991
+                                },
+                                references: {
+                                  maxItems: 20,
+                                  type: 'array',
+                                  items: {
+                                    type: 'string',
+                                    maxLength: 160
+                                  }
+                                },
+                                attachment_ids: {
+                                  maxItems: 4,
+                                  type: 'array',
+                                  items: {
+                                    type: 'string',
+                                    format: 'uuid',
+                                    pattern:
+                                      '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                                  }
+                                }
+                              },
+                              required: [
+                                'workspace_id',
+                                'room_id',
+                                'author_id',
+                                'transaction_id',
+                                'thread_id',
+                                'content_revision',
+                                'references',
+                                'attachment_ids'
+                              ],
+                              additionalProperties: false
+                            },
+                            sender: {
+                              type: 'string',
+                              minLength: 1,
+                              maxLength: 43,
+                              pattern: '^[A-Za-z0-9_-]+$'
+                            },
+                            ephemeral: {
+                              type: 'string',
+                              minLength: 1,
+                              maxLength: 200,
+                              pattern: '^[A-Za-z0-9_-]+$'
+                            },
+                            iv: {
+                              type: 'string',
+                              minLength: 1,
+                              maxLength: 16,
+                              pattern: '^[A-Za-z0-9_-]+$'
+                            },
+                            ciphertext: {
+                              type: 'string',
+                              minLength: 1,
+                              maxLength: 110000,
+                              pattern: '^[A-Za-z0-9_-]+$'
+                            },
+                            recipients: {
+                              minItems: 1,
+                              maxItems: 100,
+                              type: 'array',
+                              items: {
+                                type: 'object',
+                                properties: {
+                                  user_id: {
+                                    type: 'string',
+                                    format: 'uuid',
+                                    pattern:
+                                      '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                                  },
+                                  fingerprint: {
+                                    type: 'string',
+                                    minLength: 1,
+                                    maxLength: 43,
+                                    pattern: '^[A-Za-z0-9_-]+$'
+                                  },
+                                  iv: {
+                                    type: 'string',
+                                    minLength: 1,
+                                    maxLength: 16,
+                                    pattern: '^[A-Za-z0-9_-]+$'
+                                  },
+                                  key: {
+                                    type: 'string',
+                                    minLength: 1,
+                                    maxLength: 64,
+                                    pattern: '^[A-Za-z0-9_-]+$'
+                                  }
+                                },
+                                required: [
+                                  'user_id',
+                                  'fingerprint',
+                                  'iv',
+                                  'key'
+                                ],
+                                additionalProperties: false
+                              }
+                            },
+                            signature: {
+                              type: 'string',
+                              minLength: 1,
+                              maxLength: 86,
+                              pattern: '^[A-Za-z0-9_-]+$'
+                            }
+                          },
+                          required: [
+                            'version',
+                            'context',
+                            'sender',
+                            'ephemeral',
+                            'iv',
+                            'ciphertext',
+                            'recipients',
+                            'signature'
+                          ],
+                          additionalProperties: false
+                        },
+                        {
+                          type: 'null'
+                        }
+                      ]
+                    },
+                    body: {
+                      type: 'string'
+                    },
+                    references: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          key: {
+                            type: 'string'
+                          },
+                          kind: {
+                            type: 'string'
+                          },
+                          title: {
+                            type: 'string'
+                          },
+                          href: {
+                            anyOf: [
+                              {
+                                type: 'string'
+                              },
+                              {
+                                type: 'null'
+                              }
+                            ]
+                          },
+                          available: {
+                            type: 'boolean'
+                          }
+                        },
+                        required: ['key', 'kind', 'title', 'href', 'available'],
+                        additionalProperties: false
+                      }
+                    },
+                    revision: {
+                      type: 'number'
+                    },
+                    deleted: {
+                      type: 'boolean'
+                    },
+                    pinned: {
+                      type: 'boolean'
+                    },
+                    created: {
+                      type: 'string'
+                    },
+                    edited: {
+                      anyOf: [
+                        {
+                          type: 'string'
+                        },
+                        {
+                          type: 'null'
+                        }
+                      ]
+                    },
+                    replies: {
+                      type: 'number'
+                    },
+                    reactions: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          emoji: {
+                            type: 'string'
+                          },
+                          count: {
+                            type: 'number'
+                          },
+                          mine: {
+                            type: 'boolean'
+                          }
+                        },
+                        required: ['emoji', 'count', 'mine'],
+                        additionalProperties: false
+                      }
+                    }
+                  },
+                  required: [
+                    'id',
+                    'room_id',
+                    'author_id',
+                    'author_name',
+                    'seq',
+                    'thread_id',
+                    'transaction_id',
+                    'sealed',
+                    'body',
+                    'references',
+                    'revision',
+                    'deleted',
+                    'pinned',
+                    'created',
+                    'edited',
+                    'replies',
+                    'reactions'
+                  ],
+                  additionalProperties: false
+                },
+                {
+                  type: 'null'
+                }
+              ]
+            },
+            focus: {
+              anyOf: [
+                {
+                  type: 'object',
+                  properties: {
+                    id: {
+                      type: 'string',
+                      format: 'uuid',
+                      pattern:
+                        '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                    },
+                    room_id: {
+                      type: 'string',
+                      format: 'uuid',
+                      pattern:
+                        '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                    },
+                    author_id: {
+                      type: 'string',
+                      format: 'uuid',
+                      pattern:
+                        '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                    },
+                    author_name: {
+                      type: 'string'
+                    },
+                    seq: {
+                      type: 'number'
+                    },
+                    thread_id: {
+                      anyOf: [
+                        {
+                          type: 'string',
+                          format: 'uuid',
+                          pattern:
+                            '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                        },
+                        {
+                          type: 'null'
+                        }
+                      ]
+                    },
+                    transaction_id: {
+                      type: 'string',
+                      format: 'uuid',
+                      pattern:
+                        '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                    },
+                    sealed: {
+                      anyOf: [
+                        {
+                          type: 'object',
+                          properties: {
+                            version: {
+                              type: 'number',
+                              const: 1
+                            },
+                            context: {
+                              type: 'object',
+                              properties: {
+                                workspace_id: {
+                                  type: 'string',
+                                  format: 'uuid',
+                                  pattern:
+                                    '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                                },
+                                room_id: {
+                                  type: 'string',
+                                  format: 'uuid',
+                                  pattern:
+                                    '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                                },
+                                author_id: {
+                                  type: 'string',
+                                  format: 'uuid',
+                                  pattern:
+                                    '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                                },
+                                transaction_id: {
+                                  type: 'string',
+                                  format: 'uuid',
+                                  pattern:
+                                    '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                                },
+                                thread_id: {
+                                  anyOf: [
+                                    {
+                                      type: 'string',
+                                      format: 'uuid',
+                                      pattern:
+                                        '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                                    },
+                                    {
+                                      type: 'null'
+                                    }
+                                  ]
+                                },
+                                content_revision: {
+                                  type: 'integer',
+                                  exclusiveMinimum: 0,
+                                  maximum: 9007199254740991
+                                },
+                                references: {
+                                  maxItems: 20,
+                                  type: 'array',
+                                  items: {
+                                    type: 'string',
+                                    maxLength: 160
+                                  }
+                                },
+                                attachment_ids: {
+                                  maxItems: 4,
+                                  type: 'array',
+                                  items: {
+                                    type: 'string',
+                                    format: 'uuid',
+                                    pattern:
+                                      '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                                  }
+                                }
+                              },
+                              required: [
+                                'workspace_id',
+                                'room_id',
+                                'author_id',
+                                'transaction_id',
+                                'thread_id',
+                                'content_revision',
+                                'references',
+                                'attachment_ids'
+                              ],
+                              additionalProperties: false
+                            },
+                            sender: {
+                              type: 'string',
+                              minLength: 1,
+                              maxLength: 43,
+                              pattern: '^[A-Za-z0-9_-]+$'
+                            },
+                            ephemeral: {
+                              type: 'string',
+                              minLength: 1,
+                              maxLength: 200,
+                              pattern: '^[A-Za-z0-9_-]+$'
+                            },
+                            iv: {
+                              type: 'string',
+                              minLength: 1,
+                              maxLength: 16,
+                              pattern: '^[A-Za-z0-9_-]+$'
+                            },
+                            ciphertext: {
+                              type: 'string',
+                              minLength: 1,
+                              maxLength: 110000,
+                              pattern: '^[A-Za-z0-9_-]+$'
+                            },
+                            recipients: {
+                              minItems: 1,
+                              maxItems: 100,
+                              type: 'array',
+                              items: {
+                                type: 'object',
+                                properties: {
+                                  user_id: {
+                                    type: 'string',
+                                    format: 'uuid',
+                                    pattern:
+                                      '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                                  },
+                                  fingerprint: {
+                                    type: 'string',
+                                    minLength: 1,
+                                    maxLength: 43,
+                                    pattern: '^[A-Za-z0-9_-]+$'
+                                  },
+                                  iv: {
+                                    type: 'string',
+                                    minLength: 1,
+                                    maxLength: 16,
+                                    pattern: '^[A-Za-z0-9_-]+$'
+                                  },
+                                  key: {
+                                    type: 'string',
+                                    minLength: 1,
+                                    maxLength: 64,
+                                    pattern: '^[A-Za-z0-9_-]+$'
+                                  }
+                                },
+                                required: [
+                                  'user_id',
+                                  'fingerprint',
+                                  'iv',
+                                  'key'
+                                ],
+                                additionalProperties: false
+                              }
+                            },
+                            signature: {
+                              type: 'string',
+                              minLength: 1,
+                              maxLength: 86,
+                              pattern: '^[A-Za-z0-9_-]+$'
+                            }
+                          },
+                          required: [
+                            'version',
+                            'context',
+                            'sender',
+                            'ephemeral',
+                            'iv',
+                            'ciphertext',
+                            'recipients',
+                            'signature'
+                          ],
+                          additionalProperties: false
+                        },
+                        {
+                          type: 'null'
+                        }
+                      ]
+                    },
+                    body: {
+                      type: 'string'
+                    },
+                    references: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          key: {
+                            type: 'string'
+                          },
+                          kind: {
+                            type: 'string'
+                          },
+                          title: {
+                            type: 'string'
+                          },
+                          href: {
+                            anyOf: [
+                              {
+                                type: 'string'
+                              },
+                              {
+                                type: 'null'
+                              }
+                            ]
+                          },
+                          available: {
+                            type: 'boolean'
+                          }
+                        },
+                        required: ['key', 'kind', 'title', 'href', 'available'],
+                        additionalProperties: false
+                      }
+                    },
+                    revision: {
+                      type: 'number'
+                    },
+                    deleted: {
+                      type: 'boolean'
+                    },
+                    pinned: {
+                      type: 'boolean'
+                    },
+                    created: {
+                      type: 'string'
+                    },
+                    edited: {
+                      anyOf: [
+                        {
+                          type: 'string'
+                        },
+                        {
+                          type: 'null'
+                        }
+                      ]
+                    },
+                    replies: {
+                      type: 'number'
+                    },
+                    reactions: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          emoji: {
+                            type: 'string'
+                          },
+                          count: {
+                            type: 'number'
+                          },
+                          mine: {
+                            type: 'boolean'
+                          }
+                        },
+                        required: ['emoji', 'count', 'mine'],
+                        additionalProperties: false
+                      }
+                    }
+                  },
+                  required: [
+                    'id',
+                    'room_id',
+                    'author_id',
+                    'author_name',
+                    'seq',
+                    'thread_id',
+                    'transaction_id',
+                    'sealed',
+                    'body',
+                    'references',
+                    'revision',
+                    'deleted',
+                    'pinned',
+                    'created',
+                    'edited',
+                    'replies',
+                    'reactions'
+                  ],
+                  additionalProperties: false
+                },
+                {
+                  type: 'null'
+                }
+              ]
+            }
+          },
+          required: ['room', 'messages', 'next_cursor', 'root', 'focus'],
+          additionalProperties: false
+        }
+      }
+    },
+    send: {
+      method: 'post',
+      description: 'Send a retry-safe message with verified workspace mentions',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {
+        query: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            workspace_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            room_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            }
+          },
+          required: ['workspace_id', 'room_id'],
+          additionalProperties: false
+        },
+        body: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            body: {
+              type: 'string',
+              maxLength: 16000
+            },
+            sealed: {
+              type: 'object',
+              properties: {
+                version: {
+                  type: 'number',
+                  const: 1
+                },
+                context: {
+                  type: 'object',
+                  properties: {
+                    workspace_id: {
+                      type: 'string',
+                      format: 'uuid',
+                      pattern:
+                        '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                    },
+                    room_id: {
+                      type: 'string',
+                      format: 'uuid',
+                      pattern:
+                        '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                    },
+                    author_id: {
+                      type: 'string',
+                      format: 'uuid',
+                      pattern:
+                        '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                    },
+                    transaction_id: {
+                      type: 'string',
+                      format: 'uuid',
+                      pattern:
+                        '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                    },
+                    thread_id: {
+                      anyOf: [
+                        {
+                          type: 'string',
+                          format: 'uuid',
+                          pattern:
+                            '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                        },
+                        {
+                          type: 'null'
+                        }
+                      ]
+                    },
+                    content_revision: {
+                      type: 'integer',
+                      exclusiveMinimum: 0,
+                      maximum: 9007199254740991
+                    },
+                    references: {
+                      maxItems: 20,
+                      type: 'array',
+                      items: {
+                        type: 'string',
+                        maxLength: 160
+                      }
+                    },
+                    attachment_ids: {
+                      maxItems: 4,
+                      type: 'array',
+                      items: {
+                        type: 'string',
+                        format: 'uuid',
+                        pattern:
+                          '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                      }
+                    }
+                  },
+                  required: [
+                    'workspace_id',
+                    'room_id',
+                    'author_id',
+                    'transaction_id',
+                    'thread_id',
+                    'content_revision',
+                    'references',
+                    'attachment_ids'
+                  ],
+                  additionalProperties: false
+                },
+                sender: {
+                  type: 'string',
+                  minLength: 1,
+                  maxLength: 43,
+                  pattern: '^[A-Za-z0-9_-]+$'
+                },
+                ephemeral: {
+                  type: 'string',
+                  minLength: 1,
+                  maxLength: 200,
+                  pattern: '^[A-Za-z0-9_-]+$'
+                },
+                iv: {
+                  type: 'string',
+                  minLength: 1,
+                  maxLength: 16,
+                  pattern: '^[A-Za-z0-9_-]+$'
+                },
+                ciphertext: {
+                  type: 'string',
+                  minLength: 1,
+                  maxLength: 110000,
+                  pattern: '^[A-Za-z0-9_-]+$'
+                },
+                recipients: {
+                  minItems: 1,
+                  maxItems: 100,
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      user_id: {
+                        type: 'string',
+                        format: 'uuid',
+                        pattern:
+                          '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                      },
+                      fingerprint: {
+                        type: 'string',
+                        minLength: 1,
+                        maxLength: 43,
+                        pattern: '^[A-Za-z0-9_-]+$'
+                      },
+                      iv: {
+                        type: 'string',
+                        minLength: 1,
+                        maxLength: 16,
+                        pattern: '^[A-Za-z0-9_-]+$'
+                      },
+                      key: {
+                        type: 'string',
+                        minLength: 1,
+                        maxLength: 64,
+                        pattern: '^[A-Za-z0-9_-]+$'
+                      }
+                    },
+                    required: ['user_id', 'fingerprint', 'iv', 'key'],
+                    additionalProperties: false
+                  }
+                },
+                signature: {
+                  type: 'string',
+                  minLength: 1,
+                  maxLength: 86,
+                  pattern: '^[A-Za-z0-9_-]+$'
+                }
+              },
+              required: [
+                'version',
+                'context',
+                'sender',
+                'ephemeral',
+                'iv',
+                'ciphertext',
+                'recipients',
+                'signature'
+              ],
+              additionalProperties: false
+            },
+            references: {
+              default: [],
+              maxItems: 20,
+              type: 'array',
+              items: {
+                type: 'string',
+                pattern: '^[a-z][a-z0-9_-]{0,60}:[0-9a-f-]{36}$'
+              }
+            },
+            transaction_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            thread_id: {
+              default: null,
+              anyOf: [
+                {
+                  type: 'string',
+                  format: 'uuid',
+                  pattern:
+                    '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                },
+                {
+                  type: 'null'
+                }
+              ]
+            }
+          },
+          required: ['body', 'references', 'transaction_id', 'thread_id'],
+          additionalProperties: false
+        }
+      },
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            }
+          },
+          required: ['id'],
+          additionalProperties: false
+        }
+      }
+    },
+    edit: {
+      method: 'post',
+      description:
+        'Edit or redact a message without losing its thread identity',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {
+        query: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            workspace_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            room_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            }
+          },
+          required: ['workspace_id', 'room_id'],
+          additionalProperties: false
+        },
+        body: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            expected_revision: {
+              type: 'integer',
+              exclusiveMinimum: 0,
+              maximum: 9007199254740991
+            },
+            body: {
+              type: 'string',
+              maxLength: 16000
+            },
+            sealed: {
+              type: 'object',
+              properties: {
+                version: {
+                  type: 'number',
+                  const: 1
+                },
+                context: {
+                  type: 'object',
+                  properties: {
+                    workspace_id: {
+                      type: 'string',
+                      format: 'uuid',
+                      pattern:
+                        '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                    },
+                    room_id: {
+                      type: 'string',
+                      format: 'uuid',
+                      pattern:
+                        '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                    },
+                    author_id: {
+                      type: 'string',
+                      format: 'uuid',
+                      pattern:
+                        '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                    },
+                    transaction_id: {
+                      type: 'string',
+                      format: 'uuid',
+                      pattern:
+                        '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                    },
+                    thread_id: {
+                      anyOf: [
+                        {
+                          type: 'string',
+                          format: 'uuid',
+                          pattern:
+                            '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                        },
+                        {
+                          type: 'null'
+                        }
+                      ]
+                    },
+                    content_revision: {
+                      type: 'integer',
+                      exclusiveMinimum: 0,
+                      maximum: 9007199254740991
+                    },
+                    references: {
+                      maxItems: 20,
+                      type: 'array',
+                      items: {
+                        type: 'string',
+                        maxLength: 160
+                      }
+                    },
+                    attachment_ids: {
+                      maxItems: 4,
+                      type: 'array',
+                      items: {
+                        type: 'string',
+                        format: 'uuid',
+                        pattern:
+                          '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                      }
+                    }
+                  },
+                  required: [
+                    'workspace_id',
+                    'room_id',
+                    'author_id',
+                    'transaction_id',
+                    'thread_id',
+                    'content_revision',
+                    'references',
+                    'attachment_ids'
+                  ],
+                  additionalProperties: false
+                },
+                sender: {
+                  type: 'string',
+                  minLength: 1,
+                  maxLength: 43,
+                  pattern: '^[A-Za-z0-9_-]+$'
+                },
+                ephemeral: {
+                  type: 'string',
+                  minLength: 1,
+                  maxLength: 200,
+                  pattern: '^[A-Za-z0-9_-]+$'
+                },
+                iv: {
+                  type: 'string',
+                  minLength: 1,
+                  maxLength: 16,
+                  pattern: '^[A-Za-z0-9_-]+$'
+                },
+                ciphertext: {
+                  type: 'string',
+                  minLength: 1,
+                  maxLength: 110000,
+                  pattern: '^[A-Za-z0-9_-]+$'
+                },
+                recipients: {
+                  minItems: 1,
+                  maxItems: 100,
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      user_id: {
+                        type: 'string',
+                        format: 'uuid',
+                        pattern:
+                          '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                      },
+                      fingerprint: {
+                        type: 'string',
+                        minLength: 1,
+                        maxLength: 43,
+                        pattern: '^[A-Za-z0-9_-]+$'
+                      },
+                      iv: {
+                        type: 'string',
+                        minLength: 1,
+                        maxLength: 16,
+                        pattern: '^[A-Za-z0-9_-]+$'
+                      },
+                      key: {
+                        type: 'string',
+                        minLength: 1,
+                        maxLength: 64,
+                        pattern: '^[A-Za-z0-9_-]+$'
+                      }
+                    },
+                    required: ['user_id', 'fingerprint', 'iv', 'key'],
+                    additionalProperties: false
+                  }
+                },
+                signature: {
+                  type: 'string',
+                  minLength: 1,
+                  maxLength: 86,
+                  pattern: '^[A-Za-z0-9_-]+$'
+                }
+              },
+              required: [
+                'version',
+                'context',
+                'sender',
+                'ephemeral',
+                'iv',
+                'ciphertext',
+                'recipients',
+                'signature'
+              ],
+              additionalProperties: false
+            },
+            references: {
+              maxItems: 20,
+              type: 'array',
+              items: {
+                type: 'string',
+                pattern: '^[a-z][a-z0-9_-]{0,60}:[0-9a-f-]{36}$'
+              }
+            },
+            deleted: {
+              default: false,
+              type: 'boolean'
+            }
+          },
+          required: [
+            'id',
+            'expected_revision',
+            'body',
+            'references',
+            'deleted'
+          ],
+          additionalProperties: false
+        }
+      },
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'boolean',
+          const: true
+        }
+      }
+    },
+    react: {
+      method: 'post',
+      description: 'Idempotently add or remove your reaction',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {
+        query: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            workspace_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            room_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            }
+          },
+          required: ['workspace_id', 'room_id'],
+          additionalProperties: false
+        },
+        body: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            emoji: {
+              type: 'string',
+              enum: ['👍', '❤️', '🎉', '✅', '👀', '🚀']
+            },
+            active: {
+              type: 'boolean'
+            }
+          },
+          required: ['id', 'emoji', 'active'],
+          additionalProperties: false
+        }
+      },
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'boolean',
+          const: true
+        }
+      }
+    },
+    pin: {
+      method: 'post',
+      description: 'Pin or unpin a message for the room',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {
+        query: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            workspace_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            room_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            }
+          },
+          required: ['workspace_id', 'room_id'],
+          additionalProperties: false
+        },
+        body: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            pinned: {
+              type: 'boolean'
+            },
+            expected_revision: {
+              type: 'integer',
+              exclusiveMinimum: 0,
+              maximum: 9007199254740991
+            }
+          },
+          required: ['id', 'pinned', 'expected_revision'],
+          additionalProperties: false
+        }
+      },
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'boolean',
+          const: true
+        }
+      }
+    },
+    receipt: {
+      method: 'post',
+      description:
+        'Advance your read position monotonically and set room notifications',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {
+        query: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            workspace_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            room_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            }
+          },
+          required: ['workspace_id', 'room_id'],
+          additionalProperties: false
+        },
+        body: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            read_seq: {
+              type: 'integer',
+              minimum: 0,
+              maximum: 9007199254740991
+            },
+            muted: {
+              type: 'boolean'
+            }
+          },
+          additionalProperties: false
+        }
+      },
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'boolean',
+          const: true
+        }
+      }
+    },
+    mentions: {
+      method: 'get',
+      description:
+        'Find the latest 50 room discussions mentioning a canonical workspace item',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {
+        query: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            workspace_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            entity: {
+              type: 'string',
+              pattern: '^[a-z][a-z0-9_-]{0,60}:[0-9a-f-]{36}$'
+            }
+          },
+          required: ['workspace_id', 'entity'],
+          additionalProperties: false
+        }
+      },
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              id: {
+                type: 'string',
+                format: 'uuid',
+                pattern:
+                  '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+              },
+              room_id: {
+                type: 'string',
+                format: 'uuid',
+                pattern:
+                  '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+              },
+              author_id: {
+                type: 'string',
+                format: 'uuid',
+                pattern:
+                  '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+              },
+              author_name: {
+                type: 'string'
+              },
+              seq: {
+                type: 'number'
+              },
+              thread_id: {
+                anyOf: [
+                  {
+                    type: 'string',
+                    format: 'uuid',
+                    pattern:
+                      '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                  },
+                  {
+                    type: 'null'
+                  }
+                ]
+              },
+              transaction_id: {
+                type: 'string',
+                format: 'uuid',
+                pattern:
+                  '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+              },
+              sealed: {
+                anyOf: [
+                  {
+                    type: 'object',
+                    properties: {
+                      version: {
+                        type: 'number',
+                        const: 1
+                      },
+                      context: {
+                        type: 'object',
+                        properties: {
+                          workspace_id: {
+                            type: 'string',
+                            format: 'uuid',
+                            pattern:
+                              '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                          },
+                          room_id: {
+                            type: 'string',
+                            format: 'uuid',
+                            pattern:
+                              '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                          },
+                          author_id: {
+                            type: 'string',
+                            format: 'uuid',
+                            pattern:
+                              '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                          },
+                          transaction_id: {
+                            type: 'string',
+                            format: 'uuid',
+                            pattern:
+                              '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                          },
+                          thread_id: {
+                            anyOf: [
+                              {
+                                type: 'string',
+                                format: 'uuid',
+                                pattern:
+                                  '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                              },
+                              {
+                                type: 'null'
+                              }
+                            ]
+                          },
+                          content_revision: {
+                            type: 'integer',
+                            exclusiveMinimum: 0,
+                            maximum: 9007199254740991
+                          },
+                          references: {
+                            maxItems: 20,
+                            type: 'array',
+                            items: {
+                              type: 'string',
+                              maxLength: 160
+                            }
+                          },
+                          attachment_ids: {
+                            maxItems: 4,
+                            type: 'array',
+                            items: {
+                              type: 'string',
+                              format: 'uuid',
+                              pattern:
+                                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                            }
+                          }
+                        },
+                        required: [
+                          'workspace_id',
+                          'room_id',
+                          'author_id',
+                          'transaction_id',
+                          'thread_id',
+                          'content_revision',
+                          'references',
+                          'attachment_ids'
+                        ],
+                        additionalProperties: false
+                      },
+                      sender: {
+                        type: 'string',
+                        minLength: 1,
+                        maxLength: 43,
+                        pattern: '^[A-Za-z0-9_-]+$'
+                      },
+                      ephemeral: {
+                        type: 'string',
+                        minLength: 1,
+                        maxLength: 200,
+                        pattern: '^[A-Za-z0-9_-]+$'
+                      },
+                      iv: {
+                        type: 'string',
+                        minLength: 1,
+                        maxLength: 16,
+                        pattern: '^[A-Za-z0-9_-]+$'
+                      },
+                      ciphertext: {
+                        type: 'string',
+                        minLength: 1,
+                        maxLength: 110000,
+                        pattern: '^[A-Za-z0-9_-]+$'
+                      },
+                      recipients: {
+                        minItems: 1,
+                        maxItems: 100,
+                        type: 'array',
+                        items: {
+                          type: 'object',
+                          properties: {
+                            user_id: {
+                              type: 'string',
+                              format: 'uuid',
+                              pattern:
+                                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                            },
+                            fingerprint: {
+                              type: 'string',
+                              minLength: 1,
+                              maxLength: 43,
+                              pattern: '^[A-Za-z0-9_-]+$'
+                            },
+                            iv: {
+                              type: 'string',
+                              minLength: 1,
+                              maxLength: 16,
+                              pattern: '^[A-Za-z0-9_-]+$'
+                            },
+                            key: {
+                              type: 'string',
+                              minLength: 1,
+                              maxLength: 64,
+                              pattern: '^[A-Za-z0-9_-]+$'
+                            }
+                          },
+                          required: ['user_id', 'fingerprint', 'iv', 'key'],
+                          additionalProperties: false
+                        }
+                      },
+                      signature: {
+                        type: 'string',
+                        minLength: 1,
+                        maxLength: 86,
+                        pattern: '^[A-Za-z0-9_-]+$'
+                      }
+                    },
+                    required: [
+                      'version',
+                      'context',
+                      'sender',
+                      'ephemeral',
+                      'iv',
+                      'ciphertext',
+                      'recipients',
+                      'signature'
+                    ],
+                    additionalProperties: false
+                  },
+                  {
+                    type: 'null'
+                  }
+                ]
+              },
+              body: {
+                type: 'string'
+              },
+              references: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    key: {
+                      type: 'string'
+                    },
+                    kind: {
+                      type: 'string'
+                    },
+                    title: {
+                      type: 'string'
+                    },
+                    href: {
+                      anyOf: [
+                        {
+                          type: 'string'
+                        },
+                        {
+                          type: 'null'
+                        }
+                      ]
+                    },
+                    available: {
+                      type: 'boolean'
+                    }
+                  },
+                  required: ['key', 'kind', 'title', 'href', 'available'],
+                  additionalProperties: false
+                }
+              },
+              revision: {
+                type: 'number'
+              },
+              deleted: {
+                type: 'boolean'
+              },
+              pinned: {
+                type: 'boolean'
+              },
+              created: {
+                type: 'string'
+              },
+              edited: {
+                anyOf: [
+                  {
+                    type: 'string'
+                  },
+                  {
+                    type: 'null'
+                  }
+                ]
+              },
+              replies: {
+                type: 'number'
+              },
+              reactions: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    emoji: {
+                      type: 'string'
+                    },
+                    count: {
+                      type: 'number'
+                    },
+                    mine: {
+                      type: 'boolean'
+                    }
+                  },
+                  required: ['emoji', 'count', 'mine'],
+                  additionalProperties: false
+                }
+              },
+              room_name: {
+                type: 'string'
+              }
+            },
+            required: [
+              'id',
+              'room_id',
+              'author_id',
+              'author_name',
+              'seq',
+              'thread_id',
+              'transaction_id',
+              'sealed',
+              'body',
+              'references',
+              'revision',
+              'deleted',
+              'pinned',
+              'created',
+              'edited',
+              'replies',
+              'reactions',
+              'room_name'
+            ],
+            additionalProperties: false
+          }
+        }
+      }
+    }
+  },
+  entities: {
+    search: {
+      method: 'get',
+      description:
+        'Find authorized core workspace identities for mentions and links',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {
+        query: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            workspace_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            q: {
+              default: '',
+              type: 'string',
+              maxLength: 100
+            }
+          },
+          required: ['workspace_id', 'q'],
+          additionalProperties: false
+        }
+      },
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              key: {
+                type: 'string'
+              },
+              kind: {
+                type: 'string'
+              },
+              title: {
+                type: 'string'
+              },
+              href: {
+                anyOf: [
+                  {
+                    type: 'string'
+                  },
+                  {
+                    type: 'null'
+                  }
+                ]
+              },
+              available: {
+                type: 'boolean'
+              }
+            },
+            required: ['key', 'kind', 'title', 'href', 'available'],
+            additionalProperties: false
+          }
+        }
+      }
+    },
+    resolve: {
+      method: 'post',
+      description:
+        'Resolve live workspace references, returning tombstones for unavailable items',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {
+        body: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            workspace_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            keys: {
+              maxItems: 100,
+              type: 'array',
+              items: {
+                type: 'string',
+                pattern: '^[a-z][a-z0-9_-]{0,60}:[0-9a-f-]{36}$'
+              }
+            }
+          },
+          required: ['workspace_id', 'keys'],
+          additionalProperties: false
+        }
+      },
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              key: {
+                type: 'string'
+              },
+              kind: {
+                type: 'string'
+              },
+              title: {
+                type: 'string'
+              },
+              href: {
+                anyOf: [
+                  {
+                    type: 'string'
+                  },
+                  {
+                    type: 'null'
+                  }
+                ]
+              },
+              available: {
+                type: 'boolean'
+              }
+            },
+            required: ['key', 'kind', 'title', 'href', 'available'],
+            additionalProperties: false
+          }
+        }
+      }
+    },
+    context: {
+      method: 'get',
+      description: 'Resolve the native item shown at a platform route',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {
+        query: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            workspace_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            path: {
+              type: 'string',
+              maxLength: 2000
+            }
+          },
+          required: ['workspace_id', 'path'],
+          additionalProperties: false
+        }
+      },
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          anyOf: [
+            {
+              type: 'object',
+              properties: {
+                key: {
+                  type: 'string'
+                },
+                kind: {
+                  type: 'string'
+                },
+                title: {
+                  type: 'string'
+                },
+                href: {
+                  anyOf: [
+                    {
+                      type: 'string'
+                    },
+                    {
+                      type: 'null'
+                    }
+                  ]
+                },
+                available: {
+                  type: 'boolean'
+                }
+              },
+              required: ['key', 'kind', 'title', 'href', 'available'],
+              additionalProperties: false
+            },
+            {
+              type: 'null'
+            }
+          ]
         }
       }
     }
@@ -3945,9 +8954,15 @@ export const contract = {
         properties: {
           environment: {
             type: 'string'
+          },
+          version: {
+            type: 'string'
+          },
+          healthy: {
+            type: 'boolean'
           }
         },
-        required: ['environment'],
+        required: ['environment', 'version', 'healthy'],
         additionalProperties: false
       }
     }

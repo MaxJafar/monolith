@@ -1,7 +1,6 @@
+import { contentText } from '@monolith/blocks'
+import { ClientError, canonicalBodies } from '@monolith/server-utils'
 import { sql } from 'drizzle-orm'
-
-import { contentText } from '@lifeforge/blocks'
-import { ClientError } from '@lifeforge/server-utils'
 
 import type { db as database } from '../../core/drizzle'
 import { type Source, digest, limits } from './retrieval'
@@ -284,6 +283,7 @@ export async function collectSources(
   const sources: Source[] = []
   const seen = new Set<string>()
   const bridged = new Set<string>()
+  const canonical = await canonicalBodies(db, scope.workspace_id)
 
   let characters = 0
 
@@ -329,19 +329,26 @@ export async function collectSources(
         const route = String(page.route_key)
         add({
           id: `page:${page.id}`,
-          title: String(page.title),
+          title:
+            canonical.get(`page:${page.id}`)?.snapshot.meta.title ??
+            String(page.title),
           module: 'databases',
           workspace: w.id,
+          entityType: route.startsWith('/page/') ? 'page' : 'surface',
           href:
             (route.startsWith('/') && !route.startsWith('//')
               ? route
               : `/page/${page.id}`) + `?workspace=${w.id}`,
-          text: (body.blocks ?? [])
-            .filter(b =>
-              ['document', 'heading', 'callout', 'button'].includes(b.type)
-            )
-            .map(b => [b.title, plain(b.content)].filter(Boolean).join('\n'))
-            .join('\n\n')
+          text: canonical.has(`page:${page.id}`)
+            ? plain(canonical.get(`page:${page.id}`)!.content)
+            : (body.blocks ?? [])
+                .filter(b =>
+                  ['document', 'heading', 'callout', 'button'].includes(b.type)
+                )
+                .map(b =>
+                  [b.title, plain(b.content)].filter(Boolean).join('\n')
+                )
+                .join('\n\n')
         })
       }
       // Switch ownership only after an explicit membership check, and always
@@ -352,7 +359,7 @@ export async function collectSources(
 
       try {
         const rows =
-          await db.execute<Row>(sql`select r.id,r.title,r.content,r.item_type,r.values,r.done,r.date,b.id as base_id,b.name as base_name,s.kind as native_kind,s.native_id from zillion_databases__records r join zillion_databases__bases b on b.id=r.base_id
+          await db.execute<Row>(sql`select r.id,r.title,r.content,r.item_type,r.tags,r.values,r.done,r.date,b.id as base_id,b.name as base_name,s.kind as native_kind,s.native_id from zillion_databases__records r join zillion_databases__bases b on b.id=r.base_id
           left join zillion_databases__record_sources s on s.record_id=r.id and s.owner_id=r.owner_id
           where b.workspace_id=${w.id} and b.owner_id=${w.owner_id} and r.owner_id=${w.owner_id} limit ${limits.sources + 1}`)
         const nativeModules: Record<string, string> = {
@@ -377,14 +384,23 @@ export async function collectSources(
             bridged.add(`${nativeTables[String(r.native_kind)]}:${r.native_id}`)
           add({
             id: `record:${r.id}`,
-            title: String(r.title),
+            title:
+              canonical.get(`record:${r.id}`)?.snapshot.meta.title ??
+              String(r.title),
             module: nativeModules[String(r.native_kind)] ?? 'databases',
             workspace: w.id,
+            entityType: String(r.item_type || 'page'),
+            tags: Array.isArray(r.tags) ? r.tags.map(String) : [],
+            bodyText: [
+              plain(canonical.get(`record:${r.id}`)?.content ?? r.content),
+              plain(r.values)
+            ].join('\n'),
             href: `/databases?workspace=${w.id}&base=${r.base_id}&record=${r.id}`,
             text: [
               r.base_name,
               r.item_type,
-              plain(r.content),
+              plain(r.tags),
+              plain(canonical.get(`record:${r.id}`)?.content ?? r.content),
               plain(r.values),
               r.date ? String(r.date) : '',
               r.done ? 'Completed' : ''
@@ -467,6 +483,9 @@ export async function collectSources(
 
       for (const r of rows) {
         if (bridged.has(`${adapter.table}:${r.id}`)) continue
+
+        if (adapter.table === 'notes__entries' && canonical.has(`note:${r.id}`))
+          r.content = canonical.get(`note:${r.id}`)!.content
 
         const title = plain(r[adapter.title])
         add({

@@ -1,7 +1,7 @@
 import z from 'zod'
 
 import { getCookieOptions } from '../constants/cookie'
-import forge from '../forge'
+import endpoints from '../endpoints'
 import {
   findToken,
   revokeFamily,
@@ -9,7 +9,7 @@ import {
 } from '../utils/refreshTokenStore'
 import { generateRefreshToken, signAccessToken } from '../utils/tokens'
 
-export const refresh = forge
+export const refresh = endpoints
   .mutation({
     description: 'Refresh access token using refresh token cookie',
     noAuth: true,

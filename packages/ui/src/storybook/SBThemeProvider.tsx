@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { type ReactNode, useMemo } from 'react'
 
-import { forgeAPI } from '@/utils/forgeAPI'
+import { workspaceAPI } from '@/utils/workspaceAPI'
 
 import { PersonalizationProvider } from '../providers'
 import { useSBTheme } from './useSBTheme'
@@ -44,7 +44,7 @@ export function SBThemeProvider({
         rootElement: document.body,
         ...derivedContext.globals
       }}
-      forgeAPI={forgeAPI}
+      workspaceAPI={workspaceAPI}
     >
       {children}
     </PersonalizationProvider>

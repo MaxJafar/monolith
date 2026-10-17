@@ -1,15 +1,16 @@
 import { lazy } from 'react'
 
-import type { ModuleGroup } from '@lifeforge/configs'
+import type { ModuleGroup } from '@monolith/configs'
 
 export default {
   routes: {
+    '/': lazy(() => import('./pages/Modules')),
     '/modules': lazy(() => import('./pages/Modules')),
     '/categories': lazy(() => import('./pages/Categories'))
   },
   subsection: [
     {
-      label: 'Modules',
+      label: 'Addons and Widgets',
       icon: 'tabler:puzzle',
       path: '/modules'
     },
@@ -20,10 +21,10 @@ export default {
     }
   ],
   name: 'module-manager',
-  displayName: 'Module Manager',
+  displayName: 'Addons and Widgets',
   version: '1.0.0',
-  author: 'LifeForge <https://lifeforge.dev>',
-  description: 'UI-based module manager for your monolith workspace',
+  author: 'Monolith contributors',
+  description: 'Installed addons for your monolith workspace',
   icon: 'tabler:puzzle',
   category: 'Settings',
   APIKeyAccess: {}

@@ -1,7 +1,6 @@
+import { useModuleTranslation } from '@monolith/localization'
 import { useDebounce } from '@uidotdev/usehooks'
 import _ from 'lodash'
-
-import { useModuleTranslation } from '@lifeforge/localization'
 
 import { Button } from '@/components/inputs'
 import { Flex, Icon, Text } from '@/components/primitives'
@@ -27,7 +26,8 @@ export function ModalHeader({
   className = '',
   appendTitle,
   namespace = 'common.modals',
-  trailing
+  trailing,
+  titleId
 }: {
   title: string | React.ReactNode
   subtitle?: React.ReactNode
@@ -37,6 +37,7 @@ export function ModalHeader({
   appendTitle?: React.ReactElement
   namespace?: string | false
   trailing?: React.ReactNode
+  titleId?: string
 }) {
   const { t } = useModuleTranslation(
     namespace ? [namespace, 'common.buttons'] : ['common.buttons']
@@ -50,20 +51,25 @@ export function ModalHeader({
   return (
     <Flex
       align="center"
-      className={className}
+      className={`monolith-modal-heading ${className}`}
       justify="between"
       mb="md"
-      style={{ gap: '0.75rem' }}
+      gap="sm"
     >
-      <Flex align="center" minWidth="0" style={{ gap: '0.75rem' }} width="100%">
-        <Icon icon={innerIcon} size={subtitle ? '2em' : '1.5em'} />
+      <Flex align="center" minWidth="0" gap="sm" flex="1">
+        <Icon
+          icon={innerIcon}
+          size={subtitle ? '1.5em' : '1.25em'}
+          color="muted"
+        />
         <Flex direction="column" minWidth="0" width="100%">
-          <Text asChild size="xl" weight="semibold">
+          <Text asChild size="lg" weight="semibold">
             <Flex
+              id={titleId}
               align="center"
               as="h1"
               minWidth="0"
-              style={{ gap: '0.75rem' }}
+              gap="sm"
               width="100%"
             >
               {typeof innerTitle === 'string' ? (
@@ -98,12 +104,12 @@ export function ModalHeader({
           )}
         </Flex>
       </Flex>
-      <Flex align="center" gap="sm">
+      <Flex align="center" gap="xs" flexShrink="0">
         {trailing}
         <Button
           aria-label={t('common.buttons:close')}
           icon="tabler:x"
-          style={{ padding: '0.75rem' }}
+          p="xs"
           variant="plain"
           onClick={onClose}
         />

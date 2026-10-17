@@ -91,8 +91,11 @@ describe('S3StorageProvider', () => {
     expect(await provider.get('mod/a.txt')).toBeNull()
   })
 
-  it('returns null when get throws', async () => {
-    sendMock.mockRejectedValueOnce(new Error('boom'))
+  it('returns null only for a missing object', async () => {
+    sendMock.mockRejectedValueOnce({
+      name: 'NoSuchKey',
+      $metadata: { httpStatusCode: 404 }
+    })
 
     expect(await provider.get('mod/a.txt')).toBeNull()
   })
@@ -128,9 +131,42 @@ describe('S3StorageProvider', () => {
     })
   })
 
-  it('ignores delete errors', async () => {
+  it('reports delete failures', async () => {
     sendMock.mockRejectedValueOnce(new Error('boom'))
 
-    await expect(provider.delete('mod/a.png')).resolves.not.toThrow()
+    await expect(provider.delete('mod/a.png')).rejects.toThrow('boom')
+  })
+  it('does not disguise an authorization failure as a missing file', async () => {
+    sendMock.mockRejectedValueOnce(
+      Object.assign(new Error('denied'), { $metadata: { httpStatusCode: 403 } })
+    )
+    await expect(provider.get('mod/a.txt')).rejects.toThrow('denied')
+  })
+
+  it('reports partial batch deletion failures', async () => {
+    sendMock
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({ Contents: [{ Key: 'mod/a-thumb-32.png' }] })
+      .mockResolvedValueOnce({
+        Errors: [{ Key: 'mod/a-thumb-32.png', Code: 'AccessDenied' }]
+      })
+    await expect(provider.delete('mod/a.png')).rejects.toThrow('1 thumbnail')
+  })
+
+  it('uses only the file extension when locating thumbnails and checks pagination', async () => {
+    sendMock
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({
+        Contents: [],
+        IsTruncated: true,
+        NextContinuationToken: 'next'
+      })
+      .mockResolvedValueOnce({
+        Contents: [],
+        IsTruncated: true,
+        NextContinuationToken: 'next'
+      })
+    await expect(provider.delete('mod.v2/image')).rejects.toThrow('repeated')
+    expect(sendMock.mock.calls[1][0].input.Prefix).toBe('mod.v2/image-thumb-')
   })
 })

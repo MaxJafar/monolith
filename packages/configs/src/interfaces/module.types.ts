@@ -36,11 +36,14 @@ export const moduleConfigSchema = z.object({
     ])
     .optional(),
   clearQueryOnUnmount: z.boolean().optional(),
+  canvas: z.boolean().optional(),
   contract: z.any().optional(),
   widgets: z
     .array(
       z.custom<
         () => Promise<{
+          // Widget manifests define heterogeneous component props at the addon boundary.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           default: React.ComponentType<any>
           config: z.infer<typeof widgetConfigSchema>
         }>
@@ -60,15 +63,41 @@ export const apiKeyAccessSchema = z.record(
   z.object({ usage: z.string(), required: z.boolean() })
 )
 
+/** Declared surfaces let extensions participate without requiring a sidebar page. */
+export const addonExperienceSchema = z.object({
+  kind: z.enum([
+    'widget',
+    'dashboard',
+    'database',
+    'workbench',
+    'overhaul',
+    'standard'
+  ]),
+  surfaces: z.array(z.enum(['sidebar', 'page', 'dashboard', 'widget'])),
+  databases: z.array(z.string().max(80)).optional(),
+  systemOverrides: z
+    .array(z.enum(['icons', 'labels', 'theme', 'navigation']))
+    .optional()
+})
+
 export const modulePackageJSONSchema = z.object({
   name: z.string(),
   displayName: z.string(),
   version: z.string(),
   description: z.string(),
   author: z.string(),
-  lifeforge: z.object({
+  monolith: z.object({
+    id: z
+      .string()
+      .regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]*$/)
+      .optional(),
+    routeId: z
+      .string()
+      .regex(/^[a-f0-9]{64}$/)
+      .optional(),
     icon: z.string(),
     category: z.string(),
+    experience: addonExperienceSchema.optional(),
     APIKeyAccess: apiKeyAccessSchema.optional()
   })
 })
@@ -88,6 +117,7 @@ export const moduleEntrySchema = z.object({
   author: z.string(),
   icon: z.string(),
   category: z.string(),
+  experience: addonExperienceSchema.optional(),
   remoteEntryUrl: z.string(),
   APIKeyAccess: apiKeyAccessSchema.optional(),
   subsection: z
@@ -106,6 +136,7 @@ export const moduleEntrySchema = z.object({
 })
 
 export const moduleManifestSchema = moduleEntrySchema.pick({
+  experience: true,
   name: true,
   id: true,
   remoteId: true,
@@ -120,6 +151,7 @@ export const moduleManifestSchema = moduleEntrySchema.pick({
 })
 
 export const moduleSchema = moduleEntrySchema.pick({
+  experience: true,
   name: true,
   id: true,
   remoteId: true,

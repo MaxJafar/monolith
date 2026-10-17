@@ -1,89 +1,72 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { usePromiseLoading } from '@lifeforge/api'
-import { toast } from '@lifeforge/ui'
+import workspaceAPI from '@/core/utils/workspaceAPI'
+import { readQRLoginPayload } from '@/system/auth/qrPayload'
 
-import forgeAPI from '@/core/utils/forgeAPI'
+type Result = { input: string } & (
+  | { step: 'success'; browserInfo: string }
+  | { step: 'error'; errorMessage: string }
+)
 
-interface QRSessionData {
-  type: 'lifeforge-qr-login'
-  v: number
-  sessionId: string
-}
-
-type ModalStep = 'confirm' | 'success' | 'error'
-
-function useQRLoginApproval(scannedData: string) {
+export default function useQRLoginApproval(scannedData: string) {
   const { t } = useTranslation('common.auth')
-  const [step, setStep] = useState<ModalStep>('confirm')
-  const [browserInfo, setBrowserInfo] = useState<string>('')
-  const [errorMessage, setErrorMessage] = useState<string>('')
+  const payload = readQRLoginPayload(scannedData)
+  const [result, setResult] = useState<Result | null>(null)
+  const [loading, setLoading] = useState(false)
+  const epoch = useRef(0)
+  const pending = useRef(false)
 
-  const parseSessionData = (): QRSessionData | null => {
+  useEffect(
+    () => () => {
+      epoch.current += 1
+    },
+    [scannedData]
+  )
+
+  async function onApprove() {
+    if (!payload || pending.current) return
+    const version = ++epoch.current
+    pending.current = true
+    setLoading(true)
     try {
-      const parsed = JSON.parse(scannedData) as QRSessionData
-
-      if (parsed.type !== 'lifeforge-qr-login' || parsed.v !== 1) {
-        return null
-      }
-
-      if (!parsed.sessionId) {
-        return null
-      }
-
-      return parsed
-    } catch {
-      return null
-    }
-  }
-
-  const sessionData = parseSessionData()
-
-  if (!sessionData && step === 'confirm') {
-    setTimeout(() => {
-      setErrorMessage(t('qrLogin.invalidQR'))
-      setStep('error')
-    }, 0)
-  }
-
-  const handleApprove = async () => {
-    if (!sessionData) return
-
-    try {
-      const response = await forgeAPI.auth.qrLogin.approve.mutateRaw({
-        sessionId: sessionData.sessionId
+      const response = await workspaceAPI.auth.qrLogin.approve.mutateRaw({
+        sessionId: payload.sessionId
       })
-
-      setBrowserInfo(response.browserInfo)
-      setStep('success')
-      toast.success(t('qrLogin.success'))
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        if (error.message.includes('not found')) {
-          setErrorMessage(t('qrLogin.sessionNotFound'))
-        } else if (error.message.includes('already approved')) {
-          setErrorMessage(t('qrLogin.alreadyApproved'))
-        } else {
-          setErrorMessage(error.message)
-        }
-      } else {
-        setErrorMessage(t('messages.unknownError'))
+      if (epoch.current === version)
+        setResult({
+          input: scannedData,
+          step: 'success',
+          browserInfo: response.browserInfo
+        })
+    } catch (error) {
+      if (epoch.current === version) {
+        const message = error instanceof Error ? error.message : ''
+        const key = message.includes('not found')
+          ? 'qrLogin.sessionNotFound'
+          : message.includes('already approved')
+            ? 'qrLogin.alreadyApproved'
+            : 'messages.unknownError'
+        setResult({ input: scannedData, step: 'error', errorMessage: t(key) })
       }
-
-      setStep('error')
+    } finally {
+      pending.current = false
+      if (epoch.current === version) setLoading(false)
     }
   }
 
-  const [loading, onApprove] = usePromiseLoading(handleApprove)
-
+  const current = result?.input === scannedData ? result : null
   return {
-    step,
-    browserInfo,
-    errorMessage,
+    step: !payload
+      ? ('error' as const)
+      : (current?.step ?? ('confirm' as const)),
+    browserInfo: current?.step === 'success' ? current.browserInfo : '',
+    errorMessage: !payload
+      ? t('qrLogin.invalidQR')
+      : current?.step === 'error'
+        ? current.errorMessage
+        : '',
     loading,
     onApprove
   }
 }
-
-export default useQRLoginApproval

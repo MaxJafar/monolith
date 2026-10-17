@@ -1,143 +1,91 @@
-import {
-  createContext,
-  lazy,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState
-} from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 
-import { loadRemoteModuleConfig, useFederation } from '@lifeforge/federation'
+import { loadRemoteModuleConfig, useFederation } from '@monolith/federation'
 
 import { devModeImports, devModePkgs } from '@/core/utils/devModeImports'
-import forgeAPI from '@/core/utils/forgeAPI'
+import workspaceAPI from '@/core/utils/workspaceAPI'
 
 import NotFoundWidget from '../components/NotFoundWidget'
+import { type WidgetEntry, createWidgetCatalog } from './widgetCatalog'
 
-export interface WidgetEntry {
-  moduleName: string
-  component: React.ComponentType<any>
-  icon: string
-  minW: number
-  minH: number
-  maxW?: number
-  maxH?: number
-}
+export type { WidgetEntry } from './widgetCatalog'
 
 interface WidgetContextValue {
   widgets: Record<string, WidgetEntry>
   loading: boolean
-  getComponent: (widgetId: string) => {
-    component: React.ComponentType<any>
+  getComponent: (id: string) => {
+    component: WidgetEntry['component']
     name: string | undefined
   }
 }
 
-const defaultValue: WidgetContextValue = {
+const WidgetContext = createContext<WidgetContextValue>({
   widgets: {},
   loading: true,
   getComponent: () => ({ component: NotFoundWidget, name: undefined })
-}
+})
 
-const WidgetContext = createContext<WidgetContextValue>(defaultValue)
-
-export function useWidgets(): WidgetContextValue {
+export function useWidgets() {
   return useContext(WidgetContext)
 }
 
-function WidgetProvider({ children }: { children: React.ReactNode }) {
-  const { moduleGroups } = useFederation()
+export default function WidgetProvider({
+  children
+}: {
+  children: React.ReactNode
+}) {
+  const { moduleGroups, loading: loadingModules } = useFederation()
 
-  const [federatedWidgets, setFederatedWidgets] = useState<
-    Record<string, WidgetEntry>
-  >({})
-
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    async function loadFederatedWidgets() {
-      setLoading(true)
-
-      try {
-        const serverWidgets = await forgeAPI.modules.widgets.query()
-        const loadedWidgets: Record<string, WidgetEntry> = {}
-
-        for (const widget of serverWidgets) {
-          const item = moduleGroups
-            .flatMap(cat => cat.items)
-            .find(i => i.name === widget.moduleName)
-
-          if (!item || !item.rawModule) continue
-
-          const LazyComponent = lazy(async () => {
-            const unwrapped = await loadRemoteModuleConfig(
-              item.rawModule!,
-              devModeImports,
-              devModePkgs
-            )
-
-            for (const widgetImportFn of unwrapped.widgets || []) {
-              const widgetModule = await widgetImportFn()
-
-              if (widgetModule.config.id === widget.id) {
-                return { default: widgetModule.default }
-              }
-            }
-
-            throw new Error(
-              `Widget ${widget.id} not found in module ${widget.moduleName}`
-            )
-          })
-
-          loadedWidgets[widget.id] = {
-            moduleName: widget.moduleName,
-            component: LazyComponent,
-            icon: widget.icon,
-            minW: widget.minW || 1,
-            minH: widget.minH || 1,
-            maxW: widget.maxW,
-            maxH: widget.maxH
-          }
-        }
-
-        setFederatedWidgets(loadedWidgets)
-      } catch (e) {
-        console.error('Failed to load federated widgets:', e)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    if (moduleGroups.length > 0) {
-      loadFederatedWidgets()
-    } else {
-      setLoading(false)
-    }
-  }, [moduleGroups])
-
-  const getComponent = useCallback(
-    (widgetId: string) => {
-      const widget = federatedWidgets[widgetId]
-
-      return {
-        component: widget?.component ?? NotFoundWidget,
-        name: widget?.moduleName
-      }
-    },
-    [federatedWidgets]
+  const modules = useMemo(
+    () =>
+      moduleGroups.flatMap(group =>
+        group.items.flatMap(item => (item.rawModule ? [item.rawModule] : []))
+      ),
+    [moduleGroups]
+  )
+  const inventory = JSON.stringify(
+    modules.map(module => [module.id, module.remoteEntryUrl])
+  )
+  const enabled = modules.length > 0
+  const query = useQuery({
+    queryKey: workspaceAPI.modules.widgets.key,
+    queryFn: () => workspaceAPI.modules.widgets.query(),
+    enabled
+  })
+  const [catalog] = useState(() =>
+    createWidgetCatalog(module =>
+      loadRemoteModuleConfig(module, devModeImports, devModePkgs)
+    )
   )
 
-  const value = useMemo(
+  // The inventory may change without changing the endpoint's contract key.
+  // Current modules always filter cached descriptors before anything renders.
+  const refetchWidgets = query.refetch
+  useEffect(() => {
+    if (enabled) void refetchWidgets()
+  }, [inventory, enabled, refetchWidgets])
+
+  const widgets = useMemo(
+    () => catalog(query.data ?? [], modules),
+    [catalog, query.data, modules]
+  )
+  const loading = loadingModules || (modules.length > 0 && query.isPending)
+  const value = useMemo<WidgetContextValue>(
     () => ({
-      widgets: federatedWidgets,
+      widgets,
       loading,
-      getComponent
+      getComponent(id) {
+        const entry = widgets[id]
+
+        return {
+          component: entry?.component ?? NotFoundWidget,
+          name: entry?.moduleName
+        }
+      }
     }),
-    [federatedWidgets, loading, getComponent]
+    [widgets, loading]
   )
 
   return <WidgetContext value={value}>{children}</WidgetContext>
 }
-
-export default WidgetProvider

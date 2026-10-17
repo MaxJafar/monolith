@@ -85,12 +85,26 @@
   "messages": {
     "twoFA": {
       "enableSuccess": "Pengesahan dua faktor berjaya diaktifkan.",
-      "disableSuccess": "Pengesahan dua faktor berjaya dilumpuhkan."
+      "disableSuccess": "Pengesahan dua faktor berjaya dilumpuhkan.",
+      "disableFailed": "Pengesahan dua faktor tidak dapat dilumpuhkan.",
+      "setupFailed": "Kod persediaan tidak dapat dimuatkan.",
+      "verifyFailed": "Kod tidak diterima. Cuba kod semasa daripada aplikasi pengesah."
     },
     "oauth": {
       "changeConfirm": "Adakah anda pasti mahu menukar kelayakan OAuth?",
-      "changeAlert": "Mengemas kini ID dan rahsia pelanggan akan menggantikan yang sedia ada. Tindakan ini tidak boleh diterbalikkan."
-    }
+      "changeAlert": "Mengemas kini ID dan rahsia pelanggan akan menggantikan yang sedia ada. Tindakan ini tidak boleh diterbalikkan.",
+      "keepBlank": "Biarkan medan kosong untuk mengekalkan nilai yang disimpan. Nilai baharu akan menggantikannya dan penyimpanan akan mengaktifkan penyedia ini.",
+      "saved": "Penyedia log masuk disimpan.",
+      "loadFailed": "Status penyedia tidak tersedia.",
+      "saveFailed": "Penyedia tidak dapat dikemas kini.",
+      "removeDescription": "Buang kelayakan tersimpan dan pilihan log masuk penyedia ini?"
+    },
+    "profileSaved": "Profil dikemas kini.",
+    "passwordSaved": "Kata laluan dikemas kini.",
+    "avatarSaved": "Gambar profil dikemas kini.",
+    "avatarRemoved": "Gambar profil dibuang.",
+    "avatarFailed": "Gambar profil tidak dapat disimpan.",
+    "avatarRemoveDescription": "Buang gambar profil semasa anda?"
   },
   "misc": {
     "enabled": "Diaktifkan",
@@ -101,5 +115,19 @@
   "tabs": {
     "personalInformation": "Maklumat Peribadi",
     "accountAndSecurity": "Akaun & Keselamatan"
+  },
+  "actions": {
+    "editField": "Edit {{field}}",
+    "enableProvider": "Aktifkan log masuk {{provider}}",
+    "removeProvider": "Buang {{provider}}?",
+    "removeAvatar": "Buang gambar profil"
+  },
+  "validation": {
+    "profile": "Masukkan {{field}} yang sah.",
+    "required": "Medan ini diperlukan.",
+    "passwordLength": "Gunakan sekurang-kurangnya 8 aksara.",
+    "passwordMismatch": "Kata laluan tidak sepadan.",
+    "credentialChange": "Masukkan ID atau rahsia pelanggan yang baharu.",
+    "otp": "Masukkan kod enam digit daripada aplikasi pengesah."
   }
 }

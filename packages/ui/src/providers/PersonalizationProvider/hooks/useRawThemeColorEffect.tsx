@@ -1,5 +1,4 @@
 import { useEffect } from 'react'
-import tinycolor from 'tinycolor2'
 
 import {
   clearCustomColorProperties,
@@ -10,7 +9,7 @@ function useRawThemeColorEffect(
   rootElement: HTMLElement,
   rawThemeColor: string,
   theme: 'light' | 'dark',
-  bgTemp: [light: string, dark: string]
+  themeColor: string
 ) {
   useEffect(() => {
     if (rawThemeColor) {
@@ -44,16 +43,26 @@ function useRawThemeColorEffect(
         rawThemeColor.startsWith('#') ? 'theme-custom' : rawThemeColor
       )
 
+      const selection = ['#252525', '#eeeeec'].includes(
+        themeColor?.toLowerCase()
+      )
+        ? '#2383e2'
+        : themeColor || '#2383e2'
+      rootElement.style.setProperty('--selection-color', selection)
       rootElement.style.setProperty(
-        '--lf-selection-bg',
-        tinycolor.mostReadable(rawThemeColor, bgTemp).toHexString()
+        '--block-selection',
+        `color-mix(in srgb, ${selection} 18%, transparent)`
+      )
+      rootElement.style.setProperty(
+        '--monolith-selection-bg',
+        `color-mix(in srgb, ${selection} 28%, transparent)`
       )
 
       if (rawThemeColor.startsWith('#')) {
         interpolateColors(rootElement, rawThemeColor, 'theme')
       }
     }
-  }, [rawThemeColor, theme, bgTemp])
+  }, [rootElement, rawThemeColor, theme, themeColor])
 }
 
 export default useRawThemeColorEffect

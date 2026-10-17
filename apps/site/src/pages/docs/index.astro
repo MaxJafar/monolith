@@ -1,0 +1,62 @@
+---
+import Docs from '../../layouts/Docs.astro'
+import Icon from '../../components/Icon.astro'
+import { guides, sections } from '../../data/guides'
+const starts = [
+  ['installation', 'server', '01 / SET UP'],
+  ['quickstart', 'grid', '02 / YOUR FIRST WORKSPACE'],
+  ['addons', 'puzzle', '03 / ADD YOUR TOOLS'],
+  ['agents', 'terminal', '04 / CONNECT AN AGENT'],
+  ['self-hosting', 'server', '05 / RUN YOUR HOST'],
+  ['updates', 'shield', '06 / KEEP IT CURRENT']
+]
+---
+
+<Docs
+  title="A good place to start."
+  description="Everything you need to find your way around Monolith, make it your own and run it on your terms."
+>
+  <div class="prose">
+    <p>
+      Start with a page, turn an idea into a project and shape a dashboard
+      around your day. These guides take you from your first workspace to
+      optional tools, agent connections and running your own host.
+    </p>
+    <p>
+      New to the product? <a href="/docs/introduction">Meet Monolith</a>.
+      Looking for downloads? Check{' '}
+      <a href="/docs/availability">release availability</a>. Building an
+      integration? Explore the <a href="/docs/architecture">architecture</a>.
+    </p>
+  </div>
+  <div class="doc-card-grid" id="find-your-way">
+    {starts.map(([slug, icon, label]) => {
+      const guide = guides.find((item) => item.slug === slug)!
+      return (
+        <a class="doc-card" href={`/docs/${slug}`}>
+          <span class="micro">{label}</span>
+          <Icon name={icon} size={24} />
+          <h2>{guide.frontmatter.title}</h2>
+          <p>{guide.frontmatter.description}</p>
+          <Icon name="arrow" size={17} />
+        </a>
+      )
+    })}
+  </div>
+  {sections.map((section) => (
+    <section class="docs-home-section">
+      <h2>{section}</h2>
+      {guides
+        .filter((guide) => guide.frontmatter.section === section)
+        .map((guide) => (
+          <a href={`/docs/${guide.slug}`}>
+            <span>
+              {guide.frontmatter.title}
+              <small>{guide.frontmatter.description}</small>
+            </span>
+            <Icon name="arrow" size={17} />
+          </a>
+        ))}
+    </section>
+  ))}
+</Docs>

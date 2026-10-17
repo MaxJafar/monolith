@@ -1,30 +1,50 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  type ReactNode,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState
+} from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation } from 'react-router'
 
-import { useAuth } from '@lifeforge/api'
+import { useAuth } from '@monolith/api'
 import {
   type CanvasBlock,
   type CanvasPage,
   moveCanvasBlock,
+  parseContent,
   validateCanvasPage
-} from '@lifeforge/blocks'
-import { useModuleTranslation } from '@lifeforge/localization'
+} from '@monolith/blocks'
+import { useModuleTranslation } from '@monolith/localization'
 
+import {
+  CanonicalDocument,
+  type CanonicalIdentity
+} from '@/components/display/DocumentEditor'
 import { Button } from '@/components/inputs'
+import { FloatingPopover } from '@/components/overlays'
 import { Box, Flex, Icon, Stack, Text } from '@/components/primitives'
-import { forgeAPI } from '@/utils/forgeAPI'
+import { useAppearance } from '@/providers/AppearanceProvider'
+import { usePageChrome } from '@/providers/PageChromeProvider'
+import { workspaceAPI } from '@/utils/workspaceAPI'
 
+import { AppearanceCover } from '../AppearanceCover'
+import { CanvasBlockContent } from './BlockContent'
 import { CanvasBlockFrame } from './BlockFrame'
-import { CanvasBlockMenu } from './BlockMenu'
+import { useCanvasWidgets } from './CanvasWidgets'
 import { CanvasDraftGuard } from './DraftGuard'
+import { InlineDatabasePicker } from './InlineDatabasePicker'
+import { WidgetBoard } from './WidgetBoard'
 import './canvas.css'
-import { defaultCanvasPage } from './defaults'
+import { defaultCanvasPage, newCanvasBlock } from './defaults'
 
 export * from './CanvasWidgets'
 
 export type CanvasPageStorage = {
+  canonical?: CanonicalIdentity
   title?: string
   initialPage?: CanvasPage
   initialDataUpdatedAt?: number
@@ -35,17 +55,38 @@ export type CanvasPageStorage = {
   readOnly?: boolean
 }
 
-export function WorkspaceCanvas({
-  title,
-  native,
-  storage,
-  translationNamespace
-}: {
+type WorkspaceCanvasProps = {
   title: string
   native: ReactNode
   storage?: CanvasPageStorage
   translationNamespace?: string
-}) {
+  widgetScope?: string
+}
+
+export function WorkspaceCanvas(props: WorkspaceCanvasProps) {
+  return (
+    <>
+      <AppearanceCover />
+      <CanonicalDocument
+        identity={props.storage?.canonical}
+        native={props.native}
+        readOnly={props.storage?.readOnly}
+        widgetScope={props.widgetScope}
+        nativeTitle={props.title}
+      >
+        <LegacyWorkspaceCanvas {...props} />
+      </CanonicalDocument>
+    </>
+  )
+}
+
+function LegacyWorkspaceCanvas({
+  title,
+  native,
+  storage,
+  translationNamespace,
+  widgetScope
+}: WorkspaceCanvasProps) {
   const location = useLocation(),
     key = location.pathname
   const { userData } = useAuth(),
@@ -53,12 +94,17 @@ export function WorkspaceCanvas({
 
   const { t } = useTranslation([
     'common.canvas',
+    'common.widgets',
     ...(translationNamespace ? [translationNamespace] : [])
   ])
   const { t: moduleT, i18n, ns } = useModuleTranslation()
   const cache = useQueryClient()
+  const { appearance, openEditor } = useAppearance()
+  const chrome = usePageChrome()
+  const setDocument = chrome?.setDocument
+  const chromeOwner = useRef(Symbol())
 
-  const endpoint = forgeAPI.user.pages.get.input({ key })
+  const endpoint = workspaceAPI.user.pages.get.input({ key })
   const options = endpoint.queryOptions()
   const query = useQuery<{ page: CanvasPage | null }>({
     queryKey: storage?.queryKey ?? [...options.queryKey, owner],
@@ -106,21 +152,35 @@ export function WorkspaceCanvas({
           'deviceResources',
           'financialOverview',
           'notes'
-        ].map(label => [label, t(label)])
+        ]
+          .map(label => [label, t(label)])
+          .concat(
+            [
+              'workspacePulse',
+              'actionAgenda',
+              'projectFocus',
+              'quickLinks',
+              'weather'
+            ].map(label => [label, t(`common.widgets:catalog.${label}`)])
+          )
       )
     )
   }, [key, title, t, moduleT, i18n, ns, storage?.title, translationNamespace])
 
   const [draft, setDraft] = useState<CanvasPage | null>(null)
 
-  const [menu, setMenu] = useState(false),
-    [pending, setPending] = useState(false),
+  const [pending, setPending] = useState(false),
     [error, setError] = useState(''),
     [refreshError, setRefreshError] = useState(''),
     [reloading, setReloading] = useState(false),
     [confirmReload, setConfirmReload] = useState(false)
 
   const [invalid, setInvalid] = useState<Record<string, boolean>>({})
+  const tail = useRef(newCanvasBlock('document'))
+  const [databaseInsert, setDatabaseInsert] = useState<{
+    after: string
+    anchor: { getBoundingClientRect: () => DOMRect }
+  }>()
 
   const saved = query.data?.page ?? defaults
   const page = draft ?? saved,
@@ -144,6 +204,20 @@ export function WorkspaceCanvas({
     }
   }, [page])
   const loadError = query.isError ? query.error.message : ''
+  const pageStatus = t(
+    pending ? 'saving' : dirty ? 'unsaved' : editing ? 'saved' : 'readOnly'
+  )
+  const sourceId = storage?.canonical?.source.id ?? key
+  useLayoutEffect(() => {
+    setDocument?.(
+      { title: page.title, sourceId, status: pageStatus, dirty },
+      chromeOwner.current
+    )
+  }, [setDocument, page.title, sourceId, pageStatus, dirty])
+  useLayoutEffect(() => {
+    const owner = chromeOwner.current
+    return () => setDocument?.(undefined, owner)
+  }, [setDocument])
 
   async function refreshMetadata() {
     setRefreshError('')
@@ -152,7 +226,7 @@ export function WorkspaceCanvas({
       await (storage?.onSaved
         ? storage.onSaved()
         : cache.invalidateQueries(
-            { queryKey: forgeAPI.user.pages.list.key },
+            { queryKey: workspaceAPI.user.pages.list.key },
             { throwOnError: true }
           ))
     } catch {
@@ -160,13 +234,36 @@ export function WorkspaceCanvas({
     }
   }
 
-  const update = (block: CanvasBlock) =>
-    setDraft(current => ({
-      ...(current ?? saved),
-      blocks: (current ?? saved).blocks.map(item =>
-        item.id === block.id ? block : item
+  const update = (block: CanvasBlock) => {
+    if (block.id === tail.current.id) tail.current = newCanvasBlock('document')
+    setDraft(current => {
+      const latest = current ?? saved
+      return {
+        ...latest,
+        blocks: latest.blocks.some(item => item.id === block.id)
+          ? latest.blocks.map(item => (item.id === block.id ? block : item))
+          : [...latest.blocks, block]
+      }
+    })
+  }
+  const insertAfter = (after: string, block: CanvasBlock) =>
+    setDraft(current => {
+      const latest = current ?? saved
+      const blocks = [...latest.blocks]
+      const index = blocks.findIndex(item => item.id === after)
+      const anchor = blocks[index]
+      const replace =
+        anchor?.type === 'document' &&
+        parseContent(anchor.content).content.every(
+          node => node.type === 'paragraph' && !node.content?.length
+        )
+      blocks.splice(
+        index < 0 ? blocks.length : index + (replace ? 0 : 1),
+        replace ? 1 : 0,
+        block
       )
-    }))
+      return { ...latest, blocks }
+    })
   const reorder = (id: string, before: string | null) =>
     setDraft(current => ({
       ...(current ?? saved),
@@ -183,7 +280,7 @@ export function WorkspaceCanvas({
     try {
       const result = await (storage
         ? storage.save(submitted)
-        : forgeAPI.user.pages.save.mutate({
+        : workspaceAPI.user.pages.save.mutate({
             key,
             page: draft,
             expected_revision: submitted.revision
@@ -203,7 +300,6 @@ export function WorkspaceCanvas({
             }
           : null
       )
-      setMenu(false)
       void refreshMetadata()
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : t('saveFailed'))
@@ -263,47 +359,90 @@ export function WorkspaceCanvas({
   return (
     <Stack
       className="workspace-canvas"
-      data-full-width={page.fullWidth}
+      data-full-width={
+        appearance.contentWidth
+          ? appearance.contentWidth === 'full'
+          : page.fullWidth
+      }
       gap="md"
     >
       {dirty && <CanvasDraftGuard dirty={dirty} pending={pending} />}
-      <Flex className="canvas-page-tools" gap="sm" justify="end" wrap="wrap">
-        {editing ? (
-          <>
-            <Text aria-live="polite" color="muted" role="status" size="sm">
-              {t(pending ? 'saving' : dirty ? 'unsaved' : 'saved')}
+      {(!chrome || (dirty && !!error)) && (
+        <Flex className="canvas-page-tools" gap="sm" justify="end" wrap="wrap">
+          {editing ? (
+            <>
+              {!chrome && openEditor && (
+                <Button
+                  namespace={false}
+                  variant="plain"
+                  icon="lucide:palette"
+                  onClick={() => openEditor('page')}
+                >
+                  {t('common.appearance:customize')}
+                </Button>
+              )}
+              {!chrome && (
+                <Text aria-live="polite" color="muted" role="status" size="sm">
+                  {t(pending ? 'saving' : dirty ? 'unsaved' : 'saved')}
+                </Text>
+              )}
+              {!chrome && (
+                <Button
+                  namespace={false}
+                  variant="plain"
+                  onClick={() =>
+                    setDraft({ ...page, fullWidth: !page.fullWidth })
+                  }
+                >
+                  {t(page.fullWidth ? 'standardWidth' : 'fullWidth')}
+                </Button>
+              )}
+              {dirty && (
+                <Button
+                  disabled={!valid || Object.values(invalid).some(Boolean)}
+                  loading={pending}
+                  namespace={false}
+                  onClick={() => void save()}
+                >
+                  {t('savePage')}
+                </Button>
+              )}
+            </>
+          ) : (
+            <Text color="muted" role="status" size="sm">
+              {t(reloading ? 'loading' : 'readOnly')}
             </Text>
-            <Button
-              namespace={false}
-              variant="plain"
-              onClick={() => setDraft({ ...page, fullWidth: !page.fullWidth })}
-            >
-              {t(page.fullWidth ? 'standardWidth' : 'fullWidth')}
-            </Button>
-            {dirty && (
-              <Button
-                disabled={!valid || Object.values(invalid).some(Boolean)}
-                loading={pending}
-                namespace={false}
-                onClick={() => void save()}
-              >
-                {t('savePage')}
-              </Button>
-            )}
-          </>
-        ) : (
-          <Text color="muted" role="status" size="sm">
-            {t(reloading ? 'loading' : 'readOnly')}
-          </Text>
-        )}
-      </Flex>
+          )}
+        </Flex>
+      )}
       <Stack className="canvas-page-heading" gap="md">
-        <Icon
-          aria-hidden="true"
-          className="canvas-page-icon"
-          icon={page.icon}
-          size="36px"
-        />
+        {openEditor && editing ? (
+          <Box
+            as="button"
+            type="button"
+            aria-label={t('common.appearance:changeIcon')}
+            width="fit-content"
+            bg="transparent"
+            p="none"
+            onClick={() => openEditor('page')}
+          >
+            <Icon
+              aria-hidden="true"
+              className="canvas-page-icon"
+              icon={appearance.icon ?? page.icon}
+              preserveStyle={!!appearance.icon}
+              size="36px"
+            />
+          </Box>
+        ) : (
+          <Icon
+            aria-hidden="true"
+            className="canvas-page-icon"
+            icon={appearance.icon ?? page.icon}
+            preserveStyle={!!appearance.icon}
+            size="36px"
+          />
+        )}
         {editing ? (
           <Box
             aria-label={t('pageTitle')}
@@ -370,61 +509,119 @@ export function WorkspaceCanvas({
           </Button>
         </Flex>
       )}
-      <Box className="canvas-block-grid" minWidth="0" width="100%">
-        {page.blocks.map((block, index) => (
-          <CanvasBlockFrame
-            key={block.id}
-            block={block}
-            blocks={page.blocks}
-            editing={editing}
-            index={index}
-            native={native}
-            onChange={update}
-            onMove={reorder}
-            onRemove={() => {
-              setDraft({
-                ...page,
-                blocks: page.blocks.filter(item => item.id !== block.id)
-              })
-              setInvalid(old => {
-                const copy = { ...old }
-                delete copy[block.id]
-
-                return copy
-              })
-            }}
-            onValidity={valid =>
-              setInvalid(old =>
-                old[block.id] === !valid ? old : { ...old, [block.id]: !valid }
-              )
-            }
-          />
-        ))}
-      </Box>
-      {editing && (
-        <>
-          <Button
-            icon="lucide:plus"
-            namespace={false}
-            variant="plain"
-            onClick={() => setMenu(!menu)}
-          >
-            {t('addBlock')}
-          </Button>
-          {menu && (
-            <CanvasBlockMenu
-              allowNative={
-                !key.startsWith('/page/') &&
-                !page.blocks.some(block => block.type === 'native')
-              }
-              onAdd={block => {
-                setDraft({ ...page, blocks: [...page.blocks, block] })
-                setMenu(false)
+      {widgetScope ? (
+        <WidgetBoard
+          blocks={page.blocks}
+          scope={widgetScope}
+          nativeTitle={title}
+          readOnly={!editing}
+          onChange={blocks =>
+            setDraft(current => ({ ...(current ?? saved), blocks }))
+          }
+          render={block =>
+            block.type === 'widget' ? (
+              <WidgetContent block={block} editing={editing} update={update} />
+            ) : (
+              <CanvasBlockContent
+                block={block}
+                editing={false}
+                native={native}
+                onChange={update}
+                onValidity={() => undefined}
+              />
+            )
+          }
+        />
+      ) : (
+        <Box className="canvas-block-grid" minWidth="0" width="100%">
+          {[
+            ...page.blocks,
+            ...(editing && page.blocks.at(-1)?.type !== 'document'
+              ? [tail.current]
+              : [])
+          ].map((block, index) => (
+            <CanvasBlockFrame
+              key={block.id}
+              block={block}
+              blocks={page.blocks}
+              editing={editing}
+              index={index}
+              native={native}
+              onChange={update}
+              onInsertBlock={(kind, anchor) => {
+                if (kind === 'database')
+                  setDatabaseInsert({
+                    after: block.id,
+                    anchor: { getBoundingClientRect: () => anchor }
+                  })
+                else if (kind === 'callout' || kind === 'divider')
+                  insertAfter(block.id, newCanvasBlock(kind))
               }}
+              onMove={reorder}
+              onRemove={() => {
+                setDraft({
+                  ...page,
+                  blocks: page.blocks.filter(item => item.id !== block.id)
+                })
+                setInvalid(old => {
+                  const copy = { ...old }
+                  delete copy[block.id]
+
+                  return copy
+                })
+              }}
+              onValidity={valid =>
+                setInvalid(old =>
+                  old[block.id] === !valid
+                    ? old
+                    : { ...old, [block.id]: !valid }
+                )
+              }
             />
-          )}
-        </>
+          ))}
+        </Box>
+      )}
+      {editing && databaseInsert && (
+        <FloatingPopover
+          anchor={databaseInsert.anchor}
+          label={t('common.inlineDatabase:title')}
+          width={340}
+          onClose={() => setDatabaseInsert(undefined)}
+        >
+          <InlineDatabasePicker
+            onInsert={(reference, title) => {
+              insertAfter(
+                databaseInsert.after,
+                newCanvasBlock('database', { title, database: reference })
+              )
+              setDatabaseInsert(undefined)
+            }}
+          />
+        </FloatingPopover>
       )}
     </Stack>
+  )
+}
+
+function WidgetContent({
+  block,
+  editing,
+  update
+}: {
+  block: CanvasBlock
+  editing: boolean
+  update: (block: CanvasBlock) => void
+}) {
+  const { render } = useCanvasWidgets()
+  return (
+    <>
+      {render(block.widget, {
+        filter: block.content,
+        readOnly: !editing,
+        onConfigChange: editing
+          ? content => update({ ...block, content })
+          : undefined
+      })}
+    </>
   )
 }

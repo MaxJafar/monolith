@@ -1,4 +1,4 @@
-import type { StagedFile } from '@lifeforge/file-storage'
+import type { StagedFile } from '@monolith/file-storage'
 
 export type ReplaceFileWithMulter<T> = T extends File
   ? StagedFile

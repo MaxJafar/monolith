@@ -1,55 +1,55 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import {
+  type ReactNode,
+  createContext,
+  useContext,
+  useEffect,
+  useState
+} from 'react'
 
 import { hasServerPublicKey, initializeEncryption } from '../crypto/encryption'
 
-interface EncryptionProviderProps {
-  apiHost: string
-  children: React.ReactNode
-}
+type Status = { ready: boolean; error: string | null }
+const EncryptionStatus = createContext<Status | null>(null)
 
-const EncryptionStatusContext = createContext<
-  | {
-      ready: boolean
-      error: string | null
-    }
-  | undefined
->(undefined)
-
-/**
- * Provider that initializes end-to-end encryption by fetching the server's public key.
- * Must be rendered after APIEndpointProvider and before any components that make API calls.
- */
 export function EncryptionProvider({
   apiHost,
   children
-}: EncryptionProviderProps) {
-  const [ready, setReady] = useState(hasServerPublicKey())
-  const [error, setError] = useState<string | null>(null)
-
+}: {
+  apiHost: string
+  children: ReactNode
+}) {
+  const [status, setStatus] = useState<Status>(() => ({
+    ready: hasServerPublicKey(),
+    error: null
+  }))
   useEffect(() => {
-    if (ready) return
-
-    initializeEncryption(apiHost)
-      .then(() => setReady(true))
-      .catch(err => {
-        console.error('Failed to initialize encryption: ', err)
-        setError(err.message)
+    let active = true
+    setStatus({ ready: false, error: null })
+    Promise.resolve()
+      .then(() => initializeEncryption(apiHost))
+      .then(() => {
+        if (active) setStatus({ ready: true, error: null })
       })
-  }, [apiHost, ready])
-
-  return (
-    <EncryptionStatusContext value={{ ready, error }}>
-      {children}
-    </EncryptionStatusContext>
-  )
+      .catch(error => {
+        if (active)
+          setStatus({
+            ready: false,
+            error:
+              error instanceof Error
+                ? error.message
+                : 'Encryption initialization failed'
+          })
+      })
+    return () => {
+      active = false
+    }
+  }, [apiHost])
+  return <EncryptionStatus value={status}>{children}</EncryptionStatus>
 }
 
-export function useEncryption() {
-  const context = useContext(EncryptionStatusContext)
-
-  if (context === undefined) {
-    throw new Error('useEncryption must be used within an EncryptionProvider')
-  }
-
-  return context
+export function useEncryption(): Status {
+  const state = useContext(EncryptionStatus)
+  if (state === null)
+    throw new Error('useEncryption requires EncryptionProvider')
+  return state
 }

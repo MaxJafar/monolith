@@ -60,7 +60,11 @@ export function InputWrapper({
 }: InputWrapperProps) {
   const focusInput = useCallback(
     (e: React.MouseEvent | React.FocusEvent) => {
-      if ((e.target as HTMLElement).tagName === 'BUTTON') {
+      if (
+        disabled ||
+        (e.target instanceof Element &&
+          e.target.closest('button, a, [role="combobox"]'))
+      ) {
         return
       }
 
@@ -68,7 +72,12 @@ export function InputWrapper({
         inputRef.current.focus()
 
         if (
-          !['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)
+          !['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName) &&
+          typeof inputRef.current.setSelectionRange === 'function' &&
+          (inputRef.current instanceof HTMLTextAreaElement ||
+            ['text', 'search', 'url', 'tel', 'password'].includes(
+              inputRef.current.type
+            ))
         ) {
           inputRef.current.setSelectionRange(
             inputRef.current.value.length,
@@ -79,11 +88,11 @@ export function InputWrapper({
 
       onFocus?.()
     },
-    [inputRef, onFocus]
+    [disabled, inputRef, onFocus]
   )
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter') {
+      if (e.key === 'Enter' && e.target === e.currentTarget && !disabled) {
         e.preventDefault()
 
         if (inputRef?.current !== undefined && inputRef.current !== null) {
@@ -91,7 +100,7 @@ export function InputWrapper({
         }
       }
     },
-    [inputRef]
+    [disabled, inputRef]
   )
 
   const wrapperClassName = inputWrapperRecipe({
@@ -115,7 +124,8 @@ export function InputWrapper({
             shadow
             align="center"
             bg={surface.lightInteractive}
-            className={clsx(wrapperClassName, className)}
+            className={clsx('monolith-input', wrapperClassName, className)}
+            data-input-variant={variant}
             flexShrink="0"
             minWidth="0"
             position="relative"

@@ -1,6 +1,5 @@
+import { ModuleMetadataProvider } from '@monolith/federation'
 import { useEffect, useMemo, useState } from 'react'
-
-import { ModuleMetadataProvider } from '@lifeforge/federation'
 
 import { useModalStore } from '@/providers'
 import type { ModalInstance } from '@/providers/ModalProvider'
@@ -66,6 +65,9 @@ function StackModal({ item }: { item: ModalInstance }) {
     <ModalWrapper
       isOpen={localOpen && !isClosing}
       isTopmost={isTopmost}
+      invoker={item.invoker}
+      anchor={item.anchor}
+      onClose={onClose}
       zIndex={zIndex}
       onExited={() => {
         if (isClosing) {

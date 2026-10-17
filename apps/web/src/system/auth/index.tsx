@@ -1,13 +1,13 @@
-import { WithQueryData } from '@lifeforge/ui'
+import { WithQueryData } from '@monolith/ui'
 
-import forgeAPI from '@/core/utils/forgeAPI'
+import workspaceAPI from '@/core/utils/workspaceAPI'
 
 import LoginPage from './pages/LoginPage'
 import UserCreationPage from './pages/UserCreationPage'
 
 function Auth() {
   return (
-    <WithQueryData contract={forgeAPI.user.exists}>
+    <WithQueryData contract={workspaceAPI.user.exists}>
       {exists => (exists ? <LoginPage /> : <UserCreationPage />)}
     </WithQueryData>
   )

@@ -85,12 +85,26 @@
   "messages": {
     "twoFA": {
       "enableSuccess": "双重身份验证成功启用。",
-      "disableSuccess": "双重身份验证已成功禁用。"
+      "disableSuccess": "双重身份验证已成功禁用。",
+      "disableFailed": "无法禁用双重身份验证。",
+      "setupFailed": "无法加载设置二维码。",
+      "verifyFailed": "验证码未被接受。请尝试身份验证器中当前显示的验证码。"
     },
     "oauth": {
       "changeConfirm": "您确定要更改OAuth凭据吗？",
-      "changeAlert": "更新客户端ID和密钥将取代现有内容。此操作不可逆。"
-    }
+      "changeAlert": "更新客户端ID和密钥将取代现有内容。此操作不可逆。",
+      "keepBlank": "留空即可保留已保存的值。输入新值将替换原值，保存后将启用此登录方式。",
+      "saved": "登录方式已保存。",
+      "loadFailed": "无法获取登录方式状态。",
+      "saveFailed": "无法更新登录方式。",
+      "removeDescription": "移除此提供商已保存的凭据和登录选项？"
+    },
+    "profileSaved": "个人资料已更新。",
+    "passwordSaved": "密码已更新。",
+    "avatarSaved": "头像已更新。",
+    "avatarRemoved": "头像已移除。",
+    "avatarFailed": "无法保存头像。",
+    "avatarRemoveDescription": "移除您当前的头像？"
   },
   "misc": {
     "enabled": "已启用",
@@ -101,5 +115,19 @@
   "tabs": {
     "personalInformation": "个人信息",
     "accountAndSecurity": "账户与安全"
+  },
+  "actions": {
+    "editField": "编辑{{field}}",
+    "enableProvider": "启用{{provider}}登录",
+    "removeProvider": "移除{{provider}}？",
+    "removeAvatar": "移除头像"
+  },
+  "validation": {
+    "profile": "请输入有效的{{field}}。",
+    "required": "此字段为必填项。",
+    "passwordLength": "请至少使用8个字符。",
+    "passwordMismatch": "两次输入的密码不一致。",
+    "credentialChange": "请输入新的客户端ID或密钥。",
+    "otp": "请输入身份验证器中的六位验证码。"
   }
 }

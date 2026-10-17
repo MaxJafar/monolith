@@ -489,7 +489,7 @@ export const PolymorphicElement: Story = {
             <Item
               key={item}
               as="a"
-              href="https://docs.lifeforge.dev"
+              href="https://github.com/MaxJafar/monolith/tree/main/docs"
               label={item}
             />
           ))}

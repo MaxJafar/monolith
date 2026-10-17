@@ -1,0 +1,60 @@
+import dayjs from 'dayjs'
+
+import { useModuleTranslation } from '@monolith/localization'
+import { Flex, Icon, Text } from '@monolith/ui'
+
+function StatementHeader({ month, year }: { month: number; year: number }) {
+  const { t } = useModuleTranslation()
+
+  return (
+    <>
+      <Flex
+        align="center"
+        as="h1"
+        display={{ base: 'none', print: 'flex' }}
+        gap="sm"
+        mb="xl"
+      >
+        <Icon
+          color={{ base: 'custom-500', print: 'custom-600' }}
+          icon="tabler:hammer"
+          size="3rem"
+        />
+        <Text size="4xl" weight="medium" whiteSpace="nowrap">
+          Monolith
+          <Text color={{ base: 'custom-500', print: 'custom-600' }}>.</Text>
+        </Text>
+      </Flex>
+      <Text
+        as="h1"
+        display={{ base: 'none', print: 'block' }}
+        leading="snug"
+        size="6xl"
+        tracking="widest"
+        transform="uppercase"
+        weight="bold"
+      >
+        {t('statement.personal')}
+        <br />
+        {t('statement.financialStatements')}
+      </Text>
+      <Text
+        color="muted"
+        display={{ base: 'none', print: 'block' }}
+        mt="md"
+        size="3xl"
+      >
+        {t('statement.forTheMonthEnded')}{' '}
+        <Text color={{ base: 'bg-100', print: 'bg-950' }} weight="bold">
+          {dayjs()
+            .year(year)
+            .month(month + 1)
+            .date(0)
+            .format('DD MMMM YYYY')}
+        </Text>
+      </Text>
+    </>
+  )
+}
+
+export default StatementHeader

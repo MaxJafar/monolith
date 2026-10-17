@@ -17,3 +17,7 @@ export * from './types/contract'
 export * from './types/proxy'
 
 export * from './types/socket'
+
+export * from './desktop'
+
+export * from './rooms/crypto'

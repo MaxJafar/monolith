@@ -14,94 +14,98 @@ export type Route = {
   encrypted?: boolean
   isDownloadable?: boolean
   media?: unknown
-  input?: {
-    query?: unknown
-    body?: unknown
-  }
+  input?: { query?: unknown; body?: unknown }
   output?: unknown
-  callerModule?: {
-    source: string
-    id: string
-  }
+  callerModule?: { source: string; id: string }
 }
 
 export interface RouteStackLayer {
-  regexp: {
-    toString(): string
-  }
+  regexp?: { toString(): string; source?: string; fast_slash?: boolean }
+  monolithMountPath?: string
   route?: {
-    path?: string
+    path?: string | string[]
     methods?: Record<string, boolean>
     stack?: RouteStackLayer[]
   }
   handle?: unknown
 }
 
+type Handler = { stack?: RouteStackLayer[]; meta?: Partial<Route> }
+
+function mountPath(layer: RouteStackLayer): string {
+  if (layer.monolithMountPath !== undefined) return layer.monolithMountPath
+  if (!layer.regexp || layer.regexp.fast_slash) return ''
+  const expression =
+    layer.regexp.source ??
+    layer.regexp
+      .toString()
+      .replace(/^\//, '')
+      .replace(/\/[a-z]*$/, '')
+  const literal = expression
+    .split('(?=')[0]!
+    .replace(/^\^/, '')
+    .replace(/\\\/\?$/, '')
+  return literal.replace(/\\\//g, '/').replace(/^\/|\/$/g, '')
+}
+
+function location(prefix: string, path: string): string {
+  return (prefix + '/' + path).replace(/\/{2,}/g, '/')
+}
+
+/** Walk router layers without recursing into middleware or mistaking handler functions for routes. */
 export default function traceRouteStack(
   stack: RouteStackLayer[],
-  path: string = '',
+  prefix = '',
   routes: Route[] = []
 ): Route[] {
-  for (const layer of stack) {
-    const handle = layer.handle as
-      { stack?: RouteStackLayer[]; meta?: Route } | undefined
-
-    if (handle?.stack && Array.isArray(handle.stack)) {
-      const pathName =
-        layer.regexp
-          .toString()
-          .match(/\/\^\\\/(.*)\\\/\?\(\?=\\\/\|\$\)\/i/)?.[1]
-          ?.replace(/\\\//g, '/') ?? ''
-
-      const fullPath = [path, pathName].filter(Boolean).join('/')
-
-      traceRouteStack(handle.stack, fullPath, routes)
+  type Frame = {
+    layer: RouteStackLayer
+    prefix: string
+    ancestors: Set<RouteStackLayer[]>
+  }
+  const pending: Frame[] = []
+  const schedule = (
+    layers: RouteStackLayer[],
+    path: string,
+    ancestors: Set<RouteStackLayer[]>
+  ) => {
+    if (ancestors.has(layers)) return
+    const next = new Set(ancestors).add(layers)
+    for (let index = layers.length - 1; index >= 0; index--)
+      pending.push({ layer: layers[index]!, prefix: path, ancestors: next })
+  }
+  schedule(stack, prefix, new Set())
+  while (pending.length) {
+    const frame = pending.pop()!
+    const route = frame.layer.route
+    const handler = frame.layer.handle as Handler | undefined
+    if (!route) {
+      if (Array.isArray(handler?.stack))
+        schedule(
+          handler.stack,
+          location(frame.prefix, mountPath(frame.layer)),
+          frame.ancestors
+        )
+      continue
     }
-
-    // Check for route dispatch by looking for .route property
-    if (layer.route) {
-      const method = layer.route.methods || {}
-
-      const methods = Object.keys(method).filter(m => method[m])
-
-      const routePath = [path, layer.route.path || '']
-        .filter(Boolean)
-        .join('/')
-        .replace(/\/+/g, '/')
-        .replace(/\\\//g, '/')
-
-      const route: Route = {
-        method: methods[0]?.toUpperCase() || 'GET',
-        path: routePath,
-        schema: {
-          response: z.null()
-        },
-        description: ''
-      }
-
-      routes.push(route)
-
-      const routeStack = layer.route.stack || []
-
-      const controllerLayerMeta = (
-        routeStack[routeStack.length - 1]?.handle as
-          { meta?: Route } | undefined
-      )?.meta
-
-      if (!controllerLayerMeta) {
-        continue
-      }
-
-      route.description = controllerLayerMeta.description
-      route.noAuth = controllerLayerMeta.noAuth
-      route.encrypted = controllerLayerMeta.encrypted
-      route.isDownloadable = controllerLayerMeta.isDownloadable
-      route.media = controllerLayerMeta.media
-      route.input = controllerLayerMeta.input
-      route.output = controllerLayerMeta.output
-      route.callerModule = controllerLayerMeta.callerModule
+    const meta = [...(route.stack ?? [])]
+      .reverse()
+      .map(item => (item.handle as Handler | undefined)?.meta)
+      .find(Boolean)
+    const methods = Object.entries(route.methods ?? {})
+      .filter(([, enabled]) => enabled)
+      .map(([method]) => method.toUpperCase())
+    for (const path of [route.path ?? ''].flat()) {
+      if (path === '*') continue
+      for (const method of methods.length ? methods : ['GET'])
+        routes.push({
+          ...meta,
+          method,
+          path: location(frame.prefix, path),
+          description: meta?.description ?? '',
+          schema: meta?.schema ?? { response: z.null() }
+        })
     }
   }
-
-  return routes.filter(route => route.path !== '*')
+  return routes
 }

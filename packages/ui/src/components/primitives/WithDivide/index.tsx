@@ -1,10 +1,10 @@
-import clsx from 'clsx'
-import { type HTMLAttributes, type ReactNode, type Ref } from 'react'
+import type { HTMLAttributes, Ref } from 'react'
 
 import {
   type ColorValue,
   type ThemeConditionProp,
   colorWithOpacity,
+  mergeStyle,
   resolveColorProp
 } from '@/system'
 
@@ -15,25 +15,22 @@ interface WithDivideProps extends Omit<HTMLAttributes<HTMLElement>, 'color'> {
   ref?: Ref<HTMLElement>
   axis?: DivideAxis
   color?: ThemeConditionProp<ColorValue>
-  children?: ReactNode
 }
 
 export function WithDivide({
-  ref,
   axis = 'y',
   color = { base: 'bg-200', dark: colorWithOpacity('bg-700', '50%') },
+  className,
+  style,
   children,
-  ...rest
+  ...element
 }: WithDivideProps) {
-  const resolvedColor = resolveColorProp('divideColor', color)
-
+  const decoration = mergeStyle(resolveColorProp('divideColor', color), {
+    className: [divideVariants[axis], className].filter(Boolean).join(' '),
+    style: style ?? {}
+  })
   return (
-    <Slot
-      ref={ref}
-      className={clsx(divideVariants[axis], resolvedColor.className)}
-      style={resolvedColor.style}
-      {...rest}
-    >
+    <Slot {...element} {...decoration}>
       {children}
     </Slot>
   )

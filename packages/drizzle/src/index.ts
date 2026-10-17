@@ -10,4 +10,4 @@ export type {
   BuiltModuleSchema,
   ModuleSchema,
   ResolvedModuleSchema
-} from '@lifeforge/module-runtime/registry'
+} from '@monolith/module-runtime/registry'

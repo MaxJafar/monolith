@@ -1,3 +1,3 @@
-export * from './useForgeMutation'
+export * from './useApiMutation'
 
 export * from './usePromiseLoading'

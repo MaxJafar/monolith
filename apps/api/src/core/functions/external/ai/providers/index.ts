@@ -1,24 +1,33 @@
-import { createCache } from '@functions/cache'
-import OpenAI from 'openai'
-import z from 'zod'
+import type OpenAI from 'openai'
+import type { ZodType, output } from 'zod'
 
+export type CompletionValue<T> = T extends ZodType ? output<T> : string
+export interface CompletionRequest<T extends ZodType | undefined = undefined> {
+  model: string
+  messages: OpenAI.ChatCompletionMessageParam[]
+  apiKey?: string
+  structure?: T
+}
 export interface AIProvider {
   name: string
   requireAPIKey: boolean
-  fetch<T extends z.ZodTypeAny | undefined = undefined>(params: {
-    model: string
-    messages: OpenAI.ChatCompletionMessageParam[]
-    apiKey?: string
-    structure?: T
-  }): Promise<(T extends z.ZodTypeAny ? z.infer<T> : string) | null>
+  fetch<T extends ZodType | undefined = undefined>(
+    request: CompletionRequest<T>
+  ): Promise<CompletionValue<T> | null>
 }
 
-const registry = createCache<AIProvider>('ai-providers')
+const providers = new Map<string, AIProvider>()
 
-export function registerProvider(name: string, provider: AIProvider): void {
-  registry.set(name, provider)
+export function registerProvider(name: string, provider: AIProvider) {
+  if (
+    !/^[a-z][a-z0-9-]*$/.test(name) ||
+    name !== provider.name ||
+    typeof provider.fetch !== 'function'
+  )
+    throw new TypeError('Invalid AI provider registration')
+  providers.set(name, Object.freeze({ ...provider }))
 }
 
-export function getProvider(name: string): AIProvider | undefined {
-  return registry.get(name)
+export function getProvider(name: string) {
+  return providers.get(name)
 }

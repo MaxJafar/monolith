@@ -7,15 +7,15 @@ import postgres from 'postgres'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import z from 'zod'
 
-import { composeRelations, scopeDbForModule } from '@lifeforge/drizzle'
+import { composeRelations, scopeDbForModule } from '@monolith/drizzle'
 import {
   ModuleRegistry,
   setLoadingModuleId
-} from '@lifeforge/module-runtime/registry'
+} from '@monolith/module-runtime/registry'
 import {
-  type ForgeContract,
+  type EndpointContract,
   checkRecordExistence
-} from '@lifeforge/server-utils'
+} from '@monolith/server-utils'
 
 const owner = randomUUID()
 const otherOwner = randomUUID()
@@ -24,13 +24,13 @@ const run = randomUUID()
 let admin: ReturnType<typeof postgres> | undefined
 let client: ReturnType<typeof postgres> | undefined
 let db: ReturnType<typeof drizzle>
-let todo: typeof import('../../../../modules/lifeforge--todo-list/server/index').default
-let ideas: typeof import('../../../../modules/lifeforge--idea-box/server/index').default
-let calendar: typeof import('../../../../modules/lifeforge--calendar/server/index').default
-let pomodoro: typeof import('../../../../modules/lifeforge--pomodoro-timer/server/index').default
-let coding: typeof import('../../../../modules/lifeforge--code-time/server/index').default
-let achievements: typeof import('../../../../modules/lifeforge--achievements/server/index').default
-let wallet: typeof import('../../../../modules/lifeforge--wallet/server/index').default
+let todo: typeof import('../../../../modules/monolith--todo-list/server/index').default
+let ideas: typeof import('../../../../modules/monolith--idea-box/server/index').default
+let calendar: typeof import('../../../../modules/monolith--calendar/server/index').default
+let pomodoro: typeof import('../../../../modules/monolith--pomodoro-timer/server/index').default
+let coding: typeof import('../../../../modules/monolith--code-time/server/index').default
+let achievements: typeof import('../../../../modules/monolith--achievements/server/index').default
+let wallet: typeof import('../../../../modules/monolith--wallet/server/index').default
 
 class RejectedResponse extends Error {
   constructor(readonly result: { $status: number; payload?: unknown }) {
@@ -39,7 +39,7 @@ class RejectedResponse extends Error {
 }
 
 async function invoke(
-  route: ForgeContract,
+  route: EndpointContract,
   module: string,
   query: Record<string, unknown> = {},
   body: Record<string, unknown> = {},
@@ -56,7 +56,7 @@ async function invoke(
       )
       const scoped = scopeDbForModule(
         tx,
-        ModuleRegistry.getModuleKeyMap(`lifeforge--${module}`)
+        ModuleRegistry.getModuleKeyMap(`monolith--${module}`)
       )
       await checkRecordExistence({
         db: scoped,
@@ -110,7 +110,7 @@ describe('modern modules against owner-isolated PostgreSQL', () => {
       module: string,
       importer: () => Promise<{ default: T }>
     ) => {
-      setLoadingModuleId(`lifeforge--${module}`)
+      setLoadingModuleId(`monolith--${module}`)
 
       try {
         return (await importer()).default
@@ -120,31 +120,31 @@ describe('modern modules against owner-isolated PostgreSQL', () => {
     }
     todo = await load(
       'todo-list',
-      () => import('../../../../modules/lifeforge--todo-list/server/index')
+      () => import('../../../../modules/monolith--todo-list/server/index')
     )
     ideas = await load(
       'idea-box',
-      () => import('../../../../modules/lifeforge--idea-box/server/index')
+      () => import('../../../../modules/monolith--idea-box/server/index')
     )
     calendar = await load(
       'calendar',
-      () => import('../../../../modules/lifeforge--calendar/server/index')
+      () => import('../../../../modules/monolith--calendar/server/index')
     )
     pomodoro = await load(
       'pomodoro-timer',
-      () => import('../../../../modules/lifeforge--pomodoro-timer/server/index')
+      () => import('../../../../modules/monolith--pomodoro-timer/server/index')
     )
     coding = await load(
       'code-time',
-      () => import('../../../../modules/lifeforge--code-time/server/index')
+      () => import('../../../../modules/monolith--code-time/server/index')
     )
     achievements = await load(
       'achievements',
-      () => import('../../../../modules/lifeforge--achievements/server/index')
+      () => import('../../../../modules/monolith--achievements/server/index')
     )
     wallet = await load(
       'wallet',
-      () => import('../../../../modules/lifeforge--wallet/server/index')
+      () => import('../../../../modules/monolith--wallet/server/index')
     )
     db = drizzle({
       client,
@@ -159,7 +159,7 @@ describe('modern modules against owner-isolated PostgreSQL', () => {
   afterAll(async () => {
     if (admin) {
       const moduleTables = ModuleRegistry.schemaParts
-        .filter(part => part.moduleId?.startsWith('lifeforge--'))
+        .filter(part => part.moduleId?.startsWith('monolith--'))
         .flatMap(part => Object.values(part.tables))
 
       for (const table of moduleTables.reverse()) {
@@ -474,7 +474,7 @@ describe('modern modules against owner-isolated PostgreSQL', () => {
         })
     })
     const manifestResponse = await fetch(service + '/modules/manifest', {
-      headers: headers(owner),
+      headers: { ...headers(owner), 'X-Monolith-Package-Names': '1' },
       signal: AbortSignal.timeout(5000)
     })
     expect(manifestResponse.status).toBe(200)
@@ -486,8 +486,8 @@ describe('modern modules against owner-isolated PostgreSQL', () => {
         })
       })
       .parse(await manifestResponse.json())
-    const installed = manifest.data.modules.find(module =>
-      module.name.endsWith('lifeforge--calendar')
+    const installed = manifest.data.modules.find(
+      module => module.name === '@monolith/calendar'
     )
 
     if (!installed)

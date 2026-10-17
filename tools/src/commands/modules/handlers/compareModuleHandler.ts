@@ -191,7 +191,7 @@ async function compareModule(packageName: string): Promise<boolean | null> {
     return null
   }
 
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-compare-'))
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'endpoints-compare-'))
 
   startSpinner(`Downloading ${chalk.blue(shortName)} from the registry...`)
 

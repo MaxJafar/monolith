@@ -156,7 +156,7 @@ export function serializeEndpointValue(val: any): {
 export function serializeRoutes(node: any): any {
   if (node && typeof node === 'object') {
     if (
-      node.__isForgeContract === true ||
+      node.__isEndpointContract === true ||
       typeof node.getValue === 'function'
     ) {
       return serializeEndpointValue(node.getValue())
@@ -187,7 +187,11 @@ export async function writeContractFileToClient(
   serverRootDir: string,
   clientDir: string = '../client'
 ): Promise<void> {
-  if (process.env.NODE_ENV === 'production') return
+  if (
+    process.env.NODE_ENV === 'production' ||
+    path.basename(serverRootDir) === 'dist'
+  )
+    return
 
   const serialized = serializeRoutes(routes)
 

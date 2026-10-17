@@ -1,4 +1,4 @@
-import { LOG_LEVELS, type LogLevel, createLogger } from '@lifeforge/log'
+import { LOG_LEVELS, type LogLevel, createLogger } from '@monolith/log'
 
 export const coreLogger = createLogger({ name: 'Server Core' })
 

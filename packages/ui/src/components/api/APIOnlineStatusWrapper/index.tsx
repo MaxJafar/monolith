@@ -1,4 +1,4 @@
-import { useAPIOnlineStatus } from '@lifeforge/api'
+import { useAPIOnlineStatus } from '@monolith/api'
 
 import { EmptyStateScreen, LoadingScreen } from '@/components/feedback'
 

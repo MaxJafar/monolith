@@ -1,10 +1,10 @@
 import z from 'zod'
 
-import { createForge } from '@lifeforge/server-utils'
+import { createMonolith } from '@monolith/server-utils'
 
 import { sharedInference, sharedModels } from './client'
 
-const forge = createForge({ moduleId: 'ai' })
+const endpoints = createMonolith({ moduleId: 'ai' })
 const probability = z.number().finite().min(0).max(1)
 const scoreReply = z.object({
   model: z.literal('laya'),
@@ -30,7 +30,7 @@ const chatReply = z.object({
     .length(1)
 })
 
-export const status = forge
+export const status = endpoints
   .query({
     description: 'Check the shared Mac mini inference host',
     output: {
@@ -56,7 +56,7 @@ export const status = forge
     )
   )
 
-export const embed = forge
+export const embed = endpoints
   .mutation({
     description: 'Embed bounded text on the shared Mac mini',
     input: {
@@ -104,7 +104,7 @@ export const embed = forge
     return response.ok({ model, vectors })
   })
 
-export const rerank = forge
+export const rerank = endpoints
   .mutation({
     description: 'Score retrieved evidence using Mac mini Laya',
     input: {
@@ -142,7 +142,7 @@ export const rerank = forge
     return response.ok(result)
   })
 
-export const generate = forge
+export const generate = endpoints
   .mutation({
     description: 'Run text or image understanding on the shared Mac mini',
     input: {

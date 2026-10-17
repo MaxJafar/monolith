@@ -19,7 +19,7 @@ export default defineConfig({
     minify: true,
     rollupOptions: {
       output: { entryFileNames: 'server.js' },
-      external: ['@lifeforge/drizzle', '@lifeforge/server-utils']
+      external: ['@monolith/drizzle', '@monolith/server-utils']
     }
   },
   define: {

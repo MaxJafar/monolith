@@ -4,15 +4,15 @@ import { randomUUID } from 'node:crypto'
 import postgres from 'postgres'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
-import type { ForgeContract } from '@lifeforge/server-utils'
+import type { EndpointContract } from '@monolith/server-utils'
 
-import * as routes from '../../../../modules/zillion--databases/server/routes'
+import * as routes from '../../../../modules/monolith--databases/server/routes'
 import {
   bases,
   records,
   relations,
   tables
-} from '../../../../modules/zillion--databases/server/schema.drizzle'
+} from '../../../../modules/monolith--databases/server/schema.drizzle'
 import {
   type Base,
   type CalendarFeed,
@@ -22,9 +22,11 @@ import {
   type SavedView,
   type Snapshot,
   viewConfigSchema
-} from '../../../../modules/zillion--databases/shared'
+} from '../../../../modules/monolith--databases/shared'
 
-type Context = Parameters<ReturnType<ForgeContract['getValue']>['callback']>[0]
+type Context = Parameters<
+  ReturnType<EndpointContract['getValue']>['callback']
+>[0]
 
 const owner = randomUUID(),
   otherOwner = randomUUID()
@@ -45,7 +47,7 @@ if (enabled) {
     !/^\/(zillion_dev|zillion_test(?:_[a-z0-9]+)?)$/.test(target.pathname)
   )
     throw new Error(
-      'Calendar integration tests only use isolated local Zillion databases on port 55432'
+      'Calendar integration tests only use isolated local Monolith databases on port 55432'
     )
 }
 
@@ -67,7 +69,7 @@ async function scoped<T>(
 }
 
 async function invoke<T>(
-  route: ForgeContract,
+  route: EndpointContract,
   user: string,
   body?: unknown,
   query: Record<string, string> = {}

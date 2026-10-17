@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import type { ProxyTree } from '@lifeforge/api'
+import type { ProxyTree } from '@monolith/api'
 
 import {
   convertFormFileFieldData,
@@ -51,15 +51,17 @@ describe('file-utils', () => {
       return 'http://media-url/image.png'
     })
 
-    const mockForgeAPI = {
+    const mockWorkspaceAPI = {
       getMedia: mockGetMedia
     } as unknown as ProxyTree<Record<string, unknown>>
 
     it('should return empty when file is falsy', () => {
-      expect(getFormFileFieldInitialData(mockForgeAPI, {}, null)).toEqual({
+      expect(getFormFileFieldInitialData(mockWorkspaceAPI, {}, null)).toEqual({
         type: 'empty'
       })
-      expect(getFormFileFieldInitialData(mockForgeAPI, {}, undefined)).toEqual({
+      expect(
+        getFormFileFieldInitialData(mockWorkspaceAPI, {}, undefined)
+      ).toEqual({
         type: 'empty'
       })
     })
@@ -67,7 +69,11 @@ describe('file-utils', () => {
     it('should return upload when file is File instance', () => {
       const dummyFile = new File([''], 'test.png', { type: 'image/png' })
 
-      const result = getFormFileFieldInitialData(mockForgeAPI, {}, dummyFile)
+      const result = getFormFileFieldInitialData(
+        mockWorkspaceAPI,
+        {},
+        dummyFile
+      )
 
       expect(result.type).toBe('upload')
 
@@ -79,7 +85,7 @@ describe('file-utils', () => {
 
     it('should return url when file starts with http/data/blob protocol', () => {
       const result = getFormFileFieldInitialData(
-        mockForgeAPI,
+        mockWorkspaceAPI,
         {},
         'http://external.com/pic.png'
       )
@@ -93,7 +99,7 @@ describe('file-utils', () => {
 
     it('should return existing when file is filename and resolve preview via api', () => {
       const result = getFormFileFieldInitialData(
-        mockForgeAPI,
+        mockWorkspaceAPI,
         { collectionId: 'col', id: 'rec' },
         'existing-pic.png'
       )

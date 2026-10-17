@@ -1,6 +1,6 @@
 import { useReducer, useState } from 'react'
 
-import { useAPIEndpoint, usePromiseLoading } from '@lifeforge/api'
+import { useAPIEndpoint, usePromiseLoading } from '@monolith/api'
 
 import { WithQueryData } from '@/components/api'
 import {
@@ -11,7 +11,7 @@ import {
 import { Button, SearchInput } from '@/components/inputs'
 import { Flex } from '@/components/primitives'
 import { toast } from '@/providers'
-import { forgeAPI } from '@/utils/forgeAPI'
+import { workspaceAPI } from '@/utils/workspaceAPI'
 
 import { SearchFilterModal } from './components/SearchFilterModal'
 import { SearchResults } from './components/SearchResults'
@@ -70,7 +70,7 @@ export function Pixabay() {
     setResults(null)
 
     try {
-      const data = await forgeAPI.pixabay.searchImages
+      const data = await workspaceAPI.pixabay.searchImages
         .setHost(apiHost)
         .input({
           q: query,
@@ -90,7 +90,7 @@ export function Pixabay() {
 
   return (
     <WithQueryData
-      contract={forgeAPI.checkAPIKeys({ keys: 'pixabay' }).setHost(apiHost)}
+      contract={workspaceAPI.checkAPIKeys({ keys: 'pixabay' }).setHost(apiHost)}
     >
       {exists =>
         exists ? (

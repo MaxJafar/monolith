@@ -1,7 +1,7 @@
 import { hash } from 'bcryptjs'
 import { defineRelations, sql } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/postgres-js'
-import { createHash, randomUUID } from 'node:crypto'
+import { randomUUID } from 'node:crypto'
 import postgres from 'postgres'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
@@ -9,24 +9,25 @@ import {
   type CanvasPage,
   parseContent,
   serializeDocument
-} from '@lifeforge/blocks'
-import { type ForgeContract, observeMutation } from '@lifeforge/server-utils'
+} from '@monolith/blocks'
+import { resolveAddonIdentity } from '@monolith/configs/node'
+import { type EndpointContract, observeMutation } from '@monolith/server-utils'
 
-import * as agentRoutes from '../../../../modules/zillion--agents/server/routes'
-import { scopeAgentRoutes } from '../../../../modules/zillion--agents/server/workspaceScope'
-import * as databaseRoutes from '../../../../modules/zillion--databases/server/routes'
+import * as agentRoutes from '../../../../modules/monolith--agents/server/routes'
+import { scopeAgentRoutes } from '../../../../modules/monolith--agents/server/workspaceScope'
+import * as databaseRoutes from '../../../../modules/monolith--databases/server/routes'
 import {
   relations,
   tables
-} from '../../../../modules/zillion--databases/server/schema.drizzle'
-import * as sharedRoutes from '../../../../modules/zillion--databases/server/workspaceDatabaseRoutes'
-import * as graphRoutes from '../../../../modules/zillion--databases/server/workspaceGraphRoutes'
-import * as workspaceRoutes from '../../../../modules/zillion--databases/server/workspaceRoutes'
+} from '../../../../modules/monolith--databases/server/schema.drizzle'
+import * as sharedRoutes from '../../../../modules/monolith--databases/server/workspaceDatabaseRoutes'
+import * as graphRoutes from '../../../../modules/monolith--databases/server/workspaceGraphRoutes'
+import * as workspaceRoutes from '../../../../modules/monolith--databases/server/workspaceRoutes'
 import type {
   RecordPage,
   Snapshot
-} from '../../../../modules/zillion--databases/shared'
-import type { Workspace } from '../../../../modules/zillion--databases/workspaceShared'
+} from '../../../../modules/monolith--databases/shared'
+import type { Workspace } from '../../../../modules/monolith--databases/workspaceShared'
 
 const enabled = process.env.MONOLITH_WORKSPACE_INTEGRATION === '1'
 const connection = process.env.DATABASE_URL ?? ''
@@ -53,9 +54,11 @@ const admin = postgres(
 const db = drizzle({ client, relations: defineRelations(tables, relations) })
 const accounts = [randomUUID(), randomUUID(), randomUUID()] as const
 const password = `Synthetic-${randomUUID()}!`
-type Context = Parameters<ReturnType<ForgeContract['getValue']>['callback']>[0]
+type Context = Parameters<
+  ReturnType<EndpointContract['getValue']>['callback']
+>[0]
 async function invoke<T>(
-  route: ForgeContract,
+  route: EndpointContract,
   actor: string,
   body?: unknown,
   query: Record<string, string> = {}
@@ -69,7 +72,7 @@ async function invoke<T>(
     await observeMutation({
       db: tx,
       userId: actor,
-      moduleId: 'zillion--databases',
+      moduleId: 'monolith--databases',
       phase: 'before',
       workspaceId: scope
     })
@@ -83,7 +86,7 @@ async function invoke<T>(
     await observeMutation({
       db: tx,
       userId: actor,
-      moduleId: 'zillion--databases',
+      moduleId: 'monolith--databases',
       workspaceId: scope
     })
     return result
@@ -101,14 +104,14 @@ async function native<T>(
     await observeMutation({
       db: tx,
       userId: actor,
-      moduleId: 'lifeforge--todo-list',
+      moduleId: 'monolith--todo-list',
       phase: 'before'
     })
     const result = await callback(tx)
     await observeMutation({
       db: tx,
       userId: actor,
-      moduleId: 'lifeforge--todo-list'
+      moduleId: 'monolith--todo-list'
     })
     return result
   })
@@ -188,6 +191,36 @@ describe.skipIf(!enabled)('Connected workspace transactions and access', () => {
       { name: 'Shared items' },
       { workspace_id: workspace.id }
     )
+  })
+  it('creates every inline layout with complete defaults and removes legacy partial views', async () => {
+    for (const mode of ['table', 'kanban', 'calendar', 'gallery', 'list']) {
+      const created = await invoke<{ id: string }>(
+        sharedRoutes.createBase,
+        accounts[1]!,
+        { name: `Inline ${mode}`, initial_view: mode },
+        { workspace_id: workspace.id }
+      )
+      const [view] = await admin`
+        select mode,config from zillion_databases__views where base_id=${created.id}
+      `
+      expect(view?.mode).toBe(mode)
+      expect(view?.config).toMatchObject({
+        filters: [],
+        sorts: [],
+        hidden_fields: []
+      })
+      if (mode === 'kanban') expect(view?.config.group_property).toBe('done')
+      if (mode === 'calendar') expect(view?.config.date_field_id).toBe('date')
+      // Older embeds persisted a partial config; deleting any base must still work.
+      await admin`update zillion_databases__views set config='{}'::jsonb where base_id=${created.id}`
+      await invoke(sharedRoutes.removeBase, accounts[1]!, undefined, {
+        workspace_id: workspace.id,
+        id: created.id
+      })
+      const [remaining] =
+        await admin`select count(*)::int as count from zillion_databases__bases where id=${created.id}`
+      expect(remaining?.count).toBe(0)
+    }
   })
   it('creates a typed task in the database and changes it from native To-Do', async () => {
     item = await invoke(
@@ -752,6 +785,166 @@ describe.skipIf(!enabled)('Connected workspace transactions and access', () => {
       )
     ).rejects.toThrow('Project not found in this workspace')
   })
+  it('persists mixed navigation with revision checks and owner/editor/viewer boundaries', async () => {
+    const scope = { workspace_id: workspace.id }
+    await invoke(
+      workspaceRoutes.setMember,
+      accounts[0]!,
+      { email: accounts[1] + '@example.invalid', role: 'viewer' },
+      scope
+    )
+    type Nav = {
+      revision: number
+      groups: { id: string; name: string }[]
+      items: { key: string; group: string; hidden: boolean }[]
+    }
+    const current = await invoke<Nav>(
+      workspaceRoutes.navigation,
+      accounts[0]!,
+      undefined,
+      scope
+    )
+    const group = randomUUID(),
+      body = {
+        ...current,
+        groups: [{ id: group, name: 'Focus' }],
+        items: [{ key: 'addon:wallet', group, hidden: false }]
+      }
+    const saved = await invoke<Nav>(
+      workspaceRoutes.saveNavigation,
+      accounts[0]!,
+      body,
+      scope
+    )
+    expect(saved.revision).toBe(current.revision + 1)
+    expect(
+      (
+        await invoke<Nav>(
+          workspaceRoutes.navigation,
+          accounts[1]!,
+          undefined,
+          scope
+        )
+      ).items
+    ).toEqual(body.items)
+    await expect(
+      invoke(workspaceRoutes.saveNavigation, accounts[0]!, body, scope)
+    ).rejects.toThrow(/changed elsewhere/i)
+    await expect(
+      invoke(workspaceRoutes.saveNavigation, accounts[1]!, saved, scope)
+    ).rejects.toThrow()
+    await expect(
+      invoke(workspaceRoutes.navigation, accounts[2]!, undefined, scope)
+    ).rejects.toThrow()
+  })
+
+  it('moves pages without losing their bodies, prevents cycles and preserves children when removing a parent', async () => {
+    const scope = { workspace_id: workspace.id }
+    type Page = {
+      id: string
+      parent_id: string | null
+      revision: number
+      body: CanvasPage
+    }
+    const parent = await invoke<Page>(
+      workspaceRoutes.createPage,
+      accounts[0]!,
+      { title: 'Parent' },
+      scope
+    )
+    const child = await invoke<Page>(
+      workspaceRoutes.createPage,
+      accounts[0]!,
+      { title: 'Child', parent_id: parent.id },
+      scope
+    )
+    await expect(
+      invoke(
+        workspaceRoutes.updatePageMetadata,
+        accounts[0]!,
+        { parent_id: child.id, expected_revision: parent.revision },
+        { id: parent.id }
+      )
+    ).rejects.toThrow()
+    const renamed = await invoke<Page>(
+      workspaceRoutes.updatePageMetadata,
+      accounts[0]!,
+      { title: 'Renamed parent', expected_revision: parent.revision },
+      { id: parent.id }
+    )
+    expect(renamed.body.blocks).toEqual(parent.body.blocks)
+    expect(renamed.body.revision).toBe(renamed.revision)
+    expect(renamed.body.title).toBe('Renamed parent')
+    await expect(
+      invoke(
+        workspaceRoutes.removePage,
+        accounts[0]!,
+        { expected_revision: parent.revision },
+        { id: parent.id }
+      )
+    ).rejects.toThrow(/changed elsewhere/i)
+    await invoke(
+      workspaceRoutes.removePage,
+      accounts[0]!,
+      { expected_revision: renamed.revision },
+      { id: parent.id }
+    )
+    const pages = await invoke<Page[]>(
+      workspaceRoutes.pages,
+      accounts[0]!,
+      undefined,
+      scope
+    )
+    expect(pages.find(page => page.id === child.id)?.parent_id).toBeNull()
+    expect(pages.some(page => page.id === parent.id)).toBe(false)
+  })
+
+  it('keeps status, priority and routing tags on the same database record', async () => {
+    const scope = { workspace_id: workspace.id }
+    const created = await invoke<RecordPage>(
+      sharedRoutes.createRecord,
+      accounts[0]!,
+      {
+        base_id: base.id,
+        title: 'Tagged action',
+        content: 'Retain this content',
+        values: {},
+        tags: ['action', 'idea'],
+        priority: 'high',
+        status: 'active'
+      },
+      scope
+    )
+    const changed = await invoke<RecordPage>(
+      sharedRoutes.updateRecord,
+      accounts[0]!,
+      {
+        title: created.title,
+        content: created.content,
+        values: {},
+        status: 'done',
+        expected_updated: created.updated
+      },
+      { ...scope, id: created.id }
+    )
+    expect(changed).toMatchObject({
+      id: created.id,
+      done: true,
+      status: 'done',
+      priority: 'high',
+      tags: ['action', 'idea'],
+      content: created.content
+    })
+    await expect(
+      invoke(
+        sharedRoutes.updateRecord,
+        accounts[1]!,
+        { title: created.title, content: '', values: {}, tags: [] },
+        { ...scope, id: created.id }
+      )
+    ).rejects.toThrow()
+  })
+
   it('synchronizes through the real authenticated HTTP controller', async () => {
     const host = 'http://127.0.0.1:3636'
     const login = await fetch(`${host}/auth/login`, {
@@ -765,7 +958,7 @@ describe.skipIf(!enabled)('Connected workspace transactions and access', () => {
     expect(login.status).toBe(200)
     const token = (await login.json()).data.accessToken
     const remote = (name: string) =>
-      createHash('sha256').update(`@lifeforge/${name}`).digest('hex')
+      resolveAddonIdentity({ name: `@monolith/${name}` }).remoteId
     async function request(module: string, path: string, body?: unknown) {
       const response = await fetch(
         `${host}/modules/${remote(module)}/${path}`,
@@ -784,19 +977,19 @@ describe.skipIf(!enabled)('Connected workspace transactions and access', () => {
       if (response.status === 204) return null
       return (await response.json()).data
     }
-    const entry = await request('lifeforge--todo-list', 'entries/create', {
+    const entry = await request('monolith--todo-list', 'entries/create', {
       summary: 'HTTP bridge fixture',
       notes: 'Through the native controller'
     })
     const snapshot = (await request(
-      'zillion--databases',
+      'monolith--databases',
       'snapshot'
     )) as Snapshot
     const record = snapshot.records.find(
       item => item.title === 'HTTP bridge fixture'
     )
     expect(record?.item_type).toBe('task')
-    await request('zillion--databases', `updateRecord?id=${record!.id}`, {
+    await request('monolith--databases', `updateRecord?id=${record!.id}`, {
       title: 'Changed through database HTTP',
       content: 'Kept in sync',
       values: {}
@@ -807,10 +1000,10 @@ describe.skipIf(!enabled)('Connected workspace transactions and access', () => {
       summary: 'Changed through database HTTP',
       notes: 'Kept in sync'
     })
-    await request('lifeforge--todo-list', `entries/remove?id=${entry.id}`, {})
+    await request('monolith--todo-list', `entries/remove?id=${entry.id}`, {})
     expect(
       (
-        (await request('zillion--databases', 'snapshot')) as Snapshot
+        (await request('monolith--databases', 'snapshot')) as Snapshot
       ).records.some(item => item.id === record!.id)
     ).toBe(false)
   })

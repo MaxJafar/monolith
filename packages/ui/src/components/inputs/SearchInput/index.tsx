@@ -3,7 +3,7 @@ import _ from 'lodash'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
-import { useModuleTranslation } from '@lifeforge/localization'
+import { useModuleTranslation } from '@monolith/localization'
 
 import { Card } from '@/components/layout'
 import { Icon } from '@/components/primitives'
@@ -33,7 +33,7 @@ interface SearchInputProps extends Omit<FlexProps<'search'>, 'onChange'> {
   onKeyUp?: (e: React.KeyboardEvent<HTMLInputElement>) => void
   /** Additional CSS class names to apply to the search input container. */
   className?: string
-  /** The i18n namespace for internationalization. See the [main documentation](https://docs.lifeforge.melvinchia.dev) for more details. */
+  /** The i18n namespace for internationalization. See the [main documentation](https://github.com/MaxJafar/monolith/tree/main/docs) for more details. */
   namespace?: string | false
   /** Optional debounce delay in milliseconds. When set, the onChange callback will be debounced by this amount. */
   debounceMs?: number

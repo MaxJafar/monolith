@@ -1,9 +1,9 @@
 export const PROJECTS = {
   ui: 'packages/ui',
-  client: 'client',
-  server: 'server',
-  docs: 'docs',
-  forgeCLI: 'tools'
+  client: 'apps/web',
+  server: 'apps/api',
+  docs: 'apps/site',
+  cli: 'tools'
 } as const
 
 export type ProjectType = keyof typeof PROJECTS

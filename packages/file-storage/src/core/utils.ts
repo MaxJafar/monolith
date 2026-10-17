@@ -1,44 +1,38 @@
+import { randomUUID } from 'node:crypto'
+import { posix } from 'node:path'
 import sharp from 'sharp'
-import { v4 as uuidv4 } from 'uuid'
 
-/**
- * Builds an opaque storage key. No user-controlled bytes are part of the path;
- * the original filename and other metadata live in the `files` table.
- */
-export function generateKey(moduleId: string, ext: string) {
-  const uuid = uuidv4()
-  const cleanExt = ext.startsWith('.') ? ext.slice(1) : ext
-
-  return `${moduleId}/${uuid}.${cleanExt || 'bin'}`
+function dimensions(value: string): [number | undefined, number | undefined] {
+  if (!/^\d+x\d+$/i.test(value)) throw new Error('Invalid thumbnail dimensions')
+  const values = value.toLowerCase().split('x').map(Number)
+  if (values.some(size => !Number.isSafeInteger(size) || size > 16384))
+    throw new Error('Thumbnail dimensions exceed the limit')
+  return [values[0] || undefined, values[1] || undefined]
 }
 
-export function generateThumbKey(originalKey: string, size: string) {
-  const lastDot = originalKey.lastIndexOf('.')
-  const baseKey = lastDot !== -1 ? originalKey.slice(0, lastDot) : originalKey
-  const ext = lastDot !== -1 ? originalKey.slice(lastDot) : ''
-
-  return `${baseKey}-thumb-${size}${ext}`
+export function generateKey(moduleId: string, extension: string): string {
+  if (
+    !moduleId ||
+    /[\\/\0]/.test(moduleId) ||
+    moduleId === '.' ||
+    moduleId === '..'
+  )
+    throw new Error('Invalid storage namespace')
+  const suffix = extension.replace(/^\./, '')
+  return `${moduleId}/${randomUUID()}.${/^[a-z0-9]{1,20}$/i.test(suffix) ? suffix : 'bin'}`
 }
 
-export async function resizeImage(input: Buffer | string, sizeStr: string) {
-  const [w, h] = sizeStr.toLowerCase().split('x').map(Number)
-  const width = w > 0 ? w : undefined
-  const height = h > 0 ? h : undefined
+export function generateThumbKey(key: string, size: string): string {
+  dimensions(size)
+  const suffix = posix.extname(key)
+  return `${suffix ? key.slice(0, -suffix.length) : key}-thumb-${size}${suffix}`
+}
 
-  let pipeline = sharp(input)
-
-  if (width || height) {
-    pipeline = pipeline.resize(width, height, {
-      fit: width && height ? 'cover' : 'inside'
-    })
-  }
-
-  const resizedBuffer = await pipeline.toBuffer()
-  const metadata = await sharp(resizedBuffer).metadata()
-
-  return {
-    buffer: resizedBuffer,
-    width: metadata.width ?? (width || 0),
-    height: metadata.height ?? (height || 0)
-  }
+export async function resizeImage(input: Buffer | string, size: string) {
+  const [width, height] = dimensions(size)
+  const image = sharp(input)
+  if (width || height)
+    image.resize({ width, height, fit: width && height ? 'cover' : 'inside' })
+  const { data, info } = await image.toBuffer({ resolveWithObject: true })
+  return { buffer: data, width: info.width, height: info.height }
 }

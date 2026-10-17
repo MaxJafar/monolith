@@ -1,8 +1,8 @@
 import { cleanupTestTokens, initAuthTests } from '@tests/e2e-setup'
-import { expectNo2FA, extractCookies, forgeAPI, unwrap } from '@tests/utils'
+import { expectNo2FA, extractCookies, unwrap, workspaceAPI } from '@tests/utils'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
-import { setAccessToken } from '@lifeforge/api'
+import { setAccessToken } from '@monolith/api'
 
 let email = ''
 let password = ''
@@ -21,7 +21,9 @@ afterAll(cleanupTestTokens)
 
 describe('Full lifecycle', () => {
   it('login → me → refresh → me → logout → refresh fails', async () => {
-    const login = await forgeAPI.auth.login.mutateRaw(creds(), { raw: true })
+    const login = await workspaceAPI.auth.login.mutateRaw(creds(), {
+      raw: true
+    })
 
     expect(login.status).toBe(200)
 
@@ -29,12 +31,12 @@ describe('Full lifecycle', () => {
     const cookies1 = extractCookies(login.headers['set-cookie'])
 
     setAccessToken(accessToken1)
-    const me1 = await forgeAPI.user.me.queryRaw({ raw: true })
+    const me1 = await workspaceAPI.user.me.queryRaw({ raw: true })
 
     expect(me1.status).toBe(200)
     expect(unwrap(me1).userData.email).toBe(email)
 
-    const refresh1 = await forgeAPI.auth.refresh.mutateRaw(undefined, {
+    const refresh1 = await workspaceAPI.auth.refresh.mutateRaw(undefined, {
       raw: true,
       headers: { Cookie: cookies1 }
     })
@@ -45,18 +47,18 @@ describe('Full lifecycle', () => {
     const cookies2 = extractCookies(refresh1.headers['set-cookie'])
 
     setAccessToken(accessToken2)
-    const me2 = await forgeAPI.user.me.queryRaw({ raw: true })
+    const me2 = await workspaceAPI.user.me.queryRaw({ raw: true })
 
     expect(me2.status).toBe(200)
 
-    const logout = await forgeAPI.auth.logout.mutateRaw(undefined, {
+    const logout = await workspaceAPI.auth.logout.mutateRaw(undefined, {
       raw: true,
       headers: { Cookie: cookies2 }
     })
 
     expect(logout.status).toBe(200)
 
-    const refreshAfter = await forgeAPI.auth.refresh.mutateRaw(undefined, {
+    const refreshAfter = await workspaceAPI.auth.refresh.mutateRaw(undefined, {
       raw: true,
       headers: { Cookie: cookies2 }
     })
@@ -67,12 +69,14 @@ describe('Full lifecycle', () => {
   })
 
   it('concurrent rapid requests do not crash the server', async () => {
-    const login = await forgeAPI.auth.login.mutateRaw(creds(), { raw: true })
+    const login = await workspaceAPI.auth.login.mutateRaw(creds(), {
+      raw: true
+    })
     const cookies = extractCookies(login.headers['set-cookie'])
 
     const results = await Promise.allSettled(
       Array.from({ length: 5 }, () =>
-        forgeAPI.auth.refresh.mutateRaw(undefined, {
+        workspaceAPI.auth.refresh.mutateRaw(undefined, {
           raw: true,
           headers: { Cookie: cookies }
         })

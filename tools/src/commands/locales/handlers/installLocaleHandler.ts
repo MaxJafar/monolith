@@ -17,7 +17,7 @@ export async function installLocaleHandler(langCode: string): Promise<void> {
     'locale'
   )
 
-  if (!/^@lifeforge\/.*?-lang-[a-z]{2}(-[A-Z]{2})?$/i.test(fullName)) {
+  if (!/^@monolith\/.*?-lang-[a-z]{2}(-[A-Z]{2})?$/i.test(fullName)) {
     log.error(
       `Invalid locale name: ${chalk.blue(langCode)}. Locale names should follow the format "xx" or "xx-XX", where "xx" is a two-letter language code and "XX" is a two-letter country code.`
     )
@@ -26,7 +26,7 @@ export async function installLocaleHandler(langCode: string): Promise<void> {
 
   if (fs.existsSync(targetDir)) {
     log.error(
-      `Locale already exists at locales/${shortName}. Remove it first with: pnpm forge locales uninstall ${shortName}`
+      `Locale already exists at locales/${shortName}. Remove it first with: pnpm monolith locales uninstall ${shortName}`
     )
 
     process.exit(1)

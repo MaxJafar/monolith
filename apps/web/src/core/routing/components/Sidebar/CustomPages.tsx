@@ -3,8 +3,8 @@ import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate } from 'react-router'
 
-import { useAuth } from '@lifeforge/api'
-import { Button, Flex, Stack, Text } from '@lifeforge/ui'
+import { useAuth } from '@monolith/api'
+import { Button, Flex, Stack, Text } from '@monolith/ui'
 
 import { useWorkspace } from '@/core/workspaces/WorkspaceProvider'
 import { workspaceAPI } from '@/core/workspaces/workspaceAPI'

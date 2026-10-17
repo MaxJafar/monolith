@@ -1,52 +1,26 @@
 import OpenAI from 'openai'
-import z from 'zod'
+import { z } from 'zod'
 
-import { createForge } from '@lifeforge/server-utils'
+import { createMonolith } from '@monolith/server-utils'
 
-const forge = createForge({ moduleId: 'ai' })
-
-export const generateImage = forge
+const api = createMonolith({ moduleId: 'ai' })
+export const generateImage = api
   .mutation({
-    description: 'Generate image from text prompt using AI',
-    input: {
-      body: z.object({
-        prompt: z.string().min(1, 'Prompt cannot be empty')
-      })
-    },
-    output: {
-      OK: z.string()
-    }
+    description: 'Render an image from a text description',
+    input: { body: z.object({ prompt: z.string().trim().min(1).max(32_000) }) },
+    output: { OK: z.string() }
   })
-  .callback(
-    async ({
-      body: { prompt },
-      core: {
-        api: { getAPIKey }
-      },
-      response
-    }) => {
-      const key = await getAPIKey('openai')
-
-      if (!key) {
-        return response.badRequest('OpenAI API key not found')
-      }
-
-      const openai = new OpenAI({
-        apiKey: key
-      })
-
-      const r = await openai.images.generate({
-        model: 'gpt-image-1',
-        prompt,
-        size: '1536x1024'
-      })
-
-      const image_base64 = r.data?.[0]?.b64_json
-
-      if (!image_base64) {
-        return response.badRequest('No image generated')
-      }
-
-      return response.ok(`data:image/png;base64,${image_base64}`)
-    }
-  )
+  .callback(async ({ core, body, response }) => {
+    const apiKey = await core.api.getAPIKey('openai')
+    if (!apiKey) return response.badRequest('Configure an OpenAI API key first')
+    const client = new OpenAI({ apiKey, timeout: 180_000, maxRetries: 0 })
+    const result = await client.images.generate({
+      model: 'gpt-image-1',
+      size: '1536x1024',
+      prompt: body.prompt
+    })
+    const image = result.data?.find(item => item.b64_json)?.b64_json
+    return image
+      ? response.ok('data:image/png;base64,' + image)
+      : response.badRequest('The image service returned no image')
+  })

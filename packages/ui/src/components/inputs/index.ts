@@ -1,4 +1,5 @@
 export * from './Button'
+export * from './ChoiceSelect'
 
 export * from './Switch'
 
@@ -13,6 +14,7 @@ export * from './NumberInput'
 export * from './TextAreaInput'
 
 export * from './IconInput'
+export * from './IconInput/IconPickerModal'
 
 export * from './ColorInput'
 
@@ -55,3 +57,6 @@ export * from './shared/components/InputLabel'
 export * from './QRCodeScanner'
 
 export * from './Listbox'
+
+export * from './IconPalette'
+export * from './ColorPicker'

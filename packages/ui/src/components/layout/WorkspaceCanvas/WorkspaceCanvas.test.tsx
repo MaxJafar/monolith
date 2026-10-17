@@ -5,7 +5,7 @@ import { type Root, createRoot } from 'react-dom/client'
 import { RouterProvider, createMemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { CanvasBlock, CanvasPage } from '@lifeforge/blocks'
+import type { CanvasBlock, CanvasPage } from '@monolith/blocks'
 
 import { type CanvasPageStorage, WorkspaceCanvas } from './index'
 
@@ -15,10 +15,18 @@ const contract = vi.hoisted(() => ({
   mutate: vi.fn()
 }))
 
-vi.mock('@lifeforge/api', () => ({
-  useAuth: () => ({ userData: { id: 'fixture-owner' } })
+vi.mock('@monolith/api', async importOriginal => ({
+  ...(await importOriginal<typeof import('@monolith/api')>()),
+  useAuth: () => ({ userData: { id: 'fixture-owner' } }),
+  useGateway: () => ({
+    client: null,
+    loading: false,
+    error: null,
+    drafts: null
+  }),
+  gatewayQueryKey: (...parts: unknown[]) => ['canonical-fixture', ...parts]
 }))
-vi.mock('@lifeforge/localization', () => ({
+vi.mock('@monolith/localization', () => ({
   useModuleTranslation: () => ({
     t: (key: string) => key,
     i18n: { exists: () => false }
@@ -30,8 +38,8 @@ vi.mock('react-i18next', () => ({
       key === 'common.personalization:title' ? 'Personalization' : key
   })
 }))
-vi.mock('@/utils/forgeAPI', () => ({
-  forgeAPI: {
+vi.mock('@/utils/workspaceAPI', () => ({
+  workspaceAPI: {
     user: {
       pages: {
         get: {
@@ -50,6 +58,9 @@ vi.mock('@/utils/forgeAPI', () => ({
       }
     }
   }
+}))
+vi.mock('@/providers/ModalProvider', () => ({
+  useModalStore: () => ({ open: vi.fn() })
 }))
 
 type PrimitiveProps = {
@@ -121,6 +132,11 @@ vi.mock('./BlockFrame', () => ({
     })
 }))
 vi.mock('./BlockMenu', () => ({ CanvasBlockMenu: () => null }))
+vi.mock('@/components/overlays', () => ({ FloatingPopover: () => null }))
+vi.mock('@/components/overlays/PopoverButton', () => ({
+  PopoverButton: () => null
+}))
+vi.mock('./InlineDatabasePicker', () => ({ InlineDatabasePicker: () => null }))
 
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true })
 

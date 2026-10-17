@@ -17,13 +17,16 @@ import {
   setAccessToken
 } from '../client/tokenStore'
 import { contract } from '../contract'
-import { createForgeProxy } from '../proxy'
+import { clearServerPublicKey } from '../crypto/encryption'
+import { configureNativeRuntime, getNativeRuntime } from '../desktop/runtime'
+import { checkSignOutGuards } from '../desktop/sessionGuards'
+import { createApiClient } from '../proxy'
 
 let bootstrapped = false
 
-const forgeAPI = createForgeProxy(contract)
+const workspaceAPI = createApiClient(contract)
 
-export type UserData = InferOutput<typeof forgeAPI.user.me>['userData']
+export type UserData = InferOutput<typeof workspaceAPI.user.me>['userData']
 
 export type FileReference = NonNullable<UserData['avatar']>
 
@@ -37,7 +40,7 @@ interface AuthData {
     email: string
     password: string
   }) => Promise<string | void>
-  logout: () => void
+  logout: () => Promise<void>
   verifyOAuth: (code: string, state: string) => Promise<string | false>
   authenticateWith2FA: (otp: string) => Promise<string>
   authLoading: boolean
@@ -71,20 +74,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       password: string
     }): Promise<string | void> => {
       try {
-        const loginData = await forgeAPI.auth.login.mutateRaw({
-          email,
-          password
-        })
+        const native = getNativeRuntime()
+        const nativeLogin = native
+          ? await native.host.login({
+              email,
+              password,
+              deviceName: `Monolith · ${native.host.platform}`
+            })
+          : null
+        const loginData =
+          nativeLogin ??
+          (await workspaceAPI.auth.login.mutateRaw({
+            email,
+            password
+          }))
 
         if ('state' in loginData) {
-          tid.current = loginData.tid
+          tid.current =
+            'challenge' in loginData ? loginData.challenge : loginData.tid
 
           return '2fa_required'
         }
 
         setAccessToken(loginData.accessToken)
+        if (native && nativeLogin && !('state' in nativeLogin))
+          configureNativeRuntime(
+            native.host,
+            nativeLogin.profile,
+            native.discovery,
+            loginData.accessToken
+          )
 
-        const userResponse = await forgeAPI.user.me.queryRaw()
+        const userResponse = await workspaceAPI.user.me.queryRaw()
 
         setUserData(userResponse.userData)
         setAuth(true)
@@ -108,7 +129,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     []
   )
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    try {
+      await checkSignOutGuards()
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : String(error))
+      return
+    }
+    const native = getNativeRuntime()
+    if (native) {
+      try {
+        await native.host.signOut()
+      } catch (error) {
+        window.alert(error instanceof Error ? error.message : String(error))
+        return
+      }
+    }
     window.dispatchEvent(new Event('zillion-gym-sign-out'))
 
     // A shared-device logout must remove the explicitly opted-in Gym cache.
@@ -130,7 +166,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setAuth(false)
     setUserData(null)
 
-    forgeAPI.auth.logout.mutateRaw(undefined).catch(() => {})
+    clearServerPublicKey()
+    window.dispatchEvent(new Event('monolith-auth-cleared'))
+    if (!native) workspaceAPI.auth.logout.mutateRaw(undefined).catch(() => {})
   }, [])
 
   const verifyOAuth = useCallback(
@@ -150,7 +188,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return false
         }
 
-        const oauthData = await forgeAPI.auth.oauth.verify.mutateRaw({
+        const oauthData = await workspaceAPI.auth.oauth.verify.mutateRaw({
           code,
           provider: storedProvider,
           state
@@ -164,7 +202,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         setAccessToken(oauthData.accessToken)
 
-        const userResponse = await forgeAPI.user.me.queryRaw()
+        const userResponse = await workspaceAPI.user.me.queryRaw()
 
         setUserData(userResponse.userData)
         setAuth(true)
@@ -184,14 +222,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const authenticateWith2FA = useCallback(
     async (otp: string): Promise<string> => {
-      const data = await forgeAPI.auth['2fa'].verify.mutateRaw({
-        otp,
-        tid: tid.current
-      })
+      const native = getNativeRuntime()
+      const nativeLogin = native
+        ? await native.host.totp(tid.current, otp)
+        : null
+      const data =
+        nativeLogin ??
+        (await workspaceAPI.auth['2fa'].verify.mutateRaw({
+          otp,
+          tid: tid.current
+        }))
 
       setAccessToken(data.accessToken)
+      if (native && nativeLogin)
+        configureNativeRuntime(
+          native.host,
+          nativeLogin.profile,
+          native.discovery,
+          data.accessToken
+        )
 
-      const userResponse = await forgeAPI.user.me.queryRaw()
+      const userResponse = await workspaceAPI.user.me.queryRaw()
 
       setUserData(userResponse.userData)
       setAuth(true)
@@ -203,7 +254,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const getAvatarURL = useCallback((): string => {
     if (userData?.avatar) {
-      return forgeAPI.getMedia({
+      return workspaceAPI.getMedia({
         key: userData.avatar.key,
         thumb: '256x0'
       })
@@ -217,7 +268,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setAuth(true)
       setAuthLoading(true)
 
-      forgeAPI.user.me
+      workspaceAPI.user.me
         .queryRaw()
         .then(data => {
           setUserData(data.userData)
@@ -239,11 +290,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     bootstrapped = true
     setAuthLoading(true)
 
-    withSessionRefreshLock(() => forgeAPI.auth.refresh.mutateRaw(undefined))
+    withSessionRefreshLock(() => workspaceAPI.auth.refresh.mutateRaw(undefined))
       .then((data: { accessToken: string }) => {
         setAccessToken(data.accessToken)
 
-        return forgeAPI.user.me.queryRaw()
+        return workspaceAPI.user.me.queryRaw()
       })
       .then(data => {
         setUserData(data.userData)

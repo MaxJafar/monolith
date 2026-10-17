@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react'
 
-import type { FileReference } from '@lifeforge/api'
+import type { FileReference } from '@monolith/api'
 
-import { forgeAPI as fAPI } from '@/utils/forgeAPI'
+import { workspaceAPI as fAPI } from '@/utils/workspaceAPI'
 
 interface CustomFontData {
   id: string
@@ -15,7 +15,7 @@ interface CustomFontData {
 function useFontFamily(
   fontFamily: string,
   fontScale: number,
-  forgeAPI: typeof fAPI
+  workspaceAPI: typeof fAPI
 ) {
   const abortControllerRef = useRef<AbortController | null>(null)
 
@@ -53,10 +53,10 @@ function useFontFamily(
       try {
         // Check if this is a custom font (identified by 'custom:' prefix)
         if (fontFamily.startsWith('custom:')) {
-          // Guard: ensure forgeAPI is available before making custom font requests
-          if (!forgeAPI?.fonts?.custom?.get) {
+          // Guard: ensure workspaceAPI is available before making custom font requests
+          if (!workspaceAPI?.fonts?.custom?.get) {
             console.warn(
-              'forgeAPI.fonts.custom.get not available yet for custom font loading'
+              'workspaceAPI.fonts.custom.get not available yet for custom font loading'
             )
 
             return
@@ -64,7 +64,7 @@ function useFontFamily(
 
           const customFontId = fontFamily.replace('custom:', '')
 
-          const fontData: CustomFontData = await forgeAPI.fonts.custom.get
+          const fontData: CustomFontData = await workspaceAPI.fonts.custom.get
             .input({
               id: customFontId
             })
@@ -81,7 +81,7 @@ function useFontFamily(
             return
           }
 
-          const fileUrl = forgeAPI.getMedia({
+          const fileUrl = workspaceAPI.getMedia({
             key: fontData.file.key
           })
 
@@ -118,7 +118,7 @@ function useFontFamily(
         }
 
         // Handle Google Fonts (original logic)
-        const data = await forgeAPI
+        const data = await workspaceAPI
           .getGoogleFont({ family: fontFamily })
           .query()
 
@@ -175,7 +175,7 @@ function useFontFamily(
       currentController.abort()
       // Don't remove style tag on cleanup to avoid flicker during re-renders
     }
-  }, [fontFamily, forgeAPI])
+  }, [fontFamily, workspaceAPI])
   useEffect(() => {
     document.documentElement.style.setProperty(
       '--custom-font-scale',

@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import { useState } from 'react'
 
-import { useModuleTranslation } from '@lifeforge/localization'
+import { useModuleTranslation } from '@monolith/localization'
 
 import { ContextMenu } from '@/components/overlays'
 import { Box, Flex, Text } from '@/components/primitives'

@@ -1,29 +1,27 @@
-import { ModalHeader, Stack, WithQueryData } from '@lifeforge/ui'
+import { ModalHeader, Stack, WithQueryData } from '@monolith/ui'
 
-import forgeAPI from '@/core/utils/forgeAPI'
+import workspaceAPI from '@/core/utils/workspaceAPI'
 
 import ProviderItem from './components/ProviderItem'
 
-function OAuthConfigModal({ onClose }: { onClose: () => void }) {
+export default function OAuthConfigModal({ onClose }: { onClose: () => void }) {
   return (
-    <Stack minWidth="40vw">
+    <Stack width="560px" maxWidth="100%" gap="md">
       <ModalHeader
-        icon="tabler:login"
-        namespace="common.account-settings"
         title="oauthConfig"
+        namespace="common.account-settings"
+        icon="tabler:login"
         onClose={onClose}
       />
-      <WithQueryData contract={forgeAPI.auth.oauth.providers.listOptions}>
-        {data => (
-          <>
-            {data.map(entry => (
-              <ProviderItem key={entry.provider} entry={entry} />
+      <WithQueryData contract={workspaceAPI.auth.oauth.providers.listOptions}>
+        {providers => (
+          <Stack gap="sm" role="list">
+            {providers.map(provider => (
+              <ProviderItem key={provider.provider} entry={provider} />
             ))}
-          </>
+          </Stack>
         )}
       </WithQueryData>
     </Stack>
   )
 }
-
-export default OAuthConfigModal

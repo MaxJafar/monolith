@@ -3,7 +3,7 @@ import clsx from 'clsx'
 import _ from 'lodash'
 import React, { type CSSProperties, type ElementType } from 'react'
 
-import { useModuleTranslation } from '@lifeforge/localization'
+import { useModuleTranslation } from '@monolith/localization'
 
 import {
   Box,
@@ -14,6 +14,7 @@ import {
   type TextProps,
   Transition
 } from '@/components/primitives'
+import { settleElement } from '@/utils/elasticMotion'
 
 import { buttonRecipe } from './Button.css'
 import { ButtonIcon } from './components/ButtonIcon'
@@ -42,9 +43,9 @@ type ButtonOwnProps = {
   variant?: 'primary' | 'secondary' | 'tertiary' | 'plain'
   /** Whether the button should be styled as dangerous/destructive with a red background. */
   dangerous?: boolean
-  /** The i18n namespace for internationalization. See the [main documentation](https://docs.lifeforge.melvinchia.dev) for more details. */
+  /** The i18n namespace for internationalization. See the [main documentation](https://github.com/MaxJafar/monolith/tree/main/docs) for more details. */
   namespace?: string | false
-  /** Additional properties for the translation function. Used for dynamic translations. See the [i18n documentation](https://docs.lifeforge.melvinchia.dev) for more details. */
+  /** Additional properties for the translation function. Used for dynamic translations. See the [i18n documentation](https://github.com/MaxJafar/monolith/tree/main/docs) for more details. */
   tProps?: Record<string, unknown>
   style?: CSSProperties
 }
@@ -125,6 +126,9 @@ export function Button<T extends ElementType = 'button'>({
           type="button"
           {...(restProps as any)}
           aria-busy={loading || undefined}
+          data-variant={variant}
+          data-dangerous={dangerous || undefined}
+          data-icon-only={icon && !children ? true : undefined}
           aria-disabled={loading || disabled || undefined}
           data-loading-without-icon={loading && !icon ? true : undefined}
           onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
@@ -135,6 +139,7 @@ export function Button<T extends ElementType = 'button'>({
               return
             }
 
+            settleElement(event.currentTarget, 0.65)
             return onClick?.(event)
           }}
         >

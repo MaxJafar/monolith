@@ -16,6 +16,7 @@ export function InputInnerWrapper({
 } & FlexProps) {
   return (
     <Flex
+      className="monolith-input-inner"
       align="center"
       gap="sm"
       minWidth="0"

@@ -1,0 +1,48 @@
+{
+  "name": "@monolith/redraw",
+  "displayName": "Redraw",
+  "version": "0.3.0",
+  "type": "module",
+  "author": "Monolith contributors",
+  "description": "A visual studio for designs, whiteboards and connected ideas.",
+  "scripts": {
+    "build": "pnpm build:server && pnpm build:client",
+    "build:server": "vite build --config server/vite.config.ts",
+    "build:client": "node client/build.mjs",
+    "typecheck": "tsc -p client/tsconfig.json && tsc -p server/tsconfig.json",
+    "test": "vitest run --config vitest.config.ts",
+    "test:browser": "node smoke.mjs",
+    "test:security": "node security.mjs",
+    "test:multiplayer": "tsx multiplayer.mjs",
+    "test:features": "tsx features.mjs",
+    "contract": "tsx server/index.ts"
+  },
+  "peerDependencies": {
+    "@monolith/api": "workspace:*",
+    "@monolith/configs": "workspace:*",
+    "@monolith/drizzle": "workspace:*",
+    "@monolith/federation": "workspace:*",
+    "@monolith/localization": "workspace:*",
+    "@monolith/server-utils": "workspace:*",
+    "@monolith/ui": "workspace:*",
+    "react": "^19.2.0"
+  },
+  "monolith": {
+    "icon": "lucide:pen-tool",
+    "category": "Creativity",
+    "experience": {
+      "kind": "workbench",
+      "surfaces": [
+        "page",
+        "dashboard"
+      ]
+    },
+    "id": "monolith--redraw",
+    "routeId": "d110015ddbd7066f87aedaab3e63e3f310087e8a19f11ba927ac78e0f9a96b11"
+  },
+  "dependencies": {
+    "fflate": "^0.8.3",
+    "fzstd": "^0.1.1",
+    "kiwi-schema": "^0.5.0"
+  }
+}

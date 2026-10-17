@@ -1,7 +1,6 @@
 import { federation } from '@module-federation/vite'
 import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin'
 import react from '@vitejs/plugin-react'
-import crypto from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 import {
@@ -14,22 +13,33 @@ import {
 
 import { SHARED_DEPS, SHARED_PACKAGES } from '../constants/shared-packages'
 import extractModuleMetadata from '../metadata/extractModuleMetadata'
+import { resolveAddonIdentity } from '../utils/addonIdentity'
+import { blocksuiteRuntime, blocksuiteSyntax } from './blocksuite'
 
 /**
- * Emits the module's parsed metadata (`forge-manifest.json`) alongside the
+ * Emits the module's parsed metadata (`monolith-manifest.json`) alongside the
  * build output so the server can read it without parsing source.
  */
 function emitModuleMetadataPlugin(moduleDir: string): Plugin {
   return {
-    name: 'lifeforge:emit-module-metadata',
+    name: 'monolith:emit-addon-metadata',
     apply: 'build',
     generateBundle() {
       const metadata = extractModuleMetadata(moduleDir)
 
       this.emitFile({
         type: 'asset',
-        fileName: 'forge-manifest.json',
-        source: JSON.stringify(metadata, null, 2)
+        fileName: 'monolith-manifest.json',
+        source: JSON.stringify(
+          {
+            ...metadata,
+            distribution: {
+              portable: process.env.MONOLITH_ADDON_RELEASE === '1'
+            }
+          },
+          null,
+          2
+        )
       })
     }
   }
@@ -44,7 +54,7 @@ interface ModuleConfigOptions {
 }
 
 /**
- * Creates a standard Vite configuration for LifeForge modules.
+ * Creates a standard Vite configuration for Monolith addons.
  * Supports custom overrides via the second parameter.
  */
 export function defineModuleClientConfig(
@@ -52,6 +62,7 @@ export function defineModuleClientConfig(
   overrides: UserConfig | ((env: any) => UserConfig) = {}
 ) {
   const isDocker = process.env.DOCKER_BUILD === 'true'
+  const editor = blocksuiteRuntime(path.resolve(dirname, '../../..'))
 
   const outDir = isDocker ? 'dist-docker' : 'dist'
 
@@ -61,8 +72,8 @@ export function defineModuleClientConfig(
       fs.readFileSync(path.resolve(dirname, '../package.json'), 'utf8')
     )
 
-  const moduleName = pkg.name.replace('@lifeforge/', '')
-  const remoteId = crypto.createHash('sha256').update(pkg.name).digest('hex')
+  const moduleName = path.basename(path.resolve(dirname, '..'))
+  const { remoteId } = resolveAddonIdentity(pkg)
   const remoteName = `m_${remoteId}`
 
   return defineConfig(configEnv => {
@@ -77,11 +88,18 @@ export function defineModuleClientConfig(
 
     // 2. Base default configuration
     const baseConfig: UserConfig = {
-      base: `${apiHost}/modules/${moduleName}/`,
+      base:
+        process.env.MONOLITH_ADDON_RELEASE === '1'
+          ? './'
+          : `${apiHost}/modules/${moduleName}/`,
       envDir,
       plugins: [
+        blocksuiteSyntax(),
         react(),
-        vanillaExtractPlugin() as any,
+        vanillaExtractPlugin({
+          unstable_pluginFilter: ({ name }) =>
+            name === 'monolith-blocksuite-syntax'
+        }) as any,
         !isDev &&
           federation({
             name: remoteName,
@@ -90,9 +108,7 @@ export function defineModuleClientConfig(
             exposes: {
               './Manifest': './manifest.ts'
             },
-            remotes: {
-              None: ''
-            },
+            remotes: {},
             shared: {
               ...Object.fromEntries(
                 Object.entries(SHARED_DEPS).map(([name, config]) => [
@@ -111,7 +127,9 @@ export function defineModuleClientConfig(
         !isDev && emitModuleMetadataPlugin(path.resolve(dirname, '..'))
       ].filter(Boolean),
       resolve: {
+        dedupe: ['react', 'react-dom', 'lit', 'yjs'],
         alias: [
+          ...editor.aliases,
           ...(isDev
             ? Object.entries(SHARED_PACKAGES).map(
                 ([, { aliasRegex, entryPoint }]) => ({
@@ -127,6 +145,10 @@ export function defineModuleClientConfig(
           { find: /^@\/(.*)$/, replacement: path.resolve(dirname, './src/$1') },
           { find: /^@$/, replacement: path.resolve(dirname, './src/index') }
         ]
+      },
+      optimizeDeps: {
+        exclude: editor.exclude,
+        rolldownOptions: { plugins: [blocksuiteSyntax()] }
       },
       build: {
         outDir,

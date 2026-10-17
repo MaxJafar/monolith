@@ -3,7 +3,7 @@ import { fetchJson, rawRegistryUrl } from './github'
 export type RegistryKind = 'modules' | 'locales'
 
 export interface RegistryEntry {
-  /** The scope-stripped module/locale id (e.g. `lifeforge--wallet`). */
+  /** The scope-stripped module/locale id (e.g. `monolith--wallet`). */
   id: string
   /** The module/locale's GitHub repo (`owner/repo`). */
   repo: string
@@ -25,7 +25,7 @@ export async function resolveEntry(
   kind: RegistryKind,
   id: string
 ): Promise<RegistryEntry | undefined> {
-  const shortId = id.replace(/^@lifeforge\//, '')
+  const shortId = id.replace(/^@monolith\//, '')
 
   const list = await fetchRegistry(kind)
 

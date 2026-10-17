@@ -1,39 +1,49 @@
+import { useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { useAuth } from '@lifeforge/api'
-import { ConfirmationModal, toast } from '@lifeforge/ui'
+import { useAuth } from '@monolith/api'
+import { ConfirmationModal, toast } from '@monolith/ui'
 
-import forgeAPI from '@/core/utils/forgeAPI'
+import workspaceAPI from '@/core/utils/workspaceAPI'
 
-function DisableTwoFAModal({ onClose }: { onClose: () => void }) {
-  const { t } = useTranslation('common.account-settings')
+export default function DisableTwoFAModal({
+  onClose
+}: {
+  onClose: () => void
+}) {
   const { setUserData } = useAuth()
+  const { t } = useTranslation('common.account-settings')
+  const inFlight = useRef<Promise<void> | null>(null)
 
-  async function handleConfirm() {
-    try {
-      await forgeAPI.auth['2fa'].disable.mutateRaw(undefined)
-
-      setUserData(userData =>
-        userData ? { ...userData, twoFAEnabled: false } : null
-      )
-      toast.success(t('messages.twoFA.disableSuccess'))
-      onClose()
-    } catch {
-      toast.error('Failed to disable 2FA')
-    }
+  function disable() {
+    if (inFlight.current) return inFlight.current
+    inFlight.current = workspaceAPI.auth['2fa'].disable
+      .mutateRaw(undefined)
+      .then(() => {
+        setUserData(current =>
+          current ? { ...current, twoFAEnabled: false } : current
+        )
+        toast.success(t('messages.twoFA.disableSuccess'))
+      })
+      .catch(error => {
+        toast.error(t('messages.twoFA.disableFailed'))
+        throw error
+      })
+      .finally(() => {
+        inFlight.current = null
+      })
+    return inFlight.current
   }
 
   return (
     <ConfirmationModal
+      onClose={onClose}
       data={{
         title: t('modals.disable2FA.title'),
         description: t('modals.disable2FA.description'),
         confirmationButton: 'confirm',
-        onConfirm: handleConfirm
+        onConfirm: disable
       }}
-      onClose={onClose}
     />
   )
 }
-
-export default DisableTwoFAModal

@@ -47,7 +47,7 @@ interface SidebarItemProps {
     wrapper?: string
     icon?: string
   }
-  /** The i18n namespace for internationalization. See the [main documentation](https://docs.lifeforge.melvinchia.dev) for more details. */
+  /** The i18n namespace for internationalization. See the [main documentation](https://github.com/MaxJafar/monolith/tree/main/docs) for more details. */
   namespace?: string | false
   /** Optional subsection items to display when expanded. */
   subsection?: {

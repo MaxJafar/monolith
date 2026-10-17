@@ -1,4 +1,4 @@
-import type { ModuleConfig } from '@lifeforge/configs'
+import type { ModuleConfig } from '@monolith/configs'
 
 export const devModeImports = import.meta.env.DEV
   ? import.meta.glob<{ default: ModuleConfig }>(

@@ -32,7 +32,7 @@ try {
     await admin`select to_regclass('public.users')::text as users`
   if (!users)
     throw new Error(
-      'This database does not contain LifeForge users; no search tables were added'
+      'This database does not contain Monolith users; no search tables were added'
     )
   const schema = new URL(
     '../../apps/api/src/lib/search/schema.drizzle.ts',
@@ -51,7 +51,7 @@ try {
 } catch (error) {
   if (error.code === 'ECONNREFUSED')
     console.error(
-      'LifeForge database is not running. Start its configured PostgreSQL instance, then rerun the search migration.'
+      'Monolith database is not running. Start its configured PostgreSQL instance, then rerun the search migration.'
     )
   else console.error(error.message)
   process.exitCode = 1

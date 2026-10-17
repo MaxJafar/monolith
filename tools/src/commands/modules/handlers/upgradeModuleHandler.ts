@@ -132,7 +132,7 @@ export async function upgradeModuleHandler(moduleName?: string): Promise<void> {
 
     if (result) {
       upgraded.push({
-        id: fullName.replace('@lifeforge/', ''),
+        id: fullName.replace('@monolith/', ''),
         result
       })
     }
@@ -145,7 +145,7 @@ export async function upgradeModuleHandler(moduleName?: string): Promise<void> {
       const result = await upgradeModule(name, version)
 
       if (result) {
-        upgraded.push({ id: name.replace('@lifeforge/', ''), result })
+        upgraded.push({ id: name.replace('@monolith/', ''), result })
       }
     }
   }

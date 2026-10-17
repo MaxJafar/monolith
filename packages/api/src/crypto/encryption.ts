@@ -1,412 +1,175 @@
-/**
- * @fileoverview Client-side encryption utilities for Forge API
- *
- * This module provides RSA + AES hybrid encryption for securing API requests:
- * 1. Generate random AES key + IV for each request
- * 2. Encrypt AES key with server's RSA public key
- * 3. Encrypt request body with AES-GCM
- * 4. Decrypt response (also encrypted with same AES key)
- *
- * All crypto operations use the Web Crypto API for security.
- */
-// Legacy CryptoJS exports (for backward compatibility)
 import CryptoJS from 'crypto-js'
 
-export const encrypt = (text: string, key: string): string => {
-  return CryptoJS.AES.encrypt(text, key).toString()
-}
+import { applicationFetch } from '../desktop/runtime'
 
-export const decrypt = (text: string, key: string): string => {
-  return CryptoJS.AES.decrypt(text, key).toString(CryptoJS.enc.Utf8)
-}
+// Passphrase adapters remain for addon data that uses the dependency's format.
+export const encrypt = (text: string, key: string): string =>
+  CryptoJS.AES.encrypt(text, key).toString()
+export const decrypt = (text: string, key: string): string =>
+  CryptoJS.AES.decrypt(text, key).toString(CryptoJS.enc.Utf8)
 
-// ============================================
-// New RSA + AES Hybrid Encryption
-// ============================================
-
-export interface EncryptedPayload {
-  /** RSA-encrypted AES key (base64) */
-  k: string
-  /** Initialization vector (base64) */
-  iv: string
-  /** AES-GCM encrypted data (base64) */
-  data: string
-  /** AES-GCM auth tag (base64) */
-  tag: string
-}
-
-export interface EncryptedResponse {
-  /** Initialization vector (base64) */
-  iv: string
-  /** AES-GCM encrypted data (base64) */
-  data: string
-  /** AES-GCM auth tag (base64) */
-  tag: string
-}
-
-export interface EncryptionConfig {
+export type EncryptedResponse = { iv: string; data: string; tag: string }
+export type EncryptedPayload = EncryptedResponse & { k: string }
+export type EncryptionConfig = {
   rsaKeySize: number
   aesAlgorithm: string
   aesKeyLength: number
   ivLength: number
   authTagLength: number
 }
+export type EncryptionSession = { aesKey: CryptoKey; aesKeyRaw: ArrayBuffer }
 
-// Store the server public key after fetching
-let cachedServerPublicKey: CryptoKey | null = null
-let cachedServerPublicKeyPem: string | null = null
+type Authority = { pem: string; key: CryptoKey }
+const authorities = new Map<string, Authority>()
+const pending = new Map<string, Promise<void>>()
+let selected: Authority | undefined
+let generation = 0
 
-/**
- * Imports a PEM-encoded RSA public key for use with Web Crypto API.
- */
-async function importRSAPublicKey(pemKey: string): Promise<CryptoKey> {
-  // Remove PEM headers and decode base64
-  const pemHeader = '-----BEGIN PUBLIC KEY-----'
-
-  const pemFooter = '-----END PUBLIC KEY-----'
-
-  const pemContents = pemKey
-    .replace(pemHeader, '')
-    .replace(pemFooter, '')
-    .replace(/\s/g, '')
-
-  const binaryDer = Uint8Array.from(atob(pemContents), c => c.charCodeAt(0))
-
-  return await crypto.subtle.importKey(
+function decode(value: string): Uint8Array<ArrayBuffer> {
+  return Uint8Array.from(atob(value), character => character.charCodeAt(0))
+}
+function encode(bytes: Uint8Array): string {
+  let text = ''
+  for (let offset = 0; offset < bytes.length; offset += 8192)
+    text += String.fromCharCode(...bytes.subarray(offset, offset + 8192))
+  return btoa(text)
+}
+async function authority(pem: string): Promise<Authority> {
+  if (selected?.pem === pem) return selected
+  const der = decode(pem.replace(/-----[A-Z ]+-----|\s/g, ''))
+  const key = await crypto.subtle.importKey(
     'spki',
-    binaryDer.buffer,
-    {
-      name: 'RSA-OAEP',
-      hash: 'SHA-256'
-    },
+    der,
+    { name: 'RSA-OAEP', hash: 'SHA-256' },
     false,
     ['encrypt']
   )
+  return { pem, key }
 }
 
-/**
- * Sets the server's public key for encryption.
- * Call this once after fetching from /encryptionPublicKey endpoint.
- */
-export async function setServerPublicKey(pemKey: string): Promise<void> {
-  if (cachedServerPublicKeyPem === pemKey && cachedServerPublicKey) {
-    return // Already cached
-  }
-
-  cachedServerPublicKey = await importRSAPublicKey(pemKey)
-  cachedServerPublicKeyPem = pemKey
+export async function setServerPublicKey(pem: string): Promise<void> {
+  const request = ++generation
+  const next = await authority(pem)
+  if (generation === request) selected = next
 }
-
-/**
- * Checks if the server public key is cached.
- */
 export function hasServerPublicKey(): boolean {
-  return cachedServerPublicKey !== null
+  return selected !== undefined
 }
-
-/**
- * Clears the cached server public key.
- */
 export function clearServerPublicKey(): void {
-  cachedServerPublicKey = null
-  cachedServerPublicKeyPem = null
+  generation++
+  selected = undefined
+  authorities.clear()
+  pending.clear()
 }
 
-/**
- * Initializes end-to-end encryption by fetching the server's public key.
- * Call this once at app startup before making any encrypted API requests.
- *
- * @param apiHost The base URL of the API server
- * @returns Promise that resolves when encryption is ready
- * @throws Error if the public key cannot be fetched
- */
+/** Refreshes one server's key; concurrent refreshes for that server share one request. */
 export async function initializeEncryption(apiHost: string): Promise<void> {
-  try {
-    const response = await fetch(`${apiHost}/encryptionPublicKey`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch public key: ${response.status}`)
-    }
-
-    const result = await response.json()
-
-    const publicKey = result.data || result
-
-    if (!publicKey) {
+  if (pending.has(apiHost)) return pending.get(apiHost)!
+  const request = ++generation
+  let loading!: Promise<void>
+  loading = (async () => {
+    const response = await applicationFetch(
+      apiHost.replace(/\/$/, '') + '/encryptionPublicKey',
+      { method: 'GET' }
+    )
+    if (!response.ok)
+      throw new Error('Failed to fetch public key: ' + response.status)
+    const data = await response.json()
+    const pem: unknown = typeof data === 'string' ? data : data?.data
+    if (typeof pem !== 'string' || !pem)
       throw new Error('No public key in response')
-    }
-
-    await setServerPublicKey(publicKey)
-  } catch (error) {
-    console.error('Failed to initialize encryption:', error)
-    throw error
+    const next = await authority(pem)
+    if (pending.get(apiHost) !== loading) return
+    authorities.set(apiHost, next)
+    if (generation === request) selected = next
+  })()
+  pending.set(apiHost, loading)
+  try {
+    await loading
+  } finally {
+    if (pending.get(apiHost) === loading) pending.delete(apiHost)
   }
 }
 
-/**
- * Generates a random AES-256 key.
- */
-async function generateAESKey(): Promise<CryptoKey> {
-  return await crypto.subtle.generateKey(
-    {
-      name: 'AES-GCM',
-      length: 256
-    },
-    true, // extractable
+export async function createEncryptionSession(
+  apiHost?: string
+): Promise<{ encryptedKey: string; session: EncryptionSession }> {
+  if (apiHost !== undefined && !authorities.has(apiHost))
+    await initializeEncryption(apiHost)
+  const server = apiHost === undefined ? selected : authorities.get(apiHost)
+  if (!server)
+    throw new Error(
+      'Server public key not set. Call setServerPublicKey() first.'
+    )
+  const aesKey = await crypto.subtle.generateKey(
+    { name: 'AES-GCM', length: 256 },
+    true,
     ['encrypt', 'decrypt']
   )
-}
-
-/**
- * Exports an AES key to raw bytes.
- */
-async function exportAESKey(key: CryptoKey): Promise<ArrayBuffer> {
-  return await crypto.subtle.exportKey('raw', key)
-}
-
-/**
- * Encrypts the AES key using the server's RSA public key.
- */
-async function encryptAESKeyWithRSA(aesKey: CryptoKey): Promise<string> {
-  if (!cachedServerPublicKey) {
-    throw new Error(
-      'Server public key not set. Call setServerPublicKey() first.'
-    )
-  }
-
-  const rawKey = await exportAESKey(aesKey)
-
-  const encrypted = await crypto.subtle.encrypt(
-    {
-      name: 'RSA-OAEP'
-    },
-    cachedServerPublicKey,
-    rawKey
+  const aesKeyRaw = await crypto.subtle.exportKey('raw', aesKey)
+  const wrapped = await crypto.subtle.encrypt(
+    { name: 'RSA-OAEP' },
+    server.key,
+    aesKeyRaw
   )
-
-  return arrayBufferToBase64(encrypted)
-}
-
-/**
- * Encrypts data using AES-GCM.
- */
-async function encryptWithAES(
-  data: string,
-  key: CryptoKey
-): Promise<{ iv: string; ciphertext: string; tag: string }> {
-  const encoder = new TextEncoder()
-
-  const dataBytes = encoder.encode(data)
-
-  // Generate random IV (96 bits for GCM)
-  const iv = crypto.getRandomValues(new Uint8Array(12))
-
-  const encrypted = await crypto.subtle.encrypt(
-    {
-      name: 'AES-GCM',
-      iv: iv,
-      tagLength: 128 // 128-bit auth tag
-    },
-    key,
-    dataBytes
-  )
-
-  // Web Crypto API appends the auth tag to the ciphertext
-  // We need to split them: last 16 bytes are the tag
-  const encryptedArray = new Uint8Array(encrypted)
-
-  const ciphertextLength = encryptedArray.length - 16
-
-  const ciphertext = encryptedArray.slice(0, ciphertextLength)
-
-  const tag = encryptedArray.slice(ciphertextLength)
-
   return {
-    iv: arrayBufferToBase64(iv.buffer),
-    ciphertext: arrayBufferToBase64(ciphertext.buffer),
-    tag: arrayBufferToBase64(tag.buffer)
+    encryptedKey: encode(new Uint8Array(wrapped)),
+    session: { aesKey, aesKeyRaw }
   }
 }
 
-/**
- * Decrypts data using AES-GCM.
- */
-async function decryptWithAES(
-  ciphertext: string,
-  iv: string,
-  tag: string,
-  key: CryptoKey
-): Promise<string> {
-  const ciphertextBytes = base64ToUint8Array(ciphertext)
-
-  const ivBytes = base64ToUint8Array(iv)
-
-  const tagBytes = base64ToUint8Array(tag)
-
-  // Combine ciphertext and tag (Web Crypto expects them together)
-  const combined = new Uint8Array(ciphertextBytes.length + tagBytes.length)
-
-  combined.set(ciphertextBytes, 0)
-  combined.set(tagBytes, ciphertextBytes.length)
-
-  const decrypted = await crypto.subtle.decrypt(
-    {
-      name: 'AES-GCM',
-      iv: ivBytes as Uint8Array<ArrayBuffer>,
-      tagLength: 128
-    },
-    key,
-    combined
-  )
-
-  const decoder = new TextDecoder()
-
-  return decoder.decode(decrypted)
-}
-
-/**
- * Helper: Convert ArrayBuffer to base64 string.
- */
-function arrayBufferToBase64(buffer: ArrayBuffer): string {
-  const bytes = new Uint8Array(buffer)
-
-  let binary = ''
-
-  for (let i = 0; i < bytes.byteLength; i++) {
-    binary += String.fromCharCode(bytes[i]!)
-  }
-
-  return btoa(binary)
-}
-
-/**
- * Helper: Convert base64 string to Uint8Array.
- */
-function base64ToUint8Array(base64: string): Uint8Array {
-  const binary = atob(base64)
-
-  const bytes = new Uint8Array(binary.length)
-
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i)
-  }
-
-  return bytes
-}
-
-// ============================================
-// Session-based encryption
-// ============================================
-
-interface EncryptionSession {
-  aesKey: CryptoKey
-  aesKeyRaw: ArrayBuffer
-}
-
-/**
- * Creates an encryption session for GET requests.
- * Returns an encrypted AES key to send in header and a session for decrypting the response.
- */
-export async function createEncryptionSession(): Promise<{
-  encryptedKey: string
-  session: EncryptionSession
-}> {
-  if (!cachedServerPublicKey) {
-    throw new Error(
-      'Server public key not set. Call setServerPublicKey() first.'
-    )
-  }
-
-  // Generate a new AES key for this request
-  const aesKey = await generateAESKey()
-
-  const aesKeyRaw = await exportAESKey(aesKey)
-
-  // Encrypt the AES key with server's RSA public key
-  const encryptedKey = await encryptAESKeyWithRSA(aesKey)
-
-  return {
-    encryptedKey,
-    session: {
-      aesKey,
-      aesKeyRaw
-    }
-  }
-}
-
-/**
- * Creates an encrypted payload for an API request.
- * Returns the encrypted payload and a session object for decrypting the response.
- */
 export async function encryptRequest<T>(
-  data: T
+  value: T,
+  apiHost?: string
 ): Promise<{ payload: EncryptedPayload; session: EncryptionSession }> {
-  if (!cachedServerPublicKey) {
-    throw new Error(
-      'Server public key not set. Call setServerPublicKey() first.'
+  const { encryptedKey, session } = await createEncryptionSession(apiHost)
+  const nonce = crypto.getRandomValues(new Uint8Array(12))
+  const sealed = new Uint8Array(
+    await crypto.subtle.encrypt(
+      { name: 'AES-GCM', iv: nonce, tagLength: 128 },
+      session.aesKey,
+      new TextEncoder().encode(JSON.stringify(value ?? null))
     )
-  }
-
-  // Generate a new AES key for this request
-  const aesKey = await generateAESKey()
-
-  const aesKeyRaw = await exportAESKey(aesKey)
-
-  // Encrypt the AES key with server's RSA public key
-  const encryptedKey = await encryptAESKeyWithRSA(aesKey)
-
-  // Encrypt the data with AES
-  const jsonData = JSON.stringify(data)
-
-  const { iv, ciphertext, tag } = await encryptWithAES(jsonData, aesKey)
-
+  )
   return {
+    session,
     payload: {
       k: encryptedKey,
-      iv,
-      data: ciphertext,
-      tag
-    },
-    session: {
-      aesKey,
-      aesKeyRaw
+      iv: encode(nonce),
+      data: encode(sealed.subarray(0, -16)),
+      tag: encode(sealed.subarray(-16))
     }
   }
 }
 
-/**
- * Decrypts a response from the server using the session's AES key.
- */
 export async function decryptResponse<T>(
-  encryptedResponse: EncryptedResponse,
+  message: EncryptedResponse,
   session: EncryptionSession
 ): Promise<T> {
-  const decryptedJson = await decryptWithAES(
-    encryptedResponse.data,
-    encryptedResponse.iv,
-    encryptedResponse.tag,
-    session.aesKey
+  const data = decode(message.data),
+    tag = decode(message.tag),
+    nonce = decode(message.iv)
+  if (nonce.length !== 12 || tag.length !== 16)
+    throw new Error('Invalid encrypted response')
+  const sealed = new Uint8Array(data.length + tag.length)
+  sealed.set(data)
+  sealed.set(tag, data.length)
+  const plaintext = await crypto.subtle.decrypt(
+    { name: 'AES-GCM', iv: nonce, tagLength: 128 },
+    session.aesKey,
+    sealed
   )
-
-  return JSON.parse(decryptedJson) as T
+  return JSON.parse(new TextDecoder().decode(plaintext)) as T
 }
 
-/**
- * Checks if a response is an encrypted response.
- */
-export function isEncryptedResponse(data: unknown): data is EncryptedResponse {
-  if (typeof data !== 'object' || data === null) return false
-
-  const d = data as Record<string, unknown>
-
+export function isEncryptedResponse(
+  value: unknown
+): value is EncryptedResponse {
   return (
-    typeof d.iv === 'string' &&
-    typeof d.data === 'string' &&
-    typeof d.tag === 'string'
+    value !== null &&
+    typeof value === 'object' &&
+    ['iv', 'data', 'tag'].every(
+      field => typeof (value as Record<string, unknown>)[field] === 'string'
+    )
   )
 }

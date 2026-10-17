@@ -1,20 +1,103 @@
-<!-- monolith-product-links -->
+<div align="center">
+
+<a href="https://monolith-site-maxjafars-projects.vercel.app">
+  <img src="docs/assets/monolith-mark.svg" alt="Monolith logo" width="80" height="80" />
+</a>
+
+# Monolith
+
+**Make space for what matters.**
+
+Your pages, projects and everyday tools in one self-hosted workspace.<br />Use the web, Windows or macOS. Connect your agents. Add the tools that fit your day.
+
+[![Development preview](https://img.shields.io/badge/status-development_preview-555555?style=flat)](https://monolith-site-maxjafars-projects.vercel.app/docs/availability) [![Self-hosted](https://img.shields.io/badge/hosting-self--hosted-222222?style=flat)](https://monolith-site-maxjafars-projects.vercel.app/docs/self-hosting) [![MCP and CLI](https://img.shields.io/badge/agents-MCP_%2B_CLI-555555?style=flat)](https://monolith-site-maxjafars-projects.vercel.app/docs/agents)
+
+**[Website](https://monolith-site-maxjafars-projects.vercel.app)** · **[Documentation](https://monolith-site-maxjafars-projects.vercel.app/docs)** · **[Quickstart](https://monolith-site-maxjafars-projects.vercel.app/docs/quickstart)** · **[Addons and Widgets](https://monolith-site-maxjafars-projects.vercel.app/addons)** · **[Releases](https://github.com/MaxJafar/monolith/releases)**
+
+[Self-hosting](https://monolith-site-maxjafars-projects.vercel.app/docs/self-hosting) · [MCP and CLI](https://monolith-site-maxjafars-projects.vercel.app/docs/agents) · [Updates](https://monolith-site-maxjafars-projects.vercel.app/docs/updates) · [Contributing](#development)
+
+</div>
+
 <p align="center">
-  <a href="https://monolith-site-maxjafars-projects.vercel.app"><strong>Monolith website ↗</strong></a> ·
-  <a href="https://monolith-site-maxjafars-projects.vercel.app/docs"><strong>Documentation ↗</strong></a> ·
-  <a href="https://monolith-site-maxjafars-projects.vercel.app/addons"><strong>Addons and Widgets ↗</strong></a>
+  <img src="docs/assets/monolith-workspace.webp" alt="Monolith dashboard with workspace navigation, actions, projects and configurable widgets" width="100%" />
 </p>
 
-The product site documents the current development workspace; the default branch may lag behind those features. See [release availability](https://monolith-site-maxjafars-projects.vercel.app/docs/availability).
-<!-- /monolith-product-links -->
+<p align="center"><sub>A connected workspace, shaped around your day. Screenshots use synthetic data.</sub></p>
 
-# monolith
+---
 
-A personal workspace built on LifeForge, with twelve personal tools, connected databases, block documents, a visual knowledge map and an agent team. Monolith uses a black and white identity, quiet surfaces, compact controls and an original geometric M mark. Light and dark themes share a Notion-inspired page tree, canvas and board experience.
+## What is Monolith?
 
-## Local development
+An idea becomes a page. A page becomes a project. Tasks need dates, records need context, and useful tools should be close to the work.
 
-Use Node 22.23 or newer and pnpm. The repository declares pnpm 11.21.0. PostgreSQL 17 must already be available. Set `POSTGRES_BIN` to its bin directory (for example, `$env:POSTGRES_BIN='C:\Program Files\PostgreSQL\17\bin'` in PowerShell). The macOS default is `/opt/homebrew/opt/postgresql@17/bin`. Store database timestamps in UTC.
+Monolith brings those pieces together. Write rich documents, organize structured information, plan projects and build a dashboard around what matters to you. Connected views use the same underlying records, so your calendar, project board and dashboard can show different perspectives on the same work.
+
+Run it on your own infrastructure, connect browser and desktop clients, and extend it with optional addons, widgets and agent integrations.
+
+## Keep your knowledge connected
+
+- **[Docs and pages](https://monolith-site-maxjafars-projects.vercel.app/docs/pages)** — Nested pages, rich blocks, references, backlinks and inline database views.
+- **[Databases](https://monolith-site-maxjafars-projects.vercel.app/docs/databases)** — Typed properties, relations, saved filters and table, board and calendar views.
+- **[Atlas](https://monolith-site-maxjafars-projects.vercel.app/docs/atlas)** — An optional visual map for exploring connections between your knowledge.
+- **[Search and navigation](https://monolith-site-maxjafars-projects.vercel.app/docs/workspace)** — Find accessible content and arrange your sidebar around your workspace.
+
+## Turn plans into progress
+
+- **[Projects](https://monolith-site-maxjafars-projects.vercel.app/docs/projects-calendar)** — Plan in boards, lists, timelines and Gantt views.
+- **Actions** — Focus on Today, Upcoming, High priority and Completed.
+- **[Calendar](https://monolith-site-maxjafars-projects.vercel.app/docs/projects-calendar)** — Bring dated records, events and subscriptions into month, week and agenda views.
+- **[Rooms](https://monolith-site-maxjafars-projects.vercel.app/docs/rooms)** — Keep workspace conversations close to the work.
+- **[Automations](https://monolith-site-maxjafars-projects.vercel.app/docs/automations)** — Connect workflow triggers and actions, then inspect execution history.
+
+## Make your workspace your own
+
+Start with seven native sections: **Calendar, Projects, Actions, Rooms, Docs, Dashboard and Databases**. Reorder navigation, choose light or dark appearance and add the tools you need.
+
+| Layer | What it brings | Examples |
+| --- | --- | --- |
+| Native features | The shared workspace foundation | Pages, projects, calendar, databases |
+| Addons | Optional tools with their own workspace surfaces | Atlas, Automations, Agents, Journal, Wallet, Gym |
+| Widgets | Compact views with configuration overlays | Achievements, Code Time, Flashcards, Pomodoro, Idea Box |
+
+**[Addons and Widgets](https://monolith-site-maxjafars-projects.vercel.app/addons)** separates installing a package on the host from enabling it in a workspace. Filter the shop by type, category and installation state; configure widgets in an overlay, add them to the dashboard or pin supported widgets to the sidebar.
+
+<p align="center">
+  <img src="docs/assets/monolith-addons.webp" alt="Monolith Addons and Widgets collection with type filters, package details and workspace controls" width="100%" loading="lazy" />
+</p>
+
+Configured hosts can use a signed GitHub Releases catalog for versioned downloads, progress, compatibility checks and package recovery. Packages can have independent versions while sharing a repository. The public website is a catalog; installation happens inside your Monolith host.
+
+## Work with your agents
+
+Connect **Codex, Claude Code, OpenClaw, Cursor** or another stdio MCP client to your workspace. Monolith’s MCP bridge and JSON CLI expose tools for pages, canonical documents, databases, records, projects, tasks and calendar events.
+
+The bridge starts in read mode. Enable writes deliberately; your account permissions and document revision checks still apply. The separate **Agents addon** organizes worker-backed assignments and is not required to use MCP.
+
+| Client | Configuration generator |
+| --- | --- |
+| Codex | `pnpm --silent agent config --client codex` |
+| Claude Code / Claude Desktop | `pnpm --silent agent config --client claude` |
+| OpenClaw | `pnpm --silent agent config --client openclaw` |
+| Cursor | `pnpm --silent agent config --client cursor` |
+| VS Code | `pnpm --silent agent config --client vscode` |
+| Other stdio MCP clients | `pnpm --silent agent config --client generic` |
+
+Build and sign in before generating configuration. Follow the **[MCP and CLI guide](https://monolith-site-maxjafars-projects.vercel.app/docs/agents)** for authentication, permissions and client setup.
+
+---
+
+## Get started
+
+- **Browser** — Run a local development workspace or connect to your configured host.
+- **Desktop** — Build the Windows or macOS shell on its supported platform. Check [Releases](https://github.com/MaxJafar/monolith/releases) for published installers.
+- **Self-host** — Run the API, Go gateway and PostgreSQL with the [container guide](https://monolith-site-maxjafars-projects.vercel.app/docs/self-hosting).
+
+> **Development preview:** these docs describe the current Monolith development workspace, version **0.0.0**. The repository is private, the published application source predates parts of this workspace, and no public installers or addon catalog have been released. See [release availability](https://monolith-site-maxjafars-projects.vercel.app/docs/availability) before choosing a build.
+
+<details>
+<summary><strong>Run the development workspace from source</strong></summary>
+
+Use a checkout containing the matching Monolith implementation, **Node.js 22.23+**, **pnpm 11.21.0** and **PostgreSQL 17**. Set `POSTGRES_BIN` to your PostgreSQL bin directory when needed.
 
 ```sh
 pnpm install --frozen-lockfile
@@ -24,45 +107,116 @@ pnpm db:push
 pnpm dev
 ```
 
-Open [monolith](http://localhost:5173). The API listens at `http://localhost:3636`; the isolated development database uses `127.0.0.1:55432/zillion_dev`. On a new database, onboarding creates the first profile. The existing verification database contains synthetic preview data. Local verification credentials are stored privately in ignored `.temp/preview-login.json`.
+Open **http://localhost:5173** and complete onboarding. The development API uses port **3636**; the isolated local database uses **55432**. `local:setup` creates ignored configuration and separate administrative and application database roles. `pnpm local:stop` stops the database while preserving its files.
 
-`local:setup` creates ignored `env/.env.local` with random secrets, an administrative schema role and a restricted application role. Never use a superuser or BYPASSRLS role for `DATABASE_URL`: API startup checks this. `DATABASE_ADMIN_URL` is for schema management and rehearsal tooling. The setup command refuses a different host, port or database; it does not manage other installations.
+Full setup and troubleshooting: **[Installation](https://monolith-site-maxjafars-projects.vercel.app/docs/installation)**.
 
-For separate terminals, use `pnpm --filter @lifeforge/server dev` and `pnpm --filter @lifeforge/client dev --strictPort`. Stop those terminals with Ctrl+C. `pnpm local:stop` stops this checkout’s database while retaining its files under `.temp`. Windows uses a separate native cluster so an existing macOS cluster is preserved.
+</details>
 
-## What is included
+### Your first workspace
 
-Todo List, Idea Box, Calendar, Pomodoro Timer, Code Time, Achievements, Blog, Projects, Notes, Flashcards, Wallet and Wishlist use current contracts, PostgreSQL and the shared UI. The database module adds typed properties, record pages, table, Kanban and calendar views, saved filters/sorts and reciprocal relations across bases. Date, tags and owner shortcuts create typed properties; owners can be the current account or owned workspace agents. Filters combine all/any groups, exact tag membership and relative dates such as this week or overdue.
+1. **Capture an idea.** Create a page in Docs, give it a title and add the context you want to keep.
+2. **Put work around it.** Create a project, add an action and give it a date. Explore the related project and calendar views.
+3. **Shape your day.** Arrange the Dashboard, reorder the sidebar and preview a widget in Addons and Widgets.
 
-[Calendar](http://localhost:5173/calendar) combines native calendars, ICS and module events with saved database calendar views. Select multiple calendars and categories, search, or filter by source, event type, date range, tags and owner. Filter selections are kept in the URL. Database calendar views bind a Date property and optional end Date property, offer month/week/agenda layouts, retain undated pages, and move date ranges without overwriting competing edits. Database dates are civil days; time-specific appointments use native Calendar events.
+Follow the **[first-workspace walkthrough](https://monolith-site-maxjafars-projects.vercel.app/docs/quickstart)** for the next steps.
 
-[Documents](http://localhost:5173/databases?section=documents) adds nested pages with headings, lists, checklists, quotes, code, dividers, block movement/duplication, undo/redo and Markdown export. Documents, database record pages and Notes share the same block editor. Existing plain text is retained until explicitly saved; Markdown in old content remains literal text.
+## Updates and recovery
 
-[Knowledge map](http://localhost:5173/databases?section=graph) connects documents, records and notes through stable page links, `[[Title|alias]]` references, live backlinks, database relations and labeled manual connections. Explore global/local neighborhoods with search, type/orphan filters, zoom, pan and draggable nodes. Page links resolve only within the signed-in account; duplicate titles require an explicit page choice. Document revisions, record/note timestamps and relation baselines reject stale saves. Editors warn before discarding drafts.
+Windows, macOS and the single-host Docker server have a GitHub Releases update system with notifications, download progress, signed package verification and recovery to a previous runtime.
 
-[Agents](http://localhost:5173/agents) adds assignable agent profiles, roles, reporting lines, project grants, dependencies, linked page context, budgets, execution leases, review and durable token history. Agents share existing Projects tasks. Choose a local planner, OpenAI worker, custom CLI, Codex CLI or OpenClaw runtime. Per-task automation can dispatch ready work and complete successful tasks; configured workers must remain running. `pnpm agents:worker` uses private scoped credentials, your installed runtime/model and token rates. See [Multica/Paperclip REA, architecture and worker setup](docs/ZILLION-AGENTS-RESEARCH.md). Live provider execution requires your configuration.
+Automatic downloads and automatic installation are separate settings. Desktop updates respect saved-work checks; server installation uses a UTC maintenance window and health checks. Schema-changing releases require a planned migration: runtime rollback does not reverse database changes.
 
-Internal `@lifeforge/*` package names and database table prefixes remain compatible. The user-facing product is monolith. English, Malay, Simplified Chinese and Traditional Chinese locale packs are included.
+Release signing, the external host supervisor and actual platform verification must be configured before rollout. **[Read the update guide](https://monolith-site-maxjafars-projects.vercel.app/docs/updates).**
 
-## Verification and migration
+---
 
-See [the local verification report](docs/ZILLION-VERIFICATION.md), [AFFiNE/REA research and relation semantics](docs/ZILLION-AFFINE-RESEARCH.md), [agent systems research and runtime protocol](docs/ZILLION-AGENTS-RESEARCH.md), [PocketBase migration rehearsal](docs/ZILLION-POCKETBASE-MIGRATION.md) and [container setup](docs/ZILLION-CONTAINERS.md).
+## Documentation
 
-```sh
-pnpm typecheck
-pnpm --filter @lifeforge/server-utils test
-pnpm --filter @lifeforge/api test
-pnpm --filter @lifeforge/blocks test
-pnpm exec cross-env ZILLION_INTEGRATION=1 pnpm --filter @lifeforge/server exec vitest run src/tests
-pnpm exec cross-env ZILLION_INTEGRATION=1 pnpm exec vitest run tools/src/zillion/migratePocketBase.test.ts
+| I want to… | Start here |
+| --- | --- |
+| Understand the product | [Meet Monolith](https://monolith-site-maxjafars-projects.vercel.app/docs/introduction) |
+| Set up my first workspace | [Installation](https://monolith-site-maxjafars-projects.vercel.app/docs/installation) · [Quickstart](https://monolith-site-maxjafars-projects.vercel.app/docs/quickstart) |
+| Write and connect knowledge | [Pages](https://monolith-site-maxjafars-projects.vercel.app/docs/pages) · [Databases](https://monolith-site-maxjafars-projects.vercel.app/docs/databases) · [Atlas](https://monolith-site-maxjafars-projects.vercel.app/docs/atlas) |
+| Plan my day | [Projects and Calendar](https://monolith-site-maxjafars-projects.vercel.app/docs/projects-calendar) · [Widgets](https://monolith-site-maxjafars-projects.vercel.app/docs/widgets) |
+| Extend the workspace | [Addon installation](https://monolith-site-maxjafars-projects.vercel.app/docs/addons) · [Collection](https://monolith-site-maxjafars-projects.vercel.app/addons) |
+| Connect AI tools | [MCP and CLI](https://monolith-site-maxjafars-projects.vercel.app/docs/agents) · [Agents addon](https://monolith-site-maxjafars-projects.vercel.app/docs/agents-addon) |
+| Run and update a host | [Self-hosting](https://monolith-site-maxjafars-projects.vercel.app/docs/self-hosting) · [Updates and recovery](https://monolith-site-maxjafars-projects.vercel.app/docs/updates) |
+| Understand the implementation | [Architecture](https://monolith-site-maxjafars-projects.vercel.app/docs/architecture) · [Development](https://monolith-site-maxjafars-projects.vercel.app/docs/development) |
+| Resolve a problem | [Troubleshooting](https://monolith-site-maxjafars-projects.vercel.app/docs/troubleshooting) · [FAQ](https://monolith-site-maxjafars-projects.vercel.app/docs/faq) |
+
+The workspace maintains English, Malay, Simplified Chinese and Traditional Chinese locale packs. The public docs are currently in English.
+
+## Architecture
+
+```text
+ Browser          Windows / macOS          Agent clients
+    |                    |                       |
+    |                    |                 MCP / JSON CLI
+    +--------------------+-----------------------+
+                         | HTTPS
+                   Monolith gateway
+                    /            \
+          Canonical documents   Domain API
+                    \            /
+                     PostgreSQL
 ```
 
-Integration tests are restricted to the isolated local development/test services. PocketBase migration defaults to dry-run, requires explicit owner mapping and supports guarded local apply/rollback. Existing bcrypt passwords are verified and rehashed to argon2 only after a successful login. Production data and deployment were outside this local task and were not changed.
+| Layer | Implementation |
+| --- | --- |
+| Workspace | React 19, shared Monolith UI and API contracts |
+| Documents | BlockSuite and Yjs, persisted through revision-checked gateway operations |
+| Windows | Tauri and WebView2 |
+| macOS | AppKit and WKWebView |
+| Host | Public Go gateway and private TypeScript domain API |
+| Storage | PostgreSQL 17 and persistent uploaded files |
+| Extensions | Independently versioned addons and registered widgets |
+| Product website | Static Astro site deployed to Vercel |
 
-External AI/OAuth/API integrations require the owner’s credentials. Code Time accepts authenticated tracking data; installing/configuring an external editor integration is separate. Container sources are prepared and statically checked; container execution remains unverified. Maintained source formatting is checked separately from archived reference evidence. Repository-wide ESLint still reports legacy typing and conditional-check debt; the [verification report](docs/ZILLION-VERIFICATION.md) distinguishes global results from passing checks for the new runtime and repaired navigation code.
+See **[Architecture](https://monolith-site-maxjafars-projects.vercel.app/docs/architecture)** for repository paths and the boundaries between clients, host services and optional workers.
 
-## Attribution and licenses
+## Development
 
-monolith is a modified LifeForge fork. [LifeForge](https://github.com/LifeForge-app/lifeforge) was initiated by [Melvin Chia](https://github.com/melvinchia3636) and is licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). The original license and package/module notices are retained. Some packages have their own licenses; consult their LICENSE files. Original upstream development documentation remains available through the LifeForge repository and its [documentation](https://docs.lifeforge.dev).
+Use the pinned pnpm version and follow the [development guide](https://monolith-site-maxjafars-projects.vercel.app/docs/development). Run checks appropriate to your change:
 
-AFFiNE source was researched with REA; its CRDT/collaboration implementation was not copied. The independent database, document and graph implementation and source/license references are documented in the research report. Notion, Outline and Obsidian informed interaction patterns; their source code and assets were not copied. Multica and Paperclip informed the independent agent/project/run design; [their pinned licenses and analysis limits](docs/ZILLION-AGENTS-RESEARCH.md#licenses) are recorded without vendoring their code. Rich editing uses Tiptap 3.31.4 and graph layout uses d3-force 3.0.0 through the shared UI library. This implementation does not provide full upstream feature parity, collaboration or offline synchronization. The Monolith logo is an original SVG; no reference product logo or assets were copied.
+```sh
+pnpm core:check
+pnpm typecheck
+pnpm build
+pnpm gateway:test
+pnpm agent:test
+```
+
+Native packaging requires the matching platform and signing credentials. The public website has its own build and checks:
+
+```sh
+pnpm site:build
+pnpm site:check
+pnpm site:test
+```
+
+For contributions, describe the problem in a [GitHub issue](https://github.com/MaxJafar/monolith/issues), make a focused change and include relevant validation. Keep addon secrets on the host and user data outside replaceable application packages.
+
+<details>
+<summary><strong>Create and release an addon</strong></summary>
+
+```sh
+pnpm monolith addons create yourname--reading-list
+pnpm install
+pnpm --filter @monolith/yourname--reading-list build
+pnpm release:addons yourname--reading-list
+```
+
+Each addon has a manifest, an independent version and four locale files. Runtime releases contain compiled files and a checksum-verified manifest. Source-sharing tarballs are produced separately with `pnpm monolith addons pack yourname--reading-list`.
+
+Addons execute trusted application code; they are not sandboxed. See [addon installation](https://monolith-site-maxjafars-projects.vercel.app/docs/addons) and [development and releases](https://monolith-site-maxjafars-projects.vercel.app/docs/development) for compatibility, signing and migration requirements.
+
+</details>
+
+---
+
+## License and attribution
+
+Maintained by **Monolith contributors**. See [LICENSE](LICENSE) and the licenses and notices shipped with each package. [Source and license information](https://monolith-site-maxjafars-projects.vercel.app/docs/availability#source-and-licenses) is included in the documentation.
+
+BlockSuite, Yjs and other dependencies retain their own notices. The Monolith mark and cover are original project assets.

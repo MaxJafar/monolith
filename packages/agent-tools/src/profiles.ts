@@ -88,7 +88,13 @@ export class ProfileStore {
         }
         break
       } catch (error) {
-        if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error
+        const code = (error as NodeJS.ErrnoException).code
+        // Windows can deny opening a lock briefly while another process deletes
+        // it. Keep the same bounded contention loop; never reclaim a live owner.
+        const deleting =
+          process.platform === 'win32' &&
+          (code === 'EPERM' || code === 'EACCES')
+        if (code !== 'EEXIST' && !deleting) throw error
         // Reclaim only an abandoned lock, never a slow live refresh.
         // Serialize reclaimers too: two stale observations must not unlink a
         // replacement lock acquired by a live process in between them.
@@ -113,9 +119,11 @@ export class ProfileStore {
             await rm(lock, { force: true })
         } catch (failure) {
           if (
-            !['ENOENT', 'EEXIST'].includes(
-              (failure as NodeJS.ErrnoException).code ?? ''
-            )
+            ![
+              'ENOENT',
+              'EEXIST',
+              ...(process.platform === 'win32' ? ['EPERM', 'EACCES'] : [])
+            ].includes((failure as NodeJS.ErrnoException).code ?? '')
           )
             throw failure
         } finally {

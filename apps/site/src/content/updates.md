@@ -7,7 +7,7 @@ order: 31
 
 Monolith’s Windows client, universal macOS client and single-host Linux Docker deployment have update support built around signed GitHub Releases. This requires the signed update manifest and an updater-enabled installation; it is not activated by publishing this website.
 
-Starting with 0.1.5, automatic updates are enabled while installers remain unsigned. Update manifests and archives are authenticated with Monolith’s pinned release key. Existing 0.1.3 and preview desktop clients need the new installer once to receive that key. See [release availability](/docs/availability) for the current distribution status.
+Starting with 0.1.6, automatic updates are enabled while installers remain unsigned. Update manifests and archives are authenticated with Monolith’s pinned release key. Existing 0.1.3 and preview desktop clients need the new installer once to receive that key. See [release availability](/docs/availability) for the current distribution status.
 
 ## See available updates
 

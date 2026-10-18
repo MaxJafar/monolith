@@ -164,7 +164,7 @@ if (command === 'client') {
       '--deep',
       '--strict',
       '-R',
-      'identifier "app.monolith.desktop"',
+      '=identifier "app.monolith.desktop"',
       app
     ])
     if (process.env.MONOLITH_UNSIGNED_INSTALLERS !== '1')

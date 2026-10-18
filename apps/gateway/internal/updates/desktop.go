@@ -253,7 +253,7 @@ func (d *Desktop) Prepare(ctx context.Context, r *Release, _ Artifact, archive s
 		if err != nil {
 			return nil, err
 		}
-		command := exec.CommandContext(ctx, "/usr/bin/codesign", "--verify", "--deep", "--strict", "-R", requirement, j.Stage)
+		command := exec.CommandContext(ctx, "/usr/bin/codesign", "--verify", "--deep", "--strict", "-R", "="+requirement, j.Stage)
 		if out, err := command.CombinedOutput(); err != nil {
 			return nil, fmt.Errorf("macOS signature verification failed: %s", strings.TrimSpace(string(out)))
 		}

@@ -1,6 +1,6 @@
 # Install Monolith
 
-Download the files for the same version from [GitHub Releases](https://github.com/MaxJafar/monolith/releases). Starting with 0.1.5, both clients and the Linux server support automatic updates even while the Windows installer remains unsigned and the Mac app uses an ad-hoc signature without notarization. Every update is authenticated by the pinned Monolith release key. Existing 0.1.3 and preview clients need this new installer once because those builds omitted the key.
+Download the files for the same version from [GitHub Releases](https://github.com/MaxJafar/monolith/releases). Starting with 0.1.6, both clients and the Linux server support automatic updates even while the Windows installer remains unsigned and the Mac app uses an ad-hoc signature without notarization. Every update is authenticated by the pinned Monolith release key. Existing 0.1.3 and preview clients need this new installer once because those builds omitted the key.
 
 ## Desktop clients
 

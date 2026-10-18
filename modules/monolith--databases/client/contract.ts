@@ -1,4 +1,1323 @@
 export const contract = {
+  calendar: {
+    list: {
+      method: 'get',
+      description:
+        'Read recurrence, reminders and invitations for this workspace',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {
+        query: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            workspace_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            }
+          },
+          required: ['workspace_id'],
+          additionalProperties: false
+        }
+      },
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            schedules: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  record_id: {
+                    type: 'string',
+                    format: 'uuid',
+                    pattern:
+                      '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                  },
+                  revision: {
+                    type: 'integer',
+                    minimum: 0,
+                    maximum: 9007199254740991
+                  },
+                  organizer_id: {
+                    type: 'string',
+                    format: 'uuid',
+                    pattern:
+                      '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                  },
+                  settings: {
+                    type: 'object',
+                    properties: {
+                      time_zone: {
+                        default: 'UTC',
+                        type: 'string',
+                        maxLength: 100
+                      },
+                      all_day: {
+                        default: false,
+                        type: 'boolean'
+                      },
+                      start_field: {
+                        default: 'date',
+                        anyOf: [
+                          {
+                            type: 'string',
+                            const: 'date'
+                          },
+                          {
+                            type: 'string',
+                            format: 'uuid',
+                            pattern:
+                              '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                          }
+                        ]
+                      },
+                      end_field: {
+                        default: 'end_date',
+                        anyOf: [
+                          {
+                            anyOf: [
+                              {
+                                type: 'string',
+                                const: 'end_date'
+                              },
+                              {
+                                type: 'string',
+                                format: 'uuid',
+                                pattern:
+                                  '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                              }
+                            ]
+                          },
+                          {
+                            type: 'null'
+                          }
+                        ]
+                      },
+                      recurrence: {
+                        default: null,
+                        anyOf: [
+                          {
+                            type: 'object',
+                            properties: {
+                              frequency: {
+                                type: 'string',
+                                enum: ['daily', 'weekly', 'monthly', 'yearly']
+                              },
+                              interval: {
+                                default: 1,
+                                type: 'integer',
+                                minimum: 1,
+                                maximum: 365
+                              },
+                              weekdays: {
+                                default: [],
+                                maxItems: 7,
+                                type: 'array',
+                                items: {
+                                  type: 'integer',
+                                  minimum: 0,
+                                  maximum: 6
+                                }
+                              },
+                              until: {
+                                default: null,
+                                anyOf: [
+                                  {
+                                    type: 'string',
+                                    pattern: '^\\d{4}-\\d{2}-\\d{2}$'
+                                  },
+                                  {
+                                    type: 'null'
+                                  }
+                                ]
+                              },
+                              count: {
+                                default: null,
+                                anyOf: [
+                                  {
+                                    type: 'integer',
+                                    minimum: 1,
+                                    maximum: 10000
+                                  },
+                                  {
+                                    type: 'null'
+                                  }
+                                ]
+                              }
+                            },
+                            required: [
+                              'frequency',
+                              'interval',
+                              'weekdays',
+                              'until',
+                              'count'
+                            ],
+                            additionalProperties: false
+                          },
+                          {
+                            type: 'null'
+                          }
+                        ]
+                      },
+                      reminders: {
+                        default: [10],
+                        maxItems: 5,
+                        type: 'array',
+                        items: {
+                          type: 'integer',
+                          minimum: 0,
+                          maximum: 40320
+                        }
+                      },
+                      email: {
+                        default: false,
+                        type: 'boolean'
+                      },
+                      attendees: {
+                        default: [],
+                        maxItems: 100,
+                        type: 'array',
+                        items: {
+                          type: 'string',
+                          format: 'uuid',
+                          pattern:
+                            '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                        }
+                      },
+                      exceptions: {
+                        default: {},
+                        type: 'object',
+                        additionalProperties: {
+                          type: 'object',
+                          properties: {
+                            start: {
+                              type: 'string',
+                              format: 'date-time',
+                              pattern:
+                                '^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$'
+                            },
+                            end: {
+                              type: 'string',
+                              format: 'date-time',
+                              pattern:
+                                '^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$'
+                            },
+                            cancelled: {
+                              type: 'boolean'
+                            },
+                            done: {
+                              type: 'boolean'
+                            }
+                          },
+                          additionalProperties: false
+                        }
+                      }
+                    },
+                    required: [
+                      'time_zone',
+                      'all_day',
+                      'start_field',
+                      'end_field',
+                      'recurrence',
+                      'reminders',
+                      'email',
+                      'attendees',
+                      'exceptions'
+                    ],
+                    additionalProperties: false
+                  },
+                  responses: {
+                    type: 'object',
+                    additionalProperties: {
+                      type: 'object',
+                      properties: {
+                        status: {
+                          type: 'string',
+                          enum: ['accepted', 'tentative', 'declined']
+                        },
+                        email: {
+                          type: 'boolean'
+                        }
+                      },
+                      required: ['status', 'email'],
+                      additionalProperties: false
+                    }
+                  }
+                },
+                required: [
+                  'record_id',
+                  'revision',
+                  'organizer_id',
+                  'settings',
+                  'responses'
+                ],
+                additionalProperties: false
+              }
+            },
+            email_ready: {
+              type: 'boolean'
+            }
+          },
+          required: ['schedules', 'email_ready'],
+          additionalProperties: false
+        }
+      }
+    },
+    save: {
+      method: 'post',
+      description:
+        'Save a calendar series and invite existing workspace members',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {
+        query: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            workspace_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            record_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            }
+          },
+          required: ['workspace_id', 'record_id'],
+          additionalProperties: false
+        },
+        body: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            expected_revision: {
+              type: 'integer',
+              minimum: 0,
+              maximum: 9007199254740991
+            },
+            settings: {
+              type: 'object',
+              properties: {
+                time_zone: {
+                  default: 'UTC',
+                  type: 'string',
+                  maxLength: 100
+                },
+                all_day: {
+                  default: false,
+                  type: 'boolean'
+                },
+                start_field: {
+                  default: 'date',
+                  anyOf: [
+                    {
+                      type: 'string',
+                      const: 'date'
+                    },
+                    {
+                      type: 'string',
+                      format: 'uuid',
+                      pattern:
+                        '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                    }
+                  ]
+                },
+                end_field: {
+                  default: 'end_date',
+                  anyOf: [
+                    {
+                      anyOf: [
+                        {
+                          type: 'string',
+                          const: 'end_date'
+                        },
+                        {
+                          type: 'string',
+                          format: 'uuid',
+                          pattern:
+                            '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                        }
+                      ]
+                    },
+                    {
+                      type: 'null'
+                    }
+                  ]
+                },
+                recurrence: {
+                  default: null,
+                  anyOf: [
+                    {
+                      type: 'object',
+                      properties: {
+                        frequency: {
+                          type: 'string',
+                          enum: ['daily', 'weekly', 'monthly', 'yearly']
+                        },
+                        interval: {
+                          default: 1,
+                          type: 'integer',
+                          minimum: 1,
+                          maximum: 365
+                        },
+                        weekdays: {
+                          default: [],
+                          maxItems: 7,
+                          type: 'array',
+                          items: {
+                            type: 'integer',
+                            minimum: 0,
+                            maximum: 6
+                          }
+                        },
+                        until: {
+                          default: null,
+                          anyOf: [
+                            {
+                              type: 'string',
+                              pattern: '^\\d{4}-\\d{2}-\\d{2}$'
+                            },
+                            {
+                              type: 'null'
+                            }
+                          ]
+                        },
+                        count: {
+                          default: null,
+                          anyOf: [
+                            {
+                              type: 'integer',
+                              minimum: 1,
+                              maximum: 10000
+                            },
+                            {
+                              type: 'null'
+                            }
+                          ]
+                        }
+                      },
+                      required: [
+                        'frequency',
+                        'interval',
+                        'weekdays',
+                        'until',
+                        'count'
+                      ],
+                      additionalProperties: false
+                    },
+                    {
+                      type: 'null'
+                    }
+                  ]
+                },
+                reminders: {
+                  default: [10],
+                  maxItems: 5,
+                  type: 'array',
+                  items: {
+                    type: 'integer',
+                    minimum: 0,
+                    maximum: 40320
+                  }
+                },
+                email: {
+                  default: false,
+                  type: 'boolean'
+                },
+                attendees: {
+                  default: [],
+                  maxItems: 100,
+                  type: 'array',
+                  items: {
+                    type: 'string',
+                    format: 'uuid',
+                    pattern:
+                      '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                  }
+                },
+                exceptions: {
+                  default: {},
+                  type: 'object',
+                  additionalProperties: {
+                    type: 'object',
+                    properties: {
+                      start: {
+                        type: 'string',
+                        format: 'date-time',
+                        pattern:
+                          '^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$'
+                      },
+                      end: {
+                        type: 'string',
+                        format: 'date-time',
+                        pattern:
+                          '^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$'
+                      },
+                      cancelled: {
+                        type: 'boolean'
+                      },
+                      done: {
+                        type: 'boolean'
+                      }
+                    },
+                    additionalProperties: false
+                  }
+                }
+              },
+              required: [
+                'time_zone',
+                'all_day',
+                'start_field',
+                'end_field',
+                'recurrence',
+                'reminders',
+                'email',
+                'attendees',
+                'exceptions'
+              ],
+              additionalProperties: false
+            }
+          },
+          required: ['expected_revision', 'settings'],
+          additionalProperties: false
+        }
+      },
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            record_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            revision: {
+              type: 'integer',
+              minimum: 0,
+              maximum: 9007199254740991
+            },
+            organizer_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            settings: {
+              type: 'object',
+              properties: {
+                time_zone: {
+                  default: 'UTC',
+                  type: 'string',
+                  maxLength: 100
+                },
+                all_day: {
+                  default: false,
+                  type: 'boolean'
+                },
+                start_field: {
+                  default: 'date',
+                  anyOf: [
+                    {
+                      type: 'string',
+                      const: 'date'
+                    },
+                    {
+                      type: 'string',
+                      format: 'uuid',
+                      pattern:
+                        '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                    }
+                  ]
+                },
+                end_field: {
+                  default: 'end_date',
+                  anyOf: [
+                    {
+                      anyOf: [
+                        {
+                          type: 'string',
+                          const: 'end_date'
+                        },
+                        {
+                          type: 'string',
+                          format: 'uuid',
+                          pattern:
+                            '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                        }
+                      ]
+                    },
+                    {
+                      type: 'null'
+                    }
+                  ]
+                },
+                recurrence: {
+                  default: null,
+                  anyOf: [
+                    {
+                      type: 'object',
+                      properties: {
+                        frequency: {
+                          type: 'string',
+                          enum: ['daily', 'weekly', 'monthly', 'yearly']
+                        },
+                        interval: {
+                          default: 1,
+                          type: 'integer',
+                          minimum: 1,
+                          maximum: 365
+                        },
+                        weekdays: {
+                          default: [],
+                          maxItems: 7,
+                          type: 'array',
+                          items: {
+                            type: 'integer',
+                            minimum: 0,
+                            maximum: 6
+                          }
+                        },
+                        until: {
+                          default: null,
+                          anyOf: [
+                            {
+                              type: 'string',
+                              pattern: '^\\d{4}-\\d{2}-\\d{2}$'
+                            },
+                            {
+                              type: 'null'
+                            }
+                          ]
+                        },
+                        count: {
+                          default: null,
+                          anyOf: [
+                            {
+                              type: 'integer',
+                              minimum: 1,
+                              maximum: 10000
+                            },
+                            {
+                              type: 'null'
+                            }
+                          ]
+                        }
+                      },
+                      required: [
+                        'frequency',
+                        'interval',
+                        'weekdays',
+                        'until',
+                        'count'
+                      ],
+                      additionalProperties: false
+                    },
+                    {
+                      type: 'null'
+                    }
+                  ]
+                },
+                reminders: {
+                  default: [10],
+                  maxItems: 5,
+                  type: 'array',
+                  items: {
+                    type: 'integer',
+                    minimum: 0,
+                    maximum: 40320
+                  }
+                },
+                email: {
+                  default: false,
+                  type: 'boolean'
+                },
+                attendees: {
+                  default: [],
+                  maxItems: 100,
+                  type: 'array',
+                  items: {
+                    type: 'string',
+                    format: 'uuid',
+                    pattern:
+                      '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                  }
+                },
+                exceptions: {
+                  default: {},
+                  type: 'object',
+                  additionalProperties: {
+                    type: 'object',
+                    properties: {
+                      start: {
+                        type: 'string',
+                        format: 'date-time',
+                        pattern:
+                          '^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$'
+                      },
+                      end: {
+                        type: 'string',
+                        format: 'date-time',
+                        pattern:
+                          '^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$'
+                      },
+                      cancelled: {
+                        type: 'boolean'
+                      },
+                      done: {
+                        type: 'boolean'
+                      }
+                    },
+                    additionalProperties: false
+                  }
+                }
+              },
+              required: [
+                'time_zone',
+                'all_day',
+                'start_field',
+                'end_field',
+                'recurrence',
+                'reminders',
+                'email',
+                'attendees',
+                'exceptions'
+              ],
+              additionalProperties: false
+            },
+            responses: {
+              type: 'object',
+              additionalProperties: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    enum: ['accepted', 'tentative', 'declined']
+                  },
+                  email: {
+                    type: 'boolean'
+                  }
+                },
+                required: ['status', 'email'],
+                additionalProperties: false
+              }
+            }
+          },
+          required: [
+            'record_id',
+            'revision',
+            'organizer_id',
+            'settings',
+            'responses'
+          ],
+          additionalProperties: false
+        }
+      }
+    },
+    occurrence: {
+      method: 'post',
+      description:
+        'Move, resize, cancel or complete only one occurrence of a repeating event or task',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {
+        query: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            workspace_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            record_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            }
+          },
+          required: ['workspace_id', 'record_id'],
+          additionalProperties: false
+        },
+        body: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            expected_revision: {
+              type: 'integer',
+              exclusiveMinimum: 0,
+              maximum: 9007199254740991
+            },
+            original: {
+              type: 'string',
+              format: 'date-time',
+              pattern:
+                '^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$'
+            },
+            change: {
+              type: 'object',
+              properties: {
+                start: {
+                  type: 'string',
+                  format: 'date-time',
+                  pattern:
+                    '^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$'
+                },
+                end: {
+                  type: 'string',
+                  format: 'date-time',
+                  pattern:
+                    '^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$'
+                },
+                cancelled: {
+                  type: 'boolean'
+                },
+                done: {
+                  type: 'boolean'
+                }
+              },
+              additionalProperties: false
+            }
+          },
+          required: ['expected_revision', 'original', 'change'],
+          additionalProperties: false
+        }
+      },
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            record_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            revision: {
+              type: 'integer',
+              minimum: 0,
+              maximum: 9007199254740991
+            },
+            organizer_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            settings: {
+              type: 'object',
+              properties: {
+                time_zone: {
+                  default: 'UTC',
+                  type: 'string',
+                  maxLength: 100
+                },
+                all_day: {
+                  default: false,
+                  type: 'boolean'
+                },
+                start_field: {
+                  default: 'date',
+                  anyOf: [
+                    {
+                      type: 'string',
+                      const: 'date'
+                    },
+                    {
+                      type: 'string',
+                      format: 'uuid',
+                      pattern:
+                        '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                    }
+                  ]
+                },
+                end_field: {
+                  default: 'end_date',
+                  anyOf: [
+                    {
+                      anyOf: [
+                        {
+                          type: 'string',
+                          const: 'end_date'
+                        },
+                        {
+                          type: 'string',
+                          format: 'uuid',
+                          pattern:
+                            '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                        }
+                      ]
+                    },
+                    {
+                      type: 'null'
+                    }
+                  ]
+                },
+                recurrence: {
+                  default: null,
+                  anyOf: [
+                    {
+                      type: 'object',
+                      properties: {
+                        frequency: {
+                          type: 'string',
+                          enum: ['daily', 'weekly', 'monthly', 'yearly']
+                        },
+                        interval: {
+                          default: 1,
+                          type: 'integer',
+                          minimum: 1,
+                          maximum: 365
+                        },
+                        weekdays: {
+                          default: [],
+                          maxItems: 7,
+                          type: 'array',
+                          items: {
+                            type: 'integer',
+                            minimum: 0,
+                            maximum: 6
+                          }
+                        },
+                        until: {
+                          default: null,
+                          anyOf: [
+                            {
+                              type: 'string',
+                              pattern: '^\\d{4}-\\d{2}-\\d{2}$'
+                            },
+                            {
+                              type: 'null'
+                            }
+                          ]
+                        },
+                        count: {
+                          default: null,
+                          anyOf: [
+                            {
+                              type: 'integer',
+                              minimum: 1,
+                              maximum: 10000
+                            },
+                            {
+                              type: 'null'
+                            }
+                          ]
+                        }
+                      },
+                      required: [
+                        'frequency',
+                        'interval',
+                        'weekdays',
+                        'until',
+                        'count'
+                      ],
+                      additionalProperties: false
+                    },
+                    {
+                      type: 'null'
+                    }
+                  ]
+                },
+                reminders: {
+                  default: [10],
+                  maxItems: 5,
+                  type: 'array',
+                  items: {
+                    type: 'integer',
+                    minimum: 0,
+                    maximum: 40320
+                  }
+                },
+                email: {
+                  default: false,
+                  type: 'boolean'
+                },
+                attendees: {
+                  default: [],
+                  maxItems: 100,
+                  type: 'array',
+                  items: {
+                    type: 'string',
+                    format: 'uuid',
+                    pattern:
+                      '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                  }
+                },
+                exceptions: {
+                  default: {},
+                  type: 'object',
+                  additionalProperties: {
+                    type: 'object',
+                    properties: {
+                      start: {
+                        type: 'string',
+                        format: 'date-time',
+                        pattern:
+                          '^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$'
+                      },
+                      end: {
+                        type: 'string',
+                        format: 'date-time',
+                        pattern:
+                          '^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$'
+                      },
+                      cancelled: {
+                        type: 'boolean'
+                      },
+                      done: {
+                        type: 'boolean'
+                      }
+                    },
+                    additionalProperties: false
+                  }
+                }
+              },
+              required: [
+                'time_zone',
+                'all_day',
+                'start_field',
+                'end_field',
+                'recurrence',
+                'reminders',
+                'email',
+                'attendees',
+                'exceptions'
+              ],
+              additionalProperties: false
+            },
+            responses: {
+              type: 'object',
+              additionalProperties: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    enum: ['accepted', 'tentative', 'declined']
+                  },
+                  email: {
+                    type: 'boolean'
+                  }
+                },
+                required: ['status', 'email'],
+                additionalProperties: false
+              }
+            }
+          },
+          required: [
+            'record_id',
+            'revision',
+            'organizer_id',
+            'settings',
+            'responses'
+          ],
+          additionalProperties: false
+        }
+      }
+    },
+    move: {
+      method: 'post',
+      description:
+        'Persist a calendar gesture to its original date properties with a revision guard',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {
+        query: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            workspace_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            record_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            }
+          },
+          required: ['workspace_id', 'record_id'],
+          additionalProperties: false
+        },
+        body: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            expected_updated: {
+              type: 'string',
+              format: 'date-time',
+              pattern:
+                '^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$'
+            },
+            time_zone: {
+              type: 'string',
+              maxLength: 100
+            },
+            start_field: {
+              type: 'string'
+            },
+            end_field: {
+              anyOf: [
+                {
+                  type: 'string'
+                },
+                {
+                  type: 'null'
+                }
+              ]
+            },
+            start: {
+              type: 'string',
+              format: 'date-time',
+              pattern:
+                '^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$'
+            },
+            end: {
+              type: 'string',
+              format: 'date-time',
+              pattern:
+                '^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$'
+            }
+          },
+          required: [
+            'expected_updated',
+            'time_zone',
+            'start_field',
+            'end_field',
+            'start',
+            'end'
+          ],
+          additionalProperties: false
+        }
+      },
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            saved: {
+              type: 'boolean'
+            }
+          },
+          required: ['saved'],
+          additionalProperties: false
+        }
+      }
+    },
+    respond: {
+      method: 'post',
+      description:
+        'Respond to your own workspace calendar invitation and choose email reminders',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {
+        query: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            workspace_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            record_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            }
+          },
+          required: ['workspace_id', 'record_id'],
+          additionalProperties: false
+        },
+        body: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            status: {
+              type: 'string',
+              enum: ['accepted', 'tentative', 'declined']
+            },
+            email: {
+              type: 'boolean'
+            }
+          },
+          required: ['status', 'email'],
+          additionalProperties: false
+        }
+      },
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            saved: {
+              type: 'boolean'
+            }
+          },
+          required: ['saved'],
+          additionalProperties: false
+        }
+      }
+    },
+    notifications: {
+      method: 'get',
+      description:
+        'Read your calendar inbox after checking current workspace membership',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {
+        query: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            workspace_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            }
+          },
+          required: ['workspace_id'],
+          additionalProperties: false
+        }
+      },
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              id: {
+                type: 'string',
+                format: 'uuid',
+                pattern:
+                  '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+              },
+              record_id: {
+                type: 'string',
+                format: 'uuid',
+                pattern:
+                  '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+              },
+              title: {
+                type: 'string'
+              },
+              kind: {
+                type: 'string'
+              },
+              starts_at: {
+                type: 'string',
+                format: 'date-time'
+              },
+              created: {
+                type: 'string',
+                format: 'date-time'
+              },
+              read: {
+                type: 'boolean'
+              },
+              email_status: {
+                type: 'string'
+              }
+            },
+            required: [
+              'id',
+              'record_id',
+              'title',
+              'kind',
+              'starts_at',
+              'created',
+              'read',
+              'email_status'
+            ],
+            additionalProperties: false
+          }
+        }
+      }
+    },
+    markRead: {
+      method: 'post',
+      description: 'Mark your own calendar notification read',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {
+        query: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            workspace_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            }
+          },
+          required: ['workspace_id'],
+          additionalProperties: false
+        },
+        body: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            }
+          },
+          required: ['id'],
+          additionalProperties: false
+        }
+      },
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            saved: {
+              type: 'boolean'
+            }
+          },
+          required: ['saved'],
+          additionalProperties: false
+        }
+      }
+    }
+  },
   addComment: {
     method: 'post',
     description: 'Append an authenticated comment to a database page',

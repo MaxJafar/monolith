@@ -1,7 +1,9 @@
-import { useModuleTranslation } from '@monolith/localization'
-import { Button, Flex, FloatingPopover, Icon, Stack, Text } from '@monolith/ui'
+import dayjs from 'dayjs'
 import { useState } from 'react'
 import { Link } from 'react-router'
+
+import { useModuleTranslation } from '@monolith/localization'
+import { Button, Flex, FloatingPopover, Icon, Stack, Text } from '@monolith/ui'
 
 import { useDatabases } from '@/DatabaseProvider'
 import { valueColor } from '@/utils/recordColors'
@@ -32,8 +34,17 @@ export function PropertyCell({
   onRelationDirty?: (id: string, dirty: boolean) => void
 }) {
   const { t } = useModuleTranslation()
-  const { api, run, busy, index, recordHref, openRecord, embedded, data } =
-    useDatabases()
+  const {
+    api,
+    run,
+    busy,
+    index,
+    recordHref,
+    openRecord,
+    embedded,
+    data,
+    workspaceId
+  } = useDatabases()
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
   const [query, setQuery] = useState('')
   const [draft, setDraft] = useState('')
@@ -47,6 +58,12 @@ export function PropertyCell({
       : []
   const options = [...new Set([...field.config.options, ...selected])]
   const relation = field.kind === 'relation' && field.id !== 'project_id'
+  const timed =
+    field.kind === 'date' &&
+    (field.id === 'end_date' ||
+      (field.id === 'date' &&
+        (record?.item_type === 'event' ||
+          (typeof value === 'string' && value.includes('T')))))
   const project = field.id === 'project_id'
   const links =
     relation && record
@@ -167,7 +184,13 @@ export function PropertyCell({
               return
             }
             setQuery('')
-            setDraft(value == null ? '' : String(value))
+            setDraft(
+              value == null
+                ? ''
+                : timed
+                  ? dayjs(String(value)).format('YYYY-MM-DDTHH:mm')
+                  : String(value)
+            )
             setAnchor(event.currentTarget)
           }}
         >
@@ -191,6 +214,8 @@ export function PropertyCell({
             <span>
               {index.recordsById.get(String(value))?.title ?? t('emptyValue')}
             </span>
+          ) : timed && typeof value === 'string' ? (
+            <span>{dayjs(value).format('D MMM YYYY, HH:mm')}</span>
           ) : ['url', 'files', 'button'].includes(field.kind) ? (
             <span>
               {Array.isArray(value) ? value.join(', ') : String(value)}
@@ -200,6 +225,21 @@ export function PropertyCell({
           )}
         </button>
       )}
+      {field.kind === 'date' &&
+        record &&
+        typeof value === 'string' &&
+        value &&
+        dayjs(value).isValid() && (
+          <Button
+            as={Link}
+            namespace={false}
+            variant="plain"
+            icon="lucide:calendar-days"
+            aria-label={t('scheduling.openCalendar')}
+            title={t('scheduling.openCalendar')}
+            to={`/calendar?${new URLSearchParams({ workspace: workspaceId ?? '', calendarDate: dayjs(value).format('YYYY-MM-DD'), calendarLayout: 'agenda', calendarField: field.id === 'end_date' ? 'date' : field.id })}`}
+          />
+        )}
       {anchor && (
         <FloatingPopover
           anchor={anchor}
@@ -381,7 +421,9 @@ export function PropertyCell({
                   field.kind === 'number'
                     ? 'number'
                     : field.kind === 'date'
-                      ? 'date'
+                      ? timed
+                        ? 'datetime-local'
+                        : 'date'
                       : 'text'
                 }
                 value={draft}

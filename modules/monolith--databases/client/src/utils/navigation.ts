@@ -3,6 +3,7 @@ import type { RecordPage } from '../../../shared'
 type CalendarNavigation = {
   calendarDate?: string
   calendarLayout?: string
+  calendarField?: string
 }
 
 export function viewNavigation(

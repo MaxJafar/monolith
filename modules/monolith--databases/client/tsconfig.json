@@ -18,6 +18,7 @@
     "../progress.ts",
     "../workspaceShared.ts",
     "../navigationShared.ts",
-    "../knowledgeLibraryShared.ts"
+    "../knowledgeLibraryShared.ts",
+    "../calendarShared.ts"
   ]
 }

@@ -48,6 +48,18 @@ vi.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key })
 }))
 vi.mock('@/manifest', () => ({ workspaceAPI: {} }))
+vi.mock('./calendar/CalendarScheduleEditor', () => ({
+  CalendarScheduleEditor: ({
+    onDirtyChange
+  }: {
+    onDirtyChange: (dirty: boolean) => void
+  }) =>
+    createElement(
+      'button',
+      { onClick: () => onDirtyChange(true) },
+      'change schedule'
+    )
+}))
 vi.mock('./RecordSurface', () => ({
   RecordSurface: ({
     children,
@@ -245,6 +257,8 @@ let container: HTMLDivElement
 let root: Root | undefined
 let router: ReturnType<typeof createMemoryRouter> | undefined
 let refreshRecord: () => void
+let deferNavigation = false
+let queuedNavigation: (() => void) | undefined
 
 function Workspace() {
   const navigate = useNavigate()
@@ -264,7 +278,12 @@ function Workspace() {
     initialValues: prefill,
     onDone:
       mode === 'saved'
-        ? () => navigate('/databases?base=projects')
+        ? () => {
+            if (deferNavigation) {
+              queuedNavigation = () => navigate('/databases?base=projects')
+              refresh(value => value + 1)
+            } else navigate('/databases?base=projects')
+          }
         : () => setCreating(false)
   })
 }
@@ -302,6 +321,8 @@ async function click(text: string) {
 
 beforeEach(() => {
   api.save.mockReset()
+  deferNavigation = false
+  queuedNavigation = undefined
   container = document.createElement('div')
   document.body.append(container)
   vi.spyOn(window, 'confirm').mockReturnValue(true)
@@ -315,6 +336,23 @@ afterEach(async () => {
 })
 
 describe('RecordEditor in-app Back confirmation', () => {
+  it('protects a scheduling draft and honors discard across delayed query navigation', async () => {
+    deferNavigation = true
+    await mount('saved', {}, { ...record, item_type: 'event' })
+    await click('change schedule')
+    await click('buttons.backToDatabase')
+    expect(container.querySelectorAll('[role="alert"]')).toHaveLength(1)
+    await click('docs.keepEditing')
+    expect(container.querySelector('[data-testid="base"]')).toBeNull()
+    await click('buttons.backToDatabase')
+    await click('docs.discard')
+    expect(queuedNavigation).toBeDefined()
+    await act(async () => queuedNavigation!())
+    expect(container.querySelector('[data-testid="base"]')).not.toBeNull()
+    expect(container.querySelector('[role="alert"]')).toBeNull()
+    expect(api.save).not.toHaveBeenCalled()
+  })
+
   it('refreshes an unchanged open page when its canonical record changes', async () => {
     await mount('saved')
     editingRecord = {

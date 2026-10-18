@@ -1,11 +1,13 @@
-import { appearanceSchema } from '@monolith/blocks'
-import { ClientError, canonicalBodies } from '@monolith/server-utils'
 import dayjs from 'dayjs'
 import { and, eq, inArray } from 'drizzle-orm'
 import { createSelectSchema } from 'drizzle-orm/zod'
 import { randomUUID } from 'node:crypto'
 import z from 'zod'
 
+import { appearanceSchema } from '@monolith/blocks'
+import { ClientError, canonicalBodies } from '@monolith/server-utils'
+
+import { calendarTiming } from '../calendarShared'
 import { computeRecords, computedKinds, numericKinds } from '../computed'
 import { validProgressSources } from '../progress'
 import {
@@ -43,6 +45,7 @@ import {
 } from './model'
 import {
   bases,
+  calendarSchedules,
   fields,
   links,
   recordSources,
@@ -585,6 +588,8 @@ export const updateField = endpoints
             : {})
         }
       }
+      if (field.kind === 'date' && candidate.kind !== 'date')
+        await checkCalendarFieldRemoval(tx, owner, [field.id])
       if (
         candidate.kind !== field.kind &&
         (computedKinds.has(field.kind) || computedKinds.has(candidate.kind))
@@ -837,6 +842,27 @@ export const updateRecord = endpoints
 
       for (const view of calendars)
         validateCalendarValue(view, body.values ?? current.values)
+
+      const [schedule] = await tx
+        .select()
+        .from(calendarSchedules)
+        .where(eq(calendarSchedules.record_id, current.id))
+      if (schedule && Object.keys(schedule.settings.exceptions).length) {
+        const before = JSON.parse(JSON.stringify(current))
+        const after = { ...before, ...body }
+        const timing = (record: typeof before) =>
+          calendarTiming(
+            record,
+            schedule.settings.start_field,
+            schedule.settings.end_field,
+            schedule.settings
+          )
+        if (JSON.stringify(timing(before)) !== JSON.stringify(timing(after)))
+          throw new ClientError(
+            'This series has individual changes. Move an occurrence or create a new series to preserve them.',
+            409
+          )
+      }
 
       const content = await prepareContent(
         tx,

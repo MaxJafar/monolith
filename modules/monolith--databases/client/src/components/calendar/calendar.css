@@ -1,0 +1,169 @@
+.monolith-time-calendar {
+  --calendar-line: color-mix(
+    in srgb,
+    var(--text-primary, #252525) 12%,
+    transparent
+  );
+}
+.monolith-time-scroll {
+  border: 1px solid var(--calendar-line);
+  border-radius: var(--radius-lg, 8px);
+  overscroll-behavior: contain;
+}
+.monolith-time-head {
+  background: var(--bg-surface, #fff);
+  border-bottom: 1px solid var(--calendar-line);
+}
+.monolith-time-heading,
+.monolith-time-allday,
+.monolith-time-day {
+  border-left: 1px solid var(--calendar-line);
+}
+.monolith-time-heading[data-today='true'] {
+  color: var(--selection-color, #3875d7);
+  background: color-mix(
+    in srgb,
+    var(--selection-color, #3875d7) 7%,
+    transparent
+  );
+}
+.monolith-time-slot {
+  appearance: none;
+  border: 0;
+  border-top: 1px solid var(--calendar-line);
+  background: transparent;
+  cursor: crosshair;
+}
+.monolith-time-slot:nth-child(even) {
+  border-top-style: dotted;
+}
+.monolith-time-slot:focus-visible {
+  outline: 2px solid var(--selection-color);
+  outline-offset: -2px;
+}
+.monolith-time-slot:not(:disabled):hover {
+  background: color-mix(
+    in srgb,
+    var(--selection-color, #3875d7) 6%,
+    transparent
+  );
+}
+.monolith-time-event {
+  background: color-mix(
+    in srgb,
+    var(--selection-color, #3875d7) 14%,
+    var(--bg-surface, #fff)
+  );
+  border: 1px solid
+    color-mix(in srgb, var(--selection-color, #3875d7) 35%, transparent);
+  border-left: 3px solid var(--selection-color, #3875d7);
+  border-radius: 5px;
+  overflow: hidden;
+  z-index: 1;
+}
+.monolith-time-event[data-moving='true'] {
+  box-shadow: var(--floating-shadow, 0 8px 24px #0002);
+  z-index: 5;
+  opacity: 0.85;
+}
+.monolith-time-event[data-done='true'] {
+  opacity: 0.55;
+}
+.monolith-time-event-body {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  text-align: start;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  padding-top: 2px;
+}
+.monolith-time-event-body:active {
+  cursor: grabbing;
+}
+.monolith-time-event-body:focus-visible {
+  outline: 2px solid var(--text-primary);
+  outline-offset: -2px;
+}
+.monolith-time-resize {
+  border: 0;
+  background: transparent;
+  cursor: ns-resize;
+  touch-action: none;
+}
+.monolith-time-resize::after {
+  content: '';
+  display: block;
+  width: 24px;
+  height: 3px;
+  margin: auto;
+  border-radius: 4px;
+  background: currentColor;
+  opacity: 0.4;
+}
+.monolith-time-resize:hover,
+.monolith-time-resize:focus-visible {
+  background: color-mix(in srgb, var(--selection-color) 20%, transparent);
+}
+.monolith-time-now {
+  border-top: 2px solid #d84949;
+  pointer-events: none;
+  z-index: 2;
+}
+.monolith-time-now::before {
+  content: '';
+  position: absolute;
+  left: -4px;
+  top: -5px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #d84949;
+}
+.monolith-calendar-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.monolith-calendar-field input,
+.monolith-calendar-field select {
+  min-height: 36px;
+  padding: 6px 8px;
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: var(--radius-md, 6px);
+  background: var(--bg-surface, #fff);
+  color: inherit;
+  width: 100%;
+}
+.monolith-calendar-field input:focus-visible,
+.monolith-calendar-field select:focus-visible {
+  outline: 2px solid var(--selection-color);
+  outline-offset: 1px;
+}
+.monolith-calendar-month {
+  border: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+  border-radius: var(--radius-md, 6px);
+}
+.monolith-calendar-month-event {
+  border-left: 3px solid var(--selection-color, #3875d7);
+  background: color-mix(
+    in srgb,
+    var(--selection-color, #3875d7) 9%,
+    transparent
+  );
+}
+.monolith-calendar-month-event[data-done='true'] {
+  opacity: 0.55;
+  text-decoration: line-through;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .monolith-time-event-body {
+    transition: background 120ms ease;
+  }
+}

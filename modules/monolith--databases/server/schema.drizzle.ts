@@ -1,5 +1,3 @@
-import type { Appearance } from '@monolith/blocks'
-import { createModuleTable } from '@monolith/drizzle'
 import { type RelationsBuilder, sql } from 'drizzle-orm'
 import {
   boolean,
@@ -16,7 +14,11 @@ import {
 } from 'drizzle-orm/pg-core'
 import type { AnyPgColumn } from 'drizzle-orm/pg-core'
 
+import type { Appearance } from '@monolith/blocks'
+import { createModuleTable } from '@monolith/drizzle'
+
 import { entries } from '../../monolith--notes/server/schema.drizzle'
+import type { Schedule, ScheduleRow } from '../calendarShared'
 import type { PageTemplate, RecordPage } from '../shared'
 import type { CellValue, FieldConfig, FieldKind, ViewConfig } from '../shared'
 import type { ItemType, NativeSourceKind } from '../workspaceShared'
@@ -125,6 +127,86 @@ export const records = table(
   ]
 )
 
+export const calendarSchedules = table(
+  'calendar_schedules',
+  {
+    record_id: uuid('record_id')
+      .primaryKey()
+      .references(() => records.id, { onDelete: 'cascade' }),
+    owner_id: uuid('owner_id').notNull(),
+    workspace_id: uuid('workspace_id')
+      .notNull()
+      .references(() => workspaces.id, { onDelete: 'cascade' }),
+    organizer_id: uuid('organizer_id').notNull(),
+    revision: integer('revision').notNull().default(1),
+    settings: jsonb('settings').$type<Schedule>().notNull(),
+    responses: jsonb('responses')
+      .$type<ScheduleRow['responses']>()
+      .notNull()
+      .default({}),
+    created: timestamp('created', { mode: 'date', withTimezone: true })
+      .defaultNow()
+      .notNull()
+  },
+  t => [index('monolith_calendar_workspace').on(t.owner_id, t.workspace_id)]
+)
+
+export const calendarNotifications = table(
+  'calendar_notifications',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    owner_id: uuid('owner_id').notNull(),
+    workspace_id: uuid('workspace_id')
+      .notNull()
+      .references(() => workspaces.id, { onDelete: 'cascade' }),
+    record_id: uuid('record_id')
+      .notNull()
+      .references(() => records.id, { onDelete: 'cascade' }),
+    recipient_id: uuid('recipient_id').notNull(),
+    dedupe_key: text('dedupe_key').notNull(),
+    kind: varchar('kind', { length: 24 })
+      .$type<'invitation' | 'changed' | 'reminder'>()
+      .notNull(),
+    title: text('title').notNull(),
+    starts_at: timestamp('starts_at', {
+      mode: 'date',
+      withTimezone: true
+    }).notNull(),
+    read: boolean('read').notNull().default(false),
+    email_status: varchar('email_status', { length: 24 })
+      .$type<'disabled' | 'pending' | 'sent' | 'failed'>()
+      .notNull()
+      .default('disabled'),
+    attempts: integer('attempts').notNull().default(0),
+    email_payload: jsonb('email_payload').$type<{
+      to: string
+      subject: string
+      text: string
+      from: string
+    }>(),
+    next_attempt: timestamp('next_attempt', {
+      mode: 'date',
+      withTimezone: true
+    })
+      .defaultNow()
+      .notNull(),
+    created: timestamp('created', { mode: 'date', withTimezone: true })
+      .defaultNow()
+      .notNull()
+  },
+  t => [
+    uniqueIndex('monolith_calendar_notification_once').on(
+      t.owner_id,
+      t.dedupe_key
+    ),
+    index('monolith_calendar_recipient').on(
+      t.owner_id,
+      t.recipient_id,
+      t.created
+    )
+  ]
+)
+
 export const recordSources = table(
   'record_sources',
   {
@@ -157,7 +239,16 @@ export const views = table(
       .references(() => bases.id, { onDelete: 'cascade' }),
     name: varchar('name', { length: 255 }).notNull(),
     mode: varchar('mode', { length: 20 })
-      .$type<'table' | 'kanban' | 'calendar' | 'gallery' | 'list' | 'chart' | 'dashboard' | 'timeline'>()
+      .$type<
+        | 'table'
+        | 'kanban'
+        | 'calendar'
+        | 'gallery'
+        | 'list'
+        | 'chart'
+        | 'dashboard'
+        | 'timeline'
+      >()
       .notNull(),
     group_field_id: uuid('group_field_id').references(() => fields.id, {
       onDelete: 'set null'
@@ -406,6 +497,8 @@ export const knowledgeSources = table(
 )
 
 export const tables = {
+  calendarSchedules,
+  calendarNotifications,
   workspaces,
   workspaceMembers,
   workspacePages,

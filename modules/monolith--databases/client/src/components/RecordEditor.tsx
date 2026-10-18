@@ -1,3 +1,6 @@
+import dayjs from 'dayjs'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
+
 import type { Appearance } from '@monolith/blocks'
 import { useModuleTranslation } from '@monolith/localization'
 import {
@@ -19,8 +22,6 @@ import {
   useCoverPicker,
   useModalStore
 } from '@monolith/ui'
-import dayjs from 'dayjs'
-import { useCallback, useEffect, useId, useRef, useState } from 'react'
 
 import { useDatabases } from '@/DatabaseProvider'
 import { DraftConfirmation, useDraftGuard } from '@/useDraftGuard'
@@ -38,6 +39,7 @@ import { FieldEditor } from './FieldEditor'
 import { PageConnections } from './PageConnections'
 import { PropertyCell } from './PropertyCell'
 import { RecordSurface } from './RecordSurface'
+import { CalendarScheduleEditor } from './calendar/CalendarScheduleEditor'
 
 const emptyFields: Field[] = []
 
@@ -114,13 +116,13 @@ export function RecordEditor({
       : ''
   const [date, setDate] = useState(
     formatDate(record?.date, kind) ||
-      (initialValues?.date
-        ? `${initialValues.date}${kind === 'event' ? 'T12:00' : ''}`
-        : '')
+      (initialValues?.date ? formatDate(String(initialValues.date), kind) : '')
   )
   const [endDate, setEndDate] = useState(
     formatDate(record?.end_date, 'event') ||
-      (initialValues?.end_date ? `${initialValues.end_date}T12:00` : '')
+      (initialValues?.end_date
+        ? formatDate(String(initialValues.end_date), 'event')
+        : '')
   )
 
   const [project, setProject] = useState(record?.project_id ?? '')
@@ -148,7 +150,9 @@ export function RecordEditor({
   const saveRef = useRef<() => Promise<void>>(async () => {})
   const attempted = useRef('')
   const [saved, setSaved] = useState(record)
+  const [scheduleDirty, setScheduleDirty] = useState(false)
   const [confirmBack, setConfirmBack] = useState(false)
+  const [discarding, setDiscarding] = useState(false)
   const [relationDrafts, setRelationDrafts] = useState(() => new Set<string>())
 
   const relationDirtyChange = useCallback((id: string, dirty: boolean) => {
@@ -180,9 +184,10 @@ export function RecordEditor({
     content !== (saved?.content ?? '') ||
     JSON.stringify(values) !== JSON.stringify(saved?.values ?? {})
 
-  const dirty = pageDirty || relationDrafts.size > 0 || !!comment.trim()
+  const dirty =
+    pageDirty || scheduleDirty || relationDrafts.size > 0 || !!comment.trim()
 
-  const { blocker, allowNavigation } = useDraftGuard(dirty)
+  const { blocker, allowNavigation } = useDraftGuard(dirty && !discarding)
 
   useEffect(() => {
     if (!record || pageDirty || busy || record.updated === saved?.updated)
@@ -272,7 +277,10 @@ export function RecordEditor({
     }
     const result = await run(async () => {
       if (!record)
-        return workspaceAPI.createRecord.mutate({ base_id: base.id, ...requested })
+        return workspaceAPI.createRecord.mutate({
+          base_id: base.id,
+          ...requested
+        })
       // Canonical body/title saves have their own revision. Patch only changed
       // metadata, while refusing to overwrite another writer's property edit.
       const latest = (await workspaceAPI.snapshot.query()).records.find(
@@ -498,6 +506,15 @@ export function RecordEditor({
           })}
         </Button>
       )}
+      {saved &&
+        (kind === 'event' ||
+          kind === 'task' ||
+          fields.some(field => field.kind === 'date')) && (
+          <CalendarScheduleEditor
+            record={saved}
+            onDirtyChange={setScheduleDirty}
+          />
+        )}
       {record && (
         <Stack className="database-comments" gap="sm">
           <Text as="h3" size="xs" color="muted" weight="semibold">
@@ -702,6 +719,9 @@ export function RecordEditor({
         {(blocker.state === 'blocked' || confirmBack) && (
           <DraftConfirmation
             onDiscard={() => {
+              // Query-string navigation can commit after this render. Keep the
+              // explicit discard decision until the editor closes.
+              setDiscarding(true)
               setConfirmBack(false)
               allowNavigation()
               if (blocker.state === 'blocked') blocker.proceed()

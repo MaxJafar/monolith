@@ -1118,7 +1118,9 @@
     "createDatabaseFor": "New database: {{name}}",
     "backToView": "Back to {{name}}",
     "count_one": "{{count}} item",
-    "count_other": "{{count}} items"
+    "count_other": "{{count}} items",
+    "endDate": "End date",
+    "recurringWindow": "Repeating actions show the previous 30 days and next 31 days. Open Calendar to browse other dates."
   },
   "inlineDatabase": {
     "createHint": "Choose a layout. Name it on the page.",
@@ -1910,5 +1912,18 @@
       "complete": "Update installed successfully",
       "failed": "The update needs attention"
     }
+  },
+  "calendarInbox": {
+    "heading": "Calendar inbox",
+    "title": "Calendar notifications ({{count}} unread)",
+    "newNotification": "Calendar: {{title}}",
+    "dismiss": "Dismiss",
+    "unavailable": "This event is no longer available.",
+    "loading": "Loading notifications…",
+    "empty": "No calendar notifications yet.",
+    "invitation": "Invitation",
+    "changed": "Event updated",
+    "reminder": "Reminder",
+    "emailFailed": "Email delivery failed. Your in-app reminder is still available."
   }
 }

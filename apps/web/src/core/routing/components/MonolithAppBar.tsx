@@ -8,6 +8,7 @@ import { Flex, Icon, Text, usePageChrome } from '@monolith/ui'
 
 import { useAppAppearance } from '@/core/appearance/AppearanceContext'
 import ItemDiscussions from '@/core/rooms/ItemDiscussions'
+import { CalendarInbox } from '@/core/workspaces/CalendarInbox'
 import { useWorkspace } from '@/core/workspaces/WorkspaceProvider'
 import { workspaceArea } from '@/core/workspaces/areaPage'
 import { workspaceAPI } from '@/core/workspaces/workspaceAPI'
@@ -138,6 +139,7 @@ export default function MonolithAppBar() {
         <Text truncate>{title}</Text>
       </Flex>
       <Flex align="center" gap="xs">
+        <CalendarInbox />
         <ItemDiscussions />
         <PageActions />
       </Flex>

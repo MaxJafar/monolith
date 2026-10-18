@@ -5,7 +5,7 @@ Run `pnpm site:dev` to edit them and `pnpm site:check` to verify their links and
 
 This directory holds maintained product guides, release procedures and product screenshots.
 Current entry points include [features](FEATURES.md), [releasing](RELEASING.md),
-[updates](UPDATES.md), [agent tools](AGENT-TOOLS.md) and
+[updates](UPDATES.md), [calendar and email setup](CALENDAR.md), [agent tools](AGENT-TOOLS.md) and
 [data migration](MONOLITH-POCKETBASE-MIGRATION.md).
 
 `pnpm monolith changelog create` writes plain Markdown release notes under `docs/changelog`.

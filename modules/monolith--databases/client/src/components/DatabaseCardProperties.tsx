@@ -50,7 +50,11 @@ export function DatabaseCardProperties({
             <PropertyCell
               field={field}
               record={record}
-              value={propertyValue(record, field.id)}
+              value={
+                field.id === 'date' || field.id === 'end_date'
+                  ? record[field.id]
+                  : propertyValue(record, field.id)
+              }
               disabled={disabled}
               linkRelations={false}
               onChange={value => onChange(field, value)}

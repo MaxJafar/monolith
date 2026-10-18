@@ -263,14 +263,23 @@ describe('Relation table rendering and native navigation', () => {
     expect(cell('person')?.textContent).toBe('Alex')
     expect(table.textContent).not.toContain('owned-person-id')
     expect(cell('text')?.textContent).toBe('emptyValue')
-    expect(table.querySelectorAll('tbody a')).toHaveLength(1)
+    expect(table.querySelectorAll('tbody a')).toHaveLength(2)
+    const calendarLink = new URL(cell('date')!.querySelector('a')!.href)
+    expect(calendarLink.pathname).toBe('/calendar')
+    expect(calendarLink.searchParams.get('calendarDate')).toBe('2026-10-13')
+    expect(calendarLink.searchParams.get('calendarField')).toBe('date')
+    expect(calendarLink.searchParams.get('calendarLayout')).toBe('agenda')
   })
 
   it('ends an empty table with its create row after the empty state', () => {
     data.records = []
     index = indexSnapshot(data)
     const table = renderTable()
-    expect(table.querySelector('tbody tr:first-child')?.textContent).toContain('noRecords')
-    expect(table.querySelector('tbody tr:last-child button')?.textContent).toBe('newRecord')
+    expect(table.querySelector('tbody tr:first-child')?.textContent).toContain(
+      'noRecords'
+    )
+    expect(table.querySelector('tbody tr:last-child button')?.textContent).toBe(
+      'newRecord'
+    )
   })
 })

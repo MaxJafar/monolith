@@ -1,3 +1,8 @@
+import { type ReactNode, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { useTranslation } from 'react-i18next'
+import { useSearchParams } from 'react-router'
+
 import type { Appearance } from '@monolith/blocks'
 import {
   AppearanceContext,
@@ -9,9 +14,6 @@ import {
   usePageOpenPreference,
   usePersonalization
 } from '@monolith/ui'
-import { type ReactNode, useEffect, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
-import { useTranslation } from 'react-i18next'
 
 /** A single presentation for records opened from any database layout or embed. */
 export function RecordSurface({
@@ -29,7 +31,10 @@ export function RecordSurface({
   const mergedAppearance = { ...inherited, ...appearance }
   const { derivedTheme } = usePersonalization()
   const [preferred] = usePageOpenPreference()
-  const [mode, setMode] = useState<PageOpenMode>(preferred)
+  const [params] = useSearchParams()
+  const [mode, setMode] = useState<PageOpenMode>(() =>
+    params.get('pageMode') === 'full' ? 'full' : preferred
+  )
   const root = useRef<HTMLDivElement>(null)
   const { t } = useTranslation('common.workspaceUI')
   const portalTarget =

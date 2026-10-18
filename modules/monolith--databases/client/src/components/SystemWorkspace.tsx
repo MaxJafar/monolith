@@ -1,3 +1,8 @@
+import dayjs from 'dayjs'
+import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { Link, useSearchParams } from 'react-router'
+
 import {
   Box,
   Button,
@@ -17,12 +22,9 @@ import {
   setInternalDragData,
   useCanvasWidgets
 } from '@monolith/ui'
-import dayjs from 'dayjs'
-import { useMemo, useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { Link, useSearchParams } from 'react-router'
 
 import { useDatabases } from '@/DatabaseProvider'
+import { workspaceAPI } from '@/manifest'
 import {
   agendaMatches,
   belongsToSystem,
@@ -30,12 +32,17 @@ import {
   withSystemDates
 } from '@/utils/systemViews'
 
+import {
+  type CalendarOccurrence,
+  expandCalendarRecord
+} from '../../../calendarShared'
 import { type RecordPage, viewConfigSchema } from '../../../shared'
 import type { ItemType } from '../../../workspaceShared'
 import { DatabaseCalendar } from './DatabaseCalendar'
 import { JournalActivity } from './JournalActivity'
 import { ProjectTimeline } from './ProjectTimeline'
 import { RecordEditor } from './RecordEditor'
+import { useCalendarSchedules } from './calendar/useCalendarSchedules'
 import './systemWorkspace.css'
 
 export function SystemWorkspace({ area }: { area: string }) {
@@ -51,11 +58,13 @@ export function SystemWorkspace({ area }: { area: string }) {
     busy,
     run,
     api,
-    openRecord
+    openRecord,
+    workspaceId
   } = useDatabases()
 
   const { t } = useTranslation('common.systemViews')
   const [params] = useSearchParams()
+  const schedules = useCalendarSchedules(area === 'actions')
 
   const [filter, setFilter] = useState('today'),
     [query, setQuery] = useState(''),
@@ -65,7 +74,9 @@ export function SystemWorkspace({ area }: { area: string }) {
     [title, setTitle] = useState(''),
     [date, setDate] = useState(
       ['actions', 'calendar', 'journal'].includes(area)
-        ? dayjs().format('YYYY-MM-DD')
+        ? dayjs().format(
+            area === 'calendar' ? 'YYYY-MM-DDTHH:mm' : 'YYYY-MM-DD'
+          )
         : ''
     ),
     [targetDatabase, setTargetDatabase] = useState(''),
@@ -74,6 +85,9 @@ export function SystemWorkspace({ area }: { area: string }) {
     )
 
   const [tab, setTab] = useState('docs')
+  const [eventEnd, setEventEnd] = useState(
+    dayjs().add(1, 'hour').format('YYYY-MM-DDTHH:mm')
+  )
 
   const selectedArea = area === 'docs' ? tab : area
   const kind: ItemType =
@@ -89,11 +103,48 @@ export function SystemWorkspace({ area }: { area: string }) {
   const all = useMemo(
     () =>
       data.records
-        .map(item => withSystemDates(item, data.fields))
-        .filter(item => belongsToSystem(item, selectedArea, data.fields)),
+        .map(item =>
+          selectedArea === 'calendar'
+            ? item
+            : withSystemDates(item, data.fields)
+        )
+        .filter(item =>
+          belongsToSystem(
+            selectedArea === 'calendar'
+              ? withSystemDates(item, data.fields)
+              : item,
+            selectedArea,
+            data.fields
+          )
+        ),
     [data, selectedArea]
   )
-  const items = all
+  const actionRecords: (RecordPage & { occurrence?: CalendarOccurrence })[] =
+    area === 'actions'
+      ? all.flatMap(item => {
+          const schedule = schedules.data?.schedules.find(
+            row => row.record_id === item.id && row.settings.recurrence
+          )
+          if (!schedule) return [item]
+          const original =
+            data.records.find(record => record.id === item.id) ?? item
+          return expandCalendarRecord(
+            original,
+            dayjs().subtract(30, 'day').startOf('day').toISOString(),
+            dayjs().add(31, 'day').startOf('day').toISOString(),
+            data.fields,
+            schedule
+          ).map(occurrence => ({
+            ...item,
+            date: occurrence.start,
+            end_date: occurrence.end,
+            done: occurrence.done,
+            status: occurrence.done ? 'done' : 'planned',
+            occurrence
+          }))
+        })
+      : all
+  const items = actionRecords
     .filter(
       item =>
         (!database || item.base_id === database) &&
@@ -113,7 +164,7 @@ export function SystemWorkspace({ area }: { area: string }) {
     ''
 
   async function patch(
-    item: RecordPage,
+    item: RecordPage & { occurrence?: CalendarOccurrence },
     changes: {
       done?: boolean
       status?: 'planned' | 'active' | 'done'
@@ -122,6 +173,25 @@ export function SystemWorkspace({ area }: { area: string }) {
       end_date?: string | null
     }
   ) {
+    if (
+      readOnly ||
+      busy ||
+      (area === 'actions' && (schedules.isLoading || schedules.error))
+    )
+      return
+    if (item.occurrence && workspaceId && changes.done !== undefined) {
+      const occurrence = item.occurrence
+      await run(() =>
+        workspaceAPI.calendar.occurrence
+          .input({ workspace_id: workspaceId, record_id: item.id })
+          .mutate({
+            expected_revision: occurrence.schedule!.revision,
+            original: occurrence.original,
+            change: { done: changes.done }
+          })
+      )
+      return
+    }
     await run(() =>
       api.updateRecord.input({ id: item.id }).mutate({
         title: item.title,
@@ -157,7 +227,20 @@ export function SystemWorkspace({ area }: { area: string }) {
         priority,
         content: '',
         values: {},
-        ...(date ? { date: dayjs(`${date}T12:00:00`).toISOString() } : {})
+        ...(date
+          ? {
+              date: dayjs(
+                kind === 'event' ? date : `${date}T12:00:00`
+              ).toISOString()
+            }
+          : {}),
+        ...(kind === 'event'
+          ? {
+              end_date: dayjs(eventEnd).isAfter(dayjs(date))
+                ? dayjs(eventEnd).toISOString()
+                : dayjs(date).add(1, 'hour').toISOString()
+            }
+          : {})
       })
     })
 
@@ -168,9 +251,9 @@ export function SystemWorkspace({ area }: { area: string }) {
     }
   }
 
-  const row = (item: RecordPage) => (
+  const row = (item: RecordPage & { occurrence?: CalendarOccurrence }) => (
     <Flex
-      key={item.id}
+      key={item.occurrence?.id ?? item.id}
       align="center"
       className="monolith-agenda-row"
       gap="sm"
@@ -183,7 +266,9 @@ export function SystemWorkspace({ area }: { area: string }) {
           aria-label={t('complete', { name: item.title })}
           as="input"
           checked={systemStatus(item) === 'done'}
-          disabled={readOnly || busy}
+          disabled={
+            readOnly || busy || schedules.isLoading || !!schedules.error
+          }
           type="checkbox"
           onChange={event => void patch(item, { done: event.target.checked })}
         />
@@ -250,14 +335,35 @@ export function SystemWorkspace({ area }: { area: string }) {
     <Stack className="monolith-system-workspace" gap="lg" minWidth="0" pb="2xl">
       <Flex align="start" gap="md" justify="between" wrap="wrap">
         <Stack flex="1" gap="xs" minWidth="220px" width="auto">
-          <Text color="muted" size="sm">
-            {t('workspaceView')}
-          </Text>
-          <Text as="h1" size="3xl" tracking="tight" weight="semibold">
+          {area !== 'calendar' && (
+            <Text color="muted" size="sm">
+              {t('workspaceView')}
+            </Text>
+          )}
+          <Text
+            as="h1"
+            size={area === 'calendar' ? '2xl' : '3xl'}
+            tracking="tight"
+            weight="semibold"
+          >
             {t(`titles.${area}`)}
           </Text>
-          <Text color="muted">{t(`descriptions.${area}`)}</Text>
+          {area !== 'calendar' && (
+            <Text color="muted">{t(`descriptions.${area}`)}</Text>
+          )}
         </Stack>
+        {area === 'calendar' && (
+          <Button
+            as={Link}
+            icon="lucide:calendar-cog"
+            namespace={false}
+            to={`/calendar/sources?workspace=${params.get('workspace') ?? ''}`}
+            variant="plain"
+            width="fit-content"
+          >
+            {t('calendarSources')}
+          </Button>
+        )}
         <Button
           disabled={readOnly}
           icon="lucide:plus"
@@ -271,18 +377,7 @@ export function SystemWorkspace({ area }: { area: string }) {
         </Button>
       </Flex>
       {selectedArea === 'journal' && <JournalActivity records={all} />}
-      {area === 'calendar' && (
-        <Button
-          as={Link}
-          icon="lucide:calendar-cog"
-          namespace={false}
-          to={`/calendar/sources?workspace=${params.get('workspace') ?? ''}`}
-          variant="plain"
-          width="fit-content"
-        >
-          {t('calendarSources')}
-        </Button>
-      )}
+
       {(error || stale) && (
         <Flex align="center" gap="sm" role="alert">
           <Text color="dangerous">{error || t('stale')}</Text>
@@ -311,7 +406,10 @@ export function SystemWorkspace({ area }: { area: string }) {
             >
               {t(`filters.${value}`)}
               <Text as="span" color="muted" size="xs">
-                {all.filter(item => agendaMatches(item, value)).length}
+                {
+                  actionRecords.filter(item => agendaMatches(item, value))
+                    .length
+                }
               </Text>
             </Button>
           ))}
@@ -349,15 +447,17 @@ export function SystemWorkspace({ area }: { area: string }) {
           value={query}
           onChange={event => setQuery(event.target.value)}
         />
-        <ChoiceSelect
-          label={t('database')}
-          value={database}
-          onChange={setDatabase}
-          options={[
-            { value: '', label: t('allDatabases') },
-            ...data.bases.map(base => ({ value: base.id, label: base.name }))
-          ]}
-        />
+        <Box width={area === 'calendar' ? '220px' : '100%'}>
+          <ChoiceSelect
+            label={t('database')}
+            value={database}
+            onChange={setDatabase}
+            options={[
+              { value: '', label: t('allDatabases') },
+              ...data.bases.map(base => ({ value: base.id, label: base.name }))
+            ]}
+          />
+        </Box>
         <Text color="muted" size="sm">
           {t('count', { count: items.length })}
         </Text>
@@ -427,10 +527,21 @@ export function SystemWorkspace({ area }: { area: string }) {
               aria-label={t('date')}
               as="input"
               className="monolith-system-input"
-              type="date"
+              type={area === 'calendar' ? 'datetime-local' : 'date'}
               value={date}
               onChange={event => setDate(event.target.value)}
             />
+            {area === 'calendar' && (
+              <Box
+                as="input"
+                aria-label={t('endDate')}
+                className="monolith-system-input"
+                type="datetime-local"
+                value={eventEnd}
+                min={date}
+                onChange={event => setEventEnd(event.target.value)}
+              />
+            )}
             <ChoiceSelect
               label={t('priorityLabel')}
               value={priority}
@@ -471,7 +582,10 @@ export function SystemWorkspace({ area }: { area: string }) {
           }}
           onCreate={values => {
             setTargetDatabase(suggestedDatabase)
-            setDate(String(values.date ?? ''))
+            setDate(dayjs(String(values.date)).format('YYYY-MM-DDTHH:mm'))
+            setEventEnd(
+              dayjs(String(values.end_date)).format('YYYY-MM-DDTHH:mm')
+            )
             setCreating(true)
           }}
         />
@@ -592,6 +706,17 @@ export function SystemWorkspace({ area }: { area: string }) {
       ) : (
         <Stack gap="none">{items.map(row)}</Stack>
       )}
+      {area === 'actions' && schedules.error && (
+        <Text role="alert" color="dangerous">
+          {schedules.error.message}
+        </Text>
+      )}
+      {area === 'actions' &&
+        schedules.data?.schedules.some(row => row.settings.recurrence) && (
+          <Text size="sm" color="muted">
+            {t('recurringWindow')}
+          </Text>
+        )}
       {!items.length && area !== 'calendar' && (
         <Stack align="center" gap="sm" py="2xl">
           <Icon

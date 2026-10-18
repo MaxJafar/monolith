@@ -1,7 +1,8 @@
-import type { BuiltModuleSchema } from '@monolith/drizzle'
-import { ClientError } from '@monolith/server-utils'
 import { and, asc, eq, inArray, sql } from 'drizzle-orm'
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
+
+import type { BuiltModuleSchema } from '@monolith/drizzle'
+import { ClientError } from '@monolith/server-utils'
 
 import {
   type Person,
@@ -10,7 +11,14 @@ import {
   viewConfigSchema
 } from '../shared'
 import * as schema from './schema.drizzle'
-import { bases, fields, links, records, views } from './schema.drizzle'
+import {
+  bases,
+  calendarSchedules,
+  fields,
+  links,
+  records,
+  views
+} from './schema.drizzle'
 
 export type Database = PostgresJsDatabase<BuiltModuleSchema<typeof schema>>
 
@@ -112,6 +120,23 @@ export async function checkCalendarFieldRemoval(
   deletingBase?: string
 ) {
   const saved = await db.select().from(views).where(eq(views.owner_id, owner))
+  const schedules = await db
+    .select({ settings: calendarSchedules.settings, base: records.base_id })
+    .from(calendarSchedules)
+    .innerJoin(records, eq(records.id, calendarSchedules.record_id))
+    .where(eq(calendarSchedules.owner_id, owner))
+  if (
+    schedules.some(
+      row =>
+        row.base !== deletingBase &&
+        (removed.includes(row.settings.start_field) ||
+          removed.includes(row.settings.end_field ?? ''))
+    )
+  )
+    throw new ClientError(
+      'A calendar schedule uses this date property. Change its date settings first.',
+      409
+    )
 
   for (const view of saved) {
     if (view.base_id === deletingBase || view.mode !== 'calendar') continue

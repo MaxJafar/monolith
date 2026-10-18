@@ -10,7 +10,11 @@ describe('Database navigation links', () => {
           { id: 'launch', base_id: 'projects' },
           'projects',
           'calendar',
-          { calendarDate: '2026-12-31', calendarLayout: 'week' }
+          {
+            calendarDate: '2026-12-31',
+            calendarLayout: 'week',
+            calendarField: 'launch-date'
+          }
         )
       )
     ).toEqual({
@@ -18,7 +22,8 @@ describe('Database navigation links', () => {
       record: 'launch',
       view: 'calendar',
       calendarDate: '2026-12-31',
-      calendarLayout: 'week'
+      calendarLayout: 'week',
+      calendarField: 'launch-date'
     })
   })
 

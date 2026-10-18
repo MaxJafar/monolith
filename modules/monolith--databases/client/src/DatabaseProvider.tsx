@@ -44,6 +44,7 @@ const emptyKnowledge: KnowledgeSnapshot = {
 const emptyPeople: Person[] = []
 
 export type DatabaseContextValue = {
+  workspaceId?: string
   api: typeof workspaceAPI
   readOnly: boolean
   stale: boolean
@@ -138,7 +139,8 @@ export function DatabaseProvider({
 
   const [calendarParams] = useQueryStates({
     calendarDate: parseAsString,
-    calendarLayout: parseAsString
+    calendarLayout: parseAsString,
+    calendarField: parseAsString
   })
 
   const [inlineView, setInlineView] = useState({
@@ -169,6 +171,9 @@ export function DatabaseProvider({
       : {}),
     ...(calendarParams.calendarLayout
       ? { calendarLayout: calendarParams.calendarLayout }
+      : {}),
+    ...(calendarParams.calendarField
+      ? { calendarField: calendarParams.calendarField }
       : {})
   }
   const base =
@@ -186,7 +191,11 @@ export function DatabaseProvider({
     : (params.get('view') ?? '')
 
   function propertyLabel(field: Field, value: CellValue | undefined): string {
-    if (['person','created-by','last-edited-by'].includes(field.kind) && typeof value === 'string' && value) {
+    if (
+      ['person', 'created-by', 'last-edited-by'].includes(field.kind) &&
+      typeof value === 'string' &&
+      value
+    ) {
       return peopleById.get(value)?.label ?? t('unknownOwner')
     }
 
@@ -243,7 +252,12 @@ export function DatabaseProvider({
   }
 
   function openPage(page: Pick<PageTarget, 'kind' | 'id'>) {
-    if (page.kind === 'redraw') { navigate(`/redraw/${page.id}${workspace ? `?workspace=${workspace}` : ''}`); return }
+    if (page.kind === 'redraw') {
+      navigate(
+        `/redraw/${page.id}${workspace ? `?workspace=${workspace}` : ''}`
+      )
+      return
+    }
     if (page.kind === 'document') {
       if (workspace) navigate(`/page/${page.id}?workspace=${workspace}`)
       else setParams({ section: 'documents', document: page.id })
@@ -282,6 +296,7 @@ export function DatabaseProvider({
   return (
     <DatabaseContext
       value={{
+        workspaceId: workspace,
         api,
         readOnly,
         stale,

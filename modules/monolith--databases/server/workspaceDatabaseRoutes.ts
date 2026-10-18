@@ -1,8 +1,9 @@
-import { appearanceSchema } from '@monolith/blocks'
-import { ClientError, type EndpointContract } from '@monolith/server-utils'
 import { and, eq, inArray } from 'drizzle-orm'
 import { createSelectSchema } from 'drizzle-orm/zod'
 import z from 'zod'
+
+import { appearanceSchema } from '@monolith/blocks'
+import { ClientError, type EndpointContract } from '@monolith/server-utils'
 
 import { computeRecords } from '../computed'
 import {
@@ -19,7 +20,14 @@ import endpoints from './endpoints'
 import { drainNativeChanges } from './itemBridge'
 import { ownerId } from './model'
 import * as legacy from './routes'
-import { bases, fields, links, records, views } from './schema.drizzle'
+import {
+  bases,
+  calendarSchedules,
+  fields,
+  links,
+  records,
+  views
+} from './schema.drizzle'
 import { ownedPeople } from './store'
 import {
   type Store,
@@ -174,7 +182,8 @@ export const createBase = endpoints
         config: viewConfigSchema.parse(
           body.initial_view === 'kanban'
             ? { group_property: 'done' }
-            : body.initial_view === 'calendar' || body.initial_view === 'timeline'
+            : body.initial_view === 'calendar' ||
+                body.initial_view === 'timeline'
               ? { date_field_id: 'date' }
               : { show_item_type: false }
         )
@@ -262,13 +271,39 @@ function scoped(
               actorId: actor,
               userId: workspace.owner_id
             }
-            return inWorkspace(db, workspace.id, () =>
+            const result = await inWorkspace(db, workspace.id, () =>
               endpoint.callback({
                 ...ctx,
                 res: scopedResponse,
                 query: parsedQuery
               })
             )
+            if (
+              name === 'updateRecord' &&
+              body &&
+              ['date', 'end_date', 'title', 'values', 'done'].some(
+                key => key in body
+              )
+            ) {
+              const [schedule] = await db
+                .select()
+                .from(calendarSchedules)
+                .where(eq(calendarSchedules.record_id, query.id!))
+              if (schedule) {
+                const { calendarRecord, notifyCalendarChange } =
+                  await import('./calendarRoutes')
+                const record = await calendarRecord(db, workspace.id, query.id!)
+                await notifyCalendarChange(
+                  db,
+                  workspace.owner_id,
+                  workspace.id,
+                  record,
+                  schedule,
+                  schedule
+                )
+              }
+            }
+            return result
           })
         }
       }

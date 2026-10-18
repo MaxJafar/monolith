@@ -98,6 +98,34 @@ async function main(): Promise<void> {
 
   let pushOwnerCursor: string | null = null
   let techLabOwnerCursor: string | null = null
+  const { startCalendarDispatcher } =
+    await import('../../../modules/monolith--databases/server/calendarDelivery')
+  const calendarLogger = createServiceLogger('Calendar notifications')
+  let calendarOwnerCursor: string | null = null
+  const calendar = startCalendarDispatcher({
+    db: db as unknown as import('../../../modules/monolith--databases/server/store').Database,
+    async listOwners(limit) {
+      let owners = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(
+          calendarOwnerCursor ? gt(users.id, calendarOwnerCursor) : undefined
+        )
+        .orderBy(asc(users.id))
+        .limit(limit)
+      if (!owners.length && calendarOwnerCursor) {
+        calendarOwnerCursor = null
+        owners = await db
+          .select({ id: users.id })
+          .from(users)
+          .orderBy(asc(users.id))
+          .limit(limit)
+      }
+      calendarOwnerCursor = owners.at(-1)?.id ?? null
+      return owners.map(owner => owner.id)
+    },
+    onError: message => calendarLogger.warn(message)
+  })
 
   const techLab = ModuleRegistry.isAvailable('monolith--tech-lab')
     ? startTechLabDispatcher({
@@ -155,10 +183,12 @@ async function main(): Promise<void> {
       })
     : undefined
   server.once('close', () => {
+    calendar.stop()
     techLab?.stop()
     void gymPush?.stop()
   })
   const stopNotifications = () => {
+    calendar.stop()
     techLab?.stop()
     void Promise.resolve(gymPush?.stop()).finally(() => process.exit(0))
   }

@@ -1,38 +1,57 @@
+import dayjs from 'dayjs'
+import { parseAsString, parseAsStringEnum, useQueryState } from 'nuqs'
+import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router'
+
 import { useModuleTranslation } from '@monolith/localization'
 import {
   Box,
   Button,
-  DateInput,
   Flex,
   Grid,
   Stack,
   Text,
   getInternalDragData,
-  hasInternalDragData
+  hasInternalDragData,
+  setInternalDragData
 } from '@monolith/ui'
-import dayjs from 'dayjs'
-import { parseAsString, parseAsStringEnum, useQueryState } from 'nuqs'
-import { useState } from 'react'
 
 import { useDatabases } from '@/DatabaseProvider'
+import { workspaceAPI } from '@/manifest'
 import {
   addCalendarDays,
   calendarDays,
-  calendarRecordPatch,
-  rangesOverlap,
-  recordCalendarRange,
   shiftCalendarMonth
 } from '@/utils/calendar'
+import { colorStyle, recordColor } from '@/utils/recordColors'
 
+import {
+  type CalendarOccurrence,
+  calendarBinding,
+  calendarTiming,
+  expandCalendarRecord
+} from '../../../calendarShared'
 import {
   type CellValue,
   type Field,
   type RecordPage,
   type SavedView,
-  isISODate,
-  viewProperties
+  isISODate
 } from '../../../shared'
-import { CALENDAR_DRAG_TYPE, CalendarRecordCard } from './CalendarRecordCard'
+import { DatabaseCardProperties } from './DatabaseCardProperties'
+import { CalendarEventPopover } from './calendar/CalendarEventPopover'
+import { TimeGrid } from './calendar/TimeGrid'
+import './calendar/calendar.css'
+import {
+  CALENDAR_OCCURRENCE_DRAG,
+  moveToDate,
+  occursOnDay
+} from './calendar/timeGridModel'
+import { useCalendarSchedules } from './calendar/useCalendarSchedules'
+
+const dragType = CALENDAR_OCCURRENCE_DRAG
+const modes = ['month', 'week', 'agenda'] as const
+type Mode = (typeof modes)[number]
 
 export function DatabaseCalendar({
   records,
@@ -46,357 +65,438 @@ export function DatabaseCalendar({
   onCreate: (values: Record<string, CellValue>) => void
 }) {
   const {
-    api: workspaceAPI,
+    api,
     openRecord,
+    recordHref,
     run,
     busy,
     readOnly,
-    embedded
+    embedded,
+    workspaceId
   } = useDatabases()
-
-  const { t, i18n } = useModuleTranslation()
-
+  const { t, i18n } = useModuleTranslation(),
+    navigate = useNavigate()
+  const schedules = useCalendarSchedules()
   const today = dayjs().format('YYYY-MM-DD')
-  const [routeAnchor, setRouteAnchor] = useQueryState(
+  const [routeDate, setRouteDate] = useQueryState(
     'calendarDate',
     parseAsString.withDefault(today)
   )
-  const [routeLayout, setRouteLayout] = useQueryState(
+  const [routeMode, setRouteMode] = useQueryState(
     'calendarLayout',
-    parseAsStringEnum(['month', 'week', 'agenda'] as const).withDefault('month')
+    parseAsStringEnum<Mode>([...modes]).withDefault('week')
   )
-
-  const [localAnchor, setLocalAnchor] = useState(today)
-
-  const [localLayout, setLocalLayout] = useState<'month' | 'week' | 'agenda'>(
-    'month'
-  )
-  const rawAnchor = embedded ? localAnchor : routeAnchor
-  const layout = embedded ? localLayout : routeLayout
-  const setAnchor = embedded ? setLocalAnchor : setRouteAnchor
-  const setLayout = embedded ? setLocalLayout : setRouteLayout
-  const anchor = isISODate(rawAnchor) ? rawAnchor : today
-  const [moving, setMoving] = useState<{
-    record: RecordPage
-    date: string
+  const [field, setField] = useQueryState('calendarField', parseAsString)
+  const [localDate, setLocalDate] = useState(today),
+    [localMode, setLocalMode] = useState<Mode>('month')
+  const anchor = isISODate(embedded ? localDate : routeDate)
+    ? embedded
+      ? localDate
+      : routeDate
+    : today
+  const mode = embedded ? localMode : routeMode
+  const setDate = embedded ? setLocalDate : setRouteDate,
+    setMode = embedded ? setLocalMode : setRouteMode
+  const days = mode === 'agenda' ? [anchor] : calendarDays(anchor, mode)
+  // All-day items retain their calendar date in the event's own time zone.
+  // Pad the expansion range so distant time zones cannot omit a boundary day.
+  const from = dayjs(days[0]).subtract(1, 'day').startOf('day').toISOString(),
+    to = dayjs(days[days.length - 1])
+      .add(2, 'day')
+      .startOf('day')
+      .toISOString()
+  const [selected, setSelected] = useState<{
+    item: CalendarOccurrence
+    anchor: HTMLElement
   } | null>(null)
-  const properties = [...viewProperties('', t), ...fields]
-  const dateField = properties.find(
-    field => field.id === view.config.date_field_id && field.kind === 'date'
-  )
-  const endField = properties.find(
-    field => field.id === view.config.end_date_field_id && field.kind === 'date'
-  )
-  const cardFields = fields.filter(
-    field => view.config.show_card_properties !== false && !view.config.hidden_fields.includes(field.id)
-  )
-  const dated = records.map(record => ({
-    record,
-    range: recordCalendarRange(record, dateField?.id, endField?.id)
-  }))
-  const scheduled = dated.filter(item => item.range !== null)
-  const unscheduled = dated.filter(item => item.range === null)
-  const days = calendarDays(anchor, layout === 'week' ? 'week' : 'month')
-  const first =
-    layout === 'week' ? (days[0] ?? anchor) : anchor.slice(0, 7) + '-01'
-  const last =
-    layout === 'week'
-      ? (days[6] ?? first)
-      : dayjs(first).endOf('month').format('YYYY-MM-DD')
-  const inPeriod = scheduled.filter(
-    item => item.range && rangesOverlap(item.range, first, last)
-  )
-
-  if (!view.config.sorts.length)
-    inPeriod.sort((a, b) =>
-      (a.range?.start ?? '').localeCompare(b.range?.start ?? '')
+  const [provisional, setProvisional] = useState<{
+    id: string
+    start: string
+    end: string
+  } | null>(null)
+  const [notice, setNotice] = useState('')
+  const system = view.id === 'system-calendar'
+  const disabled = readOnly || busy || schedules.isLoading || !!schedules.error
+  function binding(record: RecordPage) {
+    const schedule = schedules.data?.schedules.find(
+      row => row.record_id === record.id
     )
-
-  const weekdays = days.slice(0, 7).map(date =>
-    new Intl.DateTimeFormat(i18n.language, {
-      weekday: 'short',
-      timeZone: 'UTC'
-    }).format(new Date(date + 'T12:00:00Z'))
-  )
-
-  function navigate(direction: number) {
-    void setAnchor(
-      layout === 'week'
-        ? addCalendarDays(anchor, direction * 7)
-        : shiftCalendarMonth(anchor, direction)
-    )
+    return system
+      ? field
+        ? { start: field, end: field === 'date' ? 'end_date' : null }
+        : schedule
+          ? {
+              start: schedule.settings.start_field,
+              end: schedule.settings.end_field
+            }
+          : calendarBinding(record, fields)
+      : {
+          start: view.config.date_field_id ?? 'date',
+          end: view.config.end_date_field_id ?? null
+        }
   }
-
-  async function move(record: RecordPage, date: string) {
-    if (!dateField || busy || readOnly) return
-
-    const patch = calendarRecordPatch(record, date, dateField.id, endField?.id)
-
-    if (!patch) return
-
-    const result = await run(() =>
-      workspaceAPI.updateRecord.input({ id: record.id }).mutate({
-        title: record.title,
-        content: record.content,
-        ...patch,
-        expected_updated: record.updated
-      })
+  const occurrences = useMemo(() => {
+    const rows = new Map(
+      schedules.data?.schedules.map(row => [row.record_id, row])
     )
-
-    if (result) setMoving(null)
+    return records
+      .flatMap(record =>
+        expandCalendarRecord(
+          record,
+          from,
+          to,
+          fields,
+          rows.get(record.id),
+          binding(record)
+        )
+      )
+      .sort(
+        (a, b) =>
+          a.start.localeCompare(b.start) ||
+          a.record.title.localeCompare(b.record.title)
+      )
+  }, [
+    records,
+    fields,
+    schedules.data,
+    from,
+    to,
+    view.config.date_field_id,
+    view.config.end_date_field_id,
+    field,
+    system
+  ])
+  const items = provisional
+    ? occurrences.map(item =>
+        item.id === provisional.id ? { ...item, ...provisional } : item
+      )
+    : occurrences
+  const unscheduled = records.filter(record => {
+    const b = binding(record)
+    return !calendarTiming(record, b.start, b.end)
+  })
+  async function change(item: CalendarOccurrence, start: string, end: string) {
+    if (disabled || !workspaceId) return false
+    setProvisional({ id: item.id, start, end })
+    setNotice('')
+    const result = await run(async () => {
+      if (item.schedule?.settings.recurrence)
+        return workspaceAPI.calendar.occurrence
+          .input({ workspace_id: workspaceId, record_id: item.record.id })
+          .mutate({
+            expected_revision: item.schedule.revision,
+            original: item.original,
+            change: { start, end }
+          })
+      return workspaceAPI.calendar.move
+        .input({ workspace_id: workspaceId, record_id: item.record.id })
+        .mutate({
+          expected_updated: item.record.updated,
+          time_zone:
+            item.schedule?.settings.time_zone ??
+            Intl.DateTimeFormat().resolvedOptions().timeZone,
+          start_field: item.startField,
+          end_field: item.endField,
+          start,
+          end
+        })
+    })
+    setProvisional(null)
+    setNotice(t(result ? 'scheduling.timeSaved' : 'scheduling.moveFailed'))
+    return !!result
   }
-
-  function create(date: string) {
-    if (!dateField || busy || readOnly) return
+  async function mark(item: CalendarOccurrence, cancelled = false) {
+    if (disabled || !workspaceId) return false
+    const result = await run(async () => {
+      if (item.schedule?.settings.recurrence)
+        return workspaceAPI.calendar.occurrence
+          .input({ workspace_id: workspaceId, record_id: item.record.id })
+          .mutate({
+            expected_revision: item.schedule.revision,
+            original: item.original,
+            change: cancelled ? { cancelled: true } : { done: !item.done }
+          })
+      return api.updateRecord
+        .input({ id: item.record.id })
+        .mutate({ done: !item.done, expected_updated: item.record.updated })
+    })
+    return !!result
+  }
+  function create(start: string, end: string) {
+    if (disabled) return
+    const a = system ? 'date' : (view.config.date_field_id ?? 'date')
+    const b = system ? 'end_date' : view.config.end_date_field_id
     onCreate({
-      [dateField.id]: date,
-      ...(endField ? { [endField.id]: date } : {})
+      [a]: a === 'date' ? start : dayjs(start).format('YYYY-MM-DD'),
+      ...(b
+        ? {
+            [b]:
+              b === 'end_date'
+                ? end
+                : dayjs(end).subtract(1, 'millisecond').format('YYYY-MM-DD')
+          }
+        : {})
     })
   }
-
-  if (!dateField)
-    return <Text color="muted">{t('calendarView.noDateFields')}</Text>
-
+  function monthMove(item: CalendarOccurrence, date: string) {
+    const next = moveToDate(item, date)
+    void change(item, next.start, next.end)
+  }
+  function open(item: CalendarOccurrence, element: HTMLElement) {
+    setSelected({ item, anchor: element })
+  }
   return (
     <Stack gap="md" minWidth="0" width="100%">
-      <Flex align="center" gap="sm" justify="between" wrap="wrap">
-        <Flex align="center" gap="sm" wrap="wrap">
+      <Flex align="center" justify="between" gap="sm" wrap="wrap">
+        <Flex align="center" gap="sm">
           <Button
-            aria-label={t('calendarView.previous')}
-            icon="tabler:chevron-left"
-            variant="plain"
-            onClick={() => navigate(-1)}
-          />
-          <Text as="h3" size="xl" weight="semibold">
-            {layout === 'week'
-              ? `${dayjs(first).format('D MMM')} – ${dayjs(last).format('D MMM YYYY')}`
-              : dayjs(anchor).format('MMMM YYYY')}
-          </Text>
-          <Button
-            aria-label={t('calendarView.next')}
-            icon="tabler:chevron-right"
-            variant="plain"
-            onClick={() => navigate(1)}
-          />
-          <Button
+            namespace={false}
             variant="secondary"
-            onClick={() => {
-              void setAnchor(today)
-            }}
+            onClick={() => void setDate(today)}
           >
-            calendarToday
+            {t('scheduling.today')}
           </Button>
-        </Flex>
-        <Flex gap="xs" wrap="wrap">
-          {(['month', 'week', 'agenda'] as const).map(mode => (
+          {[-1, 1].map(direction => (
             <Button
-              key={mode}
-              aria-pressed={layout === mode}
-              namespace={false}
-              variant={layout === mode ? 'primary' : 'secondary'}
-              onClick={() => {
-                void setLayout(mode)
-              }}
+              key={direction}
+              icon={
+                direction < 0 ? 'tabler:chevron-left' : 'tabler:chevron-right'
+              }
+              variant="plain"
+              aria-label={t(
+                direction < 0 ? 'calendarView.previous' : 'calendarView.next'
+              )}
+              onClick={() =>
+                void setDate(
+                  mode === 'month'
+                    ? shiftCalendarMonth(anchor, direction)
+                    : addCalendarDays(
+                        anchor,
+                        direction * (mode === 'week' ? 7 : 1)
+                      )
+                )
+              }
+            />
+          ))}
+          <Text as="h2" size="xl" weight="semibold">
+            {dayjs(anchor)
+              .locale(i18n.language)
+              .format(mode === 'agenda' ? 'ddd, D MMMM YYYY' : 'MMMM YYYY')}
+          </Text>
+        </Flex>
+        {system && (
+          <Box as="label" className="monolith-calendar-field" width="220px">
+            <select
+              aria-label={t('scheduling.startProperty')}
+              value={field ?? ''}
+              onChange={event => void setField(event.target.value || null)}
             >
-              {t(`calendarView.${mode}`)}
+              <option value="">{t('scheduling.automaticDates')}</option>
+              <option value="date">{t('itemDate')}</option>
+              {fields
+                .filter(field => field.kind === 'date')
+                .map(field => (
+                  <option key={field.id} value={field.id}>
+                    {field.name}
+                  </option>
+                ))}
+            </select>
+          </Box>
+        )}
+        <Flex gap="xs" wrap="wrap">
+          {modes.map(value => (
+            <Button
+              key={value}
+              namespace={false}
+              variant={mode === value ? 'primary' : 'secondary'}
+              aria-pressed={mode === value}
+              onClick={() => void setMode(value)}
+            >
+              {t(
+                value === 'agenda'
+                  ? 'scheduling.dayAgenda'
+                  : `calendarView.${value}`
+              )}
             </Button>
           ))}
         </Flex>
       </Flex>
-      <Text color="muted">
-        {t('calendarView.dateBinding', {
-          start: dateField.name,
-          end: endField?.name ?? dateField.name
-        })}
-      </Text>
-      <Text color="muted" size="sm">
-        {t('calendarView.moveHelp')}
-      </Text>
-      {moving && (
-        <Stack bg={{ base: 'bg-100', dark: 'bg-900' }} gap="sm" p="md" r="lg">
-          <Text weight="semibold">
-            {t('calendarView.moveRecord', { title: moving.record.title })}
+
+      {schedules.error && (
+        <Flex gap="sm">
+          <Text color="dangerous" role="alert">
+            {schedules.error.message}
           </Text>
-          <DateInput
-            autoFocus
-            disabled={busy || readOnly}
-            icon="tabler:calendar"
-            label="inputs.date"
-            value={isISODate(moving.date) ? dayjs(moving.date).toDate() : null}
-            onChange={date =>
-              setMoving(
-                current =>
-                  current && {
-                    ...current,
-                    date: date ? dayjs(date).format('YYYY-MM-DD') : ''
-                  }
-              )
-            }
-          />
-          <Flex gap="sm">
-            <Button
-              disabled={readOnly || !isISODate(moving.date)}
-              icon="tabler:check"
-              loading={busy}
-              onClick={() => {
-                void move(moving.record, moving.date)
-              }}
-            >
-              calendarMove
-            </Button>
-            <Button variant="secondary" onClick={() => setMoving(null)}>
-              cancel
-            </Button>
+          <Button onClick={() => void schedules.refetch()}>
+            {t('scheduling.retry')}
+          </Button>
+        </Flex>
+      )}
+      <Box minHeight="20px">
+        <Text role="status" size="sm">
+          {notice}
+        </Text>
+      </Box>
+      {mode !== 'month' ? (
+        <TimeGrid
+          days={days}
+          items={items}
+          disabled={disabled}
+          onOpen={open}
+          onChange={async (item, start, end) => {
+            await change(item, start, end)
+          }}
+          onCreate={create}
+          eventStyle={item =>
+            colorStyle(recordColor(item.record, view.config.color, fields))
+          }
+        />
+      ) : (
+        <Box overflowX="auto">
+          <Grid
+            templateCols={7}
+            gap="xs"
+            minWidth="700px"
+            aria-label={t('scheduling.monthGrid')}
+          >
+            {days.slice(0, 7).map(date => (
+              <Text key={date} p="sm" size="sm" color="muted" align="center">
+                {dayjs(date).locale(i18n.language).format('ddd')}
+              </Text>
+            ))}
+            {days.map(date => (
+              <Stack
+                key={date}
+                className="monolith-calendar-month"
+                gap="xs"
+                p="xs"
+                minHeight="150px"
+                minWidth="0"
+                onDragOver={event => {
+                  if (
+                    !disabled &&
+                    hasInternalDragData(event.nativeEvent, dragType)
+                  )
+                    event.preventDefault()
+                }}
+                onDrop={event => {
+                  event.preventDefault()
+                  if (disabled) return
+                  const id = getInternalDragData(event.nativeEvent, dragType)
+                  const item = items.find(item => item.id === id)
+                  if (item) monthMove(item, date)
+                }}
+              >
+                <Flex justify="between" align="center">
+                  <Button
+                    namespace={false}
+                    variant={date === today ? 'secondary' : 'plain'}
+                    onClick={() => {
+                      void setDate(date)
+                      void setMode('agenda')
+                    }}
+                  >
+                    {dayjs(date).format('D')}
+                  </Button>
+                  <Button
+                    icon="tabler:plus"
+                    variant="plain"
+                    disabled={disabled}
+                    aria-label={t('calendarView.newOn', { date })}
+                    onClick={() =>
+                      create(
+                        dayjs(date).hour(9).toISOString(),
+                        dayjs(date).hour(10).toISOString()
+                      )
+                    }
+                  />
+                </Flex>
+                {items
+                  .filter(item => occursOnDay(item, date))
+                  .map(item => (
+                    <Box
+                      key={item.id}
+                      className="monolith-calendar-month-event"
+                      style={colorStyle(
+                        recordColor(item.record, view.config.color, fields)
+                      )}
+                      data-done={item.done}
+                      r="sm"
+                      draggable={!disabled}
+                      onDragStart={event =>
+                        setInternalDragData(
+                          event.nativeEvent,
+                          dragType,
+                          item.id
+                        )
+                      }
+                    >
+                      <Button
+                        namespace={false}
+                        justify="start"
+                        variant="plain"
+                        width="100%"
+                        p="xs"
+                        onClick={event => open(item, event.currentTarget)}
+                      >
+                        <Text truncate size="sm">
+                          {!item.allDay &&
+                            `${dayjs(item.start).format('HH:mm')} `}
+                          {item.record.title}
+                          {item.schedule?.settings.recurrence ? ' ↻' : ''}
+                        </Text>
+                      </Button>
+                      {!system && (
+                        <DatabaseCardProperties
+                          fields={fields.filter(
+                            field =>
+                              !view.config.hidden_fields.includes(field.id)
+                          )}
+                          record={item.record}
+                        />
+                      )}
+                    </Box>
+                  ))}
+              </Stack>
+            ))}
+          </Grid>
+        </Box>
+      )}
+      {unscheduled.length > 0 && (
+        <Stack gap="sm">
+          <Text color="muted">
+            {t('calendarView.unscheduled', { count: unscheduled.length })}
+          </Text>
+          <Flex gap="sm" wrap="wrap">
+            {unscheduled.map(record => (
+              <Button
+                key={record.id}
+                namespace={false}
+                variant="secondary"
+                onClick={() => openRecord(record)}
+              >
+                {record.title}
+              </Button>
+            ))}
           </Flex>
         </Stack>
       )}
-      {layout === 'agenda' ? (
-        <Stack gap="md">
-          {inPeriod.map(({ record, range }) => (
-            <Stack key={record.id} gap="sm">
-              <Text color="muted">
-                {range?.start}{' '}
-                {range?.end !== range?.start ? `– ${range?.end}` : ''}
-              </Text>
-              <CalendarRecordCard
-                fields={cardFields}
-                record={record}
-                onMove={() =>
-                  setMoving({ record, date: range?.start ?? today })
-                }
-              />
-            </Stack>
-          ))}
-          {!inPeriod.length && (
-            <Text color="muted">{t('calendarView.noScheduled')}</Text>
-          )}
-        </Stack>
-      ) : (
-        <Box minWidth="0" overflowX="auto" width="100%">
-          <Stack
-            aria-label={t('calendarView.gridLabel', {
-              month: dayjs(anchor).format('MMMM YYYY')
-            })}
-            gap="xs"
-            minWidth="630px"
-            role="table"
-          >
-            <Grid gap="xs" role="row" templateCols={7}>
-              {weekdays.map((day, index) => (
-                <Text
-                  key={index}
-                  align="center"
-                  p="sm"
-                  role="columnheader"
-                  weight="semibold"
-                >
-                  {day}
-                </Text>
-              ))}
-            </Grid>
-            {Array.from({ length: days.length / 7 }, (_, week) => (
-              <Grid key={days[week * 7]} gap="xs" role="row" templateCols={7}>
-                {days.slice(week * 7, week * 7 + 7).map(date => (
-                  <Stack
-                    key={date}
-                    aria-label={date}
-                    bg={{ base: 'bg-100', dark: 'bg-900' }}
-                    gap="xs"
-                    minHeight="150px"
-                    minWidth="0"
-                    p="sm"
-                    r="lg"
-                    role="cell"
-                    style={{
-                      opacity:
-                        layout === 'month' &&
-                        date.slice(0, 7) !== anchor.slice(0, 7)
-                          ? 0.65
-                          : 1
-                    }}
-                    onDragOver={event => {
-                      if (
-                        !busy &&
-                        !readOnly &&
-                        hasInternalDragData(
-                          event.nativeEvent,
-                          CALENDAR_DRAG_TYPE
-                        )
-                      )
-                        event.preventDefault()
-                    }}
-                    onDrop={event => {
-                      event.preventDefault()
-                      const record = records.find(
-                        record =>
-                          record.id ===
-                          getInternalDragData(
-                            event.nativeEvent,
-                            CALENDAR_DRAG_TYPE
-                          )
-                      )
-
-                      if (record && !busy && !readOnly) void move(record, date)
-                    }}
-                  >
-                    <Flex align="center" gap="xs" justify="between">
-                      <Text
-                        color={date === today ? 'primary' : 'muted'}
-                        weight={date === today ? 'bold' : 'normal'}
-                      >
-                        {dayjs(date).format('D')}
-                      </Text>
-                      <Button
-                        aria-label={t('calendarView.newOn', { date })}
-                        disabled={busy || readOnly}
-                        icon="tabler:plus"
-                        variant="plain"
-                        onClick={() => create(date)}
-                      />
-                    </Flex>
-                    {scheduled
-                      .filter(
-                        item =>
-                          item.range && rangesOverlap(item.range, date, date)
-                      )
-                      .map(({ record, range }) => (
-                        <CalendarRecordCard
-                          key={record.id}
-                          fields={cardFields}
-                          record={record}
-                          onMove={() =>
-                            setMoving({ record, date: range?.start ?? date })
-                          }
-                        />
-                      ))}
-                  </Stack>
-                ))}
-              </Grid>
-            ))}
-          </Stack>
-        </Box>
+      {selected && (
+        <CalendarEventPopover
+          key={selected.item.id}
+          item={selected.item}
+          anchor={selected.anchor}
+          disabled={disabled}
+          onClose={() => setSelected(null)}
+          onChange={(start, end) => change(selected.item, start, end)}
+          onComplete={() => mark(selected.item)}
+          onCancel={() => mark(selected.item, true)}
+          onOpenPage={() => {
+            navigate(recordHref(selected.item.record) + '&pageMode=full')
+            setSelected(null)
+          }}
+        />
       )}
-      <Stack bg={{ base: 'bg-100', dark: 'bg-900' }} gap="sm" p="md" r="lg">
-        <Text as="h3" weight="semibold">
-          {t('calendarView.unscheduled', { count: unscheduled.length })}
-        </Text>
-        <Text color="muted" size="sm">
-          {t('calendarView.unscheduledHelp')}
-        </Text>
-        <Flex gap="sm" wrap="wrap">
-          {unscheduled.map(({ record }) => (
-            <Button
-              key={record.id}
-              icon="tabler:file-text"
-              namespace={false}
-              variant="secondary"
-              onClick={() => openRecord(record)}
-            >
-              {record.title}
-            </Button>
-          ))}
-        </Flex>
-      </Stack>
     </Stack>
   )
 }

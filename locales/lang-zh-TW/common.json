@@ -1140,7 +1140,9 @@
     "createDatabaseFor": "新資料庫：{{name}}",
     "backToView": "返回{{name}}",
     "count_one": "{{count}} 個項目",
-    "count_other": "{{count}} 個項目"
+    "count_other": "{{count}} 個項目",
+    "endDate": "結束日期",
+    "recurringWindow": "重複任務顯示過去 30 天和未來 31 天。開啟行事曆可查看其他日期。"
   },
   "inlineDatabase": {
     "createHint": "選擇版面配置，再於頁面上命名。",
@@ -1930,5 +1932,18 @@
       "complete": "更新已成功安裝",
       "failed": "更新需要處理"
     }
+  },
+  "calendarInbox": {
+    "heading": "行事曆收件匣",
+    "title": "行事曆通知（{{count}} 則未讀）",
+    "newNotification": "行事曆：{{title}}",
+    "dismiss": "關閉",
+    "unavailable": "此事件已無法使用。",
+    "loading": "正在載入通知…",
+    "empty": "尚無行事曆通知。",
+    "invitation": "邀請",
+    "changed": "事件已更新",
+    "reminder": "提醒",
+    "emailFailed": "郵件發送失敗，應用程式內提醒仍可檢視。"
   }
 }

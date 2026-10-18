@@ -1,0 +1,133 @@
+{
+  "title": "Account Settings",
+  "description": "The place to manage all your account details",
+  "settings": {
+    "title": {
+      "profilePicture": "Profile Picture",
+      "username": "Username",
+      "displayName": "Display Name",
+      "email": "Email Address",
+      "password": "Password",
+      "dateOfBirth": "Date of Birth",
+      "twoFA": "Two-Factor Authentication",
+      "oauth": "OAuth Providers"
+    },
+    "desc": {
+      "profilePicture": "Upload a profile picture to personalize your account.",
+      "username": "The name that identifies you on the platform.",
+      "displayName": "The name displayed to other users.",
+      "email": "The email address you use to log in to your account.",
+      "password": "Set a strong password to protect your account.",
+      "dateOfBirth": "Set your date of birth, and we'll give you a surprise!",
+      "twoFA": "Enable two-factor authentication when logging into the system.",
+      "oauth": "Configure OAuth providers to enable third-party logins."
+    },
+    "empty": "Not Set"
+  },
+  "modals": {
+    "oauthConfig": "OAuth Providers Configuration",
+    "username": {
+      "update": "Update Username"
+    },
+    "email": {
+      "update": "Update Email"
+    },
+    "displayName": {
+      "update": "Update Display Name"
+    },
+    "dateOfBirth": {
+      "update": "Update Date of Birth"
+    },
+    "enable2FA": {
+      "title": "Enable Two-Factor Authentication",
+      "description": "Please scan the QR code below with your preferred authenticator app, such as Google Authenticator, and click proceed.",
+      "confirmationDescription": "Please enter the OTP shown in your authenticator app to confirm enabling 2FA."
+    },
+    "disable2FA": {
+      "title": "Disable Two-Factor Authentication",
+      "description": "Are you sure you want to disable two-factor authentication?"
+    },
+    "changePassword": {
+      "title": "Change Password"
+    },
+    "oauthProvider": {
+      "create": "Add OAuth Provider",
+      "update": "Update OAuth Provider"
+    }
+  },
+  "buttons": {
+    "changePassword": "Change Password",
+    "configure": "Configure"
+  },
+  "inputs": {
+    "dateOfBirth": "Date of Birth",
+    "username": "Username",
+    "email": "Email Address",
+    "displayName": "Display Name",
+    "currentPassword": {
+      "label": "Current Password",
+      "placeholder": "Enter your current password"
+    },
+    "newPassword": {
+      "label": "New Password",
+      "placeholder": "Enter your new password"
+    },
+    "confirmPassword": {
+      "label": "Confirm New Password",
+      "placeholder": "Enter your new password again"
+    },
+    "oauthProvider": {
+      "provider": "Provider",
+      "clientId": "Client ID",
+      "clientSecret": "Client Secret"
+    }
+  },
+  "messages": {
+    "twoFA": {
+      "enableSuccess": "Two-factor authentication enabled successfully.",
+      "disableSuccess": "Two-factor authentication disabled successfully.",
+      "disableFailed": "Two-factor authentication could not be disabled.",
+      "setupFailed": "The setup code could not be loaded.",
+      "verifyFailed": "The code was not accepted. Try the current code from your authenticator."
+    },
+    "oauth": {
+      "changeConfirm": "Are you sure you want to change the OAuth credentials?",
+      "changeAlert": "Updating the client ID and secret will replace existing ones. This action is not reversible.",
+      "keepBlank": "Leave a field blank to keep its saved value. A supplied value replaces it, and saving enables this provider.",
+      "saved": "Sign-in provider saved.",
+      "loadFailed": "Provider status is unavailable.",
+      "saveFailed": "The provider could not be updated.",
+      "removeDescription": "Remove this provider’s saved credentials and sign-in option?"
+    },
+    "profileSaved": "Profile updated.",
+    "passwordSaved": "Password updated.",
+    "avatarSaved": "Profile picture updated.",
+    "avatarRemoved": "Profile picture removed.",
+    "avatarFailed": "The profile picture could not be saved.",
+    "avatarRemoveDescription": "Remove your current profile picture?"
+  },
+  "misc": {
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "oauthStatus": "{{confCount}} configured, {{enabledCount}} enabled",
+    "lastUpdated": "Last updated:"
+  },
+  "tabs": {
+    "personalInformation": "Personal Information",
+    "accountAndSecurity": "Account & Security"
+  },
+  "actions": {
+    "editField": "Edit {{field}}",
+    "enableProvider": "Enable {{provider}} sign-in",
+    "removeProvider": "Remove {{provider}}?",
+    "removeAvatar": "Remove profile picture"
+  },
+  "validation": {
+    "profile": "Enter a valid {{field}}.",
+    "required": "This field is required.",
+    "passwordLength": "Use at least 8 characters.",
+    "passwordMismatch": "The passwords do not match.",
+    "credentialChange": "Enter a new client ID or secret.",
+    "otp": "Enter the six-digit code from your authenticator."
+  }
+}

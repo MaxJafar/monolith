@@ -1,0 +1,11 @@
+{
+  "name": "@monolith/lang-zh-TW",
+  "version": "0.0.6",
+  "author": "Monolith contributors",
+  "description": "繁體中文 language support for Monolith.",
+  "monolith": {
+    "code": "zh-TW",
+    "displayName": "繁體中文",
+    "icon": "circle-flags:tw"
+  }
+}

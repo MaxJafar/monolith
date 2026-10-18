@@ -1,0 +1,94 @@
+---
+import Site from '../../layouts/Site.astro'
+import Icon from '../../components/Icon.astro'
+import AddonCard from '../../components/AddonCard.astro'
+import { addons } from '../../data/products'
+export function getStaticPaths() {
+  return addons.map((addon) => ({
+    params: { slug: addon.slug },
+    props: { addon }
+  }))
+}
+const { addon } = Astro.props
+const related = addons
+  .filter((item) => item.type === addon.type && item.slug !== addon.slug)
+  .slice(0, 3)
+---
+
+<Site title={`${addon.name} ${addon.type}`} description={addon.detail}>
+  <section class="page-hero container">
+    <div class="breadcrumbs">
+      <a href="/addons">Addons & Widgets</a>
+      <span>/</span>
+      <span>{addon.name}</span>
+    </div>
+    <span class="eyebrow">
+      <Icon name={addon.icon} size={20} />
+      {addon.category} / {addon.type}
+    </span>
+    <h1>{addon.name}</h1>
+    <p class="lead">{addon.summary}</p>
+  </section>
+  <section class="addon-detail container">
+    <div>
+      <h2>A little more about {addon.name}.</h2>
+      <p>{addon.detail}</p>
+      <ul class="check-list">
+        {addon.features.map((feature) => (
+          <li>
+            <Icon name="check" size={18} />
+            {feature}
+          </li>
+        ))}
+      </ul>
+      <h2>Make it part of your workspace.</h2>
+      <p>
+        Open <strong>Addons and Widgets</strong> in Monolith and find{' '}
+        {addon.name}. Your host administrator manages package installation.{' '}
+        {addon.type === 'Widget'
+          ? 'Preview and configure the widget, then add it to your dashboard or pin it to the sidebar.'
+          : 'Once installed, a workspace owner can enable the addon for that workspace.'}
+      </p>
+      <a class="text-link" href={`/docs/${addon.guide}`}>
+        Read the setup guide <Icon name="arrow" size={17} />
+      </a>
+    </div>
+    <aside class="addon-facts">
+      <h2>At a glance</h2>
+      <dl>
+        <div>
+          <dt>Type</dt>
+          <dd>{addon.type}</dd>
+        </div>
+        <div>
+          <dt>Category</dt>
+          <dd>{addon.category}</dd>
+        </div>
+        <div>
+          <dt>Available through</dt>
+          <dd>Your host’s catalog</dd>
+        </div>
+        <div>
+          <dt>Platform</dt>
+          <dd>Monolith workspace</dd>
+        </div>
+      </dl>
+      <a class="button primary" href="/docs/addons">
+        Installation guide <Icon name="arrow" size={16} />
+      </a>
+    </aside>
+  </section>
+  <section class="section section-rule container">
+    <div class="section-header">
+      <h2>Room for a little more.</h2>
+      <a class="text-link" href="/addons">
+        Back to the collection <Icon name="arrow" size={17} />
+      </a>
+    </div>
+    <div class="addon-grid">
+      {related.map((item) => (
+        <AddonCard addon={item} />
+      ))}
+    </div>
+  </section>
+</Site>

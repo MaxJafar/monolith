@@ -1,0 +1,151 @@
+.automations {
+  --automation-line: var(
+    --border-default,
+    color-mix(in srgb, currentColor 12%, transparent)
+  );
+  color: var(--text-primary);
+}
+.automation-template {
+  border-color: var(--automation-line);
+  background: var(--bg-surface);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+.automation-template:hover {
+  border-color: color-mix(in srgb, currentColor 28%, transparent);
+  box-shadow: 0 3px 12px #00000008;
+}
+.automation-flow-list {
+  border-top: 1px solid var(--automation-line);
+}
+.automation-flow-entry {
+  border-bottom: 1px solid var(--automation-line);
+}
+.automation-flow-row {
+  border: 0;
+  background: transparent;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+  transition: background 140ms ease;
+}
+.automation-flow-row:hover {
+  background: color-mix(in srgb, currentColor 4%, transparent);
+}
+.automation-flow-row:focus-visible,
+.automation-node-title:focus-visible {
+  outline: 2px solid var(--selection-color);
+  outline-offset: -2px;
+}
+.automation-status {
+  border: 1px solid var(--automation-line);
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+.automation-workbench,
+.automation-runs {
+  border: 1px solid var(--automation-line);
+  background: var(--bg-surface);
+}
+.automation-canvas-toolbar {
+  border-bottom: 1px solid var(--automation-line);
+}
+.automation-canvas {
+  background-color: var(--bg-canvas, var(--bg-surface));
+  background-image: radial-gradient(
+    color-mix(in srgb, currentColor 13%, transparent) 0.7px,
+    transparent 0.7px
+  );
+  background-size: 20px 20px;
+}
+.automation-wires {
+  position: absolute;
+  pointer-events: none;
+  overflow: visible;
+}
+.automation-wires path {
+  fill: none;
+  stroke: color-mix(in srgb, currentColor 28%, transparent);
+  stroke-width: 2;
+}
+.automation-wires path[data-port='false'] {
+  stroke-dasharray: 5 4;
+}
+.automation-node {
+  background: var(--bg-surface, #fff);
+  color: var(--text-primary);
+  border: 1px solid var(--automation-line);
+  box-shadow: 0 2px 6px #0000000d;
+}
+.automation-node[data-selected='true'] {
+  border-color: var(--selection-color, #777);
+  box-shadow: 0 0 0 2px
+    color-mix(in srgb, var(--selection-color, #777) 20%, transparent);
+}
+.automation-node[data-status='error'] {
+  border-color: var(--color-red-500);
+}
+.automation-node-title {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  touch-action: none;
+  cursor: grab;
+}
+.automation-node-title:active {
+  cursor: grabbing;
+}
+.automation-port {
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  display: inline-block;
+}
+.automation-inspector {
+  border-left: 1px solid var(--automation-line);
+  width: 300px;
+  flex: 0 0 300px;
+}
+.automation-select {
+  color: inherit;
+  background: var(--bg-surface);
+  border: 1px solid var(--automation-line);
+  border-radius: var(--radius-md);
+  padding: 10px;
+  width: 100%;
+}
+.automation-step,
+.automation-result {
+  border: 1px solid var(--automation-line);
+}
+.automation-step summary {
+  cursor: pointer;
+}
+.automation-json {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: color-mix(in srgb, currentColor 4%, transparent);
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  max-height: 24rem;
+}
+@media (max-width: 1023px) {
+  .automation-inspector {
+    width: 100%;
+    flex-basis: auto;
+    border-left: 0;
+    border-top: 1px solid var(--automation-line);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .automations * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "@monolith/localization",
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "module": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "scripts": {
+    "build": "node \"../../tools/build-guard.mjs\" --task build"
+  },
+  "dependencies": {
+    "@monolith/configs": "workspace:*",
+    "@monolith/federation": "workspace:*"
+  },
+  "author": "Monolith contributors",
+  "monolithBuilds": {
+    "build": "tsc"
+  }
+}

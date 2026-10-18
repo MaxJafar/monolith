@@ -1,0 +1,121 @@
+---
+import Site from './Site.astro'
+import Icon from '../components/Icon.astro'
+import { guides, sections } from '../data/guides'
+interface Props {
+  title: string
+  description: string
+  section?: string
+  headings?: { depth: number; slug: string; text: string }[]
+  slug?: string
+}
+const {
+  title,
+  description,
+  section = 'Start here',
+  headings = [],
+  slug
+} = Astro.props
+const current = guides.findIndex((guide) => guide.slug === slug)
+const previous = current > 0 ? guides[current - 1] : undefined
+const next = current >= 0 ? guides[current + 1] : undefined
+---
+
+<Site title={`${title} · Docs`} description={description} docs>
+  <div class="docs-shell">
+    <aside class="docs-sidebar" aria-label="Documentation navigation">
+      <button
+        class="docs-search-button"
+        type="button"
+        data-open-search
+        aria-haspopup="dialog"
+      >
+        <Icon name="search" size={15} />
+        Search docs <kbd>⌘ K</kbd>
+      </button>
+      <a href="/docs" aria-current={slug ? undefined : 'page'}>
+        Documentation home
+      </a>
+      {sections.map((group) => (
+        <div>
+          <h2>{group}</h2>
+          <nav aria-label={group}>
+            {guides
+              .filter((guide) => guide.frontmatter.section === group)
+              .map((guide) => (
+                <a
+                  href={`/docs/${guide.slug}`}
+                  aria-current={slug === guide.slug ? 'page' : undefined}
+                >
+                  {guide.frontmatter.title}
+                </a>
+              ))}
+          </nav>
+        </div>
+      ))}
+    </aside>
+    <div class="docs-main">
+      <details class="docs-mobile-nav">
+        <summary>Browse documentation</summary>
+        <nav aria-label="Documentation on mobile">
+          <a href="/docs">Documentation home</a>
+          {guides.map((guide) => (
+            <a
+              href={`/docs/${guide.slug}`}
+              aria-current={slug === guide.slug ? 'page' : undefined}
+            >
+              {guide.frontmatter.title}
+            </a>
+          ))}
+        </nav>
+      </details>
+      <header class="doc-header">
+        <span class="eyebrow">{section}</span>
+        <h1>{title}</h1>
+        <p>{description}</p>
+      </header>
+      <slot />
+      {slug && (
+        <nav class="doc-pagination" aria-label="Adjacent guides">
+          {previous ? (
+            <a href={`/docs/${previous.slug}`}>
+              <span>← Previous</span>
+              {previous.frontmatter.title}
+            </a>
+          ) : (
+            <a href="/docs">
+              <span>← Back</span>Documentation home
+            </a>
+          )}
+          {next ? (
+            <a href={`/docs/${next.slug}`}>
+              <span>Next →</span>
+              {next.frontmatter.title}
+            </a>
+          ) : (
+            <a href="/docs">
+              <span>Explore →</span>All documentation
+            </a>
+          )}
+        </nav>
+      )}
+    </div>
+    <aside class="doc-toc" aria-label="On this page">
+      <h2>On this page</h2>
+      {headings
+        .filter((heading) => heading.depth === 2)
+        .map((heading) => (
+          <a href={`#${heading.slug}`}>{heading.text}</a>
+        ))}
+      {headings.length === 0 && <a href="#find-your-way">Find your way</a>}
+      <div class="toc-source">
+        <a href="https://github.com/MaxJafar/monolith">
+          Monolith on GitHub <Icon name="external" size={12} />
+        </a>
+        <a href="/docs/availability">
+          Release availability <Icon name="arrow" size={12} />
+        </a>
+      </div>
+    </aside>
+  </div>
+</Site>

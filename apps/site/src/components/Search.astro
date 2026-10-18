@@ -1,0 +1,38 @@
+---
+import Icon from './Icon.astro'
+---
+
+<dialog id="search-dialog" class="search-dialog" aria-labelledby="search-title">
+  <div class="search-heading">
+    <Icon name="search" />
+    <label class="sr-only" id="search-title" for="docs-search">
+      Search Monolith documentation
+    </label>
+    <input
+      id="docs-search"
+      type="search"
+      placeholder="Search the documentation…"
+      autocomplete="off"
+    />
+    <button
+      type="button"
+      class="icon-button"
+      data-close-search
+      aria-label="Close search"
+    >
+      <Icon name="close" />
+    </button>
+  </div>
+  <div id="search-results" class="search-results" aria-live="polite">
+    <p>Search pages, widgets, self-hosting, MCP and more.</p>
+  </div>
+  <div class="search-footer">
+    <span>
+      <kbd>↑</kbd> <kbd>↓</kbd> to navigate
+    </span>
+    <span>
+      <kbd>esc</kbd> to close
+    </span>
+    <span>Monolith Docs</span>
+  </div>
+</dialog>

@@ -1,0 +1,129 @@
+---
+import Site from '../../layouts/Site.astro'
+import Icon from '../../components/Icon.astro'
+import AddonCard from '../../components/AddonCard.astro'
+import CallToAction from '../../components/CallToAction.astro'
+import { addons } from '../../data/products'
+const categories = [...new Set(addons.map((addon) => addon.category))].sort()
+---
+
+<Site
+  title="Addons and Widgets"
+  description="Discover the Monolith collection: Atlas, Automations, Agents, Gym, Tech Lab and compact widgets for focus, learning and your daily dashboard."
+>
+  <section class="page-hero container">
+    <span class="eyebrow">The Monolith collection</span>
+    <h1>
+      More possibilities.
+      <br />
+      Just your essentials.
+    </h1>
+    <p class="lead">
+      Choose the tools that fit your life. A workspace can be as focused, or as
+      full of possibilities, as you make it.
+    </p>
+  </section>
+  <section class="container" aria-label="Addon and widget collection">
+    <div class="split-note">
+      <div>
+        <Icon name="puzzle" size={26} />
+        <div>
+          <h2>Addons</h2>
+          <p>
+            Full tools with a place in your workspace. Install on the host, then
+            enable where you need them.
+          </p>
+        </div>
+      </div>
+      <div>
+        <Icon name="grid" size={26} />
+        <div>
+          <h2>Widgets</h2>
+          <p>
+            Small, connected views for your dashboard and sidebar. Preview,
+            configure and make them yours.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="catalog-controls">
+      <div class="filter-tabs" role="group" aria-label="Filter by type">
+        {['All', 'Addon', 'Widget'].map((type) => (
+          <button
+            type="button"
+            data-type-filter={type}
+            aria-pressed={type === 'All'}
+          >
+            {type === 'All' ? 'Everything' : `${type}s`}
+          </button>
+        ))}
+      </div>
+      <label class="catalog-search">
+        <Icon name="search" size={17} />
+        <span class="sr-only">Search addons and widgets</span>
+        <input
+          type="search"
+          id="addon-search"
+          placeholder="Find your next tool…"
+        />
+      </label>
+      <label>
+        <span class="sr-only">Filter by category</span>
+        <select id="addon-category">
+          <option value="All">All categories</option>
+          {categories.map((category) => (
+            <option value={category}>{category}</option>
+          ))}
+        </select>
+      </label>
+    </div>
+    <p class="catalog-count" data-addon-count aria-live="polite">
+      {addons.length} tools in the collection
+    </p>
+    <div class="addon-grid">
+      {addons.map((addon) => (
+        <AddonCard addon={addon} filterable />
+      ))}
+    </div>
+    <div class="catalog-empty" data-addon-empty hidden>
+      <h2>Nothing here, yet.</h2>
+      <p>Try another search or a different category.</p>
+      <button class="button secondary" type="button" data-reset-filters>
+        Clear filters
+      </button>
+    </div>
+    <div class="collection-foot">
+      <p>
+        This is the product collection. Download and manage packages in your
+        Monolith installation’s Addons and Widgets section. Available versions
+        depend on your host’s configured catalog.
+      </p>
+      <a class="text-link" href="/docs/addons">
+        How installation works <Icon name="arrow" size={17} />
+      </a>
+    </div>
+  </section>
+  <section class="section container">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Already part of your workspace</span>
+        <h2>Small views. Real connections.</h2>
+      </div>
+      <p>
+        Core widgets include Workspace pulse, Action agenda, Project focus,
+        Quick links and Calendar. Addon widgets become available with their
+        packages.
+      </p>
+    </div>
+    <div class="product-image">
+      <img
+        src="/images/widgets.webp"
+        alt="Monolith compact widget preview and settings overlay"
+        width="1440"
+        height="1000"
+        loading="lazy"
+      />
+    </div>
+  </section>
+  <CallToAction />
+</Site>

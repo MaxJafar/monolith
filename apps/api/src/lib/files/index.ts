@@ -1,0 +1,80 @@
+import { create as createContentDisposition } from 'content-disposition'
+import { eq } from 'drizzle-orm'
+import path from 'node:path'
+import { z } from 'zod'
+
+import { generateThumbKey } from '@monolith/file-storage'
+import { files } from '@monolith/file-storage/server'
+import { defineRoutes } from '@monolith/server-utils'
+
+import { storageProvider } from '@/core/storage'
+
+import endpoints from './endpoints'
+
+const get = endpoints
+  .query({
+    description: 'Retrieve a stored file or thumbnail',
+    encrypted: false,
+    rateLimit: false,
+    input: {
+      query: z.object({
+        key: z.string(),
+        thumb: z.string().optional(),
+        download: z.string().optional()
+      })
+    },
+    output: 'custom'
+  })
+  .callback(async ({ db, query: { key, thumb, download }, res }) => {
+    const ownedFile = await db.query.files.findFirst({ where: { key } })
+
+    if (!ownedFile) {
+      res.status(404).json({ error: 'File not found' })
+
+      return
+    }
+
+    const targetKey = thumb ? generateThumbKey(key, thumb) : key
+    const fileStream = await storageProvider.get(targetKey)
+
+    if (!fileStream) {
+      res.status(404).json({ error: 'File not found' })
+
+      return
+    }
+
+    res.setHeader('Content-Type', fileStream.mimeType)
+
+    if (fileStream.size > 0) {
+      res.setHeader('Content-Length', fileStream.size)
+    }
+
+    res.setHeader('Cache-Control', 'private, max-age=300')
+
+    let downloadName = path.basename(targetKey)
+
+    if (download === 'true') {
+      const [row] = await db
+        .select({ originalName: files.originalName })
+        .from(files)
+        .where(eq(files.key, key))
+        .limit(1)
+
+      if (row) {
+        downloadName = row.originalName
+      }
+    }
+
+    res.setHeader(
+      'Content-Disposition',
+      createContentDisposition(downloadName, {
+        type: download === 'true' ? 'attachment' : 'inline'
+      })
+    )
+
+    fileStream.stream.pipe(res)
+  })
+
+export default defineRoutes({
+  get
+})

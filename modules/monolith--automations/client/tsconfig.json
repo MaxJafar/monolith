@@ -1,0 +1,16 @@
+{
+  "extends": "@monolith/configs/tsconfig/module.json",
+  "compilerOptions": {
+    "composite": false,
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "paths": { "@": ["./src/index"], "@/*": ["./src/*"] }
+  },
+  "include": [
+    "./src/**/*",
+    "./manifest.ts",
+    "./contract.ts",
+    "./vite.config.ts",
+    "../shared.ts",
+    "../import.ts"
+  ]
+}

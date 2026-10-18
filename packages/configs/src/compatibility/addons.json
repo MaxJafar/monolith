@@ -1,0 +1,97 @@
+[
+  {
+    "name": "@monolith/achievements",
+    "id": "monolith--achievements",
+    "remoteId": "64d61d6d14492492fe3f90334b7c3bf958866083a9f7bf742ee4c75fc0ff711f"
+  },
+  {
+    "name": "@monolith/agents",
+    "id": "monolith--agents",
+    "remoteId": "c76c180dd9148a2d5b8e2b2dedcc59abfd569fe719e1e9cc22280d6828dc53da"
+  },
+  {
+    "name": "@monolith/atlas",
+    "id": "monolith--atlas",
+    "remoteId": "57d8aff38fe5dd8f5b5ace7e149a9f5537ee28d9c561bfab5bb5bf22798dfbf2"
+  },
+  {
+    "name": "@monolith/automations",
+    "id": "monolith--automations",
+    "remoteId": "78a77a01f2483a753d175dbc031afca4b80554d71863f1bb31f9786a0eb87a5b"
+  },
+  {
+    "name": "@monolith/blog",
+    "id": "monolith--blog",
+    "remoteId": "3c6a78894c73cc20093220355349dfc51d8626d9a197e2a0d77a11812e0e8309"
+  },
+  {
+    "name": "@monolith/calendar",
+    "id": "monolith--calendar",
+    "remoteId": "0e5139be94f57ae6824a6bc79c53c8ef778296589b80882de4c03651f50e28b8"
+  },
+  {
+    "name": "@monolith/code-time",
+    "id": "monolith--code-time",
+    "remoteId": "74fc2b0f1d24c3bf8a7ff3b2479c39041da1fc6f16cdd3de044e698331a0f6a0"
+  },
+  {
+    "name": "@monolith/databases",
+    "id": "monolith--databases",
+    "remoteId": "695849793876b1af20bbfe4e0682c59d264ed3c2f3024e6ec010888f59efb038"
+  },
+  {
+    "name": "@monolith/flashcards",
+    "id": "monolith--flashcards",
+    "remoteId": "9d6afac30438759b84d5f2af3f0372e807e6d83181a8c83985d0eaa00aae35f1"
+  },
+  {
+    "name": "@monolith/gym",
+    "id": "monolith--gym",
+    "remoteId": "ff02a2f4ac721a0e661d971d2979c0c2cd6949e96be4aae2b551bb4d06f9f05f"
+  },
+  {
+    "name": "@monolith/idea-box",
+    "id": "monolith--idea-box",
+    "remoteId": "f85d131fc83d7331f94b731623bc1f224708ac07a5a6096edcb895891f8b95ac"
+  },
+  {
+    "name": "@monolith/notes",
+    "id": "monolith--notes",
+    "remoteId": "2a32adfada535049bd812e85d66850ff0689dde58a8d782b77ba5379d6066320"
+  },
+  {
+    "name": "@monolith/pomodoro-timer",
+    "id": "monolith--pomodoro-timer",
+    "remoteId": "0efe7c7379331b57a51de119ff86ef9c1b6b89ef44872f4c02ecf68bd2a80a36"
+  },
+  {
+    "name": "@monolith/projects",
+    "id": "monolith--projects",
+    "remoteId": "8f127845f12dc255fba84fcce0e5b7b18188e7521f560f55f16a0c83fd6d0195"
+  },
+  {
+    "name": "@monolith/redraw",
+    "id": "monolith--redraw",
+    "remoteId": "d110015ddbd7066f87aedaab3e63e3f310087e8a19f11ba927ac78e0f9a96b11"
+  },
+  {
+    "name": "@monolith/tech-lab",
+    "id": "monolith--tech-lab",
+    "remoteId": "16c150ed5ddce9392bf76bf6966e6144b1045eec7712641c5c8ba3ac29fd3c40"
+  },
+  {
+    "name": "@monolith/todo-list",
+    "id": "monolith--todo-list",
+    "remoteId": "f688dbd6eb2c4c8cb33d99a1075d344de62b40c9c0d8f40e8d0e71f82ae9372d"
+  },
+  {
+    "name": "@monolith/wallet",
+    "id": "monolith--wallet",
+    "remoteId": "444fbd5671dabea6430b9bf6cb879fe1a4f79c0107bf639d662eb6d9a3cdd7d1"
+  },
+  {
+    "name": "@monolith/wishlist",
+    "id": "monolith--wishlist",
+    "remoteId": "f45a780c57b2507856827e7b41cf5c7a48444004fc24c281071d281af0d79ec8"
+  }
+]

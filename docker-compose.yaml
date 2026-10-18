@@ -1,0 +1,102 @@
+name: monolith
+
+services:
+  db:
+    image: postgres:17-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${MONOLITH_DB_NAME:-monolith}
+      POSTGRES_USER: ${MONOLITH_DB_ADMIN_USER:-monolith_admin}
+      POSTGRES_PASSWORD: ${MONOLITH_DB_ADMIN_PASSWORD:?Set MONOLITH_DB_ADMIN_PASSWORD in env/.env.docker}
+      MONOLITH_DB_APP_USER: ${MONOLITH_DB_APP_USER:-monolith_app}
+      MONOLITH_DB_APP_PASSWORD: ${MONOLITH_DB_APP_PASSWORD:?Set MONOLITH_DB_APP_PASSWORD in env/.env.docker}
+    volumes:
+      - database:/var/lib/postgresql/data
+      - ./docker/server/init-db.sh:/docker-entrypoint-initdb.d/01-monolith-app.sh:ro
+    healthcheck:
+      test:
+        ['CMD-SHELL', 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  migrate:
+    image: monolith-server:local
+    build:
+      context: .
+      dockerfile: docker/server/Dockerfile
+      args:
+        VITE_API_HOST: /api
+    restart: 'no'
+    entrypoint: ['/monolith/docker/server/migrate.sh']
+    environment:
+      NODE_ENV: development
+      DOCKER_MODE: 'true'
+      MONOLITH_DB_APP_USER: ${MONOLITH_DB_APP_USER:-monolith_app}
+      DATABASE_ADMIN_URL: postgres://${MONOLITH_DB_ADMIN_USER:-monolith_admin}:${MONOLITH_DB_ADMIN_PASSWORD:?Set MONOLITH_DB_ADMIN_PASSWORD}@db:5432/${MONOLITH_DB_NAME:-monolith}
+      DATABASE_URL: postgres://${MONOLITH_DB_APP_USER:-monolith_app}:${MONOLITH_DB_APP_PASSWORD:?Set MONOLITH_DB_APP_PASSWORD}@db:5432/${MONOLITH_DB_NAME:-monolith}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  server:
+    image: monolith-server:local
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgres://${MONOLITH_DB_APP_USER:-monolith_app}:${MONOLITH_DB_APP_PASSWORD:?Set MONOLITH_DB_APP_PASSWORD}@db:5432/${MONOLITH_DB_NAME:-monolith}
+      MASTER_KEY: ${MASTER_KEY:?Set MASTER_KEY in env/.env.docker}
+      JWT_SIGNING_KEY: ${JWT_SIGNING_KEY:?Set JWT_SIGNING_KEY in env/.env.docker}
+      CORS_ALLOWED_ORIGINS: ${PUBLIC_URL:?Set PUBLIC_URL to the full HTTPS origin}
+      ROOMS_TURN_URLS: ${ROOMS_TURN_URLS:-}
+      ROOMS_TURN_SECRET: ${ROOMS_TURN_SECRET:-}
+      FILE_STORAGE_LOCAL_PATH: /monolith/storage
+      MONOLITH_CORE_ONLY: ${MONOLITH_CORE_ONLY:-0}
+      MONOLITH_ADDON_CATALOG_URL: ${MONOLITH_ADDON_CATALOG_URL:-}
+      MONOLITH_ADDON_CATALOG_PUBLIC_KEY: ${MONOLITH_ADDON_CATALOG_PUBLIC_KEY:-}
+      MONOLITH_ADDON_ADMIN_IDS: ${MONOLITH_ADDON_ADMIN_IDS:-}
+      MONOLITH_ADDON_SCHEMA_FILE: ${MONOLITH_ADDON_SCHEMA_FILE:-}
+      MONOLITH_UPDATER_URL: ${MONOLITH_UPDATER_URL:-}
+      MONOLITH_UPDATER_TOKEN: ${MONOLITH_UPDATER_TOKEN:-}
+      MONOLITH_UPDATE_ADMIN_IDS: ${MONOLITH_UPDATE_ADMIN_IDS:-}
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    expose: ['3636']
+    volumes:
+      - files:/monolith/storage
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  gateway:
+    image: monolith-server:local
+    restart: unless-stopped
+    entrypoint: ['/monolith/monolith-gateway']
+    environment:
+      GATEWAY_ADDRESS: 0.0.0.0:8080
+      PUBLIC_URL: ${PUBLIC_URL:?Set PUBLIC_URL to the full HTTPS origin}
+      PRIVATE_API_URL: http://server:3636
+      WEB_ROOT: /monolith/apps/web/dist
+      DATABASE_URL: postgres://${MONOLITH_DB_APP_USER:-monolith_app}:${MONOLITH_DB_APP_PASSWORD:?Set MONOLITH_DB_APP_PASSWORD}@db:5432/${MONOLITH_DB_NAME:-monolith}
+      MASTER_KEY: ${MASTER_KEY:?Set MASTER_KEY}
+      JWT_SIGNING_KEY: ${JWT_SIGNING_KEY:?Set JWT_SIGNING_KEY}
+      BOOTSTRAP_TOKEN: ${BOOTSTRAP_TOKEN:-}
+      SERVER_NAME: ${SERVER_NAME:-monolith}
+    ports: ['127.0.0.1:${MONOLITH_HTTP_PORT:-8080}:8080']
+    healthcheck:
+      test:
+        ['CMD', 'curl', '--fail', '--silent', 'http://127.0.0.1:8080/healthz']
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    depends_on:
+      server:
+        condition: service_healthy
+
+volumes:
+  database:
+    name: ${MONOLITH_DATABASE_VOLUME:-monolith_database}
+  files:
+    name: ${MONOLITH_FILES_VOLUME:-monolith_files}

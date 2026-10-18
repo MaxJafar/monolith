@@ -1,0 +1,129 @@
+.rooms-workspace {
+  isolation: isolate;
+}
+.rooms-field,
+.rooms-composer-input {
+  color: inherit;
+  font: inherit;
+  border: 0;
+  outline-offset: -2px;
+}
+.rooms-field {
+  background: var(--surface-secondary, var(--color-bg-100));
+}
+.dark .rooms-field {
+  background: var(--color-bg-800);
+}
+.rooms-composer-input {
+  resize: vertical;
+}
+.rooms-message-body {
+  overflow-wrap: anywhere;
+}
+.rooms-directory-row[data-active='true'] {
+  background: color-mix(in srgb, currentColor 8%, transparent);
+}
+.rooms-unread {
+  background: var(--interactive-primary);
+  color: var(--interactive-on-primary);
+  padding: 0 6px;
+  border-radius: 6px;
+}
+.rooms-message {
+  position: relative;
+}
+.rooms-message:hover,
+.rooms-message:focus-within {
+  background: color-mix(in srgb, currentColor 3%, transparent);
+}
+.rooms-message[data-highlighted='true'] {
+  background: color-mix(in srgb, var(--selection-color) 12%, transparent);
+}
+.rooms-message-actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: var(--surface-primary, var(--color-bg-50));
+  border-radius: 6px;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+.rooms-message:hover .rooms-message-actions,
+.rooms-message:focus-within .rooms-message-actions {
+  opacity: 1;
+}
+.rooms-message-actions button {
+  min-height: 28px;
+  min-width: 28px;
+  padding: 4px;
+}
+.rooms-mention-picker {
+  border-bottom: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+}
+.rooms-timeline-scroll {
+  overscroll-behavior: contain;
+  overflow-anchor: none;
+}
+.rooms-entity button {
+  min-height: 28px;
+}
+@media (max-width: 1000px) {
+  .rooms-message-actions {
+    opacity: 1;
+  }
+  .rooms-panes[data-thread='true'] > .rooms-main-timeline {
+    display: none;
+  }
+  .rooms-thread {
+    flex: 1;
+  }
+  .rooms-composer-help {
+    display: none;
+  }
+}
+@media (max-width: 767px) {
+  .rooms-workspace {
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .rooms-directory {
+    border-right: 0;
+    border-bottom: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+  }
+  .rooms-directory > nav {
+    flex: 0 0 auto;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+  .rooms-directory-row {
+    flex-shrink: 0;
+    max-width: 16rem;
+  }
+  .rooms-message-row {
+    flex-wrap: wrap;
+  }
+  .rooms-message-actions {
+    position: static;
+    background: transparent;
+    flex-basis: 100%;
+    margin-left: 2.5rem;
+    flex-wrap: wrap;
+  }
+  .rooms-message-actions button,
+  .rooms-entity button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+@media (hover: none) {
+  .rooms-message-actions {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rooms-message-actions {
+    transition: none;
+  }
+}

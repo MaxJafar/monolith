@@ -1,0 +1,47 @@
+name: Rehearse server automatic updates
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Unpublished stable, beta or rc version to build for this rehearsal
+        type: string
+        required: true
+        default: 0.1.0-rc.1
+
+permissions:
+  contents: read
+
+concurrency:
+  group: monolith-update-rehearsal-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  server:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            target: linux-amd64
+          - os: ubuntu-24.04-arm
+            target: linux-arm64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 120
+    env:
+      REHEARSAL_VERSION: ${{ inputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: pnpm
+      - uses: docker/setup-buildx-action@v3
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm release:version "$REHEARSAL_VERSION"
+      - run: pnpm gateway:test
+      - run: pnpm release:platform server ${{ matrix.target }}
+      - run: pnpm release:downloads kit
+      - name: Check real installation, rollback and persistent data
+        run: pnpm exec node tools/smoke-release-server.mjs ${{ matrix.target }} --updates

@@ -1,0 +1,146 @@
+.monolith-workspace-chrome {
+  height: 38px;
+  min-height: 38px;
+  padding-left: 12px;
+  background: color-mix(in srgb, var(--bg-sidebar, #f7f7f5) 92%, transparent);
+  border-bottom: 1px solid var(--border-subtle, #00000012);
+  user-select: none;
+  -webkit-user-select: none;
+}
+.monolith-workspace-chrome[data-platform='macos'] {
+  padding-left: 84px;
+}
+.monolith-chrome-brand {
+  opacity: 0.74;
+  padding-right: 10px;
+}
+.monolith-chrome-button {
+  width: 28px !important;
+  min-width: 28px;
+  height: 28px !important;
+  min-height: 28px !important;
+  padding: 4px !important;
+  border-radius: 5px !important;
+}
+.monolith-chrome-button svg {
+  width: 16px;
+  height: 16px;
+}
+.monolith-workspace-tabs {
+  overflow-x: auto;
+  scrollbar-width: none;
+  max-width: 65%;
+  height: 100%;
+}
+.monolith-workspace-tabs::-webkit-scrollbar {
+  display: none;
+}
+.monolith-workspace-tab {
+  flex: 0 0 auto;
+  max-width: 210px;
+  min-width: 110px;
+  border-inline: 1px solid transparent;
+  border-top: 2px solid transparent;
+  transition: background 150ms ease;
+}
+.monolith-workspace-tab[data-active='true'] {
+  background: var(--bg-primary, #fff);
+  border-inline-color: var(--border-subtle, #00000012);
+  border-top-color: color-mix(in srgb, currentColor 28%, transparent);
+}
+.monolith-workspace-tab:hover {
+  background: color-mix(in srgb, currentColor 5%, transparent);
+}
+.monolith-tab-target {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  padding: 0 10px;
+  height: 100%;
+  min-width: 0;
+  cursor: pointer;
+  flex: 1;
+  text-align: left;
+}
+.monolith-tab-target svg {
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+.monolith-tab-close {
+  min-height: 21px !important;
+  padding: 3px !important;
+  width: 21px !important;
+  height: 21px !important;
+  margin-right: 5px;
+  opacity: 0;
+  border-radius: 4px !important;
+}
+.monolith-tab-close svg {
+  width: 12px;
+  height: 12px;
+}
+.monolith-workspace-tab:is(:hover, :focus-within, [data-active='true'])
+  .monolith-tab-close {
+  opacity: 0.65;
+}
+.monolith-window-controls {
+  align-self: stretch;
+  margin-left: 8px;
+}
+.monolith-caption-button {
+  min-height: 0 !important;
+  width: 46px !important;
+  height: 100% !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  transform: none !important;
+}
+.monolith-caption-button svg {
+  width: 13px;
+  height: 13px;
+}
+.monolith-caption-close:hover {
+  background: #c42b1c !important;
+  color: white !important;
+}
+.monolith-tab-target:focus-visible {
+  outline: 2px solid var(--accent-primary, currentColor);
+  outline-offset: -3px;
+  border-radius: 4px;
+}
+@media (max-width: 760px) {
+  .monolith-chrome-brand {
+    padding-right: 2px;
+  }
+  .monolith-history-controls {
+    display: none !important;
+  }
+  .monolith-workspace-tab {
+    min-width: 90px;
+    max-width: 170px;
+  }
+}
+@media (max-width: 560px) {
+  .monolith-chrome-brand > span {
+    display: none;
+  }
+  .monolith-workspace-tabs {
+    flex: 1;
+    max-width: none;
+  }
+  .monolith-workspace-chrome {
+    gap: 0 !important;
+    padding-left: 8px;
+  }
+  .monolith-caption-button {
+    width: 36px !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .monolith-workspace-tab {
+    transition: none;
+  }
+}

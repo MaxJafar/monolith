@@ -1,0 +1,49 @@
+{
+  "title": "愿望清单",
+  "description": "收集心仪的商品，规划购买并记录已购商品。",
+  "create": "创建",
+  "edit": "编辑",
+  "save": "保存",
+  "cancel": "取消",
+  "delete": "删除",
+  "confirmDelete": "删除此记录及其关联项目？",
+  "empty": "暂无记录，创建第一条记录。",
+  "noResults": "没有匹配的记录。",
+  "loading": "加载中…",
+  "retry": "重试",
+  "none": "无",
+  "yes": "是",
+  "no": "否",
+  "saveFailed": "无法保存记录。",
+  "study": "学习",
+  "reveal": "显示答案",
+  "again": "再来一次",
+  "good": "记住了",
+  "finished": "所有卡片已复习。",
+  "search": "搜索",
+  "board": "看板",
+  "manage": "管理",
+  "entities": {
+    "lists": "清单",
+    "entries": "条目"
+  },
+  "inputs": {
+    "search": "搜索",
+    "name": "名称",
+    "description": "描述",
+    "color": "颜色",
+    "icon": "图标",
+    "url": "商品链接",
+    "price": "价格",
+    "list_id": "清单",
+    "image": "图片链接",
+    "bought": "已购买"
+  },
+  "options": {
+    "private": "私密",
+    "public": "公开",
+    "unlisted": "不公开列出",
+    "note": "笔记",
+    "folder": "文件夹"
+  }
+}

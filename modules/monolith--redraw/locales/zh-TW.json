@@ -1,0 +1,459 @@
+{
+  "title": "Redraw",
+  "description": "為你的下一個大創意留一片空間。",
+  "loading": "正在開啟工作室…",
+  "modes": {
+    "blackboard": "黑板",
+    "canvas": "畫布"
+  },
+  "dashboard": {
+    "blackboardDescription": "連結想法、梳理計畫，讓紛繁思緒變得清晰。",
+    "canvasDescription": "設計介面、編排視覺作品，讓創意成形。",
+    "startWith": "從範本開始",
+    "templateHint": "由你自由發揮",
+    "projects": "你的專案",
+    "archive": "已封存專案",
+    "untitled": "未命名{{mode}}",
+    "imported": "匯入的專案",
+    "copy": "（副本）",
+    "objects": "{{count}} 個物件",
+    "star": "收藏 {{name}}",
+    "unstar": "取消收藏 {{name}}",
+    "duplicate": "複製 {{name}}",
+    "restore": "還原 {{name}}",
+    "archiveProject": "封存 {{name}}",
+    "empty": "你的下一個創意從這裡開始",
+    "emptyHint": "建立黑板或畫布，或試試上方範本。",
+    "noResults": "找不到專案",
+    "changeSearch": "換個關鍵字，或清除篩選條件。"
+  },
+  "templates": {
+    "mindmap": "心智圖",
+    "workshop": "創意工作坊",
+    "website": "到達網頁",
+    "social": "社群海報"
+  },
+  "samples": {
+    "bigIdea": "核心想法",
+    "discover": "探索",
+    "design": "設計",
+    "deliver": "交付",
+    "working": "哪些進展順利？",
+    "questions": "待解答的問題",
+    "nextSteps": "下一步",
+    "addIdea": "在這裡寫下想法",
+    "newIdea": "新想法",
+    "makeSpace": "為可能性\n留出空間。",
+    "startSomething": "開始創造值得創造的事物。",
+    "explore": "探索可能性"
+  },
+  "save": {
+    "saved": "所有變更已儲存",
+    "saving": "正在儲存…",
+    "unsaved": "有未儲存的變更",
+    "error": "儲存失敗",
+    "readOnly": "唯讀"
+  },
+  "editor": {
+    "back": "返回專案",
+    "undo": "復原",
+    "redo": "重做",
+    "tools": "繪圖工具",
+    "grid": "顯示或隱藏格線",
+    "snap": "貼齊格線",
+    "layers": "圖層",
+    "pages": "頁面",
+    "addPage": "新增頁面",
+    "emptyLayers": "選擇工具，繪製第一個物件。",
+    "show": "顯示 {{name}}",
+    "hide": "隱藏 {{name}}",
+    "lock": "鎖定 {{name}}",
+    "unlock": "解除鎖定 {{name}}",
+    "shortcuts": "V 選取 · H 平移 · R 矩形 · T 文字 · P 畫筆。Shift 點選多選。方向鍵移動，按住 Shift 移動 10px。Ctrl/⌘ Z 復原、D 複製、G 群組。Enter 新增分支。0 配合檢視。",
+    "properties": "屬性",
+    "palette": "調色盤",
+    "bold": "粗體文字",
+    "alignleft": "文字靠左",
+    "aligncenter": "文字置中",
+    "alignright": "文字靠右",
+    "selected": "已選取 {{count}} 個物件",
+    "selectHint": "選取物件調整設計，拖曳右下角縮放。",
+    "surface": "Redraw 繪圖區",
+    "connectTarget": "現在選擇要連結的目標",
+    "zoomOut": "縮小",
+    "zoomIn": "放大",
+    "fit": "配合內容",
+    "unsavedLeave": "專案有未儲存的變更。離開前請儲存或匯出草稿。"
+  },
+  "errors": {
+    "loadFailed": "無法載入專案，請重試。",
+    "projectUnavailable": "此專案在目前工作空間中無法使用。",
+    "workspaceUnavailable": "請選擇有權存取的工作空間。",
+    "titleRequired": "請填寫專案名稱後儲存。",
+    "pageLimit": "每個專案最多可有 40 個頁面。",
+    "fileTooLarge": "Redraw 檔案必須小於 4 MB。",
+    "imageTooLarge": "請選擇小於 1.4 MB 的圖片。",
+    "imageFormat": "請選擇 PNG、JPEG 或 WebP 圖片。",
+    "importFailed": "無法匯入，請使用有效的 Redraw JSON 檔案。",
+    "exportFailed": "匯出失敗，請嘗試匯出 JSON。",
+    "unsavedSignOut": "登出前，請儲存 Redraw 變更或匯出草稿。",
+    "invalidDocument": "此變更超出文件限制或產生無效階層。",
+    "nativeLimit": "檔案超出匯入限制（32 MB 輸入、96 MB 解壓內容、40 頁、6,000 個物件），或解碼逾時。",
+    "invalidNativeFile": "無法解碼此檔案。請重新匯出 .penpot 或 .fig 檔案後再試。",
+    "legacyPenpot": "舊版二進位 Penpot 檔案須先用目前版本 Penpot 開啟並重新匯出。",
+    "importCancelled": "已取消匯入。",
+    "copyFailed": "無法複製連結。請從網址列複製。",
+    "invalidPath": "無法將此路徑轉換為可編輯節點。"
+  },
+  "buttons": {
+    "newBlackboard": "新增黑板",
+    "newCanvas": "新增畫布",
+    "blackboard": "黑板",
+    "canvas": "畫布",
+    "save": "儲存",
+    "export": "匯出",
+    "exportJson": "Redraw 檔案 (.json)",
+    "arrange": "自動排列",
+    "addBranch": "新增分支",
+    "toggleCurve": "曲線連結",
+    "toggleArrow": "顯示箭頭",
+    "group": "群組",
+    "ungroup": "取消群組",
+    "deletePage": "移除頁面",
+    "duplicate": "複製",
+    "unlock": "解除鎖定",
+    "lock": "鎖定",
+    "bringFront": "移到最上層",
+    "sendBack": "移到最下層",
+    "deleteSelection": "刪除選取項目",
+    "importProject": "匯入專案",
+    "dismiss": "關閉",
+    "archive": "封存",
+    "all": "全部專案",
+    "starred": "收藏",
+    "retry": "重試",
+    "clearFilters": "清除篩選",
+    "keepEditing": "繼續編輯",
+    "saveAndLeave": "儲存並離開",
+    "discardChanges": "不儲存並離開",
+    "exportDraft": "匯出草稿",
+    "layers": "圖層",
+    "properties": "屬性",
+    "back": "返回專案",
+    "createComponent": "建立元件",
+    "removeComponent": "從元件庫移除",
+    "updateComponent": "更新主要元件",
+    "resetComponent": "重設覆寫屬性",
+    "detachComponent": "解除實例連結",
+    "wrapLayout": "建立自動佈局容器",
+    "enableLayout": "啟用自動佈局",
+    "removeLayout": "移除自動佈局",
+    "toggleWrap": "子物件換行",
+    "confirmImport": "匯入工作區",
+    "cancelImport": "取消匯入",
+    "comments": "留言",
+    "present": "預覽原型",
+    "fullscreen": "全螢幕開啟",
+    "exitFullscreen": "退出全螢幕",
+    "editVector": "編輯向量節點",
+    "finishVector": "完成節點編輯",
+    "splitSegment": "在下一段新增節點",
+    "openPath": "開啟路徑",
+    "closePath": "閉合路徑",
+    "deleteNode": "刪除節點",
+    "closePanel": "關閉面板",
+    "pinComment": "新增留言標記",
+    "hideResolved": "隱藏已解決",
+    "showResolved": "顯示已解決",
+    "deleteComment": "刪除留言",
+    "reopenThread": "重新開啟討論",
+    "resolveThread": "解決討論",
+    "replyComment": "回覆",
+    "postComment": "發表留言",
+    "setPrototypeStart": "設為起始畫面",
+    "restartPrototype": "重新開始",
+    "closePreview": "關閉預覽",
+    "addTag": "新增標籤"
+  },
+  "inputs": {
+    "projectTitle": {
+      "label": "專案名稱",
+      "placeholder": "專案名稱"
+    },
+    "name": {
+      "label": "名稱",
+      "placeholder": "名稱"
+    },
+    "x": {
+      "label": "X",
+      "placeholder": "X"
+    },
+    "y": {
+      "label": "Y",
+      "placeholder": "Y"
+    },
+    "width": {
+      "label": "寬度",
+      "placeholder": "寬度"
+    },
+    "height": {
+      "label": "高度",
+      "placeholder": "高度"
+    },
+    "rotation": {
+      "label": "旋轉",
+      "placeholder": "旋轉"
+    },
+    "radius": {
+      "label": "圓角",
+      "placeholder": "圓角"
+    },
+    "fill": {
+      "label": "填色",
+      "placeholder": "填色"
+    },
+    "stroke": {
+      "label": "描邊",
+      "placeholder": "描邊"
+    },
+    "strokeWidth": {
+      "label": "描邊寬度",
+      "placeholder": "描邊寬度"
+    },
+    "opacity": {
+      "label": "不透明度 %",
+      "placeholder": "不透明度 %"
+    },
+    "text": {
+      "label": "文字",
+      "placeholder": "文字"
+    },
+    "fontSize": {
+      "label": "字級",
+      "placeholder": "字級"
+    },
+    "textColor": {
+      "label": "文字顏色",
+      "placeholder": "文字顏色"
+    },
+    "connectionLabel": {
+      "label": "連結文字",
+      "placeholder": "連結文字"
+    },
+    "pageName": {
+      "label": "頁面名稱",
+      "placeholder": "頁面名稱"
+    },
+    "background": {
+      "label": "背景",
+      "placeholder": "背景"
+    },
+    "search": {
+      "label": "搜尋專案…",
+      "placeholder": "搜尋專案…"
+    },
+    "componentName": {
+      "label": "元件名稱",
+      "placeholder": "元件名稱"
+    },
+    "parentFrame": {
+      "label": "父畫框",
+      "placeholder": "父畫框"
+    },
+    "widthMode": {
+      "label": "寬度模式",
+      "placeholder": "寬度模式"
+    },
+    "heightMode": {
+      "label": "高度模式",
+      "placeholder": "高度模式"
+    },
+    "layoutDirection": {
+      "label": "方向",
+      "placeholder": "方向"
+    },
+    "layoutAlign": {
+      "label": "交叉軸對齊",
+      "placeholder": "交叉軸對齊"
+    },
+    "layoutJustify": {
+      "label": "分佈",
+      "placeholder": "分佈"
+    },
+    "layoutGap": {
+      "label": "間距",
+      "placeholder": "間距"
+    },
+    "paddingTop": {
+      "label": "上內距",
+      "placeholder": "上內距"
+    },
+    "paddingRight": {
+      "label": "右內距",
+      "placeholder": "右內距"
+    },
+    "paddingBottom": {
+      "label": "下內距",
+      "placeholder": "下內距"
+    },
+    "paddingLeft": {
+      "label": "左內距",
+      "placeholder": "左內距"
+    },
+    "comment": {
+      "label": "留言",
+      "placeholder": "留言"
+    },
+    "fileTag": {
+      "label": "檔案標籤",
+      "placeholder": "檔案標籤"
+    },
+    "prototypeAction": {
+      "label": "動作",
+      "placeholder": "動作"
+    },
+    "prototypeTrigger": {
+      "label": "觸發方式",
+      "placeholder": "觸發方式"
+    },
+    "prototypeTarget": {
+      "label": "目標畫面",
+      "placeholder": "目標畫面"
+    },
+    "prototypeTransition": {
+      "label": "過渡效果",
+      "placeholder": "過渡效果"
+    },
+    "prototypeDuration": {
+      "label": "時長（毫秒）",
+      "placeholder": "時長（毫秒）"
+    }
+  },
+  "tools": {
+    "select": "選取",
+    "hand": "平移",
+    "node": "心智節點",
+    "sticky": "便利貼",
+    "connect": "連接線",
+    "frame": "畫板",
+    "rectangle": "矩形",
+    "ellipse": "橢圓",
+    "diamond": "菱形",
+    "text": "文字",
+    "path": "畫筆",
+    "image": "圖片",
+    "pen": "向量鋼筆"
+  },
+  "hints": {
+    "select": "拖曳移動 · Shift 多選 · 滾輪平移",
+    "hand": "拖曳平移 · Ctrl/⌘ + 滾輪縮放",
+    "connect": "依序選取要連結的兩個物件",
+    "node": "點選新增 · 拖曳繪製 · Escape 取消",
+    "sticky": "點選新增 · 拖曳繪製 · Escape 取消",
+    "frame": "點選新增 · 拖曳繪製 · Escape 取消",
+    "rectangle": "點選新增 · 拖曳繪製 · Escape 取消",
+    "ellipse": "點選新增 · 拖曳繪製 · Escape 取消",
+    "diamond": "點選新增 · 拖曳繪製 · Escape 取消",
+    "text": "點選新增 · 拖曳繪製 · Escape 取消",
+    "path": "點選新增 · 拖曳繪製 · Escape 取消",
+    "image": "點選新增 · 拖曳繪製 · Escape 取消",
+    "pen": "點選新增節點，點選首節點閉合，Enter 完成。",
+    "comment": "點選新增留言標記。"
+  },
+  "align": {
+    "left": "左",
+    "center": "水平置中",
+    "right": "右",
+    "top": "上",
+    "middle": "垂直置中",
+    "bottom": "下"
+  },
+  "components": {
+    "library": "元件",
+    "nameHint": "為元件命名",
+    "empty": "選取物件以建立可重複使用的元件。",
+    "insert": "插入 {{name}}",
+    "remove": "從元件庫移除 {{name}}",
+    "instance": "連結實例",
+    "overrideHint": "按住 Alt 點擊物件或雙擊圖層可編輯覆寫屬性。更新元件會保留其他實例的覆寫屬性。"
+  },
+  "layout": {
+    "title": "自動佈局",
+    "frame": "自動佈局畫框",
+    "none": "無父畫框",
+    "fixed": "固定",
+    "hug": "符合內容",
+    "fill": "填滿容器",
+    "horizontal": "水平",
+    "vertical": "垂直",
+    "start": "起點",
+    "center": "置中",
+    "end": "終點",
+    "stretch": "延展",
+    "space-between": "兩端對齊"
+  },
+  "collaboration": {
+    "people": "專案中的成員",
+    "connecting": "正在連線…",
+    "live": "已連線",
+    "offline": "正在重新連線 · 草稿已保留",
+    "share": "複製專案連結",
+    "copied": "已複製連結",
+    "shareHint": "有權限的工作區成員可加入。在工作區設定中管理成員。",
+    "owner": "擁有者",
+    "editor": "編輯者",
+    "viewer": "檢視者"
+  },
+  "imports": {
+    "review": "檢查匯入內容",
+    "summary": "{{pages}} 個頁面 · {{shapes}} 個物件 · {{components}} 個元件",
+    "changed": "匯入前請檢查以下轉換差異"
+  },
+  "importWarnings": {
+    "effects": "{{count}} 個物件：已省略效果。",
+    "prototypes": "{{count}} 個物件：不支援的原型互動已省略或簡化。",
+    "masks": "{{count}} 個物件：形狀遮色片已省略。",
+    "paints": "{{count}} 個物件：已簡化複雜填色。",
+    "richText": "{{count}} 個物件：混合文字樣式統一為單一樣式。",
+    "paths": "{{count}} 條路徑無法完整轉換。",
+    "images": "{{count}} 張圖片無法使用、不支援或超過 1.4 MB。",
+    "layout": "{{count}} 個佈局已近似轉換或保留為固定位置。",
+    "components": "{{count}} 個元件實例已展開；不保留原始元件庫連結。",
+    "transforms": "{{count}} 個變形已近似處理，不保留傾斜或鏡像。",
+    "unsupported": "{{count}} 個不支援的物件已省略。",
+    "fonts": "{{count}} 個物件：已保留字型名稱；無法使用的字型將使用系統替代字型。"
+  },
+  "vector": {
+    "title": "向量編輯",
+    "hint": "選取節點以編輯控制柄。拖曳或使用方向鍵；Enter 完成，Escape 取消拖曳。",
+    "corner": "尖角",
+    "smooth": "平滑",
+    "symmetric": "對稱"
+  },
+  "comments": {
+    "title": "留言",
+    "openThread": "開啟 {{name}} 的留言",
+    "loadFailed": "無法載入留言。",
+    "empty": "尚無留言。在畫布上新增留言標記以開始討論。",
+    "pinHint": "點選物件或畫布上的位置來新增留言。"
+  },
+  "prototype": {
+    "title": "原型",
+    "preview": "原型預覽",
+    "none": "無互動",
+    "navigate": "跳轉至畫面",
+    "overlay": "開啟浮層",
+    "back": "返回",
+    "close": "關閉浮層",
+    "click": "點選時",
+    "hover": "懸停時",
+    "chooseTarget": "選取頁面或畫框",
+    "instant": "即時",
+    "dissolve": "淡入淡出"
+  },
+  "tags": {
+    "title": "檔案標籤",
+    "hint": "透過標籤在 Redraw 和工作區頁面提及中尋找此檔案。",
+    "remove": "移除 #{{tag}}"
+  }
+}

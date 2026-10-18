@@ -1,0 +1,107 @@
+.monolith-page-peek-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 85;
+  background: #0005;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.monolith-page-peek {
+  width: min(960px, 92%);
+  height: 92%;
+  min-height: 0;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-medium);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: var(--floating-shadow);
+  animation: monolith-page-peek-in 160ms ease-out;
+}
+.monolith-page-peek-toolbar {
+  min-height: 40px;
+  flex-shrink: 0;
+}
+.monolith-page-peek .canvas-page-heading {
+  padding-top: 48px;
+}
+.monolith-page-peek-backdrop[data-mode='side'] {
+  background: transparent;
+  pointer-events: none;
+  justify-content: flex-end;
+}
+.monolith-page-peek[data-mode='side'] {
+  pointer-events: auto;
+  width: min(100%, 720px);
+  height: 100%;
+  border-radius: 0;
+}
+@keyframes monolith-page-peek-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (max-width: 700px) {
+  .monolith-page-peek {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .monolith-page-peek {
+    animation: none;
+  }
+}
+
+.monolith-page-peek {
+  position: absolute;
+  top: 4%;
+  right: 50%;
+  translate: 50% 0;
+  transition:
+    width 220ms var(--motion-ease),
+    height 220ms var(--motion-ease),
+    top 220ms var(--motion-ease),
+    right 220ms var(--motion-ease),
+    translate 220ms var(--motion-ease);
+}
+.monolith-page-peek[data-mode='side'] {
+  top: 0;
+  right: 0;
+  translate: 0 0;
+}
+@media (max-width: 700px) {
+  .monolith-page-peek {
+    top: 0;
+  }
+}
+.monolith-page-peek-backdrop {
+  transition: background-color 160ms ease;
+}
+.monolith-page-peek-backdrop[data-closing='true'] {
+  background-color: transparent;
+  pointer-events: none;
+}
+.monolith-page-peek-backdrop[data-closing='true'] .monolith-page-peek {
+  animation: monolith-page-peek-out 160ms ease-in forwards;
+  pointer-events: none;
+}
+@keyframes monolith-page-peek-out {
+  to {
+    opacity: 0;
+    transform: translateY(6px) scale(0.99);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .monolith-page-peek,
+  .monolith-page-peek-backdrop {
+    animation: none !important;
+    transition: none;
+  }
+}

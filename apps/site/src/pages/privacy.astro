@@ -1,0 +1,52 @@
+---
+import Site from '../layouts/Site.astro'
+---
+
+<Site
+  title="Website privacy"
+  description="How the Monolith product and documentation website handles your information."
+>
+  <article class="legal-page container prose">
+    <span class="eyebrow">The public website</span>
+    <h1>A little clarity about privacy.</h1>
+    <h2>This site and your workspace</h2>
+    <p>
+      This is Monolith’s product and documentation website. It does not connect
+      to your Monolith account or read your workspace. Your self-hosted
+      installation has its own host, configuration and data practices.
+    </p>
+    <h2>What this site stores</h2>
+    <p>
+      The light or dark appearance preference is stored in your browser’s local
+      storage under <code>monolith-site-theme</code>. Search runs in your
+      browser against a static index downloaded from this site. Search terms are
+      not submitted to a search service. The site does not include advertising
+      trackers or an analytics SDK.
+    </p>
+    <h2>Hosting and external links</h2>
+    <p>
+      Vercel serves this website and may process request metadata, such as IP
+      addresses and browser information, to deliver and protect the service. See{' '}
+      <a href="https://vercel.com/legal/privacy-policy">
+        Vercel’s privacy policy
+      </a>
+      . GitHub and other external sites have their own privacy policies when you
+      follow a link.
+    </p>
+    <h2>Fonts and screenshots</h2>
+    <p>
+      Fonts, icons and product screenshots are served from this website. The
+      screenshots use example workspaces. No remote font or image provider is
+      contacted when you browse these pages.
+    </p>
+    <h2>Questions</h2>
+    <p>
+      Project questions can be raised through{' '}
+      <a href="https://github.com/MaxJafar/monolith/issues">
+        Monolith on GitHub
+      </a>
+      . Do not include private workspace data, passwords or tokens in a public
+      issue.
+    </p>
+  </article>
+</Site>

@@ -1,0 +1,311 @@
+name: Publish Monolith releases
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v[0-9]*', '!v*-preview.*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: monolith-release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  MONOLITH_SIGNED_RELEASE: ${{ vars.MONOLITH_RELEASE_MODE == 'unsigned' && '0' || '1' }}
+  MONOLITH_UNSIGNED_INSTALLERS: ${{ vars.MONOLITH_RELEASE_MODE == 'unsigned' && '1' || '0' }}
+  WINDOWS_SIGNING_PROVIDER: ${{ vars.WINDOWS_SIGNING_PROVIDER || 'esigner' }}
+  MONOLITH_RELEASE_PUBLIC_KEY: ${{ vars.MONOLITH_RELEASE_PUBLIC_KEY }}
+
+jobs:
+  preflight:
+    runs-on: ubuntu-24.04
+    environment: release
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+      - name: Verify release credentials before building
+        run: pnpm release:preflight
+        env:
+          MONOLITH_RELEASE_PRIVATE_KEY: ${{ secrets.MONOLITH_RELEASE_PRIVATE_KEY }}
+          MONOLITH_ADDON_CATALOG_PRIVATE_KEY: ${{ secrets.MONOLITH_ADDON_CATALOG_PRIVATE_KEY }}
+          ESIGNER_USERNAME: ${{ secrets.ESIGNER_USERNAME }}
+          ESIGNER_PASSWORD: ${{ secrets.ESIGNER_PASSWORD }}
+          ESIGNER_CREDENTIAL_ID: ${{ secrets.ESIGNER_CREDENTIAL_ID }}
+          ESIGNER_TOTP_SECRET: ${{ secrets.ESIGNER_TOTP_SECRET }}
+          WINDOWS_CERTIFICATE_P12: ${{ secrets.WINDOWS_CERTIFICATE_P12 }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+          MACOS_CERTIFICATE_P12: ${{ secrets.MACOS_CERTIFICATE_P12 }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          MACOS_SIGN_IDENTITY: ${{ vars.MONOLITH_RELEASE_MODE != 'unsigned' && secrets.MACOS_SIGN_IDENTITY || '' }}
+          MACOS_TEAM_ID: ${{ vars.MONOLITH_RELEASE_MODE != 'unsigned' && secrets.MACOS_TEAM_ID || '' }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+
+  desktop_web:
+    if: github.event_name == 'push'
+    needs: preflight
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm release:version
+      - run: pnpm --filter @monolith/client test
+      - run: pnpm desktop:bundle
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-web
+          path: apps/desktop/dist
+          if-no-files-found: error
+          retention-days: 7
+
+  clients:
+    if: github.event_name == 'push'
+    needs: [preflight, desktop_web]
+    environment: release
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: windows-amd64
+          - os: macos-15-intel
+            target: darwin-universal
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    env:
+      MONOLITH_BUILD_MEMORY_MIB: ${{ matrix.os == 'macos-15-intel' && '2048' || '4096' }}
+      MACOS_SIGN_IDENTITY: ${{ vars.MONOLITH_RELEASE_MODE != 'unsigned' && secrets.MACOS_SIGN_IDENTITY || '' }}
+      MACOS_TEAM_ID: ${{ vars.MONOLITH_RELEASE_MODE != 'unsigned' && secrets.MACOS_TEAM_ID || '' }}
+      MACOS_NOTARY_PROFILE: ${{ vars.MONOLITH_RELEASE_MODE != 'unsigned' && 'monolith-release' || '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm release:version
+      - run: pnpm updater:test
+      - uses: actions/download-artifact@v4
+        with:
+          name: desktop-web
+          path: apps/desktop/dist
+      - name: Windows tests and application
+        if: runner.os == 'Windows'
+        run: |
+          pnpm desktop:windows:test
+          pnpm --dir apps/desktop exec tauri build --no-bundle
+      - name: Sign Windows binaries with PFX
+        if: runner.os == 'Windows' && env.MONOLITH_SIGNED_RELEASE == '1' && env.WINDOWS_SIGNING_PROVIDER == 'pfx'
+        env:
+          WINDOWS_CERTIFICATE_P12: ${{ secrets.WINDOWS_CERTIFICATE_P12 }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        run: pnpm exec node tools/sign-windows-release.mjs binaries
+      - name: Prepare Windows binaries for eSigner
+        if: runner.os == 'Windows' && env.MONOLITH_SIGNED_RELEASE == '1' && env.WINDOWS_SIGNING_PROVIDER == 'esigner'
+        run: pnpm exec node tools/sign-windows-release.mjs binaries --prepare-cloud
+      - name: Cloud-sign Windows binaries
+        if: runner.os == 'Windows' && env.MONOLITH_SIGNED_RELEASE == '1' && env.WINDOWS_SIGNING_PROVIDER == 'esigner'
+        uses: SSLcom/esigner-codesign@cf5f6c1d38ad10f47e3ed9aca873f429b1a8d85b # v1.3.2
+        with:
+          command: batch_sign
+          username: ${{ secrets.ESIGNER_USERNAME }}
+          password: ${{ secrets.ESIGNER_PASSWORD }}
+          credential_id: ${{ secrets.ESIGNER_CREDENTIAL_ID }}
+          totp_secret: ${{ secrets.ESIGNER_TOTP_SECRET }}
+          dir_path: ${{ github.workspace }}/.temp/windows-signing/binaries/input
+          output_path: ${{ github.workspace }}/.temp/windows-signing/binaries/signed
+          environment_name: PROD
+          signing_method: v2
+          malware_block: true
+          clean_logs: true
+          jvm_max_memory: 512M
+      - name: Verify and collect Windows binaries
+        if: runner.os == 'Windows' && env.MONOLITH_SIGNED_RELEASE == '1' && env.WINDOWS_SIGNING_PROVIDER == 'esigner'
+        run: pnpm exec node tools/sign-windows-release.mjs binaries --collect-cloud
+      - name: Bundle Windows installer
+        if: runner.os == 'Windows'
+        run: pnpm --dir apps/desktop exec tauri bundle --bundles nsis --no-binary-patching
+      - name: Sign Windows installer with PFX
+        if: runner.os == 'Windows' && env.MONOLITH_SIGNED_RELEASE == '1' && env.WINDOWS_SIGNING_PROVIDER == 'pfx'
+        env:
+          WINDOWS_CERTIFICATE_P12: ${{ secrets.WINDOWS_CERTIFICATE_P12 }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        run: pnpm exec node tools/sign-windows-release.mjs installers
+      - name: Prepare Windows installers for eSigner
+        if: runner.os == 'Windows' && env.MONOLITH_SIGNED_RELEASE == '1' && env.WINDOWS_SIGNING_PROVIDER == 'esigner'
+        run: pnpm exec node tools/sign-windows-release.mjs installers --prepare-cloud
+      - name: Cloud-sign Windows installers
+        if: runner.os == 'Windows' && env.MONOLITH_SIGNED_RELEASE == '1' && env.WINDOWS_SIGNING_PROVIDER == 'esigner'
+        uses: SSLcom/esigner-codesign@cf5f6c1d38ad10f47e3ed9aca873f429b1a8d85b # v1.3.2
+        with:
+          command: batch_sign
+          username: ${{ secrets.ESIGNER_USERNAME }}
+          password: ${{ secrets.ESIGNER_PASSWORD }}
+          credential_id: ${{ secrets.ESIGNER_CREDENTIAL_ID }}
+          totp_secret: ${{ secrets.ESIGNER_TOTP_SECRET }}
+          dir_path: ${{ github.workspace }}/.temp/windows-signing/installers/input
+          output_path: ${{ github.workspace }}/.temp/windows-signing/installers/signed
+          environment_name: PROD
+          signing_method: v2
+          malware_block: true
+          clean_logs: true
+          jvm_max_memory: 512M
+      - name: Verify and collect Windows installers
+        if: runner.os == 'Windows' && env.MONOLITH_SIGNED_RELEASE == '1' && env.WINDOWS_SIGNING_PROVIDER == 'esigner'
+        run: pnpm exec node tools/sign-windows-release.mjs installers --collect-cloud
+      - name: Configure macOS signing
+        if: runner.os == 'macOS' && env.MONOLITH_SIGNED_RELEASE == '1'
+        env:
+          MACOS_CERTIFICATE_P12: ${{ secrets.MACOS_CERTIFICATE_P12 }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+        run: pnpm exec node tools/configure-macos-signing.mjs
+      - name: Build and test macOS application
+        if: runner.os == 'macOS'
+        run: |
+          pnpm exec node tools/macos-build.mjs --test
+          pnpm exec node tools/macos-build.mjs
+      - run: pnpm release:platform client ${{ matrix.target }}
+      - name: Collect verified installers
+        run: pnpm release:downloads client ${{ matrix.target }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.target }}
+          path: |
+            dist/platform-releases/${{ github.ref_name }}/*.zip
+            dist/platform-releases/${{ github.ref_name }}/*.artifact.json
+            dist/platform-releases/${{ github.ref_name }}/*.exe
+            dist/platform-releases/${{ github.ref_name }}/*.dmg
+          retention-days: 7
+          if-no-files-found: error
+      - name: Remove temporary macOS signing keychain
+        if: always() && runner.os == 'macOS' && env.MONOLITH_SIGNED_RELEASE == '1'
+        run: pnpm exec node tools/configure-macos-signing.mjs --cleanup
+
+  server:
+    if: github.event_name == 'push'
+    needs: preflight
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            target: linux-amd64
+          - os: ubuntu-24.04-arm
+            target: linux-arm64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: pnpm
+      - uses: docker/setup-buildx-action@v3
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm release:version
+      - run: pnpm gateway:test
+      - run: pnpm release:platform server ${{ matrix.target }}
+      - run: pnpm release:downloads kit
+      - name: Rehearse automatic install and rollback with persistent data
+        run: pnpm exec node tools/smoke-release-server.mjs ${{ matrix.target }} --updates
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.target }}
+          path: |
+            dist/platform-releases/${{ github.ref_name }}/*.tar.gz
+            dist/platform-releases/${{ github.ref_name }}/*.part*
+            dist/platform-releases/${{ github.ref_name }}/*.artifact.json
+            dist/platform-releases/${{ github.ref_name }}/monolith-updater-*
+          retention-days: 7
+          if-no-files-found: error
+
+  extras:
+    if: github.event_name == 'push'
+    needs: preflight
+    environment: release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm release:version
+      - run: pnpm core:check
+      - run: pnpm typecheck
+      - run: pnpm exec node --test tools/platform-release.test.mjs tools/preview-release.test.mjs tools/release-preflight.test.mjs
+      - run: pnpm --filter @monolith/client test
+      - run: pnpm --filter @monolith/configs test
+      - run: pnpm --filter @monolith/module-runtime test
+      - run: pnpm --filter @monolith/server-utils test
+      - run: pnpm exec vitest run --config tools/vitest.addons.config.ts
+      - run: pnpm agent:test
+      - run: pnpm release:addons
+        env:
+          MONOLITH_RELEASE_PRIVATE_KEY: ${{ secrets.MONOLITH_ADDON_CATALOG_PRIVATE_KEY }}
+      - run: pnpm release:downloads extras
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-extras
+          path: dist/platform-releases/${{ github.ref_name }}/*
+          retention-days: 7
+          if-no-files-found: error
+
+  publish:
+    needs: [clients, server, extras]
+    runs-on: ubuntu-24.04
+    environment: release
+    timeout-minutes: 60
+    permissions:
+      contents: write
+    env:
+      MONOLITH_RELEASE_NOTES_FILE: .temp/release-notes.md
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm release:version
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          path: dist/platform-releases/${{ github.ref_name }}
+          merge-multiple: true
+      - run: pnpm exec node --test tools/platform-release.test.mjs
+      - name: Prepare release notes
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: pnpm exec node tools/prepare-release-notes.mjs
+      - name: Sign complete release manifest
+        env:
+          MONOLITH_RELEASE_PRIVATE_KEY: ${{ secrets.MONOLITH_RELEASE_PRIVATE_KEY }}
+        run: pnpm release:platform manifest
+      - name: Verify the complete installer and add-on inventory
+        run: pnpm release:downloads manifest
+      - name: Publish complete release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: pnpm exec node tools/publish-platform-release.mjs

@@ -1,0 +1,64 @@
+.tech-lab-section {
+  animation: tech-lab-enter var(--motion-normal, 200ms) var(--motion-ease, ease)
+    both;
+}
+
+.tech-lab-navigation {
+  border-bottom: 1px solid var(--border-subtle);
+  align-self: stretch;
+  gap: 16px;
+}
+.tech-lab-navigation > a {
+  min-height: 44px;
+  border-radius: 0;
+  padding-inline: 4px;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+}
+.tech-lab-navigation > a[aria-current='page'] {
+  border-bottom-color: var(--accent-teal);
+  color: var(--text-primary);
+}
+@media (max-width: 700px) {
+  .tech-lab-navigation {
+    gap: 4px;
+    flex-wrap: nowrap;
+  }
+  .tech-lab-navigation > a {
+    flex: 1;
+    flex-shrink: 1;
+    padding: 8px 4px;
+    font-size: 12px;
+  }
+  .tech-lab-navigation > a > svg {
+    display: none;
+  }
+  .tech-lab-navigation > a span {
+    white-space: normal;
+    overflow: visible;
+    text-align: center;
+  }
+}
+
+.tech-lab-technical {
+  font-family: 'JetBrains Mono', monospace;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+@keyframes tech-lab-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tech-lab-section {
+    animation: none;
+  }
+}

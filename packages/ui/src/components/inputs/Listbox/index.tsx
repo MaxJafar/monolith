@@ -1,0 +1,85 @@
+import { Listbox as HeadlessListbox, ListboxButton } from '@headlessui/react'
+
+import { Icon } from '@/components/primitives'
+import { Flex, type FlexProps, Text, Transition } from '@/components/primitives'
+import { surface } from '@/system'
+
+import { ListboxOptions } from '../ListboxInput/components/ListboxOptions'
+
+type ListboxWithMultiple<T> = {
+  value: T[]
+  onChange: (value: T[]) => void
+  renderContent?: (value: T[]) => React.ReactNode
+  children: React.ReactNode
+  multiple: true
+}
+
+type ListboxWithoutMultiple<T> = {
+  value: T
+  onChange: (value: T) => void
+  renderContent?: (value: T) => React.ReactNode
+  children: React.ReactNode
+  multiple?: never
+}
+
+type ListboxProps<T> = { disabled?: boolean; compact?: boolean } & (
+  ListboxWithMultiple<T> | ListboxWithoutMultiple<T>
+) &
+  Omit<FlexProps, 'onChange' | 'value'>
+
+/**
+ * A listbox component for selecting from a list of options. Similar to ListboxInput but without the input box styling.
+ */
+export function Listbox<T>({
+  value,
+  onChange,
+  renderContent,
+  children,
+  multiple,
+  disabled = false,
+  compact = false,
+  ...rest
+}: ListboxProps<T>) {
+  return (
+    <HeadlessListbox
+      disabled={disabled}
+      multiple={multiple}
+      value={value}
+      onChange={(selected: T | T[]) => {
+        // Headless UI's callback value follows the discriminated multiple prop.
+        if (multiple) onChange(selected as T[])
+        else onChange(selected as T)
+      }}
+    >
+      <Transition property="all">
+        <Flex
+          asChild
+          shadow
+          align="center"
+          bg={rest.bg ?? surface.lightInteractive}
+          gap="lg"
+          justify="between"
+          minWidth="0"
+          p="md"
+          r="lg"
+          style={disabled ? { opacity: 0.5 } : undefined}
+          {...rest}
+        >
+          <ListboxButton
+            style={disabled ? { cursor: 'not-allowed' } : undefined}
+          >
+            {renderContent ? (
+              renderContent(value as never)
+            ) : (
+              <Text truncate align="left" whiteSpace="nowrap">
+                {value as unknown as string}
+              </Text>
+            )}
+            <Icon color="muted" icon="tabler:chevron-down" />
+          </ListboxButton>
+        </Flex>
+      </Transition>
+      <ListboxOptions compact={compact}>{children}</ListboxOptions>
+    </HeadlessListbox>
+  )
+}

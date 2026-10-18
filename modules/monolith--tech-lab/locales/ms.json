@@ -1,0 +1,202 @@
+{
+  "title": "Makmal Teknologi",
+  "description": "Peranti, perkhidmatan dan status homelab anda.",
+  "navigation": "Navigasi Makmal Teknologi",
+  "loading": "Memuatkan makmal teknologi anda…",
+  "sections": {
+    "overview": "Ringkasan",
+    "devices": "Peranti",
+    "services": "Perkhidmatan",
+    "health": "Status",
+    "import": "Import & tetapan"
+  },
+  "items": {
+    "devices": "peranti",
+    "services": "perkhidmatan"
+  },
+  "overview": {
+    "devices": "Peranti",
+    "services": "Perkhidmatan & pautan",
+    "up": "Boleh dicapai",
+    "attention": "Perlu perhatian",
+    "title": "Homelab anda",
+    "collector": "Monitor aktif berjalan di latar belakang selagi API Monolith berjalan, walaupun pelayar ditutup. Pemantauan disambung selepas API dimulakan semula. Membuka Makmal Teknologi atau menyimpan monitor aktif juga mendaftarkan semakan.",
+    "updated": "Ringkasan dikemas kini {{date}}"
+  },
+  "kinds": {
+    "service": "Perkhidmatan dihoskan",
+    "game": "Pelayan permainan",
+    "link": "Pautan & penanda buku"
+  },
+  "status": {
+    "up": "Boleh dicapai",
+    "down": "Tidak boleh dicapai",
+    "error": "Ralat semakan",
+    "stale": "Lapuk",
+    "disabled": "Dimatikan",
+    "unknown": "Tidak diketahui"
+  },
+  "monitors": {
+    "none": "Tiada monitor",
+    "http": "Kebolehcapaian HTTP",
+    "tcp": "Sambungan TCP",
+    "minecraft": "Status Minecraft"
+  },
+  "inputs": {
+    "name": "Nama",
+    "kind": "Jenis",
+    "host": "Hos / IP",
+    "os": "Sistem operasi",
+    "cpu": "CPU",
+    "gpu": "GPU",
+    "ram_gb": "Kapasiti RAM (GB)",
+    "storage": "Storan",
+    "location": "Lokasi",
+    "management_url": "URL pengurusan",
+    "glances_url": "URL API Glances",
+    "notes": "Nota",
+    "tags": "Tag",
+    "category": "Kategori",
+    "device": "Dihoskan pada peranti",
+    "service": "Perkhidmatan",
+    "url": "URL web (HTTP / HTTPS)",
+    "address": "Alamat lain (TCP / SMB / permainan)",
+    "description": "Penerangan",
+    "monitor_kind": "Protokol monitor",
+    "monitor_target": "URL / hos monitor",
+    "monitor_port": "Port monitor",
+    "monitor_enabled": "Aktifkan pemantauan pelayan",
+    "monitor_interval_seconds": "Sela semakan (saat)",
+    "auto_refresh_seconds": "Sela kemas kini halaman (saat)",
+    "stale_after_multiplier": "Lapuk selepas sela terlepas",
+    "history_retention_days": "Tempoh simpanan sejarah (hari)",
+    "format": "Format sumber",
+    "file": "Pilih fail inventori",
+    "source": "Teks sumber inventori"
+  },
+  "filters": {
+    "allKinds": "Semua jenis",
+    "allDevices": "Semua peranti",
+    "unassigned": "Tiada peranti ditetapkan",
+    "allCategories": "Semua kategori",
+    "allTags": "Semua tag",
+    "allStatuses": "Semua status",
+    "status": "Status monitor",
+    "results": "{{count}} daripada {{total}} entri"
+  },
+  "devices": {
+    "empty": "Belum ada peranti. Tambah pelayan, komputer, NAS atau peranti rangkaian pertama anda.",
+    "glancesHelp": "Gunakan URL API Glances HTTP atau HTTPS tanpa kelayakan terbenam. Biarkan kosong untuk mematikan telemetri.",
+    "telemetry": "Telemetri peranti langsung",
+    "telemetryDisabled": "Telemetri belum dikonfigurasikan",
+    "telemetryError": "Telemetri tidak tersedia",
+    "utilization": "Penggunaan semasa",
+    "cpu": "Penggunaan CPU",
+    "ram": "Penggunaan RAM",
+    "memory": "Memori: {{used}} / {{total}}",
+    "uptime": "Masa hidup peranti: {{hours}} jam",
+    "filesystems": "Penggunaan sistem fail",
+    "captured": "Diukur {{date}}",
+    "openManagement": "Buka pengurusan",
+    "linkedServices": "Perkhidmatan dihoskan ({{count}})",
+    "noServices": "Tiada perkhidmatan dipautkan kepada peranti ini."
+  },
+  "services": {
+    "empty": "Belum ada perkhidmatan. Tambah aplikasi, pelayan permainan atau pautan."
+  },
+  "health": {
+    "title": "Status monitor diperhatikan",
+    "configuration": "Konfigurasi monitor",
+    "monitorHelp": "Semakan mengukur kebolehcapaian, bukan status aplikasi selepas log masuk. HTTP 401 dan 403 dikira boleh dicapai tetapi memerlukan kebenaran. Hanya monitor yang diaktifkan secara jelas akan dihubungi.",
+    "latency": "Kependaman terkini",
+    "observed24h": "Semakan boleh dicapai · 24 jam",
+    "samples": "{{count}} semakan diperhatikan",
+    "lastChecked": "Semakan terakhir {{date}}",
+    "nextCheck": "Semakan seterusnya {{date}}",
+    "interval": "Setiap {{seconds}} saat",
+    "range": "Julat sejarah",
+    "ranges": {
+      "24": "24 jam terakhir",
+      "168": "7 hari terakhir",
+      "720": "30 hari terakhir"
+    },
+    "failures": "Kegagalan 24 jam terakhir",
+    "failureCounts": "{{down}} tidak boleh dicapai · {{errors}} ralat semakan",
+    "observedHelp": "Nisbah ini berdasarkan semakan konfigurasi monitor semasa, termasuk ralat. Ia bukan masa hidup berterusan. Tanpa sampel, status tidak diketahui.",
+    "players": "Pemain: {{online}} / {{max}}",
+    "latencyHistory": "Kependaman semakan boleh dicapai",
+    "historyHelp": "Semakan gagal dan ralat meninggalkan jurang dalam carta. Sejarah mengekalkan sasaran dan versi monitor terdahulu.",
+    "checkHistory": "Sejarah semakan ({{count}})",
+    "noChecks": "Tiada semakan direkodkan dalam julat ini.",
+    "truncated": "Julat ini melebihi had hasil sejarah. Sebahagian hasil dipaparkan.",
+    "revision": "Versi monitor {{revision}}",
+    "viewHistory": "Lihat sejarah semakan",
+    "editMonitor": "Edit monitor"
+  },
+  "settings": {
+    "title": "Tetapan kemas kini & simpanan",
+    "help": "Kemas kini halaman berasingan daripada sela semakan monitor. Status lapuk diukur mengikut sela monitor yang terlepas. Tempoh simpanan mengawal rekod semakan."
+  },
+  "messages": {
+    "unsaved": "Anda mempunyai perubahan belum disimpan. Teruskan menyunting atau buang perubahan untuk keluar.",
+    "discardChanges": "Buang perubahan yang belum disimpan?",
+    "newerVersion": "Entri ini telah berubah di tempat lain. Draf anda dikekalkan; simpanan lapuk akan ditolak. Batalkan dan buka semula untuk memuatkan versi terkini.",
+    "deleteDevice": "Padam “{{name}}”? Perkhidmatannya kekal dalam inventori tanpa peranti ditetapkan.",
+    "deleteService": "Padam “{{name}}”? Rekod semakan yang disimpan dikekalkan pada pelayan.",
+    "notFound": "Entri ini tidak tersedia dalam inventori anda.",
+    "noMatches": "Tiada entri sepadan dengan penapis ini.",
+    "emptyInventory": "Bina inventori anda dengan menambah perkhidmatan atau menyemak import Homepage.",
+    "failureHelp": "Operasi gagal. Inventori dan draf sedia ada masih tersedia. Cuba semula atau buka versi terkini sebelum menyimpan."
+  },
+  "import": {
+    "title": "Semak import inventori",
+    "help": "Muat naik atau tampal inventori JSON atau fail services/bookmarks Homepage. Pratonton sebelum menerapkan. Import menggabungkan entri; entri sedia ada dilangkau. Kelayakan sumber dan widget tidak disokong tidak diimport.",
+    "formats": {
+      "native-json": "Inventori JSON asli",
+      "homepage-services": "Perkhidmatan Homepage (YAML / JSON)",
+      "homepage-bookmarks": "Penanda buku Homepage (YAML / JSON)"
+    },
+    "tooLarge": "Sumber mesti 1 MiB atau lebih kecil.",
+    "readFailed": "Fail tidak dapat dibaca. Pilih semula atau tampal teksnya.",
+    "review": "Semak entri import",
+    "counts": {
+      "devices": "Peranti",
+      "services": "Perkhidmatan / permainan",
+      "bookmarks": "Pautan / penanda buku",
+      "duplicates": "Entri sumber pendua"
+    },
+    "monitorsDisabled": "Semua monitor import dimatikan. Semak setiap sasaran dan aktifkan pemantauan secara jelas selepas import.",
+    "applied": "Menambah {{devices}} peranti dan {{services}} perkhidmatan / pautan.",
+    "skipped": "Melangkau {{devices}} peranti dan {{services}} perkhidmatan / pautan sedia ada.",
+    "export": "Eksport inventori",
+    "exportHelp": "Muat turun peranti, perkhidmatan, konfigurasi monitor dan tetapan sebagai JSON. Sejarah semakan dan kelayakan tidak disertakan. Import menggabungkan inventori dengan pemantauan dimatikan; tetapan dan sejarah semakan tidak dipulihkan."
+  },
+  "buttons": {
+    "save": "Simpan",
+    "cancel": "Batal",
+    "retry": "Cuba semula",
+    "refresh": "Kemas kini",
+    "edit": "Edit",
+    "delete": "Padam",
+    "back": "Kembali",
+    "clear": "Kosongkan",
+    "open": "Buka",
+    "details": "Butiran",
+    "keepEditing": "Teruskan menyunting",
+    "discardChanges": "Buang perubahan",
+    "clearFilters": "Kosongkan penapis",
+    "addDevice": "Tambah peranti",
+    "editDevice": "Edit peranti",
+    "addService": "Tambah perkhidmatan",
+    "editService": "Edit perkhidmatan",
+    "checkNow": "Semak sekarang",
+    "previewImport": "Pratonton import",
+    "applyImport": "Terapkan import disemak",
+    "exportInventory": "Muat turun inventori JSON",
+    "copyAddress": "Salin alamat"
+  },
+  "addDevice": "Tambah peranti",
+  "editDevice": "Edit peranti",
+  "addService": "Tambah perkhidmatan",
+  "editService": "Edit perkhidmatan"
+}

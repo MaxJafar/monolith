@@ -1,0 +1,138 @@
+import { useModuleTranslation } from '@monolith/localization'
+
+import { Button } from '@/components/inputs'
+import { Box, Flex, type FlexProps, Icon, Text } from '@/components/primitives'
+
+interface EmptyStateScreenProps extends FlexProps {
+  /** Props for the call-to-action button. Refer to the Button component for available props. */
+  CTAButtonProps?: React.ComponentProps<typeof Button>
+  /** The message to display in the empty state.
+   * If an object with `id` and optional `namespace` is provided, it will use translations.
+   * The translation shall be looked up using the keys:
+   * - Title: `[{tKey}.]empty.{id}.title`
+   * - Description: `[{tKey}.]empty.{id}.description`
+   *
+   * Otherwise, a custom title and description can be provided.
+   */
+  message:
+    | {
+        id: string
+        namespace?: string | false
+        tKey?: string
+      }
+    | {
+        title: string
+        description?: string | React.ReactNode
+      }
+  /** The icon to display in the empty state. Can be a valid icon identifier from Iconify or a React element */
+  icon?: string | React.ReactElement
+  /** Whether to render a smaller version of the empty state screen.
+   * Typically used for displaying empty states in compact areas like sidebars or widgets. */
+  smaller?: boolean
+}
+
+/**
+ * A reusable empty state screen component for displaying when there is no data or content.
+ */
+export function EmptyStateScreen({
+  CTAButtonProps,
+  message,
+  icon,
+  smaller = false,
+  ...props
+}: EmptyStateScreenProps) {
+  const { t } = useModuleTranslation(
+    'namespace' in message && message.namespace
+      ? [message.namespace]
+      : undefined
+  )
+
+  return (
+    <Text asChild color={{ base: 'bg-400', dark: 'bg-600' }}>
+      <Flex
+        align="center"
+        direction="column"
+        height="100%"
+        justify="center"
+        style={{ gap: smaller ? '0.75rem' : '1.5rem' }}
+        width="100%"
+        {...props}
+      >
+        {icon !== undefined &&
+          (typeof icon === 'string' ? (
+            <Icon icon={icon} size={smaller ? '4rem' : '8rem'} />
+          ) : (
+            icon
+          ))}
+        <Text
+          align="center"
+          as="h2"
+          color={{ base: 'bg-800', dark: 'bg-100' }}
+          size={smaller ? 'xl' : '3xl'}
+          style={{ paddingLeft: '1.5rem', paddingRight: '1.5rem' }}
+          weight="semibold"
+        >
+          {'id' in message
+            ? message.namespace === false
+              ? message.id
+              : t(
+                  `${message.namespace ? `${message.namespace}:` : ''}${[
+                    message.tKey,
+                    'empty',
+                    message.id,
+                    'title'
+                  ]
+                    .filter(e => e)
+                    .join('.')}`
+                )
+            : message.title}
+        </Text>
+        {(() => {
+          if ('title' in message) {
+            return typeof message.description === 'string' ? (
+              <Text
+                align="center"
+                as="p"
+                px="lg"
+                size={smaller ? 'sm' : 'lg'}
+                whiteSpace="pre-wrap"
+              >
+                {message.description}
+              </Text>
+            ) : (
+              message.description
+            )
+          }
+
+          return (
+            <Text
+              align="center"
+              as="p"
+              px="lg"
+              size={smaller ? 'sm' : 'lg'}
+              whiteSpace="pre-wrap"
+            >
+              {message.namespace === false
+                ? ''
+                : t(
+                    `${message.namespace ? `${message.namespace}:` : ''}${[
+                      message.tKey,
+                      'empty',
+                      message.id,
+                      'description'
+                    ]
+                      .filter(e => e)
+                      .join('.')}`
+                  )}
+            </Text>
+          )
+        })()}
+        {CTAButtonProps && (
+          <Box mt="md">
+            <Button {...CTAButtonProps} />
+          </Box>
+        )}
+      </Flex>
+    </Text>
+  )
+}

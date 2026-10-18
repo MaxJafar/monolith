@@ -1,0 +1,72 @@
+{
+  "name": "@monolith/wallet",
+  "displayName": "Wallet",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MaxJafar/monolith.git",
+    "directory": "modules/monolith--wallet"
+  },
+  "version": "0.0.1",
+  "type": "module",
+  "author": "Monolith contributors",
+  "description": "Become your own financial superhero.",
+  "scripts": {
+    "typecheck": "pnpm run typecheck:client && pnpm run typecheck:server",
+    "typecheck:client": "cd client && tsc",
+    "typecheck:server": "cd server && tsc",
+    "build": "node \"../../tools/build-guard.mjs\" --task build",
+    "build:client": "node \"../../tools/build-guard.mjs\" --task build:client",
+    "build:server": "node \"../../tools/build-guard.mjs\" --task build:server"
+  },
+  "dependencies": {
+    "@vis.gl/react-google-maps": "^1.5.5",
+    "chart.js": "^4.5.0",
+    "moment": "^2.30.1",
+    "moment-range": "^4.0.2",
+    "react-activity-calendar": "^2.7.14",
+    "react-chartjs-2": "^5.3.0",
+    "react-to-print": "^3.1.1",
+    "react-virtualized": "^9.22.6",
+    "recharts": "^3.9.2",
+    "zustand": "^5.0.8"
+  },
+  "devDependencies": {
+    "@types/google.maps": "^3.65.2",
+    "@types/react-virtualized": "^9.22.3"
+  },
+  "peerDependencies": {
+    "@monolith/api": "workspace:*",
+    "@monolith/configs": "workspace:*",
+    "@monolith/drizzle": "workspace:*",
+    "@monolith/file-storage": "workspace:*",
+    "@monolith/federation": "workspace:*",
+    "@monolith/localization": "workspace:*",
+    "@monolith/server-utils": "workspace:*",
+    "@monolith/ui": "workspace:*"
+  },
+  "monolith": {
+    "icon": "tabler:currency-dollar",
+    "category": "Finance",
+    "APIKeyAccess": {
+      "deepseek": {
+        "usage": "Create transactions from natural language and images using llm",
+        "required": false
+      },
+      "openrouter": {
+        "usage": "Extract transaction details from receipt images using vision model",
+        "required": false
+      },
+      "gcloud": {
+        "usage": "To fetch location from google map api",
+        "required": false
+      }
+    },
+    "id": "monolith--wallet",
+    "routeId": "444fbd5671dabea6430b9bf6cb879fe1a4f79c0107bf639d662eb6d9a3cdd7d1"
+  },
+  "monolithBuilds": {
+    "build": "pnpm run build:client && pnpm run build:server",
+    "build:client": "cd client && vite build",
+    "build:server": "cd server && vite build"
+  }
+}

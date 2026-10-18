@@ -1,0 +1,214 @@
+{
+  "title": "Tambahan dan Widget",
+  "description": "Urus alat pilihan untuk ruang kerja monolith anda",
+  "category": "Kategori",
+  "subsections": {
+    "modules": {
+      "title": "Tambahan dan Widget",
+      "description": "Pasang, kemas kini, dan buang addon daripada instans monolith anda"
+    },
+    "categories": {
+      "title": "Kategori",
+      "description": "Susun dan susun semula kategori bar sisi untuk menyesuaikan navigasi anda"
+    }
+  },
+  "buttons": {
+    "uninstall": "Nyahpasang",
+    "addTranslation": "Tambah Terjemahan",
+    "addCategory": "Tambah Kategori",
+    "add category": "Tambah Kategori",
+    "createMissing": "Cipta kategori yang tiada"
+  },
+  "items": {
+    "category": "Kategori"
+  },
+  "inputs": {
+    "categoryKey": "Kunci Kategori",
+    "translationKey": "Kunci Terjemahan",
+    "translationLabel": "Label terjemahan"
+  },
+  "empty": {
+    "category": {
+      "title": "Tiada kategori dijumpai",
+      "description": "Cipta kategori untuk memulakan"
+    },
+    "modules": {
+      "title": "Tiada addon dipasang",
+      "description": "Cipta addon atau pasang kod sumber yang dikongsi untuk meluaskan monolith."
+    }
+  },
+  "modals": {
+    "category": {
+      "create": "Cipta Kategori",
+      "update": "Kemas Kini Kategori"
+    },
+    "uninstall": {
+      "title": "Nyahpasang {{module}}?",
+      "description": "Addon ini akan dibuang daripada sistem anda, manakala datanya dikekalkan. Anda boleh memasangnya semula daripada kod sumbernya."
+    },
+    "devMode": {
+      "enable": {
+        "title": "Aktifkan Mod Pembangunan",
+        "description": "Mengaktifkan mod pembangunan akan memuatkan addon ini terus dari sumber dan bukan dari binaan pra-bina. Perubahan pada kod addon akan dimuat semula serta-merta tanpa perlu membina semula.\n\nGunakan ini semasa aktif membangunkan atau menyesuaikan addon ini."
+      },
+      "disable": {
+        "title": "Nyahaktifkan Mod Pembangunan",
+        "description": "Menyahaktifkan mod pembangunan akan bertukar semula kepada pemuatan dari binaan pra-bina. Pastikan anda telah membina semula addon untuk memasukkan perubahan terkini."
+      }
+    },
+    "translationKey": {
+      "create": "Cipta Kunci Terjemahan",
+      "update": "Kemas Kini Kunci Terjemahan"
+    }
+  },
+  "devMode": {
+    "label": "Mod Pembangunan",
+    "enable": "Aktifkan Mod Pembangunan",
+    "disable": "Nyahaktifkan Mod Pembangunan",
+    "enabled": "{{module}} kini dalam mod pembangunan",
+    "disabled": "{{module}} tidak lagi dalam mod pembangunan"
+  },
+  "misc": {
+    "translations": "Terjemahan"
+  },
+  "notBuilt": {
+    "label": "Tidak Dibina"
+  },
+  "messages": {
+    "categoriesMissingTranslations": "{{count}} kategori tiada terjemahan:"
+  },
+  "catalog": {
+    "description": "Sesuaikan ruang kerja ini. Pilih alat yang anda perlukan.",
+    "workspace": "RUANG KERJA SEMASA",
+    "selectWorkspace": "Pilih ruang kerja",
+    "workspaceCount": "{{enabled}} diaktifkan · {{total}} alat tersedia",
+    "ownerOnly": "Hanya pemilik ruang kerja boleh mengaktifkan atau menyahaktifkan addon.",
+    "status": "Status addon",
+    "all": "Semua addon",
+    "enabled": "Diaktifkan",
+    "available": "Tersedia",
+    "search": "Cari addon dan widget…",
+    "kind": "Jenis addon",
+    "allCategories": "Semua kategori",
+    "allKinds": "Semua jenis",
+    "clear": "Kosongkan penapis",
+    "results": "{{count}} addon",
+    "noMatches": "Tiada addon sepadan",
+    "noMatchesHelp": "Cuba carian, kategori atau jenis yang lain.",
+    "toggle": "Aktifkan {{name}}",
+    "on": "Aktif",
+    "off": "Tidak aktif",
+    "saving": "Menyimpan…",
+    "open": "Buka",
+    "openDashboard": "Buka papan pemuka",
+    "availableHint": "Sedia diaktifkan",
+    "enabledNotice": "{{name}} diaktifkan",
+    "disabledNotice": "{{name}} dinyahaktifkan",
+    "results_one": "{{count}} addon",
+    "results_other": "{{count}} addon"
+  },
+  "shop": {
+    "collection": "Koleksi",
+    "description": "Ruang kerja yang berkembang bersama anda. Tambah alat dan widget yang diperlukan.",
+    "summary": "{{count}} dipasang · {{enabled}} diaktifkan di sini",
+    "workspaceSettings": "Tetapan ruang kerja",
+    "sections": "Bahagian kedai",
+    "addons": "Tambahan",
+    "widgets": "Widget",
+    "sidebar": "Bar sisi",
+    "addon": "Tambahan",
+    "widget": "Widget",
+    "addonsTitle": "Tambah keupayaan",
+    "addonsHelp": "Alat lengkap dengan ruang tersendiri. Pasang pada hos, kemudian aktifkan di ruang yang diperlukan.",
+    "widgetsTitle": "Blok kecil. Papan pemuka anda.",
+    "widgetsHelp": "Fokus, belajar dan jejak kemajuan dari papan pemuka. Pratonton dan laraskan setiap widget dalam tetingkap kecil.",
+    "sidebarTitle": "Sentiasa mudah dicapai",
+    "sidebarHelp": "Semat Kalendar dan widget padat di sisi halaman. Susun bahagian asli di bawah atau seret pemegang bar sisi.",
+    "all": "Semua",
+    "installed": "Dipasang",
+    "enabled": "Diaktifkan di sini",
+    "updates": "Kemas kini",
+    "updateAvailable": "Kemas kini tersedia",
+    "update": "Kemas kini",
+    "install": "Muat turun",
+    "checkUpdates": "Semak kemas kini",
+    "checked": "Katalog keluaran disegarkan.",
+    "details": "Butiran",
+    "detailsFor": "Tentang {{name}}",
+    "installedVersion": "Versi dipasang",
+    "notInstalled": "Belum dipasang",
+    "downloadSize": "Saiz muat turun",
+    "requiresHost": "Memerlukan Monolith {{version}}",
+    "noNotes": "Tiada nota keluaran.",
+    "localPackage": "Disertakan pada pelayan ini. Keluaran muat turun belum dikonfigurasikan.",
+    "installHelp": "Pakej disahkan sebelum pengaktifan. Suis ruang kerja mengekalkan data. Perubahan skema memerlukan keluaran hos sepadan.",
+    "reload": "Muat semula untuk versi ini",
+    "configureWidget": "Pratonton & laras",
+    "livePreview": "Pratonton widget langsung",
+    "addDashboard": "Tambah ke papan pemuka",
+    "addSidebar": "Semat ke bar sisi",
+    "saveSidebar": "Simpan widget bar sisi",
+    "removeSidebar": "Buang dari bar sisi",
+    "includedWidgets": "Disertakan bersama Monolith",
+    "builtIn": "Terbina dalam · tiada muat turun",
+    "connectedWidget": "Paparan data ruang kerja yang bersambung.",
+    "nativeSections": "Bahagian bar sisi asli",
+    "dragHelp": "Seret pemegang bar sisi untuk menyusun. Fokuskan pemegang dan guna ↑ atau ↓. Disimpan untuk ruang kerja ini pada peranti ini.",
+    "moveArea": "Susun {{name}}",
+    "moved": "{{name}} dipindahkan",
+    "moveUp": "Alih {{name}} ke atas",
+    "moveDown": "Alih {{name}} ke bawah",
+    "showArea": "Tunjuk {{name}}",
+    "unpublished": "Melayari pakej pada pelayan ini. Muat turun muncul apabila hos menyambung katalog keluaran.",
+    "hostAdmin": "Pentadbir hos mengurus muat turun. Pemilik ruang kerja boleh mengaktifkan alat yang dipasang.",
+    "loading": "Memuatkan koleksi…",
+    "yourWorkspace": "Ruang kerja anda, alat anda",
+    "downloadProgress": "Kemajuan muat turun",
+    "phases": {
+      "queued": "Dalam giliran",
+      "downloading": "Memuat turun",
+      "verifying": "Mengesahkan pakej",
+      "installing": "Mengaktifkan pakej",
+      "complete": "Dipasang — muat semula",
+      "failed": "Pemasangan gagal"
+    },
+    "native": {
+      "calendar": "Tarikh dan jadual ruang kerja",
+      "projects": "Papan, garis masa dan kemajuan projek",
+      "actions": "Tugas dan agenda harian",
+      "rooms": "Perbualan disulitkan dan kerjasama",
+      "docs": "Halaman, penulisan dan pengetahuan berkaitan",
+      "dashboard": "Koleksi peribadi widget bersambung",
+      "databases": "Rekod berstruktur dan paparan fleksibel"
+    },
+    "widgetDescriptions": {
+      "calendarWidget": "Bulan, minggu atau agenda di sisi halaman.",
+      "weather": "Ramalan tempatan untuk bandar pilihan.",
+      "habitTracker": "Jejak tabiat harian dan tandakan kemajuan.",
+      "marketTracker": "Ikuti saham dan mata wang kripto pilihan.",
+      "workspacePulse": "Ringkasan sebenar aktiviti ruang kerja.",
+      "actionAgenda": "Tindakan akan datang daripada rekod sedia ada.",
+      "projectFocus": "Kemajuan projek terus pada papan pemuka.",
+      "quickLinks": "Pintasan ke bahagian asli ruang kerja.",
+      "upcomingEvents": "Acara terjadual seterusnya sepintas lalu."
+    }
+  },
+  "categoryEditor": {
+    "orderHelp": "Seret pemegang atau gunakan butang anak panah untuk mengubah susunan kategori.",
+    "refreshFailed": "Disimpan, tetapi navigasi tidak dapat dimuat semula. Muat semula untuk melihat perubahan.",
+    "saving": "Perubahan kategori masih sedang disimpan.",
+    "duplicate": "Pilih kunci kategori yang unik.",
+    "saveFailed": "Susunan kategori tidak dapat disimpan. Susunan sebelumnya telah dipulihkan.",
+    "deleteTitle": "Buang {{name}}?",
+    "deleteDescription": "Ini membuang label kategori. Addon dan datanya dikekalkan.",
+    "edit": "Edit {{name}}",
+    "remove": "Buang {{name}}",
+    "translate": "Cadangkan terjemahan",
+    "removeEntry": "Buang kategori",
+    "removeTranslation": "Buang terjemahan",
+    "required": "Medan ini diperlukan.",
+    "invalidLanguage": "Masukkan kod bahasa seperti en, ms atau zh-CN.",
+    "duplicateLanguage": "Setiap bahasa hanya boleh muncul sekali.",
+    "translationFailed": "Terjemahan tidak dapat dijana."
+  }
+}

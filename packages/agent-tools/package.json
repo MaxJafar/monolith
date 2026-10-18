@@ -1,0 +1,40 @@
+{
+  "name": "@monolith/agent-tools",
+  "version": "0.1.9",
+  "description": "Monolith CLI and MCP bridge for coding agents",
+  "author": "Monolith contributors",
+  "license": "CC-BY-NC-SA-4.0",
+  "type": "module",
+  "bin": {
+    "monolith-agent": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "engines": {
+    "node": ">=22.16.0"
+  },
+  "scripts": {
+    "build": "node \"../../tools/build-guard.mjs\" --task build",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "pnpm build && vitest run"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.1",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "commander": "^14.0.2",
+    "zod": "4.3.5"
+  },
+  "devDependencies": {
+    "@types/node": "25.9.5",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.10"
+  },
+  "monolithBuilds": {
+    "build": "tsc -p tsconfig.json"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "name": "@monolith/lang-en",
+  "version": "0.0.1",
+  "description": "English language support for Monolith.",
+  "author": "Monolith contributors",
+  "monolith": {
+    "code": "en",
+    "displayName": "English",
+    "icon": "circle-flags:gb"
+  }
+}

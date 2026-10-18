@@ -1,0 +1,202 @@
+{
+  "title": "技术实验室",
+  "description": "管理家庭实验室设备、服务与观测状态。",
+  "navigation": "技术实验室导航",
+  "loading": "正在加载技术实验室…",
+  "sections": {
+    "overview": "概览",
+    "devices": "设备",
+    "services": "服务",
+    "health": "健康状态",
+    "import": "导入与设置"
+  },
+  "items": {
+    "devices": "设备",
+    "services": "服务"
+  },
+  "overview": {
+    "devices": "设备",
+    "services": "服务与链接",
+    "up": "可访问",
+    "attention": "需要关注",
+    "title": "你的家庭实验室",
+    "collector": "只要 monolith API 正在运行，已启用的监视器就在后台检查，即使浏览器已关闭。API 重启后会恢复检查。访问技术实验室或保存已启用的监视器也会注册检查。",
+    "updated": "快照刷新于 {{date}}"
+  },
+  "kinds": {
+    "service": "托管服务",
+    "game": "游戏服务器",
+    "link": "链接与书签"
+  },
+  "status": {
+    "up": "可访问",
+    "down": "无法访问",
+    "error": "检查错误",
+    "stale": "数据过期",
+    "disabled": "已禁用",
+    "unknown": "未知"
+  },
+  "monitors": {
+    "none": "不监视",
+    "http": "HTTP 可访问性",
+    "tcp": "TCP 连接",
+    "minecraft": "Minecraft 状态"
+  },
+  "inputs": {
+    "name": "名称",
+    "kind": "类型",
+    "host": "主机 / IP",
+    "os": "操作系统",
+    "cpu": "CPU",
+    "gpu": "GPU",
+    "ram_gb": "内存容量（GB）",
+    "storage": "存储",
+    "location": "位置",
+    "management_url": "管理地址",
+    "glances_url": "Glances API 地址",
+    "notes": "备注",
+    "tags": "标签",
+    "category": "分类",
+    "device": "所在设备",
+    "service": "服务",
+    "url": "网页地址（HTTP / HTTPS）",
+    "address": "其他地址（TCP / SMB / 游戏）",
+    "description": "描述",
+    "monitor_kind": "监视协议",
+    "monitor_target": "监视地址 / 主机",
+    "monitor_port": "监视端口",
+    "monitor_enabled": "启用服务器监视",
+    "monitor_interval_seconds": "检查间隔（秒）",
+    "auto_refresh_seconds": "页面刷新间隔（秒）",
+    "stale_after_multiplier": "过期阈值（未检查的间隔数）",
+    "history_retention_days": "检查历史保留天数",
+    "format": "来源格式",
+    "file": "选择清单文件",
+    "source": "清单源文本"
+  },
+  "filters": {
+    "allKinds": "所有类型",
+    "allDevices": "所有设备",
+    "unassigned": "未指定设备",
+    "allCategories": "所有分类",
+    "allTags": "所有标签",
+    "allStatuses": "所有状态",
+    "status": "监视状态",
+    "results": "{{count}} / {{total}} 条目"
+  },
+  "devices": {
+    "empty": "暂无设备。添加服务器、电脑、NAS 或网络设备。",
+    "glancesHelp": "使用不含嵌入凭据的 HTTP 或 HTTPS Glances API 地址。留空则不读取遥测数据。",
+    "telemetry": "实时设备遥测",
+    "telemetryDisabled": "未配置遥测",
+    "telemetryError": "遥测不可用",
+    "utilization": "当前使用率",
+    "cpu": "CPU 使用率",
+    "ram": "内存使用率",
+    "memory": "内存：{{used}} / {{total}}",
+    "uptime": "设备运行时长：{{hours}} 小时",
+    "filesystems": "文件系统使用率",
+    "captured": "测量时间：{{date}}",
+    "openManagement": "打开管理页面",
+    "linkedServices": "托管服务（{{count}}）",
+    "noServices": "没有服务关联到此设备。"
+  },
+  "services": {
+    "empty": "暂无服务。添加托管应用、游戏服务器或链接。"
+  },
+  "health": {
+    "title": "观测到的监视状态",
+    "configuration": "监视配置",
+    "monitorHelp": "检查衡量可访问性，不代表已登录应用的健康状态。HTTP 401 和 403 表示端点可访问，但需要授权。仅检查明确启用的监视器。",
+    "latency": "最近延迟",
+    "observed24h": "可访问检查比例 · 最近 24 小时",
+    "samples": "{{count}} 次观测检查",
+    "lastChecked": "最近检查：{{date}}",
+    "nextCheck": "下次计划检查：{{date}}",
+    "interval": "每 {{seconds}} 秒",
+    "range": "历史范围",
+    "ranges": {
+      "24": "最近 24 小时",
+      "168": "最近 7 天",
+      "720": "最近 30 天"
+    },
+    "failures": "最近 24 小时的失败",
+    "failureCounts": "{{down}} 次无法访问 · {{errors}} 次检查错误",
+    "observedHelp": "此比例基于当前监视配置的观测检查，包含检查错误，并不代表连续运行时间。没有样本时状态为未知。",
+    "players": "玩家：{{online}} / {{max}}",
+    "latencyHistory": "可访问检查的延迟",
+    "historyHelp": "失败与错误检查在延迟图中保留为空白。历史记录保留以前的监视目标和版本。",
+    "checkHistory": "检查历史（{{count}}）",
+    "noChecks": "此范围内没有检查记录。",
+    "truncated": "此范围超出历史结果限制，仅显示部分记录。",
+    "revision": "监视版本 {{revision}}",
+    "viewHistory": "查看检查历史",
+    "editMonitor": "编辑监视器"
+  },
+  "settings": {
+    "title": "刷新与保留设置",
+    "help": "页面刷新与各监视器的检查间隔相互独立。数据过期阈值按未检查的间隔数计算。保留设置控制存储的检查记录。"
+  },
+  "messages": {
+    "unsaved": "你有未保存的修改。继续编辑或放弃修改后离开。",
+    "discardChanges": "放弃未保存的修改？",
+    "newerVersion": "此条目已在其他位置更改。你的草稿已保留，过期版本的保存会被拒绝。取消并重新打开以加载最新版本。",
+    "deleteDevice": "删除“{{name}}”？关联服务将保留在清单中，但不再分配设备。",
+    "deleteService": "删除“{{name}}”？服务器将保留已存储的检查快照。",
+    "notFound": "你的清单中没有此条目。",
+    "noMatches": "没有符合筛选条件的条目。",
+    "emptyInventory": "添加服务或审核 Homepage 导入来建立清单。",
+    "failureHelp": "操作失败。已有清单和编辑草稿仍可使用。重试或重新打开最新条目后再保存。"
+  },
+  "import": {
+    "title": "审核清单导入",
+    "help": "上传或粘贴原生 JSON 清单或 Homepage 服务/书签文件。先预览再应用。导入合并条目并跳过已有条目，不导入源凭据及不支持的小组件。",
+    "formats": {
+      "native-json": "原生 JSON 清单",
+      "homepage-services": "Homepage 服务（YAML / JSON）",
+      "homepage-bookmarks": "Homepage 书签（YAML / JSON）"
+    },
+    "tooLarge": "源文件或粘贴的内容不能超过 1 MiB。",
+    "readFailed": "无法读取文件。请重新选择或粘贴文本。",
+    "review": "审核导入条目",
+    "counts": {
+      "devices": "设备",
+      "services": "服务 / 游戏",
+      "bookmarks": "链接 / 书签",
+      "duplicates": "源文件中的重复条目"
+    },
+    "monitorsDisabled": "所有导入的监视器默认禁用。导入后审核每个目标，再明确启用监视。",
+    "applied": "已添加 {{devices}} 台设备和 {{services}} 项服务 / 链接。",
+    "skipped": "已跳过 {{devices}} 台已有设备和 {{services}} 项已有服务 / 链接。",
+    "export": "导出清单",
+    "exportHelp": "以 JSON 下载设备、服务、监视配置和设置。不包含检查历史和凭据。导入时合并清单并禁用监视，不恢复设置或检查历史。"
+  },
+  "buttons": {
+    "save": "保存",
+    "cancel": "取消",
+    "retry": "重试",
+    "refresh": "刷新",
+    "edit": "编辑",
+    "delete": "删除",
+    "back": "返回",
+    "clear": "清除",
+    "open": "打开",
+    "details": "详情",
+    "keepEditing": "继续编辑",
+    "discardChanges": "放弃修改",
+    "clearFilters": "清除筛选",
+    "addDevice": "添加设备",
+    "editDevice": "编辑设备",
+    "addService": "添加服务",
+    "editService": "编辑服务",
+    "checkNow": "立即检查",
+    "previewImport": "预览导入",
+    "applyImport": "应用已审核的导入",
+    "exportInventory": "下载 JSON 清单",
+    "copyAddress": "复制地址"
+  },
+  "addDevice": "添加设备",
+  "editDevice": "编辑设备",
+  "addService": "添加服务",
+  "editService": "编辑服务"
+}

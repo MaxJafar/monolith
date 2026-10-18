@@ -1,0 +1,92 @@
+import _ from 'lodash'
+
+import { useModuleTranslation } from '@monolith/localization'
+
+import { Button } from '@/components/inputs'
+import { Flex, Text, Transition } from '@/components/primitives'
+
+type SidebarTitleProps = {
+  /** Label string or React element to display for the sidebar title. */
+  label: string
+  /** Additional CSS classes to apply to the sidebar title. */
+  className?: string
+  /** Action button to display on the right side of the sidebar title. */
+  actionButton?:
+    | React.ReactElement
+    | {
+        icon: string
+        onClick: () => void
+      }
+  /** The i18n namespace for internationalization. See the [main documentation](https://github.com/MaxJafar/monolith/tree/main/docs) for more details. */
+  namespace?: string | false
+}
+
+/** A title for a section in the sidebar navigation. */
+export function SidebarTitle({
+  label,
+  className,
+  actionButton,
+  namespace
+}: SidebarTitleProps) {
+  const { t } = useModuleTranslation(
+    namespace === false
+      ? []
+      : namespace
+        ? [namespace, 'common.sidebar']
+        : ['common.sidebar']
+  )
+
+  return (
+    <Transition>
+      <Flex
+        align="center"
+        as="li"
+        justify="between"
+        pb={actionButton !== undefined ? 'sm' : 'md'}
+        pl="xl"
+        pt="sm"
+        style={{ gap: '0.75rem', paddingRight: '1.25rem' }}
+      >
+        <Text
+          as="h3"
+          className={className}
+          color="muted"
+          size="base"
+          tracking="normal"
+          weight="semibold"
+          whiteSpace="nowrap"
+        >
+          {namespace === false
+            ? label
+            : t([
+                `sidebar.${_.camelCase(label)}`,
+                `common.sidebar:categories.${_.camelCase(label)}`,
+                label
+              ])}
+        </Text>
+        {actionButton && 'icon' in actionButton ? (
+          <Text
+            asChild
+            color={{
+              base: 'bg-400',
+              hover: 'bg-800',
+              dark: 'bg-500',
+              darkHover: 'bg-100'
+            }}
+          >
+            <Button
+              icon={actionButton.icon}
+              style={{
+                padding: '0.5em'
+              }}
+              variant="plain"
+              onClick={actionButton.onClick}
+            />
+          </Text>
+        ) : (
+          actionButton
+        )}
+      </Flex>
+    </Transition>
+  )
+}

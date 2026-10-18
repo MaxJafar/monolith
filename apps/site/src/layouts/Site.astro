@@ -1,0 +1,235 @@
+---
+import '../styles/site.css'
+import Icon from '../components/Icon.astro'
+import Search from '../components/Search.astro'
+import { products, repository } from '../data/products'
+interface Props {
+  title: string
+  description: string
+  docs?: boolean
+  noindex?: boolean
+}
+const { title, description, docs = false, noindex = false } = Astro.props
+const canonical = new URL(
+  Astro.url.pathname.replace(/\/$/, '') || '/',
+  Astro.site
+)
+const social = new URL('/social.png', Astro.site)
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Monolith',
+  url: Astro.site?.href,
+  description:
+    'A self-hosted workspace for pages, projects, connected databases, addons and widgets.',
+  publisher: {
+    '@type': 'Organization',
+    name: 'Monolith',
+    url: Astro.site?.href,
+    logo: new URL('/icon.svg', Astro.site).href,
+    sameAs: [repository]
+  }
+}
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#f7f7f5" />
+    <meta name="color-scheme" content="light dark" />
+    {noindex && <meta name="robots" content="noindex, follow" />}
+    <title>{title === 'Monolith' ? 'Monolith — Make space for what matters.' : `${title} — Monolith`}</title>
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <link
+      rel="preload"
+      href="/fonts/InterVariable.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <meta property="og:site_name" content="Monolith" />
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:title"
+      content={`${title} — Your workspace. Your tools.`}
+    />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={social} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Monolith — a self-hosted workspace for your pages, projects and connected knowledge"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={social} />
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify(schema).replace(/</g, '\u003c')}
+    />
+    <script is:inline>
+      try {
+        const choice = localStorage.getItem('monolith-site-theme')
+        document.documentElement.dataset.theme =
+          choice === 'dark' || choice === 'light' ? choice : 'light'
+      } catch {
+        document.documentElement.dataset.theme = 'light'
+      }
+    </script>
+  </head>
+  <body class:list={[{ 'docs-site': docs }]}>
+    <a href="#main" class="skip-link">
+      Skip to content
+    </a>
+    <header class="site-header">
+      <div class="header-inner">
+        <a class="wordmark" href="/" aria-label="Monolith home">
+          <img src="/icon.svg" width="32" height="32" alt="" />
+          <span>monolith</span>
+          {docs && <span class="docs-label">/ docs</span>}
+        </a>
+        <nav class="desktop-nav" aria-label="Main navigation">
+          <details class="product-menu">
+            <summary>
+              Product <Icon name="chevron" size={14} />
+            </summary>
+            <div class="product-dropdown">
+              {products.map((product) => (
+                <a href={`/product/${product.slug}`}>
+                  <Icon name={product.icon} />
+                  <span>{product.name}</span>
+                  <Icon name="arrow" size={15} />
+                </a>
+              ))}
+            </div>
+          </details>
+          <a
+            href="/addons"
+            aria-current={
+              Astro.url.pathname.startsWith('/addons') ? 'page' : undefined
+            }
+          >
+            Addons & Widgets
+          </a>
+          <a href="/docs" aria-current={docs ? 'page' : undefined}>
+            Docs
+          </a>
+          <a href={repository} class="github-link">
+            <Icon name="github" size={17} /> GitHub{' '}
+            <Icon name="external" size={13} />
+          </a>
+        </nav>
+        <div class="header-actions">
+          <button
+            class="icon-button"
+            type="button"
+            data-open-search
+            aria-label="Search documentation"
+            aria-haspopup="dialog"
+          >
+            <Icon name="search" size={19} />
+          </button>
+          <button
+            class="icon-button theme-button"
+            type="button"
+            data-theme-toggle
+            aria-label="Switch to dark theme"
+            aria-pressed="false"
+          >
+            <Icon name="sun" size={19} />
+          </button>
+          <a class="button small primary header-cta" href="/docs/installation">
+            Get started <Icon name="arrow" size={15} />
+          </a>
+          <button
+            class="icon-button mobile-menu-toggle"
+            type="button"
+            aria-expanded="false"
+            aria-controls="mobile-nav"
+            aria-label="Open navigation"
+          >
+            <Icon name="menu" />
+          </button>
+        </div>
+      </div>
+      <nav
+        id="mobile-nav"
+        class="mobile-nav"
+        aria-label="Mobile navigation"
+        hidden
+      >
+        {products.map((product) => (
+          <a href={`/product/${product.slug}`}>
+            {product.name}
+            <Icon name="arrow" size={16} />
+          </a>
+        ))}
+        <a href="/addons">Addons & Widgets</a>
+        <a href="/docs">Documentation</a>
+        <a href={repository}>
+          GitHub <Icon name="external" size={16} />
+        </a>
+      </nav>
+    </header>
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <div class="footer-top container">
+        <div class="footer-brand">
+          <a class="wordmark" href="/">
+            <img src="/icon.svg" width="36" height="36" alt="" />
+            <span>monolith</span>
+          </a>
+          <p>Make space for what matters.</p>
+          <span class="micro">YOUR WORKSPACE. YOUR TOOLS.</span>
+        </div>
+        <div>
+          <h2>Product</h2>
+          <a href="/product/workspace">Workspace</a>
+          <a href="/product/knowledge">Docs & knowledge</a>
+          <a href="/product/projects">Projects & databases</a>
+          <a href="/addons">Addons & Widgets</a>
+        </div>
+        <div>
+          <h2>Build with Monolith</h2>
+          <a href="/docs/installation">Get started</a>
+          <a href="/docs/self-hosting">Self-hosting</a>
+          <a href="/docs/agents">MCP & CLI</a>
+          <a href="/docs/development">Development</a>
+        </div>
+        <div>
+          <h2>Stay connected</h2>
+          <a href={repository}>
+            GitHub <Icon name="external" size={13} />
+          </a>
+          <a href={`${repository}/releases`}>
+            Releases <Icon name="external" size={13} />
+          </a>
+          <a href={`${repository}/issues`}>
+            Report an issue <Icon name="external" size={13} />
+          </a>
+          <a href="/docs/faq">Questions & answers</a>
+        </div>
+      </div>
+      <div class="footer-bottom container">
+        <span>Made by Monolith contributors.</span>
+        <span class="footer-legal">
+          <a href="/docs/availability">Development preview</a>
+          <a href={`${repository}/blob/main/LICENSE`}>License</a>
+          <a href="/docs/availability#source-and-licenses">Source & licenses</a>
+          <a href="/privacy">Privacy</a>
+        </span>
+      </div>
+    </footer>
+    <Search />
+    <script src="../scripts/site.ts"></script>
+  </body>
+</html>

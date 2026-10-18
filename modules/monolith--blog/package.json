@@ -1,0 +1,51 @@
+{
+  "name": "@monolith/blog",
+  "displayName": "Journal",
+  "version": "0.0.1",
+  "type": "module",
+  "description": "A personal journal connected to workspace Docs",
+  "license": "CC-BY-NC-SA-4.0",
+  "scripts": {
+    "typecheck": "pnpm run typecheck:client && pnpm run typecheck:server",
+    "typecheck:client": "cd client && tsc",
+    "typecheck:server": "cd server && tsc",
+    "build": "node \"../../tools/build-guard.mjs\" --task build",
+    "build:client": "node \"../../tools/build-guard.mjs\" --task build:client",
+    "build:server": "node \"../../tools/build-guard.mjs\" --task build:server"
+  },
+  "peerDependencies": {
+    "@monolith/api": "workspace:*",
+    "@monolith/configs": "workspace:*",
+    "@monolith/drizzle": "workspace:*",
+    "@monolith/federation": "workspace:*",
+    "@monolith/localization": "workspace:*",
+    "@monolith/server-utils": "workspace:*",
+    "@monolith/ui": "workspace:*"
+  },
+  "author": "Monolith contributors",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MaxJafar/monolith.git",
+    "directory": "modules/monolith--blog"
+  },
+  "monolith": {
+    "icon": "tabler:article",
+    "category": "Productivity",
+    "id": "monolith--blog",
+    "routeId": "3c6a78894c73cc20093220355349dfc51d8626d9a197e2a0d77a11812e0e8309",
+    "experience": {
+      "kind": "database",
+      "surfaces": [
+        "page"
+      ],
+      "databases": [
+        "docs"
+      ]
+    }
+  },
+  "monolithBuilds": {
+    "build": "pnpm run build:client && pnpm run build:server",
+    "build:client": "cd client && vite build",
+    "build:server": "cd server && vite build"
+  }
+}

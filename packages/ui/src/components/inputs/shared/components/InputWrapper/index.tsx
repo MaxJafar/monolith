@@ -1,0 +1,176 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import clsx from 'clsx'
+import { useCallback } from 'react'
+
+import {
+  Box,
+  Flex,
+  type FlexProps,
+  Icon,
+  Text,
+  Transition
+} from '@/components/primitives'
+import { surface } from '@/system'
+
+import { InputFocusProvider } from '../../contexts/InputFocusContext'
+import type { InputSize, InputVariant } from '../../types'
+import {
+  inputWrapperErrorTextStyle,
+  inputWrapperRecipe
+} from './InputWrapper.css'
+
+export type InputWrapperProps = {
+  variant?: InputVariant
+  size?: InputSize
+  className?: string
+  disabled?: boolean
+  inputRef?: React.RefObject<any | null>
+  onFocus?: () => void
+  children: React.ReactNode
+  errorMsg?: string
+} & FlexProps
+
+/**
+ * Props that are forwarded to the underlying `InputWrapper` (a `Flex`).
+ * Excludes the props each input manages itself.
+ */
+export type InputWrapperPassthrough = Omit<
+  InputWrapperProps,
+  | 'children'
+  | 'variant'
+  | 'size'
+  | 'disabled'
+  | 'errorMsg'
+  | 'inputRef'
+  | 'onFocus'
+  | 'className'
+>
+
+export function InputWrapper({
+  className = '',
+  variant = 'classic',
+  size = 'default',
+  disabled = false,
+  inputRef,
+  onFocus,
+  children,
+  errorMsg,
+  style,
+  ...rest
+}: InputWrapperProps) {
+  const focusInput = useCallback(
+    (e: React.MouseEvent | React.FocusEvent) => {
+      if (
+        disabled ||
+        (e.target instanceof Element &&
+          e.target.closest('button, a, [role="combobox"]'))
+      ) {
+        return
+      }
+
+      if (inputRef?.current !== undefined && inputRef.current !== null) {
+        inputRef.current.focus()
+
+        if (
+          !['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName) &&
+          typeof inputRef.current.setSelectionRange === 'function' &&
+          (inputRef.current instanceof HTMLTextAreaElement ||
+            ['text', 'search', 'url', 'tel', 'password'].includes(
+              inputRef.current.type
+            ))
+        ) {
+          inputRef.current.setSelectionRange(
+            inputRef.current.value.length,
+            inputRef.current.value.length
+          )
+        }
+      }
+
+      onFocus?.()
+    },
+    [disabled, inputRef, onFocus]
+  )
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' && e.target === e.currentTarget && !disabled) {
+        e.preventDefault()
+
+        if (inputRef?.current !== undefined && inputRef.current !== null) {
+          inputRef.current.focus()
+        }
+      }
+    },
+    [disabled, inputRef]
+  )
+
+  const wrapperClassName = inputWrapperRecipe({
+    variant,
+    size,
+    hasError: !!errorMsg,
+    disabled
+  })
+
+  return (
+    <InputFocusProvider>
+      <Flex
+        direction="column"
+        gap="sm"
+        minWidth="0"
+        style={disabled ? { opacity: 0.5 } : undefined}
+        width="100%"
+      >
+        <Transition>
+          <Flex
+            shadow
+            align="center"
+            bg={surface.lightInteractive}
+            className={clsx('monolith-input', wrapperClassName, className)}
+            data-input-variant={variant}
+            flexShrink="0"
+            minWidth="0"
+            position="relative"
+            role="button"
+            style={{
+              ...(variant === 'plain' && errorMsg
+                ? { outline: '2px solid var(--color-dangerous)' }
+                : {}),
+              ...style
+            }}
+            tabIndex={0}
+            width="100%"
+            onClick={focusInput}
+            onFocus={focusInput}
+            onKeyDown={handleKeyDown}
+            {...rest}
+          >
+            {children}
+            {errorMsg && (
+              <Box
+                asChild
+                flexShrink="0"
+                mr={variant === 'classic' ? 'lg' : undefined}
+              >
+                <Icon
+                  color="dangerous"
+                  icon="tabler:alert-circle"
+                  size="1.5em"
+                />
+              </Box>
+            )}
+          </Flex>
+        </Transition>
+        {errorMsg && (
+          <Text
+            className={inputWrapperErrorTextStyle}
+            color="dangerous"
+            display="block"
+            px={variant === 'classic' ? 'md' : undefined}
+            size="sm"
+          >
+            {errorMsg}
+          </Text>
+        )}
+      </Flex>
+    </InputFocusProvider>
+  )
+}

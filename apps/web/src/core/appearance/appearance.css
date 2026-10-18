@@ -1,0 +1,93 @@
+.appearance-surface {
+  color: var(--text-primary);
+}
+.appearance-surface[data-custom-background='true'],
+.appearance-preview {
+  background: var(--bg-primary);
+}
+.appearance-fields {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.appearance-select {
+  border: 1px solid var(--border-medium);
+  border-radius: var(--shape-md);
+  padding: 8px 12px;
+  min-height: 44px;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  width: 100%;
+}
+.appearance-builder input[type='range'] {
+  accent-color: var(--accent-primary);
+  width: 100%;
+}
+.appearance-builder input[type='file'] {
+  width: 100%;
+  color: var(--text-muted);
+  font: inherit;
+}
+.appearance-builder input[type='file']::file-selector-button {
+  border: 1px solid var(--border-medium);
+  background: var(--bg-lifted);
+  color: var(--text-primary);
+  border-radius: var(--shape-md);
+  min-height: 44px;
+  padding: 8px 12px;
+  margin-right: 12px;
+  cursor: pointer;
+}
+.appearance-preview {
+  border: 1px solid var(--border-medium);
+}
+.appearance-preview .appearance-cover {
+  height: 100px;
+}
+.appearance-preview-column {
+  align-self: start;
+  position: sticky;
+  top: 0;
+}
+.appearance-builder-footer {
+  border-top: 1px solid var(--border-subtle);
+  padding-block: 12px 0;
+}
+.appearance-builder .appearance-preview {
+  border-radius: var(--shape-md);
+}
+.appearance-builder .workspace-settings-content {
+  padding: 32px;
+}
+.appearance-builder fieldset > div {
+  min-width: 0;
+}
+.appearance-builder-footer {
+  position: sticky;
+  bottom: -32px;
+  background: var(--bg-primary);
+  padding: 12px 0;
+  z-index: 2;
+}
+.appearance-page[data-content-width='standard']
+  .monolith-module-content
+  > :not(.appearance-cover),
+.appearance-page[data-content-width='standard'] .system-workspace {
+  max-width: 920px;
+  margin-inline: auto;
+  width: 100%;
+}
+.appearance-page[data-content-width='full']
+  .monolith-module-content
+  > :not(.appearance-cover),
+.appearance-page[data-content-width='full'] .system-workspace {
+  max-width: none;
+  margin-inline: auto;
+  width: 100%;
+}
+@media (max-width: 700px) {
+  .appearance-preview-column {
+    position: static;
+  }
+}

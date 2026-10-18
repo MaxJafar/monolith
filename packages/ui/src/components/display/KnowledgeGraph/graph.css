@@ -1,0 +1,296 @@
+.zillion-knowledge-graph {
+  display: block;
+  width: 100%;
+  min-height: 20rem;
+  max-height: 38rem;
+  touch-action: none;
+  cursor: grab;
+  background-image: radial-gradient(
+    var(--color-bg-500) 0.6px,
+    transparent 0.6px
+  );
+  background-size: 24px 24px;
+}
+.zillion-knowledge-graph:active {
+  cursor: grabbing;
+}
+.zillion-knowledge-graph:focus-visible {
+  outline: 2px solid var(--color-custom-500);
+  outline-offset: -2px;
+}
+.zillion-graph-edge {
+  stroke: var(--color-bg-500);
+  stroke-opacity: 0.4;
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+  transition: stroke-opacity var(--motion-normal, 220ms);
+}
+.zillion-graph-edge[data-kind='parent'] {
+  stroke-dasharray: 5 5;
+}
+.zillion-graph-edge[data-active='true'] {
+  stroke: var(--color-custom-500);
+  stroke-opacity: 0.9;
+  stroke-width: 2;
+}
+.zillion-graph-node {
+  cursor: pointer;
+  transition: opacity var(--motion-normal, 220ms);
+  outline: none;
+}
+.zillion-graph-node circle {
+  fill: var(--color-custom-500);
+  stroke: transparent;
+  stroke-width: 5;
+  transition: stroke var(--motion-fast, 140ms);
+}
+.zillion-graph-node[data-kind='record'] circle {
+  fill: var(--color-blue-500, #60a5fa);
+}
+.zillion-graph-node[data-kind='note'] circle {
+  fill: var(--color-green-500, #4ade80);
+}
+.zillion-graph-node[data-selected='true'] circle,
+.zillion-graph-node:focus-visible circle {
+  stroke: var(--color-custom-500);
+  stroke-opacity: 0.35;
+}
+.zillion-graph-node[data-dimmed='true'] {
+  opacity: 0.3;
+}
+.zillion-graph-node text {
+  fill: var(--color-bg-700);
+  font-family: 'Inter', sans-serif;
+  font-size: var(--graph-label-size, 13px);
+  user-select: none;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--motion-fast, 140ms);
+}
+.zillion-graph-node text[data-visible='true'] {
+  opacity: 1;
+}
+.dark .zillion-graph-node text {
+  fill: var(--color-bg-200);
+}
+.knowledge-graph-frame {
+  display: flex;
+  flex-direction: column;
+  isolation: isolate;
+}
+.knowledge-graph-frame[data-presentation='atlas'] {
+  height: 100%;
+  border-radius: 0;
+  background: transparent;
+}
+.knowledge-graph-frame[data-presentation='atlas'] .zillion-knowledge-graph {
+  flex: 1;
+  min-height: 22rem;
+  max-height: none;
+  height: 100%;
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--color-bg-500) 35%, transparent) 0.7px,
+    transparent 0.7px
+  );
+}
+.knowledge-graph-frame[data-presentation='atlas'] .zillion-graph-dot {
+  fill: var(--color-bg-600);
+  stroke: var(--color-bg-50);
+  stroke-width: 2;
+}
+.dark .knowledge-graph-frame[data-presentation='atlas'] .zillion-graph-dot {
+  fill: var(--color-bg-400);
+  stroke: var(--color-bg-900);
+}
+.knowledge-graph-frame[data-presentation='atlas']
+  .zillion-graph-node[data-selected='true']
+  .zillion-graph-dot {
+  fill: var(--color-custom-500);
+}
+.zillion-graph-node[data-kind] .zillion-graph-halo {
+  fill: transparent;
+  stroke: none;
+}
+.zillion-graph-node[data-kind][data-selected='true'] .zillion-graph-halo,
+.zillion-graph-node:hover .zillion-graph-halo,
+.zillion-graph-node:focus-visible .zillion-graph-halo {
+  fill: color-mix(in srgb, var(--color-custom-500) 13%, transparent);
+  stroke: none;
+}
+.zillion-graph-edge[data-dimmed='true'] {
+  stroke-opacity: 0.1;
+}
+.knowledge-graph-frame[data-presentation='atlas'] .zillion-graph-node text {
+  paint-order: stroke;
+  stroke: var(--color-bg-50);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+.dark
+  .knowledge-graph-frame[data-presentation='atlas']
+  .zillion-graph-node
+  text {
+  stroke: var(--color-bg-900);
+}
+@media (prefers-reduced-motion: reduce) {
+  .zillion-graph-node,
+  .zillion-graph-node circle,
+  .zillion-graph-edge {
+    transition: none;
+  }
+}
+.knowledge-graph-frame
+  .zillion-graph-node[data-colored='true']
+  .zillion-graph-dot {
+  fill: var(--graph-color);
+}
+.dark
+  .knowledge-graph-frame
+  .zillion-graph-node[data-colored='true']
+  .zillion-graph-dot {
+  fill: color-mix(in srgb, var(--graph-color) 78%, white);
+}
+.knowledge-graph-frame
+  .zillion-graph-node[data-colored='true'][data-selected='true']
+  .zillion-graph-halo,
+.knowledge-graph-frame
+  .zillion-graph-node[data-colored='true']:hover
+  .zillion-graph-halo,
+.knowledge-graph-frame
+  .zillion-graph-node[data-colored='true']:focus-visible
+  .zillion-graph-halo {
+  fill: color-mix(in srgb, var(--graph-color) 18%, transparent);
+}
+.knowledge-graph-frame
+  .zillion-graph-node[data-entity='tag']
+  .zillion-graph-dot {
+  stroke: var(--graph-color);
+  stroke-dasharray: 3 3;
+  stroke-width: 5;
+}
+.knowledge-graph-frame
+  .zillion-graph-node[data-entity='topic']
+  .zillion-graph-dot {
+  stroke: var(--graph-color);
+  fill: var(--color-bg-50);
+  stroke-width: 4;
+}
+.dark
+  .knowledge-graph-frame
+  .zillion-graph-node[data-entity='topic']
+  .zillion-graph-dot {
+  fill: var(--color-bg-900);
+}
+.zillion-graph-edge[data-colored='true'] {
+  stroke: var(--graph-color);
+  stroke-opacity: 0.5;
+  stroke-width: 1.7;
+}
+.zillion-graph-edge[data-kind='context'] {
+  stroke-dasharray: 3 6;
+}
+.zillion-graph-edge[data-kind='topic'] {
+  stroke-dasharray: 7 4;
+}
+.zillion-graph-edge[role='button'] {
+  cursor: pointer;
+}
+.zillion-graph-edge[data-colored='true'][data-active='true'],
+.zillion-graph-edge[data-selected='true'],
+.zillion-graph-edge[role='button']:hover,
+.zillion-graph-edge[role='button']:focus-visible {
+  stroke: var(--graph-color, var(--color-custom-500));
+  stroke-opacity: 1;
+  stroke-width: 3.5;
+  outline: none;
+}
+.zillion-graph-edge[data-colored='true'][data-dimmed='true']:not(
+    [data-selected='true']
+  ):not(:hover):not(:focus-visible) {
+  stroke-opacity: 0.12;
+}
+
+/* Atlas is a quiet map at rest; color and weight follow the active thread. */
+.knowledge-graph-frame[data-presentation='atlas'] .zillion-knowledge-graph {
+  min-height: 0;
+  background-image: none;
+}
+.knowledge-graph-frame[data-presentation='atlas'] .knowledge-graph-toolbar {
+  position: absolute;
+  inset: auto 12px 36px;
+  z-index: 1;
+  pointer-events: none;
+}
+.knowledge-graph-frame[data-presentation='atlas'] .knowledge-graph-toolbar > * {
+  pointer-events: auto;
+  background: var(--atlas-surface, var(--color-bg-50));
+  border-radius: var(--radius-md);
+}
+.knowledge-graph-frame[data-presentation='atlas']
+  .knowledge-graph-toolbar
+  > span {
+  padding: 6px 8px;
+  font-variant-numeric: tabular-nums;
+}
+.knowledge-graph-frame[data-presentation='atlas'] .zillion-graph-edge {
+  stroke: color-mix(
+    in srgb,
+    var(--graph-color, var(--color-bg-500)) 25%,
+    var(--color-bg-500)
+  );
+  stroke-opacity: 0.24;
+  stroke-width: 1;
+}
+.knowledge-graph-frame[data-presentation='atlas']
+  .zillion-graph-edge[data-kind='context'],
+.knowledge-graph-frame[data-presentation='atlas']
+  .zillion-graph-edge[data-kind='topic'] {
+  stroke-opacity: 0.16;
+}
+.knowledge-graph-frame[data-presentation='atlas']
+  .zillion-graph-edge[data-active='true'],
+.knowledge-graph-frame[data-presentation='atlas']
+  .zillion-graph-edge[data-selected='true'],
+.knowledge-graph-frame[data-presentation='atlas'] .zillion-graph-edge:hover,
+.knowledge-graph-frame[data-presentation='atlas']
+  .zillion-graph-edge:focus-visible {
+  stroke: var(--graph-color, var(--color-custom-500));
+  stroke-opacity: 0.85;
+  stroke-width: 2;
+}
+.knowledge-graph-frame[data-presentation='atlas']
+  .zillion-graph-edge[data-dimmed='true']:not([data-selected='true']):not(
+    :hover
+  ):not(:focus-visible) {
+  stroke-opacity: 0.06;
+}
+.knowledge-graph-frame[data-presentation='atlas']
+  .zillion-graph-node[data-dimmed='true'] {
+  opacity: 0.16;
+}
+.knowledge-graph-frame[data-presentation='atlas'] .zillion-graph-node text {
+  font-family: inherit;
+  stroke-width: 5px;
+  stroke: var(--atlas-surface, var(--color-bg-50));
+}
+.knowledge-graph-frame[data-presentation='atlas']
+  .zillion-graph-node[data-kind='database']
+  .zillion-graph-dot {
+  stroke: var(--graph-color, var(--color-custom-500));
+  stroke-width: 3;
+  fill: var(--atlas-surface, var(--color-bg-50));
+  vector-effect: non-scaling-stroke;
+}
+.knowledge-graph-frame[data-presentation='atlas']
+  .zillion-graph-node[data-selected='true']
+  text,
+.knowledge-graph-frame[data-presentation='atlas']
+  .zillion-graph-node[data-kind='database']
+  text {
+  font-weight: 600;
+}
+@media (prefers-reduced-motion: reduce) {
+  .zillion-graph-node text {
+    transition: none;
+  }
+}

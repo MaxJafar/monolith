@@ -1,0 +1,103 @@
+:root {
+  color-scheme: light dark;
+  font-family: Inter, 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg-primary, #fff);
+  color: var(--text-primary, #242424);
+}
+body {
+  margin: 0;
+}
+.desktop-reauth {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: #0006;
+  backdrop-filter: blur(4px);
+}
+.desktop-reauth .desktop-connect-card {
+  padding: 24px;
+  border-radius: 12px;
+  background: var(--bg-primary, #fff);
+  color: var(--text-primary, #242424);
+  box-shadow: 0 20px 80px #0003;
+}
+.desktop-onboarding {
+  padding: 32px;
+  box-sizing: border-box;
+  background: var(--bg-primary, #fff);
+}
+.desktop-connect-card {
+  width: min(100%, 390px);
+  animation: desktop-enter 240ms ease-out both;
+}
+.desktop-connect-card h1 {
+  margin: 0;
+  letter-spacing: -0.035em;
+}
+.desktop-input {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 10px 12px;
+  background: var(--bg-primary, #fff);
+  color: inherit;
+  border: 1px solid var(--border-color, #dedede);
+  border-radius: 7px;
+  font: inherit;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+.desktop-input:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+.desktop-connection {
+  position: absolute;
+  top: 82px;
+  right: 12px;
+  z-index: 9000;
+  width: min(390px, calc(100vw - 24px));
+  background: var(--bg-primary, #fff);
+  color: var(--text-primary, #242424);
+  box-shadow: 0 4px 18px #0002;
+  border: 1px solid var(--border-subtle, #dedede);
+  border-radius: 6px;
+  padding: 12px;
+  max-height: min(440px, calc(100dvh - 112px));
+  overflow: auto;
+  border-bottom: 1px solid var(--border-color, #ececec);
+  transform-origin: top left;
+  animation: desktop-popover-enter 150ms cubic-bezier(.2,.7,.2,1) both;
+}
+@keyframes desktop-popover-enter {
+  from { opacity: 0; transform: translate(-3px, -3px) scale(.985); clip-path: inset(0 8% 12% 0 round 6px); }
+  to { opacity: 1; transform: none; clip-path: inset(0 round 6px); }
+}
+main#app {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  display: flex;
+}
+@keyframes desktop-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .desktop-connect-card,
+  .desktop-connection {
+    animation: none;
+  }
+  .desktop-input {
+    transition: none;
+  }
+}

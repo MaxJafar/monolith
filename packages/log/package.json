@@ -1,0 +1,35 @@
+{
+  "name": "@monolith/log",
+  "version": "0.1.0",
+  "description": "Unified logging package for Monolith ecosystem",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "node \"../../tools/build-guard.mjs\" --task build",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "pino": "^9.6.0",
+    "pino-pretty": "^13.0.0",
+    "rotating-file-stream": "^3.2.7",
+    "chalk": "^5.4.0"
+  },
+  "devDependencies": {
+    "@monolith/configs": "workspace:*",
+    "@types/node": "^25.0.6"
+  },
+  "author": "Monolith contributors",
+  "monolithBuilds": {
+    "build": "vite build && tsc --project tsconfig.json"
+  }
+}

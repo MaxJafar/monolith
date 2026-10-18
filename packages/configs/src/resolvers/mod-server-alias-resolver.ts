@@ -1,0 +1,202 @@
+import fs from 'node:fs'
+import { builtinModules, createRequire } from 'node:module'
+import path from 'node:path'
+import { type Alias, type Plugin } from 'vite'
+
+import { findProjectRoot } from '../utils/projectRoot'
+
+const cjsRequire = createRequire(import.meta.url)
+
+/**
+ * Dynamically resolves the host api's package.json dependencies to build the external whitelist.
+ */
+function getCoreDependencies(dirname: string): Set<string> {
+  const deps = new Set<string>()
+  const root = findProjectRoot(dirname)
+  const apiPkgPath = path.join(root, 'apps/api/package.json')
+
+  if (fs.existsSync(apiPkgPath)) {
+    try {
+      const pkg = JSON.parse(fs.readFileSync(apiPkgPath, 'utf8'))
+      const allDeps = {
+        ...pkg.dependencies,
+        ...pkg.devDependencies
+      }
+
+      for (const dep of Object.keys(allDeps)) {
+        deps.add(dep)
+      }
+    } catch {
+      // Ignore read/parse errors and fallback
+    }
+  }
+
+  return deps
+}
+
+/**
+ * Node.js core built-in modules that are resolved without node: prefix.
+ */
+const NODE_BUILT_INS = new Set(builtinModules)
+
+/** Export-map names are public specifiers, independent of the backing filename. */
+function hasPackageExportMap(
+  resolvedPath: string,
+  packageName: string
+): boolean {
+  for (
+    let directory = path.dirname(resolvedPath);
+    directory !== path.dirname(directory);
+    directory = path.dirname(directory)
+  ) {
+    const manifestPath = path.join(directory, 'package.json')
+
+    if (fs.existsSync(manifestPath)) {
+      try {
+        const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8')) as {
+          name?: unknown
+          exports?: unknown
+        }
+
+        if (manifest.name === packageName) return manifest.exports !== undefined
+      } catch {
+        // Preserve the existing extension fallback for unreadable manifests.
+      }
+    }
+  }
+
+  return false
+}
+
+/**
+ * Custom resolution plugin that intercepts bare module imports and marks them as external,
+ * appending correct extensions to subpath imports. Fully respects custom path aliases,
+ * virtual modules, Node built-ins, and query/hash URL suffixes.
+ */
+export function serverAliasResolver(dirname: string): Plugin {
+  let aliases: Alias[] = []
+
+  const coreDeps = getCoreDependencies(dirname)
+
+  return {
+    name: 'externalize-node-modules',
+    enforce: 'pre',
+    configResolved(config) {
+      aliases = config.resolve.alias
+    },
+    resolveId(source) {
+      // 1. Skip Vite virtual modules
+      if (source.startsWith('\0') || source.startsWith('virtual:')) {
+        return null
+      }
+
+      // 2. Unconditionally externalize native Node built-ins
+      if (source.startsWith('node:')) {
+        return { id: source, external: true }
+      }
+
+      // 3. Skip configured path aliases
+      const isAlias = aliases.some(alias => {
+        if (alias.find instanceof RegExp) {
+          return alias.find.test(source)
+        }
+
+        return source === alias.find || source.startsWith(alias.find + '/')
+      })
+
+      if (isAlias) {
+        return null
+      }
+
+      if (
+        !source.startsWith('.') &&
+        !source.startsWith('@/') &&
+        source !== '@' &&
+        !path.isAbsolute(source)
+      ) {
+        // 4. Handle query parameters and hashes (e.g. "pkg/subpath?query#hash")
+        const queryIndex = source.indexOf('?')
+        const hashIndex = source.indexOf('#')
+
+        let cleanSource = source
+        let suffix = ''
+
+        if (queryIndex !== -1 || hashIndex !== -1) {
+          const splitIndex =
+            queryIndex !== -1 && hashIndex !== -1
+              ? Math.min(queryIndex, hashIndex)
+              : queryIndex !== -1
+                ? queryIndex
+                : hashIndex
+          cleanSource = source.slice(0, splitIndex)
+          suffix = source.slice(splitIndex)
+        }
+
+        // Extract the bare package name (e.g. "zod" or "@monolith/server-utils")
+        const parts = cleanSource.split('/')
+        const packageName = cleanSource.startsWith('@')
+          ? parts.slice(0, 2).join('/')
+          : parts[0]
+
+        if (!packageName) {
+          return null
+        }
+
+        // 5. Determine if this package is a shared core dependency dynamically
+        const isCoreExternal =
+          packageName.startsWith('@monolith/') ||
+          coreDeps.has(packageName) ||
+          NODE_BUILT_INS.has(packageName)
+
+        // If it is not a core package, return null to bundle it locally
+        if (!isCoreExternal) {
+          return null
+        }
+
+        // If it is a bare package import, externalize it as-is
+        if (cleanSource === packageName) {
+          return { id: source, external: true }
+        }
+
+        // It's a subpath import. Resolve it to find its real file extension.
+        try {
+          const resolvedPath = cjsRequire.resolve(cleanSource, {
+            paths: [dirname]
+          })
+
+          if (hasPackageExportMap(resolvedPath, packageName))
+            return { id: source, external: true }
+
+          // Normalize Windows backslashes to forward slashes
+          const normalizedPath = resolvedPath.replace(/\\/g, '/')
+          const ext = path.extname(normalizedPath)
+
+          if (ext) {
+            // Check if it resolved to an index file under a folder (e.g. ".../folder/index.js")
+            const isIndexFile = normalizedPath.endsWith('/index' + ext)
+            const cleanEndsWithIndex =
+              cleanSource.endsWith('/index') ||
+              cleanSource.endsWith('/index' + ext)
+
+            if (isIndexFile && !cleanEndsWithIndex) {
+              return {
+                id: cleanSource + '/index' + ext + suffix,
+                external: true
+              }
+            }
+
+            if (!cleanSource.endsWith(ext)) {
+              return { id: cleanSource + ext + suffix, external: true }
+            }
+          }
+        } catch {
+          // Fallback if resolution fails
+        }
+
+        return { id: source, external: true }
+      }
+
+      return null
+    }
+  }
+}

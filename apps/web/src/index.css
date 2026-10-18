@@ -1,0 +1,16 @@
+@import 'react-grid-layout/css/styles.css';
+@import '@monolith/ui/dist/index.css';
+
+main#app {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+
+  .dark & {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+  }
+}
+
+body {
+  margin: 0 !important;
+}

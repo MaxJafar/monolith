@@ -1,0 +1,189 @@
+import { useEffect } from 'react'
+
+import { useAuth } from '@monolith/api'
+import { toast } from '@monolith/ui'
+import {
+  type IBackdropFilters,
+  type IDashboardLayout,
+  usePersonalization
+} from '@monolith/ui'
+
+import workspaceAPI from '@/core/utils/workspaceAPI'
+
+import { UserPersonalizationContext } from './UserPersonalizationContext'
+
+async function syncUserData(
+  data: Record<string, unknown>,
+  setUserData: React.Dispatch<React.SetStateAction<any>>
+) {
+  try {
+    await workspaceAPI.user.personalization.updatePersonalization.mutate({
+      data
+    })
+
+    if (setUserData) {
+      setUserData((oldData: any) => {
+        if (!oldData) return oldData
+
+        return { ...oldData, ...data }
+      })
+    }
+  } catch {
+    toast.error('Failed to update personalization settings')
+  }
+}
+
+function UserPersonalizationProvider({
+  children
+}: {
+  children: React.ReactNode
+}) {
+  const { userData, setUserData } = useAuth()
+
+  const {
+    setFontFamily,
+    setTheme,
+    setRawThemeColor,
+    setBgTemp,
+    setBackdropFilters,
+    setLanguage,
+    setDashboardLayout,
+    setFontScale,
+    setBgImage,
+    setBorderRadiusMultiplier,
+    setBordered
+  } = usePersonalization()
+
+  async function changeFontFamily(font: string) {
+    setFontFamily(font)
+    await syncUserData({ fontFamily: font }, setUserData)
+  }
+
+  async function changeFontScale(scale: number) {
+    setFontScale(scale)
+    await syncUserData({ fontScale: scale }, setUserData)
+  }
+
+  async function changeTheme(theme: 'light' | 'dark' | 'system') {
+    setTheme(theme)
+    await syncUserData({ theme }, setUserData)
+  }
+
+  async function changeThemeColor(color: string) {
+    setRawThemeColor(color)
+    await syncUserData({ color: color.replace('theme-', '') }, setUserData)
+  }
+
+  async function changeBgTemp(color: string) {
+    setBgTemp(color)
+    await syncUserData({ bgTemp: color.replace('bg-', '') }, setUserData)
+  }
+
+  async function changeBackdropFilters(filters: IBackdropFilters) {
+    setBackdropFilters(filters)
+    await syncUserData({ backdropFilters: filters }, setUserData)
+  }
+
+  async function changeLanguage(language: string) {
+    setLanguage(language)
+    await syncUserData({ language }, setUserData)
+  }
+
+  async function changeDashboardLayout(layout: IDashboardLayout) {
+    setDashboardLayout(layout)
+    await syncUserData({ dashboardLayout: layout }, setUserData)
+  }
+
+  async function changeBorderRadiusMultiplier(multiplier: number) {
+    setBorderRadiusMultiplier(multiplier)
+    await syncUserData({ borderRadiusMultiplier: multiplier }, setUserData)
+  }
+
+  async function changeBordered(bordered: boolean) {
+    setBordered(bordered)
+    await syncUserData({ bordered }, setUserData)
+  }
+
+  useEffect(() => {
+    if (!userData) return
+
+    if (userData.theme) {
+      setTheme(userData.theme as 'light' | 'dark' | 'system')
+    }
+
+    if (userData.color && userData.color !== '#f58a38') {
+      setRawThemeColor(
+        userData.color.startsWith('#')
+          ? userData.color
+          : `theme-${userData.color}`
+      )
+    }
+
+    if (userData.bgTemp) {
+      setBgTemp(
+        userData.bgTemp.startsWith('#')
+          ? userData.bgTemp
+          : `bg-${userData.bgTemp}`
+      )
+    }
+
+    if (userData.backdropFilters) {
+      setBackdropFilters(userData.backdropFilters as IBackdropFilters)
+    }
+
+    if (userData.bgImage) {
+      setBgImage(
+        workspaceAPI.getMedia({
+          key: userData.bgImage.key
+        })
+      )
+    }
+
+    if (userData.language) {
+      setLanguage(userData.language)
+    }
+
+    if (userData.dashboardLayout) {
+      setDashboardLayout(userData.dashboardLayout as IDashboardLayout)
+    }
+
+    if (userData.fontFamily) {
+      setFontFamily(userData.fontFamily)
+    }
+
+    if (userData.fontScale !== undefined) {
+      setFontScale(userData.fontScale)
+    }
+
+    if (userData.borderRadiusMultiplier !== undefined) {
+      setBorderRadiusMultiplier(userData.borderRadiusMultiplier)
+    }
+
+    if (userData.bordered !== undefined) {
+      setBordered(userData.bordered)
+    }
+  }, [userData])
+
+  return (
+    <UserPersonalizationContext
+      value={{
+        changeFontFamily,
+        changeFontScale,
+        changeTheme,
+        changeThemeColor,
+        changeBgTemp,
+        changeBackdropFilters,
+        changeLanguage,
+        changeDashboardLayout,
+        changeBorderRadiusMultiplier,
+        changeBordered
+      }}
+    >
+      {children}
+    </UserPersonalizationContext>
+  )
+}
+
+export default UserPersonalizationProvider
+
+export { useUserPersonalization } from './UserPersonalizationContext'

@@ -1,0 +1,52 @@
+import type { Meta, StoryObj } from '@storybook/react-vite'
+import { useState } from 'react'
+
+import { Switch } from './index'
+
+const meta = {
+  component: Switch,
+  title: 'Inputs/Switch'
+} satisfies Meta<typeof Switch>
+
+export default meta
+
+type Story = StoryObj<typeof meta>
+
+export const Default: Story = {
+  args: {
+    'aria-label': 'Enable notifications',
+    onChange: () => {},
+    value: true
+  },
+  render: props => {
+    const [checked, setChecked] = useState(props.value)
+
+    return (
+      <Switch
+        {...props}
+        value={checked}
+        onChange={value => {
+          setChecked(value)
+          props.onChange(value)
+        }}
+      />
+    )
+  }
+}
+
+export const Disabled: Story = {
+  args: {
+    'aria-label': 'Enable notifications',
+    disabled: true,
+    onChange: () => {},
+    value: false
+  }
+}
+
+export const Unchecked: Story = {
+  args: {
+    'aria-label': 'Enable notifications',
+    onChange: () => {},
+    value: false
+  }
+}

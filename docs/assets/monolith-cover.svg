@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="720" viewBox="0 0 1600 720" role="img" aria-labelledby="title desc">
+  <title id="title">Monolith — a workspace that grows with you</title>
+  <desc id="desc">Original Monolith cover illustration: connected pages, optional tools and compact dashboard widgets in a monochrome workspace.</desc>
+  <defs><pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#dededb"/></pattern></defs>
+  <rect width="1600" height="720" fill="#f7f7f5"/>
+  <rect x="810" y="0" width="790" height="720" fill="url(#dots)"/>
+  <g font-family="Inter, Arial, sans-serif" fill="#171717">
+    <rect x="76" y="70" width="54" height="54" rx="12" fill="#171717"/>
+    <path d="M95 82 99 81 111 83 99 83Z" fill="#dedede"/><path d="M95 82 99 83V114L95 112Z" fill="#aaa"/><path d="M99 83H111V113L99 114Z" fill="#fff"/>
+    <text x="150" y="104" font-size="20" letter-spacing="5">YOUR WORKSPACE. YOUR TOOLS.</text>
+    <text x="70" y="310" font-size="112" font-weight="650" letter-spacing="-8">monolith</text>
+    <text x="77" y="376" font-size="30" fill="#666">Make space for what matters.</text>
+    <text x="78" y="438" font-size="21" fill="#777">Pages, projects and connected knowledge.</text>
+    <text x="78" y="474" font-size="21" fill="#777">A dashboard shaped around you.</text>
+    <rect x="78" y="574" width="141" height="38" rx="19" fill="#eaeae7"/><text x="103" y="599" font-size="14">SELF-HOSTED</text>
+    <rect x="229" y="574" width="173" height="38" rx="19" fill="#eaeae7"/><text x="254" y="599" font-size="14">WEB + DESKTOP</text>
+    <rect x="412" y="574" width="142" height="38" rx="19" fill="#eaeae7"/><text x="440" y="599" font-size="14">EXTENSIBLE</text>
+    <rect x="832" y="131" width="662" height="480" rx="18" fill="#000" opacity=".055"/>
+    <rect x="820" y="119" width="662" height="480" rx="18" fill="#fff" stroke="#d7d7d2"/>
+    <path d="M838 119H965V599H838Q820 599 820 581V137Q820 119 838 119" fill="#f2f2ef"/>
+    <circle cx="845" cy="146" r="4" fill="#aaa"/><circle cx="861" cy="146" r="4" fill="#ccc"/><circle cx="877" cy="146" r="4" fill="#ddd"/>
+    <text x="842" y="198" font-size="14" font-weight="600">Studio</text>
+    <g font-size="12" fill="#777"><text x="842" y="239">Calendar</text><text x="842" y="271">Projects</text><text x="842" y="303">Actions</text><text x="842" y="335">Rooms</text><text x="842" y="367">Docs</text></g>
+    <rect x="830" y="383" width="124" height="30" rx="6" fill="#e4e4e0"/><text x="842" y="403" font-size="12">Dashboard</text>
+    <text x="842" y="440" font-size="12" fill="#777">Databases</text><path d="M837 465H948" stroke="#ddd"/><text x="842" y="491" font-size="10" fill="#777">ADDONS + WIDGETS</text>
+    <text x="994" y="182" font-size="11" letter-spacing="2" fill="#888">GOOD MORNING</text><text x="994" y="222" font-size="30" font-weight="600" letter-spacing="-1">Your day, in focus.</text>
+    <rect x="994" y="250" width="216" height="150" rx="10" fill="#fafaf8" stroke="#e5e5e0"/><text x="1013" y="281" font-size="13" fill="#777">Focus session</text><text x="1013" y="335" font-size="42" letter-spacing="-2">25:00</text><rect x="1013" y="357" width="65" height="23" rx="5" fill="#202020"/><text x="1033" y="373" font-size="11" fill="#fff">Start</text>
+    <rect x="1226" y="250" width="226" height="150" rx="10" fill="#fafaf8" stroke="#e5e5e0"/><text x="1244" y="281" font-size="13" fill="#777">This week</text><path d="M1244 362H1432" stroke="#ddd"/><path d="M1244 350 1272 340 1300 344 1328 319 1356 324 1384 306 1413 295 1432 299" fill="none" stroke="#444" stroke-width="2.5" stroke-linejoin="round"/>
+    <rect x="994" y="418" width="458" height="147" rx="10" fill="#fff" stroke="#e5e5e0"/><text x="1013" y="450" font-size="13" fill="#777">A little more room to create</text>
+    <g stroke="#ddd"><path d="M1013 468H1431"/><path d="M1013 508H1431"/></g><text x="1013" y="493" font-size="13">Atlas</text><text x="1013" y="537" font-size="13">Automations</text><text x="1363" y="493" font-size="12" fill="#777">Explore ↗</text><text x="1363" y="537" font-size="12" fill="#777">Connect ↗</text>
+    <text x="1451" y="661" font-size="12" text-anchor="end" letter-spacing="2" fill="#888">BUILT TO BE YOURS</text>
+  </g>
+</svg>

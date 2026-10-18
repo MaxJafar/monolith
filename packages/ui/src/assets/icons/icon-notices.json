@@ -1,0 +1,198 @@
+[
+  {
+    "prefix": "circle-flags",
+    "name": "Circle Flags",
+    "author": {
+      "name": "HatScripts",
+      "url": "https://github.com/HatScripts/circle-flags"
+    },
+    "license": {
+      "title": "MIT",
+      "spdx": "MIT",
+      "url": "https://github.com/HatScripts/circle-flags/blob/gh-pages/LICENSE"
+    },
+    "source": "https://icon-sets.iconify.design/circle-flags/"
+  },
+  {
+    "prefix": "clarity",
+    "name": "Clarity",
+    "author": {
+      "name": "VMware",
+      "url": "https://github.com/vmware/clarity"
+    },
+    "license": {
+      "title": "MIT",
+      "spdx": "MIT",
+      "url": "https://github.com/vmware/clarity-assets/blob/master/LICENSE"
+    },
+    "source": "https://icon-sets.iconify.design/clarity/"
+  },
+  {
+    "prefix": "emojione-monotone",
+    "name": "Emoji One (Monotone)",
+    "author": {
+      "name": "Emoji One",
+      "url": "https://github.com/EmojiTwo/emojitwo"
+    },
+    "license": {
+      "title": "CC BY 4.0",
+      "spdx": "CC-BY-4.0",
+      "url": "https://creativecommons.org/licenses/by/4.0/"
+    },
+    "source": "https://icon-sets.iconify.design/emojione-monotone/"
+  },
+  {
+    "prefix": "heroicons",
+    "name": "HeroIcons",
+    "author": {
+      "name": "Refactoring UI Inc",
+      "url": "https://github.com/tailwindlabs/heroicons"
+    },
+    "license": {
+      "title": "MIT",
+      "spdx": "MIT",
+      "url": "https://github.com/tailwindlabs/heroicons/blob/master/LICENSE"
+    },
+    "source": "https://icon-sets.iconify.design/heroicons/"
+  },
+  {
+    "prefix": "icon-park-outline",
+    "name": "IconPark Outline",
+    "author": {
+      "name": "ByteDance",
+      "url": "https://github.com/bytedance/IconPark"
+    },
+    "license": {
+      "title": "Apache 2.0",
+      "spdx": "Apache-2.0",
+      "url": "https://github.com/bytedance/IconPark/blob/master/LICENSE"
+    },
+    "source": "https://icon-sets.iconify.design/icon-park-outline/"
+  },
+  {
+    "prefix": "lucide",
+    "name": "Lucide",
+    "author": {
+      "name": "Lucide Contributors",
+      "url": "https://github.com/lucide-icons/lucide"
+    },
+    "license": {
+      "title": "ISC",
+      "spdx": "ISC",
+      "url": "https://github.com/lucide-icons/lucide/blob/main/LICENSE"
+    },
+    "source": "https://icon-sets.iconify.design/lucide/"
+  },
+  {
+    "prefix": "mage",
+    "name": "Mage Icons",
+    "author": {
+      "name": "MageIcons",
+      "url": "https://github.com/Mage-Icons/mage-icons"
+    },
+    "license": {
+      "title": "Apache 2.0",
+      "spdx": "Apache-2.0",
+      "url": "https://github.com/Mage-Icons/mage-icons/blob/main/License.txt"
+    },
+    "source": "https://icon-sets.iconify.design/mage/"
+  },
+  {
+    "prefix": "mingcute",
+    "name": "MingCute Icon",
+    "author": {
+      "name": "MingCute Design",
+      "url": "https://github.com/Richard9394/MingCute"
+    },
+    "license": {
+      "title": "Apache 2.0",
+      "spdx": "Apache-2.0",
+      "url": "https://github.com/Richard9394/MingCute/blob/main/LICENSE"
+    },
+    "source": "https://icon-sets.iconify.design/mingcute/"
+  },
+  {
+    "prefix": "ph",
+    "name": "Phosphor",
+    "author": {
+      "name": "Phosphor Icons",
+      "url": "https://github.com/phosphor-icons/core"
+    },
+    "license": {
+      "title": "MIT",
+      "spdx": "MIT",
+      "url": "https://github.com/phosphor-icons/core/blob/main/LICENSE"
+    },
+    "source": "https://icon-sets.iconify.design/ph/"
+  },
+  {
+    "prefix": "si",
+    "name": "Sargam Icons",
+    "author": {
+      "name": "Abhimanyu Rana",
+      "url": "https://github.com/planetabhi/sargam-icons"
+    },
+    "license": {
+      "title": "MIT",
+      "spdx": "MIT",
+      "url": "https://github.com/planetabhi/sargam-icons/blob/main/LICENSE.txt"
+    },
+    "source": "https://icon-sets.iconify.design/si/"
+  },
+  {
+    "prefix": "simple-icons",
+    "name": "Simple Icons",
+    "author": {
+      "name": "Simple Icons Collaborators",
+      "url": "https://github.com/simple-icons/simple-icons"
+    },
+    "license": {
+      "title": "CC0 1.0",
+      "spdx": "CC0-1.0",
+      "url": "https://github.com/simple-icons/simple-icons/blob/develop/LICENSE.md"
+    },
+    "source": "https://icon-sets.iconify.design/simple-icons/"
+  },
+  {
+    "prefix": "svg-spinners",
+    "name": "SVG Spinners",
+    "author": {
+      "name": "Utkarsh Verma",
+      "url": "https://github.com/n3r4zzurr0/svg-spinners"
+    },
+    "license": {
+      "title": "MIT",
+      "spdx": "MIT",
+      "url": "https://github.com/n3r4zzurr0/svg-spinners/blob/main/LICENSE"
+    },
+    "source": "https://icon-sets.iconify.design/svg-spinners/"
+  },
+  {
+    "prefix": "tabler",
+    "name": "Tabler Icons",
+    "author": {
+      "name": "Paweł Kuna",
+      "url": "https://github.com/tabler/tabler-icons"
+    },
+    "license": {
+      "title": "MIT",
+      "spdx": "MIT",
+      "url": "https://github.com/tabler/tabler-icons/blob/master/LICENSE"
+    },
+    "source": "https://icon-sets.iconify.design/tabler/"
+  },
+  {
+    "prefix": "uil",
+    "name": "Unicons",
+    "author": {
+      "name": "Iconscout",
+      "url": "https://github.com/Iconscout/unicons"
+    },
+    "license": {
+      "title": "Apache 2.0",
+      "spdx": "Apache-2.0",
+      "url": "https://github.com/Iconscout/unicons/blob/master/LICENSE"
+    },
+    "source": "https://icon-sets.iconify.design/uil/"
+  }
+]

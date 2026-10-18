@@ -1,0 +1,34 @@
+.monolith-popover-trigger {
+  align-self: flex-start;
+  min-height: 28px;
+  padding: 4px 6px;
+  font-size: 12px;
+}
+.monolith-popover-editor {
+  font-size: 13px;
+}
+.monolith-popover-editor label {
+  display: grid;
+  gap: 5px;
+  padding: 4px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.monolith-popover-editor
+  input:not([type='checkbox']):not([type='radio']):not([type='color']) {
+  width: 100%;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 13px;
+}
+.monolith-popover-editor button {
+  justify-content: flex-start;
+}
+.monolith-popover-editor button[aria-pressed='true'] {
+  background: color-mix(in srgb, var(--selection-color) 10%, transparent);
+}

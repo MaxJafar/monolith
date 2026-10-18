@@ -1,0 +1,36 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "concurrency": "1",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", "client/dist/**", "server/dist/**"],
+      "env": ["VITE_API_HOST"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "lint": {},
+    "test": {
+      "dependsOn": ["build"]
+    },
+    "typecheck": {
+      "dependsOn": ["^typecheck"]
+    }
+  },
+  "globalPassThroughEnv": [
+    "MONOLITH_BUILD_LEASE",
+    "MONOLITH_BUILD_MEMORY_MIB",
+    "NODE_OPTIONS",
+    "RAYON_NUM_THREADS",
+    "UV_THREADPOOL_SIZE",
+    "GOMAXPROCS",
+    "CARGO_BUILD_JOBS",
+    "CMAKE_BUILD_PARALLEL_LEVEL",
+    "DOTNET_PROCESSOR_COUNT",
+    "TURBO_CONCURRENCY",
+    "GOMEMLIMIT",
+    "GOGC"
+  ]
+}

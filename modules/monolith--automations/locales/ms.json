@@ -1,0 +1,123 @@
+{
+  "title": "Automations",
+  "deleteConfirm": "Padam {{name}} dan sejarah pelaksanaannya?",
+  "deleteWorkflow": "Padam {{name}}",
+  "description": "Sambungkan data dan tindakan. Bina aliran kerja dan semak setiap langkah.",
+  "loading": "Memuatkan automasi…",
+  "back": "Kembali",
+  "active": "Aktif",
+  "paused": "Dijeda",
+  "all": "Semua aliran",
+  "unsaved": "Perubahan belum disimpan",
+  "revision": "Semakan",
+  "enableWorkflow": "Aktifkan aliran kerja",
+  "discard": "Buang perubahan aliran kerja yang belum disimpan?",
+  "saveFirst": "Simpan perubahan sebelum menjalankan aliran ini.",
+  "canvas": "Kanvas aliran kerja",
+  "canvasHint": "Seret untuk menyusun · pilih output kemudian input",
+  "connectHint": "Pilih input nod · Escape untuk batal",
+  "connectTo": "Sambung kepada",
+  "input": "Input",
+  "output": "Output",
+  "startHere": "Mula di sini",
+  "selectNode": "Pilih nod untuk mengkonfigurasikannya.",
+  "nodeSettings": "Tetapan nod",
+  "invalidJSON": "Masukkan data JSON yang sah.",
+  "expressionHelp": "Tetapkan medan JSON. Gunakan {{ field.path }} untuk data masuk. Terapkan sebelum menyimpan.",
+  "triggerHelp": "Jalankan secara manual, panggil titik akhir acara yang disahkan, atau tetapkan sela.",
+  "httpHelp": "Titik akhir HTTP(S) awam sahaja. Had respons 100 KB. Tiada pengalihan.",
+  "outputHelp": "Simpan data masuk dalam pemeriksa pelaksanaan.",
+  "comparison": "Perbandingan",
+  "connections": "Sambungan",
+  "disconnect": "Buang sambungan",
+  "recentRuns": "Pelaksanaan terkini · 50 terakhir",
+  "noRuns": "Jalankan aliran untuk melihat sejarah.",
+  "selectRun": "Pilih pelaksanaan untuk memeriksa input dan output.",
+  "steps": "langkah",
+  "zoomIn": "Zum masuk",
+  "zoomOut": "Zum keluar",
+  "undo": "Buat asal",
+  "redo": "Buat semula",
+  "nodeLibrary": "Tambah langkah",
+  "readOnly": "Anda boleh menyemak aliran ini. Penyuntingan memerlukan akses edit.",
+  "scheduleHelp": "0 untuk manual/acara sahaja. Sela positif berjalan apabila pekerja Automations disambungkan. Aliran dijeda tidak dijadualkan.",
+  "inputHelp": "Objek JSON untuk pencetus. Pelaksanaan menggunakan semakan tersimpan.",
+  "fileTooLarge": "Pilih fail JSON di bawah 500 KB.",
+  "noMatches": "Tiada aliran sepadan",
+  "adjustFilters": "Cuba carian lain atau kosongkan penapis.",
+  "emptyTitle": "Mulakan aliran pertama anda",
+  "emptyDescription": "Pilih templat atau sambungkan pencetus kepada tindakan anda.",
+  "workflowUnavailable": "Aliran ini tidak tersedia. Muat semula atau kembali.",
+  "workspaceUnavailable": "Ruang kerja ini tidak tersedia.",
+  "nodes": {
+    "trigger": "Pencetus",
+    "set": "Tetapkan medan",
+    "condition": "Syarat",
+    "http": "Permintaan HTTP",
+    "delay": "Kelewatan",
+    "output": "Output"
+  },
+  "ports": {
+    "main": "Seterusnya",
+    "true": "Benar",
+    "false": "Palsu"
+  },
+  "operators": {
+    "equals": "Sama dengan",
+    "notEquals": "Tidak sama",
+    "contains": "Mengandungi",
+    "greater": "Lebih besar",
+    "exists": "Wujud"
+  },
+  "status": {
+    "success": "Selesai",
+    "error": "Gagal"
+  },
+  "inputs": {
+    "nodeName": "Nama nod",
+    "values": "Medan (JSON)",
+    "dataPath": "Laluan data",
+    "compareValue": "Nilai perbandingan (JSON)",
+    "url": "URL",
+    "requestBody": "Badan permintaan (JSON)",
+    "milliseconds": "Milisaat",
+    "workflowName": "Nama aliran",
+    "description": "Penerangan",
+    "intervalMinutes": "Sela jadual (minit)",
+    "triggerData": "Data pencetus (JSON)",
+    "search": "Cari aliran"
+  },
+  "buttons": {
+    "apply": "Terapkan medan",
+    "reset": "Tetapkan semula",
+    "removeNode": "Buang nod",
+    "showNode": "Tunjukkan nod",
+    "save": "Simpan",
+    "run": "Jalankan aliran",
+    "editor": "Editor",
+    "history": "Pelaksanaan",
+    "export": "Eksport",
+    "inspectRun": "Periksa pelaksanaan",
+    "import": "Import",
+    "newWorkflow": "Aliran baharu",
+    "useTemplate": "Guna templat",
+    "clearFilters": "Kosongkan penapis",
+    "retry": "Cuba lagi",
+    "back": "Kembali"
+  },
+  "templates": {
+    "starter": {
+      "name": "Aliran ringkas",
+      "description": "Mulakan dengan pencetus, sediakan data dan tangkap hasil."
+    },
+    "branch": {
+      "name": "Pilih laluan",
+      "description": "Halakan input berkeutamaan tinggi ke cabang lain."
+    },
+    "request": {
+      "name": "Dapatkan dan semak",
+      "description": "Minta JSON awam dan periksa respons."
+    }
+  },
+  "applyFields": "Terapkan medan JSON yang disunting sebelum menyimpan. Draf dikekalkan apabila menukar nod."
+}

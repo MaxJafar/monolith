@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>monolith</title>
+    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta
+      name="description"
+      content="Monolith brings your projects, documents, and knowledge together in one focused workspace."
+    />
+    <link rel="apple-touch-icon" href="/brand/monolith-180.png" />
+    <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script>
+      try {
+        const theme = localStorage.getItem('monolith.theme')
+        if (
+          theme === 'dark' ||
+          (theme === 'system' &&
+            matchMedia('(prefers-color-scheme: dark)').matches)
+        )
+          document.documentElement.classList.add('dark')
+      } catch {}
+    </script>
+    <meta name="title" content="monolith" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <link rel="apple-touch-startup-image" href="/icon.svg" sizes="512x512" />
+    <style>
+      body {
+        margin: 0;
+      }
+
+      .preloader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background-color: #ffffff;
+        font-family: 'Inter', sans-serif;
+        z-index: 9999;
+      }
+
+      .loader {
+        width: 18px;
+        height: 18px;
+        margin-top: 24px;
+        border: 3px solid #252525;
+        border-bottom-color: transparent;
+        border-radius: 50%;
+        display: inline-block;
+        box-sizing: border-box;
+        animation: rotation 1s linear infinite;
+      }
+
+      @keyframes rotation {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .forging-text {
+        font-size: 1.125rem;
+        font-weight: 500;
+        color: #18181b;
+      }
+
+      .dark .preloader {
+        background-color: #191919;
+      }
+      .dark .forging-text {
+        color: #eeeeec;
+      }
+      .dark .loader {
+        border-color: #eeeeec;
+        border-bottom-color: transparent;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .loader {
+          animation: none;
+        }
+      }
+
+      #root {
+        background-color: #ffffff;
+        color: black;
+      }
+
+      .dark #root {
+        background-color: var(--color-bg-950);
+        color: var(--color-bg-50);
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="preloader">
+      <img src="/icon.svg" alt="monolith" width="48" height="48" />
+      <span class="loader" aria-hidden="true"></span>
+      <p class="forging-text">Opening your workspace…</p>
+    </div>
+    <div id="root"></div>
+    <script type="module" src="/src/index.tsx"></script>
+  </body>
+</html>

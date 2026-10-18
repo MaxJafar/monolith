@@ -1,0 +1,71 @@
+import { useCallback, useRef, useState } from 'react'
+
+import {
+  ContextMenu,
+  ContextMenuItem,
+  Flex,
+  ModuleHeader,
+  useModalStore
+} from '@monolith/ui'
+
+import DashboardGrid from './components/DashboardGrid'
+import SaveButtonPopup from './components/SaveButtonPopup'
+import ManageWidgetsModal from './components/modals/ManageWidgetsModal'
+import './index.css'
+import WidgetProvider, { useWidgets } from './providers/WidgetProvider'
+
+function DashboardContent() {
+  const { open } = useModalStore()
+  const { widgets } = useWidgets()
+  const wrapperRef = useRef<HTMLDivElement>(null)
+  const [canLayoutChange, setCanLayoutChange] = useState(false)
+
+  const handleManageWidget = useCallback(() => {
+    open(ManageWidgetsModal, { widgets })
+  }, [widgets, open])
+
+  return (
+    <Flex ref={wrapperRef} direction="column" flex="1" mb="2xl">
+      <ModuleHeader
+        namespace="common.dashboard"
+        trailing={
+          <ContextMenu>
+            <ContextMenuItem
+              icon="tabler:pencil"
+              label={canLayoutChange ? 'Lock Layout' : 'Unlock Layout'}
+              namespace="common.dashboard"
+              onClick={() => {
+                setCanLayoutChange(!canLayoutChange)
+              }}
+            />
+            <ContextMenuItem
+              icon="si:widget-fill"
+              label="Manage Widgets"
+              namespace="common.dashboard"
+              onClick={handleManageWidget}
+            />
+          </ContextMenu>
+        }
+      />
+      <DashboardGrid
+        canLayoutChange={canLayoutChange}
+        wrapperRef={wrapperRef}
+      />
+
+      <SaveButtonPopup
+        canChange={canLayoutChange}
+        setCanChange={setCanLayoutChange}
+      />
+    </Flex>
+  )
+}
+
+function Dashboard() {
+  return (
+    <WidgetProvider>
+      <DashboardContent />
+    </WidgetProvider>
+  )
+}
+
+export default Dashboard

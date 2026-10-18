@@ -1,0 +1,66 @@
+{
+  "title": "API 金鑰",
+  "description": "管理所有擴充套件所需的 API 金鑰",
+  "lockedMessage": "API 金鑰設定已鎖定",
+  "passwordRequired": "需要密碼來解密 API 金鑰",
+  "missing": {
+    "title": "缺少 API 金鑰",
+    "description": "缺少一個或多個 API 金鑰。請開啟 API 金鑰設定進行配置。",
+    "requiredKeysAre": "缺少的必需 API 金鑰："
+  },
+  "modals": {
+    "apiKey": {
+      "create": "創建 API 金鑰",
+      "update": "更新 API 金鑰"
+    },
+    "modulesRequired": {
+      "title": "所需擴充套件",
+      "totalModulesRequire": "共有 {{count}} 個擴充套件需要此 API 金鑰。",
+      "required": "必需",
+      "optional": "可選"
+    }
+  },
+  "buttons": {
+    "configApiKeys": "配置 API 金鑰"
+  },
+  "inputs": {
+    "keyName": "金鑰名稱",
+    "keyDescription": "金鑰描述",
+    "keyIcon": "金鑰圖標",
+    "apiKey": "API 金鑰",
+    "keyId": "金鑰 ID",
+    "isExposable": "是否可暴露",
+    "overrideKey": "覆蓋金鑰"
+  },
+  "items": {
+    "apiKey": " API 金鑰"
+  },
+  "empty": {
+    "apiKeys": {
+      "title": "無 API 金鑰",
+      "description": "未找到 API 金鑰。單擊下面的按鈕創建新的 API 金鑰"
+    }
+  },
+  "misc": {
+    "requiredBy": "被 {{count}} 個擴充套件需要",
+    "lastUpdated": "最後更新：{{time}}",
+    "exposable": "可暴露",
+    "internalOnly": "僅限內部"
+  },
+  "validation": {
+    "id": "請使用小寫識別碼，例如my-api-key。",
+    "required": "此欄位為必填項。"
+  },
+  "actions": {
+    "remove": "移除{{name}}？"
+  },
+  "messages": {
+    "missingEntry": "此憑證已不存在。",
+    "saved": "憑證已儲存。",
+    "copied": "密鑰已複製到剪貼簿。",
+    "copyFailed": "無法複製密鑰。",
+    "removeDescription": "移除此憑證？使用它的外掛將需要其他密鑰。",
+    "removed": "憑證已移除。",
+    "removeFailed": "無法移除憑證。"
+  }
+}

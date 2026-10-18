@@ -1,0 +1,123 @@
+{
+  "title": "自動化",
+  "deleteConfirm": "刪除 {{name}} 及其執行紀錄？",
+  "deleteWorkflow": "刪除 {{name}}",
+  "description": "連接資料與操作。建立工作流程，執行並檢查每個步驟。",
+  "loading": "正在載入自動化…",
+  "back": "返回",
+  "active": "已啟用",
+  "paused": "已暫停",
+  "all": "全部工作流程",
+  "unsaved": "有未儲存的變更",
+  "revision": "版本",
+  "enableWorkflow": "啟用工作流程",
+  "discard": "放棄未儲存的工作流程變更？",
+  "saveFirst": "請先儲存變更再執行工作流程。",
+  "canvas": "工作流程畫布",
+  "canvasHint": "拖曳排列 · 選擇輸出端，再選擇輸入端",
+  "connectHint": "選擇節點輸入端以連接 · Escape 取消",
+  "connectTo": "連接到",
+  "input": "輸入",
+  "output": "輸出",
+  "startHere": "從這裡開始",
+  "selectNode": "選擇節點以設定其行為。",
+  "nodeSettings": "節點設定",
+  "invalidJSON": "請輸入有效的 JSON 資料。",
+  "expressionHelp": "使用 JSON 設定欄位。用 {{ field.path }} 引用輸入資料。儲存前請套用欄位。",
+  "triggerHelp": "手動執行、呼叫已驗證的事件端點，或設定排程間隔。",
+  "httpHelp": "僅支援公開 HTTP(S) 端點。回應不超過 100 KB，不跟隨重新導向。",
+  "outputHelp": "在執行檢查器中記錄輸入資料。",
+  "comparison": "比較方式",
+  "connections": "連接",
+  "disconnect": "移除連接",
+  "recentRuns": "最近執行 · 最新 50 次",
+  "noRuns": "執行此工作流程以查看歷程記錄。",
+  "selectRun": "選擇一次執行，查看每步的輸入和輸出。",
+  "steps": "步",
+  "zoomIn": "放大",
+  "zoomOut": "縮小",
+  "undo": "復原",
+  "redo": "重做",
+  "nodeLibrary": "新增步驟",
+  "readOnly": "你可以查看此工作流程。編輯需要工作區編輯權限。",
+  "scheduleHelp": "0 表示僅手動或事件執行。正數間隔在 Automations 工作處理程序連線時執行。暫停的工作流程不會排程執行。",
+  "inputHelp": "傳給觸發器的 JSON 物件。執行使用已儲存的版本。",
+  "fileTooLarge": "請選擇小於 500 KB 的 JSON 檔案。",
+  "noMatches": "沒有符合的工作流程",
+  "adjustFilters": "嘗試其他搜尋條件或清除篩選。",
+  "emptyTitle": "從第一個工作流程開始",
+  "emptyDescription": "選擇範本，或將觸發器連接到自己的操作。",
+  "workflowUnavailable": "此工作流程無法使用。請重新載入或返回。",
+  "workspaceUnavailable": "此工作區無法使用。",
+  "nodes": {
+    "trigger": "觸發器",
+    "set": "設定欄位",
+    "condition": "條件",
+    "http": "HTTP 請求",
+    "delay": "延遲",
+    "output": "輸出"
+  },
+  "ports": {
+    "main": "下一步",
+    "true": "真",
+    "false": "假"
+  },
+  "operators": {
+    "equals": "等於",
+    "notEquals": "不等於",
+    "contains": "包含",
+    "greater": "大於",
+    "exists": "存在"
+  },
+  "status": {
+    "success": "已完成",
+    "error": "失敗"
+  },
+  "inputs": {
+    "nodeName": "節點名稱",
+    "values": "欄位（JSON）",
+    "dataPath": "資料路徑",
+    "compareValue": "比較值（JSON）",
+    "url": "網址",
+    "requestBody": "請求內容（JSON）",
+    "milliseconds": "毫秒",
+    "workflowName": "工作流程名稱",
+    "description": "描述",
+    "intervalMinutes": "排程間隔（分鐘）",
+    "triggerData": "觸發資料（JSON）",
+    "search": "搜尋工作流程"
+  },
+  "buttons": {
+    "apply": "套用欄位",
+    "reset": "重設",
+    "removeNode": "移除節點",
+    "showNode": "查看節點",
+    "save": "儲存",
+    "run": "執行工作流程",
+    "editor": "編輯器",
+    "history": "執行記錄",
+    "export": "匯出",
+    "inspectRun": "檢查執行",
+    "import": "匯入",
+    "newWorkflow": "新增工作流程",
+    "useTemplate": "使用範本",
+    "clearFilters": "清除篩選",
+    "retry": "重試",
+    "back": "返回"
+  },
+  "templates": {
+    "starter": {
+      "name": "簡單工作流程",
+      "description": "從觸發器開始，準備資料並記錄結果。"
+    },
+    "branch": {
+      "name": "選擇分支",
+      "description": "將高優先級輸入路由至不同分支。"
+    },
+    "request": {
+      "name": "請求與檢查",
+      "description": "請求公開 JSON 資料並檢查回應。"
+    }
+  },
+  "applyFields": "請先套用編輯過的 JSON 欄位。切換節點時會保留欄位草稿。"
+}

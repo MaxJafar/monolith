@@ -1,0 +1,45 @@
+{
+  "title": "Your workspace",
+  "description": "Projects, knowledge and connected databases, together.",
+  "widgets": {},
+  "modals": {
+    "manageWidgets": "Manage Widgets"
+  },
+  "buttons": {
+    "manageCategories": "Manage Categories",
+    "unlockLayout": "Unlock Layout",
+    "manageWidgets": "Manage Widgets",
+    "lockLayout": "Lock Layout"
+  },
+  "messages": {
+    "editingLayout": "You are editing dashboard layout",
+    "editingLayoutHint": "Adjust the widget arrangement by dragging the widgets around or adjust the widget size by dragging the small triangle at the bottom right corner of each widget"
+  },
+  "empty": {
+    "welcome": {
+      "title": "Welcome to monolith!",
+      "description": "Create a page, plan an action, or enable an addon to get started."
+    },
+    "notFound": {
+      "title": "Widget Not Found",
+      "description": "The widget you are looking for does not exist. Please check your installed addons."
+    }
+  },
+  "loading": "Loading dashboard...",
+  "test": "",
+  "overview": {
+    "heading": "Your work, in focus.",
+    "description": "Plan projects, organize knowledge and connect your work in one place.",
+    "databases": "Open databases",
+    "tools": "Your tools",
+    "greeting": "Ready to begin, {{name}}?",
+    "documents": "Documents",
+    "knowledge": "Knowledge map",
+    "agents": "Agents",
+    "quickAccess": "Quick access",
+    "documentsDescription": "Write and connect your workspace documents.",
+    "knowledgeDescription": "Explore relationships across your knowledge.",
+    "agentsDescription": "Coordinate agents and review their work.",
+    "toolsDescription": "Open the tools that support your daily work."
+  }
+}

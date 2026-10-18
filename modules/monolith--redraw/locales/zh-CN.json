@@ -1,0 +1,459 @@
+{
+  "title": "Redraw",
+  "description": "为你的下一个大创意留一片空间。",
+  "loading": "正在打开工作室…",
+  "modes": {
+    "blackboard": "黑板",
+    "canvas": "画布"
+  },
+  "dashboard": {
+    "blackboardDescription": "连接想法、梳理计划，让纷繁思绪变得清晰。",
+    "canvasDescription": "设计界面、编排视觉作品，让创意成形。",
+    "startWith": "从模板开始",
+    "templateHint": "由你自由发挥",
+    "projects": "你的项目",
+    "archive": "已归档项目",
+    "untitled": "未命名{{mode}}",
+    "imported": "导入的项目",
+    "copy": "（副本）",
+    "objects": "{{count}} 个对象",
+    "star": "收藏 {{name}}",
+    "unstar": "取消收藏 {{name}}",
+    "duplicate": "复制 {{name}}",
+    "restore": "恢复 {{name}}",
+    "archiveProject": "归档 {{name}}",
+    "empty": "你的下一个创意从这里开始",
+    "emptyHint": "创建黑板或画布，或试试上方模板。",
+    "noResults": "未找到项目",
+    "changeSearch": "换个关键词，或清除筛选条件。"
+  },
+  "templates": {
+    "mindmap": "思维导图",
+    "workshop": "创意工作坊",
+    "website": "落地页",
+    "social": "社交海报"
+  },
+  "samples": {
+    "bigIdea": "核心想法",
+    "discover": "探索",
+    "design": "设计",
+    "deliver": "交付",
+    "working": "哪些进展顺利？",
+    "questions": "待解答的问题",
+    "nextSteps": "下一步",
+    "addIdea": "在这里写下想法",
+    "newIdea": "新想法",
+    "makeSpace": "为可能性\n留出空间。",
+    "startSomething": "开始创造值得创造的事物。",
+    "explore": "探索可能性"
+  },
+  "save": {
+    "saved": "所有更改已保存",
+    "saving": "正在保存…",
+    "unsaved": "有未保存的更改",
+    "error": "保存失败",
+    "readOnly": "只读"
+  },
+  "editor": {
+    "back": "返回项目",
+    "undo": "撤销",
+    "redo": "重做",
+    "tools": "绘图工具",
+    "grid": "显示或隐藏网格",
+    "snap": "吸附网格",
+    "layers": "图层",
+    "pages": "页面",
+    "addPage": "添加页面",
+    "emptyLayers": "选择工具，绘制第一个对象。",
+    "show": "显示 {{name}}",
+    "hide": "隐藏 {{name}}",
+    "lock": "锁定 {{name}}",
+    "unlock": "解锁 {{name}}",
+    "shortcuts": "V 选择 · H 平移 · R 矩形 · T 文字 · P 画笔。Shift 点击多选。方向键移动，按住 Shift 移动 10px。Ctrl/⌘ Z 撤销、D 复制、G 编组。Enter 添加分支。0 适应视图。",
+    "properties": "属性",
+    "palette": "调色板",
+    "bold": "粗体文字",
+    "alignleft": "文字左对齐",
+    "aligncenter": "文字居中",
+    "alignright": "文字右对齐",
+    "selected": "已选择 {{count}} 个对象",
+    "selectHint": "选择对象调整设计，拖动右下角缩放。",
+    "surface": "Redraw 绘图区",
+    "connectTarget": "现在选择要连接的目标",
+    "zoomOut": "缩小",
+    "zoomIn": "放大",
+    "fit": "适应内容",
+    "unsavedLeave": "项目有未保存的更改。离开前请保存或导出草稿。"
+  },
+  "errors": {
+    "loadFailed": "无法加载项目，请重试。",
+    "projectUnavailable": "此项目在当前工作空间中不可用。",
+    "workspaceUnavailable": "请选择有权访问的工作空间。",
+    "titleRequired": "请填写项目名称后保存。",
+    "pageLimit": "每个项目最多可有 40 个页面。",
+    "fileTooLarge": "Redraw 文件必须小于 4 MB。",
+    "imageTooLarge": "请选择小于 1.4 MB 的图片。",
+    "imageFormat": "请选择 PNG、JPEG 或 WebP 图片。",
+    "importFailed": "无法导入，请使用有效的 Redraw JSON 文件。",
+    "exportFailed": "导出失败，请尝试导出 JSON。",
+    "unsavedSignOut": "退出登录前，请保存 Redraw 更改或导出草稿。",
+    "invalidDocument": "此更改超出文档限制或产生无效层级。",
+    "nativeLimit": "文件超出导入限制（32 MB 输入、96 MB 解压内容、40 页、6,000 个对象），或解码超时。",
+    "invalidNativeFile": "无法解码此文件。请重新导出 .penpot 或 .fig 文件后重试。",
+    "legacyPenpot": "旧版二进制 Penpot 文件需先用当前版本 Penpot 打开并重新导出。",
+    "importCancelled": "导入已取消。",
+    "copyFailed": "无法复制链接。请从地址栏复制。",
+    "invalidPath": "无法将此路径转换为可编辑节点。"
+  },
+  "buttons": {
+    "newBlackboard": "新建黑板",
+    "newCanvas": "新建画布",
+    "blackboard": "黑板",
+    "canvas": "画布",
+    "save": "保存",
+    "export": "导出",
+    "exportJson": "Redraw 文件 (.json)",
+    "arrange": "自动排列",
+    "addBranch": "添加分支",
+    "toggleCurve": "曲线连接",
+    "toggleArrow": "显示箭头",
+    "group": "编组",
+    "ungroup": "取消编组",
+    "deletePage": "移除页面",
+    "duplicate": "复制",
+    "unlock": "解锁",
+    "lock": "锁定",
+    "bringFront": "置于顶层",
+    "sendBack": "置于底层",
+    "deleteSelection": "删除所选",
+    "importProject": "导入项目",
+    "dismiss": "关闭",
+    "archive": "归档",
+    "all": "全部项目",
+    "starred": "收藏",
+    "retry": "重试",
+    "clearFilters": "清除筛选",
+    "keepEditing": "继续编辑",
+    "saveAndLeave": "保存并离开",
+    "discardChanges": "不保存并离开",
+    "exportDraft": "导出草稿",
+    "layers": "图层",
+    "properties": "属性",
+    "back": "返回项目",
+    "createComponent": "创建组件",
+    "removeComponent": "从组件库移除",
+    "updateComponent": "更新主组件",
+    "resetComponent": "重置覆盖属性",
+    "detachComponent": "分离实例",
+    "wrapLayout": "创建自动布局容器",
+    "enableLayout": "启用自动布局",
+    "removeLayout": "移除自动布局",
+    "toggleWrap": "子对象换行",
+    "confirmImport": "导入到工作区",
+    "cancelImport": "取消导入",
+    "comments": "评论",
+    "present": "预览原型",
+    "fullscreen": "全屏打开",
+    "exitFullscreen": "退出全屏",
+    "editVector": "编辑矢量节点",
+    "finishVector": "完成节点编辑",
+    "splitSegment": "在下一段添加节点",
+    "openPath": "打开路径",
+    "closePath": "闭合路径",
+    "deleteNode": "删除节点",
+    "closePanel": "关闭面板",
+    "pinComment": "添加评论标记",
+    "hideResolved": "隐藏已解决",
+    "showResolved": "显示已解决",
+    "deleteComment": "删除评论",
+    "reopenThread": "重新打开讨论",
+    "resolveThread": "解决讨论",
+    "replyComment": "回复",
+    "postComment": "发表评论",
+    "setPrototypeStart": "设为起始画面",
+    "restartPrototype": "重新开始",
+    "closePreview": "关闭预览",
+    "addTag": "添加标签"
+  },
+  "inputs": {
+    "projectTitle": {
+      "label": "项目名称",
+      "placeholder": "项目名称"
+    },
+    "name": {
+      "label": "名称",
+      "placeholder": "名称"
+    },
+    "x": {
+      "label": "X",
+      "placeholder": "X"
+    },
+    "y": {
+      "label": "Y",
+      "placeholder": "Y"
+    },
+    "width": {
+      "label": "宽度",
+      "placeholder": "宽度"
+    },
+    "height": {
+      "label": "高度",
+      "placeholder": "高度"
+    },
+    "rotation": {
+      "label": "旋转",
+      "placeholder": "旋转"
+    },
+    "radius": {
+      "label": "圆角",
+      "placeholder": "圆角"
+    },
+    "fill": {
+      "label": "填充",
+      "placeholder": "填充"
+    },
+    "stroke": {
+      "label": "描边",
+      "placeholder": "描边"
+    },
+    "strokeWidth": {
+      "label": "描边宽度",
+      "placeholder": "描边宽度"
+    },
+    "opacity": {
+      "label": "不透明度 %",
+      "placeholder": "不透明度 %"
+    },
+    "text": {
+      "label": "文字",
+      "placeholder": "文字"
+    },
+    "fontSize": {
+      "label": "字号",
+      "placeholder": "字号"
+    },
+    "textColor": {
+      "label": "文字颜色",
+      "placeholder": "文字颜色"
+    },
+    "connectionLabel": {
+      "label": "连接文字",
+      "placeholder": "连接文字"
+    },
+    "pageName": {
+      "label": "页面名称",
+      "placeholder": "页面名称"
+    },
+    "background": {
+      "label": "背景",
+      "placeholder": "背景"
+    },
+    "search": {
+      "label": "搜索项目…",
+      "placeholder": "搜索项目…"
+    },
+    "componentName": {
+      "label": "组件名称",
+      "placeholder": "组件名称"
+    },
+    "parentFrame": {
+      "label": "父画框",
+      "placeholder": "父画框"
+    },
+    "widthMode": {
+      "label": "宽度模式",
+      "placeholder": "宽度模式"
+    },
+    "heightMode": {
+      "label": "高度模式",
+      "placeholder": "高度模式"
+    },
+    "layoutDirection": {
+      "label": "方向",
+      "placeholder": "方向"
+    },
+    "layoutAlign": {
+      "label": "交叉轴对齐",
+      "placeholder": "交叉轴对齐"
+    },
+    "layoutJustify": {
+      "label": "分布",
+      "placeholder": "分布"
+    },
+    "layoutGap": {
+      "label": "间距",
+      "placeholder": "间距"
+    },
+    "paddingTop": {
+      "label": "上内边距",
+      "placeholder": "上内边距"
+    },
+    "paddingRight": {
+      "label": "右内边距",
+      "placeholder": "右内边距"
+    },
+    "paddingBottom": {
+      "label": "下内边距",
+      "placeholder": "下内边距"
+    },
+    "paddingLeft": {
+      "label": "左内边距",
+      "placeholder": "左内边距"
+    },
+    "comment": {
+      "label": "评论",
+      "placeholder": "评论"
+    },
+    "fileTag": {
+      "label": "文件标签",
+      "placeholder": "文件标签"
+    },
+    "prototypeAction": {
+      "label": "动作",
+      "placeholder": "动作"
+    },
+    "prototypeTrigger": {
+      "label": "触发方式",
+      "placeholder": "触发方式"
+    },
+    "prototypeTarget": {
+      "label": "目标画面",
+      "placeholder": "目标画面"
+    },
+    "prototypeTransition": {
+      "label": "过渡效果",
+      "placeholder": "过渡效果"
+    },
+    "prototypeDuration": {
+      "label": "时长（毫秒）",
+      "placeholder": "时长（毫秒）"
+    }
+  },
+  "tools": {
+    "select": "选择",
+    "hand": "平移",
+    "node": "思维节点",
+    "sticky": "便签",
+    "connect": "连接线",
+    "frame": "画板",
+    "rectangle": "矩形",
+    "ellipse": "椭圆",
+    "diamond": "菱形",
+    "text": "文字",
+    "path": "画笔",
+    "image": "图片",
+    "pen": "矢量钢笔"
+  },
+  "hints": {
+    "select": "拖动移动 · Shift 多选 · 滚轮平移",
+    "hand": "拖动平移 · Ctrl/⌘ + 滚轮缩放",
+    "connect": "依次选择要连接的两个对象",
+    "node": "单击添加 · 拖动绘制 · Escape 取消",
+    "sticky": "单击添加 · 拖动绘制 · Escape 取消",
+    "frame": "单击添加 · 拖动绘制 · Escape 取消",
+    "rectangle": "单击添加 · 拖动绘制 · Escape 取消",
+    "ellipse": "单击添加 · 拖动绘制 · Escape 取消",
+    "diamond": "单击添加 · 拖动绘制 · Escape 取消",
+    "text": "单击添加 · 拖动绘制 · Escape 取消",
+    "path": "单击添加 · 拖动绘制 · Escape 取消",
+    "image": "单击添加 · 拖动绘制 · Escape 取消",
+    "pen": "点击添加节点，点击首节点闭合，Enter 完成。",
+    "comment": "点击添加评论标记。"
+  },
+  "align": {
+    "left": "左",
+    "center": "水平居中",
+    "right": "右",
+    "top": "上",
+    "middle": "垂直居中",
+    "bottom": "下"
+  },
+  "components": {
+    "library": "组件",
+    "nameHint": "为组件命名",
+    "empty": "选择对象以创建可复用组件。",
+    "insert": "插入 {{name}}",
+    "remove": "从组件库移除 {{name}}",
+    "instance": "关联实例",
+    "overrideHint": "按住 Alt 点击对象或双击图层可编辑覆盖属性。更新组件会保留其他实例的覆盖属性。"
+  },
+  "layout": {
+    "title": "自动布局",
+    "frame": "自动布局画框",
+    "none": "无父画框",
+    "fixed": "固定",
+    "hug": "适应内容",
+    "fill": "填充容器",
+    "horizontal": "水平",
+    "vertical": "垂直",
+    "start": "起点",
+    "center": "居中",
+    "end": "终点",
+    "stretch": "拉伸",
+    "space-between": "两端对齐"
+  },
+  "collaboration": {
+    "people": "项目中的成员",
+    "connecting": "正在连接…",
+    "live": "已连接",
+    "offline": "正在重连 · 草稿已保留",
+    "share": "复制项目链接",
+    "copied": "链接已复制",
+    "shareHint": "有权限的工作区成员可加入。在工作区设置中管理成员。",
+    "owner": "所有者",
+    "editor": "编辑者",
+    "viewer": "查看者"
+  },
+  "imports": {
+    "review": "检查导入内容",
+    "summary": "{{pages}} 个页面 · {{shapes}} 个对象 · {{components}} 个组件",
+    "changed": "导入前请检查以下转换差异"
+  },
+  "importWarnings": {
+    "effects": "{{count}} 个对象：效果被省略。",
+    "prototypes": "{{count}} 个对象：不支持的原型交互已省略或简化。",
+    "masks": "{{count}} 个对象：形状蒙版已省略。",
+    "paints": "{{count}} 个对象：复杂填充被简化。",
+    "richText": "{{count}} 个对象：混合文本样式统一为一种样式。",
+    "paths": "{{count}} 条路径无法完整转换。",
+    "images": "{{count}} 张图片不可用、不支持或超过 1.4 MB。",
+    "layout": "{{count}} 个布局已近似转换或保留为固定位置。",
+    "components": "{{count}} 个组件实例已展开；不保留原始组件库链接。",
+    "transforms": "{{count}} 个变换已近似处理，不保留倾斜或镜像。",
+    "unsupported": "{{count}} 个不支持的对象被省略。",
+    "fonts": "{{count}} 个对象：已保留字体名称；不可用的字体将使用系统替代字体。"
+  },
+  "vector": {
+    "title": "矢量编辑",
+    "hint": "选择节点以编辑控制柄。拖动或使用方向键；Enter 完成，Escape 取消拖动。",
+    "corner": "尖角",
+    "smooth": "平滑",
+    "symmetric": "对称"
+  },
+  "comments": {
+    "title": "评论",
+    "openThread": "打开 {{name}} 的评论",
+    "loadFailed": "无法加载评论。",
+    "empty": "暂无评论。在画布上添加评论标记以开始讨论。",
+    "pinHint": "点击对象或画布上的位置来添加评论。"
+  },
+  "prototype": {
+    "title": "原型",
+    "preview": "原型预览",
+    "none": "无交互",
+    "navigate": "跳转到画面",
+    "overlay": "打开浮层",
+    "back": "返回",
+    "close": "关闭浮层",
+    "click": "点击时",
+    "hover": "悬停时",
+    "chooseTarget": "选择页面或画框",
+    "instant": "即时",
+    "dissolve": "淡入淡出"
+  },
+  "tags": {
+    "title": "文件标签",
+    "hint": "通过标签在 Redraw 和工作区页面提及中查找此文件。",
+    "remove": "移除 #{{tag}}"
+  }
+}

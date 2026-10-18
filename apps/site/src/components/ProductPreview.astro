@@ -1,0 +1,93 @@
+---
+import Icon from './Icon.astro'
+const views = [
+  {
+    id: 'workspace',
+    label: 'Workspace',
+    icon: 'grid',
+    caption: 'A live overview, shaped around your day.',
+    alt: 'Monolith dashboard showing workspace pulse, action agenda and project focus widgets'
+  },
+  {
+    id: 'documents',
+    label: 'Docs & databases',
+    icon: 'layers',
+    caption: 'Your ideas and information, connected.',
+    alt: 'A rich Monolith document with an inline database gallery'
+  },
+  {
+    id: 'atlas',
+    label: 'Atlas',
+    icon: 'atlas',
+    caption: 'Follow a thread. Find the bigger picture.',
+    alt: 'Atlas knowledge graph with linked pages, topics and connections'
+  },
+  {
+    id: 'addons',
+    label: 'Addons & Widgets',
+    icon: 'puzzle',
+    caption: 'Make room for just the tools you need.',
+    alt: 'Monolith addon collection with filters and workspace enablement switches'
+  }
+]
+---
+
+<div class="preview-wrap container">
+  <div
+    class="preview-tabs"
+    role="tablist"
+    aria-label="Explore Monolith screenshots"
+  >
+    {views.map((view, index) => (
+      <button
+        type="button"
+        role="tab"
+        id={`tab-${view.id}`}
+        aria-controls={`panel-${view.id}`}
+        aria-selected={index === 0}
+        tabindex={index === 0 ? 0 : -1}
+        data-preview={view.id}
+      >
+        <Icon name={view.icon} size={17} />
+        <span>{view.label}</span>
+      </button>
+    ))}
+  </div>
+  <div class="preview-frame">
+    <div class="window-bar">
+      <span class="window-dots" aria-hidden="true">
+        <i></i>
+        <i></i>
+        <i></i>
+      </span>
+      <span>
+        <img src="/icon.svg" width="13" height="13" alt="" /> Your Monolith
+        workspace
+      </span>
+      <Icon name="shield" size={14} />
+    </div>
+    {views.map((view, index) => (
+      <div
+        role="tabpanel"
+        id={`panel-${view.id}`}
+        aria-labelledby={`tab-${view.id}`}
+        hidden={index !== 0}
+        tabindex="0"
+        class="preview-panel"
+      >
+        <img
+          src={`/images/${view.id}.webp`}
+          alt={view.alt}
+          width="1440"
+          height="1060"
+          loading={index === 0 ? 'eager' : 'lazy'}
+          fetchpriority={index === 0 ? 'high' : 'auto'}
+        />
+      </div>
+    ))}
+  </div>
+  <div class="preview-note">
+    <span data-preview-caption>{views[0].caption}</span>
+    <span>Product screenshots · Example workspace</span>
+  </div>
+</div>

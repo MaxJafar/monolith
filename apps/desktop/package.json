@@ -1,0 +1,25 @@
+{
+  "name": "@monolith/desktop",
+  "version": "0.1.9",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --config vite.config.ts",
+    "build": "node \"../../tools/build-guard.mjs\" --task build",
+    "typecheck": "tsc --noEmit --project tsconfig.json"
+  },
+  "dependencies": {
+    "@monolith/api": "workspace:*",
+    "@monolith/ui": "workspace:*",
+    "@monolith/blocks": "workspace:*",
+    "@monolith/federation": "workspace:*",
+    "@monolith/localization": "workspace:*",
+    "@monolith/configs": "workspace:*",
+    "react-error-boundary": "^6.0.0",
+    "react-grid-layout": "^1.5.3"
+  },
+  "author": "Monolith contributors",
+  "monolithBuilds": {
+    "build": "vite build --config vite.config.ts"
+  }
+}

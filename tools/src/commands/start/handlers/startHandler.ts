@@ -1,0 +1,69 @@
+import { log } from '@clack/prompts'
+import type { Command } from 'commander'
+import concurrently from 'concurrently'
+import path from 'node:path'
+
+import executeCommand from '@/utils/commands'
+import { ROOT_DIR } from '@/utils/constants'
+
+/**
+ * Builds (unless `--no-build`) and starts the API server and the web client in
+ * production mode, concurrently.
+ */
+export function startHandler(this: Command): void {
+  // Prevent endpoints CLI's --tsconfig from leaking to child processes
+  delete process.env.TSX_TSCONFIG_PATH
+
+  const build = this.opts().build as boolean
+
+  const globalOptions = this.parent?.opts<{ host?: boolean; port?: string }>()
+
+  const host = globalOptions?.host
+
+  const port = globalOptions?.port
+
+  if (build) {
+    log.step('Building Monolith for production...')
+
+    // Build only the core (framework packages + server + client). Installed
+    // modules are already built (and cleaned) — building them would fail.
+    executeCommand(
+      'pnpm exec turbo build --filter=@monolith/server --filter=@monolith/client',
+      { cwd: ROOT_DIR, stdio: 'inherit' }
+    )
+  }
+
+  const clientArgs: string[] = []
+
+  if (host) clientArgs.push('--host')
+  if (port) clientArgs.push('--port', port)
+
+  log.step('Starting production services...')
+
+  const { result } = concurrently(
+    [
+      {
+        name: 'server',
+        command: 'pnpm run start:prod',
+        cwd: path.join(ROOT_DIR, 'apps/api'),
+        prefixColor: 'green'
+      },
+      {
+        name: 'client',
+        command: ['pnpm run preview', ...clientArgs].join(' '),
+        cwd: path.join(ROOT_DIR, 'apps/web'),
+        prefixColor: 'cyan'
+      }
+    ],
+    {
+      killOthersOn: ['failure', 'success'],
+      prefix: 'name',
+      restartTries: 0
+    }
+  )
+
+  result.catch(() => {
+    log.error('Failed to start production services')
+    process.exit(1)
+  })
+}

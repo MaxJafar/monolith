@@ -1,0 +1,22 @@
+[Unit]
+Description=Monolith signed release and rollback supervisor
+After=docker.service network-online.target
+Requires=docker.service
+
+[Service]
+Type=simple
+User=monolith-updater
+Group=monolith-updater
+SupplementaryGroups=docker
+ExecStart=/usr/local/bin/monolith-updater --config /etc/monolith-updater/config.json --state /var/lib/monolith-updater
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=240
+StateDirectory=monolith-updater
+StateDirectoryMode=0700
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

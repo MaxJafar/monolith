@@ -1,0 +1,55 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Monolith",
+  "version": "0.1.9",
+  "identifier": "app.monolith.desktop",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:5186",
+    "beforeBuildCommand": "pnpm exec node ../../tools/build-updater.mjs windows-amd64",
+    "beforeDevCommand": "pnpm run dev"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "label": "main",
+        "title": "Monolith",
+        "decorations": false,
+        "dragDropEnabled": false,
+        "width": 1360,
+        "height": 900,
+        "minWidth": 480,
+        "minHeight": 560
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; script-src 'self' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: blob: https: http://monolith-media.localhost; media-src 'self' blob: https: http://monolith-media.localhost; font-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost http://monolith-media.localhost https: wss:; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; frame-src 'none'"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "icon": [
+      "../../web/public/assets/icons/icon-256x256.png",
+      "../../web/public/favicon.ico"
+    ],
+    "resources": {
+      "../../../LICENSE": "LICENSE",
+      "../../../THIRD_PARTY_NOTICES.md": "THIRD_PARTY_NOTICES.md",
+      "../../../packages/ui/src/assets/icons/icon-notices.json": "icon-notices.json",
+      "updater/": "updater/"
+    },
+    "windows": {
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper",
+        "silent": true
+      },
+      "nsis": {
+        "installMode": "currentUser",
+        "displayLanguageSelector": false,
+        "languages": ["English"]
+      }
+    }
+  }
+}

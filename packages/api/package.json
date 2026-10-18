@@ -1,0 +1,29 @@
+{
+  "name": "@monolith/api",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "typings": "dist/index.d.ts",
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "node \"../../tools/build-guard.mjs\" --task build",
+    "test": "vitest run",
+    "typecheck": "tsc -b --noEmit"
+  },
+  "dependencies": {
+    "axios": "^1.12.2",
+    "crypto-js": "^4.2.0",
+    "json-schema-to-ts": "^3.1.1",
+    "socket.io-client": "^4.8.1"
+  },
+  "devDependencies": {
+    "@monolith/configs": "workspace:*",
+    "@types/crypto-js": "^4.2.2"
+  },
+  "author": "Monolith contributors",
+  "monolithBuilds": {
+    "build": "rimraf dist && tsc -b --noEmit && vite build"
+  }
+}

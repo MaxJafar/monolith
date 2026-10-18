@@ -1,0 +1,22 @@
+*.mdx
+dist/
+**/dist/
+**/tsbuild/
+**/dist-docker/
+storybook-static/
+**/storybook-static/
+modules/example-author--truckers-log/client/src/lib/
+# Archived upstream/handover evidence is retained verbatim, outside maintained code.
+reference/
+.temp/
+.opencode/
+BUILD-REPORT.json
+MIGRATION-REPORT.json
+MODULE-HEADS.json
+DEVELOPMENT-TASK.md
+documenthandover to codex.md
+
+# Legacy generated documentation compiler outputs; source is the corresponding .ts.
+docs/plugins/*.js
+docs/plugins/*.d.ts
+docs/vite.config.d.ts

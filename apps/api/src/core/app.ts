@@ -1,0 +1,54 @@
+import cookieParser from 'cookie-parser'
+import cors from 'cors'
+import express from 'express'
+import helmet from 'helmet'
+
+import { db } from './drizzle'
+import rateLimitingMiddleware from './middlewares/rateLimitingMiddleware'
+import requestLogging from './middlewares/requestLogging'
+import router from './routes'
+import { CORS_ALLOWED_ORIGINS } from './routes/constants/corsAllowedOrigins'
+
+const app = express()
+
+// Drizzle request context middleware
+app.use((req, res, next) => {
+  req.db = db
+  next()
+})
+
+// Security headers
+app.use(
+  helmet({
+    crossOriginResourcePolicy: {
+      policy: 'cross-origin'
+    },
+    xPoweredBy: false,
+    xXssProtection: false
+  })
+)
+
+// CORS configuration with credentials support
+app.use(
+  cors({
+    origin: CORS_ALLOWED_ORIGINS,
+    credentials: true
+  })
+)
+
+// Cookie parser
+app.use(cookieParser())
+
+// Body parsers
+app.use(express.raw())
+app.use(express.json({ limit: '50mb' }))
+
+// HTTP request logger
+app.use(requestLogging)
+
+// Rate limiting
+app.use(rateLimitingMiddleware)
+
+app.use('/', router)
+
+export default app

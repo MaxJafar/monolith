@@ -1,0 +1,66 @@
+{
+  "title": "API 金钥",
+  "description": "管理所有扩展所需的 API 金钥",
+  "lockedMessage": "API 密钥设置已锁定",
+  "passwordRequired": "需要密码来解密 API 金钥",
+  "missing": {
+    "title": "缺少 API 金钥",
+    "description": "缺少一个或多个 API 密钥。请打开 API 密钥设置进行配置。",
+    "requiredKeysAre": "缺少的必需 API 金钥："
+  },
+  "modals": {
+    "apiKey": {
+      "create": "创建 API 金钥",
+      "update": "更新 API 金钥"
+    },
+    "modulesRequired": {
+      "title": "所需扩展",
+      "totalModulesRequire": "共有 {{count}} 个扩展需要此 API 金钥。",
+      "required": "必需",
+      "optional": "可选"
+    }
+  },
+  "buttons": {
+    "configApiKeys": "配置 API 金钥"
+  },
+  "inputs": {
+    "keyName": "金钥名称",
+    "keyDescription": "金钥描述",
+    "keyIcon": "金钥图标",
+    "apiKey": "API 金钥",
+    "keyId": "金钥 ID",
+    "isExposable": "是否可暴露",
+    "overrideKey": "覆盖金钥"
+  },
+  "items": {
+    "apiKey": " API 金钥"
+  },
+  "empty": {
+    "apiKeys": {
+      "title": "无 API 金钥",
+      "description": "未找到 API 金钥。单击下面的按钮创建新的 API 金钥"
+    }
+  },
+  "misc": {
+    "requiredBy": "被 {{count}} 个扩展需要",
+    "lastUpdated": "最后更新：{{time}}",
+    "exposable": "可暴露",
+    "internalOnly": "仅限内部"
+  },
+  "validation": {
+    "id": "请使用小写标识符，例如my-api-key。",
+    "required": "此字段为必填项。"
+  },
+  "actions": {
+    "remove": "移除{{name}}？"
+  },
+  "messages": {
+    "missingEntry": "此凭据已不存在。",
+    "saved": "凭据已保存。",
+    "copied": "密钥已复制到剪贴板。",
+    "copyFailed": "无法复制密钥。",
+    "removeDescription": "移除此凭据？使用它的插件将需要其他密钥。",
+    "removed": "凭据已移除。",
+    "removeFailed": "无法移除凭据。"
+  }
+}

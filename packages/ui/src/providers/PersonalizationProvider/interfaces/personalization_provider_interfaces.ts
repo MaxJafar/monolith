@@ -1,0 +1,53 @@
+type IDashboardLayout = Record<
+  string,
+  Array<{
+    x: number
+    y: number
+    w: number
+    h: number
+    i: string
+    minW?: number
+    minH?: number
+  }>
+>
+
+interface IBackdropFilters {
+  blur: 'none' | 'sm' | 'base' | 'md' | 'lg' | 'xl' | '2xl' | '3xl'
+  brightness: number
+  contrast: number
+  saturation: number
+  overlayOpacity: number
+}
+
+interface IPersonalizationData {
+  rootElement: HTMLElement | null
+  fontFamily: string
+  fontScale: number
+  borderRadiusMultiplier: number
+  bordered: boolean
+  theme: 'light' | 'dark' | 'system'
+  derivedTheme: 'light' | 'dark'
+  rawThemeColor: string
+  derivedThemeColor: string
+  getMostReadableColor: (bg?: string) => string
+  bgTemp: string
+  bgTempPalette: Record<number, string>
+  backdropFilters: IBackdropFilters
+  bgImage: string
+  language: string
+  dashboardLayout: IDashboardLayout
+
+  setFontFamily: React.Dispatch<React.SetStateAction<string>>
+  setFontScale: React.Dispatch<React.SetStateAction<number>>
+  setBorderRadiusMultiplier: React.Dispatch<React.SetStateAction<number>>
+  setBordered: React.Dispatch<React.SetStateAction<boolean>>
+  setTheme: React.Dispatch<React.SetStateAction<'light' | 'dark' | 'system'>>
+  setRawThemeColor: React.Dispatch<React.SetStateAction<string>>
+  setBgTemp: React.Dispatch<React.SetStateAction<string>>
+  setBgImage: React.Dispatch<React.SetStateAction<string>>
+  setBackdropFilters: React.Dispatch<React.SetStateAction<IBackdropFilters>>
+  setLanguage: React.Dispatch<React.SetStateAction<string>>
+  setDashboardLayout: React.Dispatch<React.SetStateAction<IDashboardLayout>>
+}
+
+export type { IPersonalizationData, IBackdropFilters, IDashboardLayout }

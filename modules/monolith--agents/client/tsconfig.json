@@ -1,0 +1,19 @@
+{
+  "extends": "@monolith/configs/tsconfig/module.json",
+  "compilerOptions": {
+    "rootDir": "..",
+    "paths": {
+      "@/manifest": ["./manifest.ts"],
+      "@": ["./src/index"],
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": [
+    "./src/**/*",
+    "./manifest.ts",
+    "./workspaceAPI.ts",
+    "./vite.config.ts",
+    "./contract.ts",
+    "../shared.ts"
+  ]
+}

@@ -1,0 +1,111 @@
+name: Monolith
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: monolith-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  desktop_web:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm desktop:bundle
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-web
+          path: apps/desktop/dist
+          if-no-files-found: error
+          retention-days: 7
+
+  core:
+    name: Core, web and gateway
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec node --test tools/platform-release.test.mjs tools/preview-release.test.mjs tools/release-preflight.test.mjs
+      - run: pnpm core:check
+      - run: pnpm typecheck
+      - run: pnpm --filter @monolith/configs test
+      - run: pnpm --filter @monolith/module-runtime test
+      - run: pnpm --filter @monolith/blocks test
+      - run: pnpm --filter @monolith/api test
+      - run: pnpm --filter @monolith/server-utils test
+      - run: pnpm agent:test
+      - run: pnpm --filter @monolith/server exec vitest run src/lib/integrations/catalog.test.ts
+      - run: pnpm --filter @monolith/ui test
+      - run: pnpm --filter @monolith/client test
+      - run: pnpm exec vitest run --config tools/vitest.addons.config.ts
+      - run: pnpm gateway:test
+      - run: pnpm build
+      - run: pnpm --filter @monolith/site verify
+      - run: pnpm exec playwright install --with-deps chromium webkit
+      - run: pnpm site:test
+
+  native:
+    needs: desktop_web
+    name: Native (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-15-intel]
+    runs-on: ${{ matrix.os }}
+    env:
+      MONOLITH_BUILD_MEMORY_MIB: ${{ matrix.os == 'macos-15-intel' && '2048' || '4096' }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - uses: actions/download-artifact@v4
+        with:
+          name: desktop-web
+          path: apps/desktop/dist
+      - run: pnpm agent:test
+      - name: Windows core tests
+        if: runner.os == 'Windows'
+        run: pnpm desktop:windows:test
+      - name: Windows application
+        if: runner.os == 'Windows'
+        run: pnpm --dir apps/desktop exec tauri build
+      - name: macOS native tests
+        if: runner.os == 'macOS'
+        run: pnpm exec node tools/macos-build.mjs --test
+      - name: macOS universal application
+        if: runner.os == 'macOS'
+        run: pnpm exec node tools/macos-build.mjs
+      - name: Preserve native build
+        uses: actions/upload-artifact@v4
+        with:
+          name: monolith-${{ runner.os }}-${{ github.sha }}
+          path: |
+            apps/desktop/src-tauri/target/release/bundle/nsis/*.exe
+            .temp/macos/*.dmg
+          if-no-files-found: error
+          retention-days: 14

@@ -1,0 +1,70 @@
+diff --git a/api-postgres.js b/api-postgres.js
+index bce99a92d2f9d7e383488f119329124939fdb8b8..faa41e1591b214f3db2b42f62c724b4a74a5c40f 100644
+--- a/api-postgres.js
++++ b/api-postgres.js
+@@ -140255,16 +140255,20 @@ const generateDrizzleJson = async (imports, prevId, schemaFilters) => {
+ 	return toJsonSnapshot(ddl, prevId ? [prevId] : [originUUID], []);
+ };
+ const generateMigration = async (prev, cur) => {
++ const { HintsHandler } = await Promise.resolve().then(() => (init_hints(), hints_exports));
++ const resolverHints = new HintsHandler();
+ 	const { resolver } = await Promise.resolve().then(() => (init_prompts(), prompts_exports));
+ 	const { ddlDiff } = await Promise.resolve().then(() => (init_diff(), diff_exports));
+ 	const from = createDDL$4();
+ 	const to = createDDL$4();
+ 	for (const it of prev.ddl) from.entities.push(it);
+ 	for (const it of cur.ddl) to.entities.push(it);
+-	const { sqlStatements } = await ddlDiff(from, to, resolver("schema"), resolver("enum"), resolver("sequence"), resolver("policy"), resolver("role"), resolver("privilege"), resolver("table"), resolver("column"), resolver("view"), resolver("unique"), resolver("index"), resolver("check"), resolver("primary_key"), resolver("foreign key"), "default");
++	const { sqlStatements } = await ddlDiff(from, to, resolver("schema", resolverHints), resolver("enum", resolverHints), resolver("sequence", resolverHints), resolver("policy", resolverHints), resolver("role", resolverHints), resolver("privilege", resolverHints), resolver("table", resolverHints), resolver("column", resolverHints), resolver("view", resolverHints), resolver("unique", resolverHints), resolver("index", resolverHints), resolver("check", resolverHints), resolver("primary_key", resolverHints), resolver("foreign key", resolverHints), "default");
+ 	return sqlStatements;
+ };
+ const pushSchema = async (imports, drizzleInstance, entitiesConfig, migrationsConfig) => {
++ const { HintsHandler: ResolverHintsHandler } = await Promise.resolve().then(() => (init_hints(), hints_exports));
++ const resolverHints = new ResolverHintsHandler();
+ 	const { prepareEntityFilter } = await Promise.resolve().then(() => (init_pull_utils(), pull_utils_exports));
+ 	const { resolver } = await Promise.resolve().then(() => (init_prompts(), prompts_exports));
+ 	const { fromDatabaseForDrizzle } = await Promise.resolve().then(() => (init_introspect(), introspect_exports));
+@@ -140291,7 +140295,7 @@ const pushSchema = async (imports, drizzleInstance, entitiesConfig, migrationsCo
+ 	const { schema: cur } = fromDrizzleSchema(prepared, filter);
+ 	const { ddl: from, errors: _err1 } = interimToDDL(prev);
+ 	const { ddl: to, errors: _err2 } = interimToDDL(cur);
+-	const { sqlStatements, statements } = await ddlDiff(from, to, resolver("schema"), resolver("enum"), resolver("sequence"), resolver("policy"), resolver("role"), resolver("privilege"), resolver("table"), resolver("column"), resolver("view"), resolver("unique"), resolver("index"), resolver("check"), resolver("primary_key"), resolver("foreign key"), "push");
++	const { sqlStatements, statements } = await ddlDiff(from, to, resolver("schema", resolverHints), resolver("enum", resolverHints), resolver("sequence", resolverHints), resolver("policy", resolverHints), resolver("role", resolverHints), resolver("privilege", resolverHints), resolver("table", resolverHints), resolver("column", resolverHints), resolver("view", resolverHints), resolver("unique", resolverHints), resolver("index", resolverHints), resolver("check", resolverHints), resolver("primary_key", resolverHints), resolver("foreign key", resolverHints), "push");
+ 	const { HintsHandler } = await Promise.resolve().then(() => (init_hints(), hints_exports));
+ 	const hints = await suggestions(db, statements, new HintsHandler());
+ 	return {
+diff --git a/api-postgres.mjs b/api-postgres.mjs
+index f2d2742df79ad0269a6becb21a48e352a321315e..ce0d7e2aa0541ef31e179f39efc41130ad47c589 100644
+--- a/api-postgres.mjs
++++ b/api-postgres.mjs
+@@ -140240,16 +140240,20 @@ const generateDrizzleJson = async (imports, prevId, schemaFilters) => {
+ 	return toJsonSnapshot(ddl, prevId ? [prevId] : [originUUID], []);
+ };
+ const generateMigration = async (prev, cur) => {
++ const { HintsHandler } = await Promise.resolve().then(() => (init_hints(), hints_exports));
++ const resolverHints = new HintsHandler();
+ 	const { resolver } = await Promise.resolve().then(() => (init_prompts(), prompts_exports));
+ 	const { ddlDiff } = await Promise.resolve().then(() => (init_diff(), diff_exports));
+ 	const from = createDDL$4();
+ 	const to = createDDL$4();
+ 	for (const it of prev.ddl) from.entities.push(it);
+ 	for (const it of cur.ddl) to.entities.push(it);
+-	const { sqlStatements } = await ddlDiff(from, to, resolver("schema"), resolver("enum"), resolver("sequence"), resolver("policy"), resolver("role"), resolver("privilege"), resolver("table"), resolver("column"), resolver("view"), resolver("unique"), resolver("index"), resolver("check"), resolver("primary_key"), resolver("foreign key"), "default");
++	const { sqlStatements } = await ddlDiff(from, to, resolver("schema", resolverHints), resolver("enum", resolverHints), resolver("sequence", resolverHints), resolver("policy", resolverHints), resolver("role", resolverHints), resolver("privilege", resolverHints), resolver("table", resolverHints), resolver("column", resolverHints), resolver("view", resolverHints), resolver("unique", resolverHints), resolver("index", resolverHints), resolver("check", resolverHints), resolver("primary_key", resolverHints), resolver("foreign key", resolverHints), "default");
+ 	return sqlStatements;
+ };
+ const pushSchema = async (imports, drizzleInstance, entitiesConfig, migrationsConfig) => {
++ const { HintsHandler: ResolverHintsHandler } = await Promise.resolve().then(() => (init_hints(), hints_exports));
++ const resolverHints = new ResolverHintsHandler();
+ 	const { prepareEntityFilter } = await Promise.resolve().then(() => (init_pull_utils(), pull_utils_exports));
+ 	const { resolver } = await Promise.resolve().then(() => (init_prompts(), prompts_exports));
+ 	const { fromDatabaseForDrizzle } = await Promise.resolve().then(() => (init_introspect(), introspect_exports));
+@@ -140276,7 +140280,7 @@ const pushSchema = async (imports, drizzleInstance, entitiesConfig, migrationsCo
+ 	const { schema: cur } = fromDrizzleSchema(prepared, filter);
+ 	const { ddl: from, errors: _err1 } = interimToDDL(prev);
+ 	const { ddl: to, errors: _err2 } = interimToDDL(cur);
+-	const { sqlStatements, statements } = await ddlDiff(from, to, resolver("schema"), resolver("enum"), resolver("sequence"), resolver("policy"), resolver("role"), resolver("privilege"), resolver("table"), resolver("column"), resolver("view"), resolver("unique"), resolver("index"), resolver("check"), resolver("primary_key"), resolver("foreign key"), "push");
++	const { sqlStatements, statements } = await ddlDiff(from, to, resolver("schema", resolverHints), resolver("enum", resolverHints), resolver("sequence", resolverHints), resolver("policy", resolverHints), resolver("role", resolverHints), resolver("privilege", resolverHints), resolver("table", resolverHints), resolver("column", resolverHints), resolver("view", resolverHints), resolver("unique", resolverHints), resolver("index", resolverHints), resolver("check", resolverHints), resolver("primary_key", resolverHints), resolver("foreign key", resolverHints), "push");
+ 	const { HintsHandler } = await Promise.resolve().then(() => (init_hints(), hints_exports));
+ 	const hints = await suggestions(db, statements, new HintsHandler());
+ 	return {

@@ -1,0 +1,459 @@
+{
+  "title": "Redraw",
+  "description": "A little space for your next big idea.",
+  "loading": "Opening your studio…",
+  "modes": {
+    "blackboard": "Blackboard",
+    "canvas": "Canvas"
+  },
+  "dashboard": {
+    "blackboardDescription": "Think out loud. Connect ideas, map a plan, and make sense of the messy middle.",
+    "canvasDescription": "Bring it into focus. Design interfaces, compose visuals, and build something beautiful.",
+    "startWith": "A head start",
+    "templateHint": "Make it your own",
+    "projects": "Your projects",
+    "archive": "Archived projects",
+    "untitled": "Untitled {{mode}}",
+    "imported": "Imported project",
+    "copy": "(copy)",
+    "objects": "{{count}} objects",
+    "star": "Star {{name}}",
+    "unstar": "Unstar {{name}}",
+    "duplicate": "Duplicate {{name}}",
+    "restore": "Restore {{name}}",
+    "archiveProject": "Archive {{name}}",
+    "empty": "Your next idea starts here",
+    "emptyHint": "Create a Blackboard or Canvas, or try a template above.",
+    "noResults": "No projects found",
+    "changeSearch": "Try another search or clear your filters."
+  },
+  "templates": {
+    "mindmap": "Mind map",
+    "workshop": "Idea workshop",
+    "website": "Landing page",
+    "social": "Social post"
+  },
+  "samples": {
+    "bigIdea": "The big idea",
+    "discover": "Discover",
+    "design": "Design",
+    "deliver": "Deliver",
+    "working": "What is working?",
+    "questions": "Open questions",
+    "nextSteps": "Next steps",
+    "addIdea": "Add your idea here",
+    "newIdea": "New idea",
+    "makeSpace": "Make space\nfor possibility.",
+    "startSomething": "Start something worth making.",
+    "explore": "Explore the possibilities"
+  },
+  "save": {
+    "saved": "All changes saved",
+    "saving": "Saving…",
+    "unsaved": "Unsaved changes",
+    "error": "Could not save",
+    "readOnly": "Read only"
+  },
+  "editor": {
+    "back": "Back to projects",
+    "undo": "Undo",
+    "redo": "Redo",
+    "tools": "Drawing tools",
+    "grid": "Toggle grid",
+    "snap": "Snap to grid",
+    "layers": "Layers",
+    "pages": "Pages",
+    "addPage": "Add page",
+    "emptyLayers": "Choose a tool and draw your first object.",
+    "show": "Show {{name}}",
+    "hide": "Hide {{name}}",
+    "lock": "Lock {{name}}",
+    "unlock": "Unlock {{name}}",
+    "shortcuts": "V select · H pan · R rectangle · T text · P pen. Shift-click to select more. Arrows move; Shift moves 10px. Ctrl/⌘ Z undo, D duplicate, G group. Enter adds a mind-map branch. 0 fits the view.",
+    "properties": "Properties",
+    "palette": "Color palette",
+    "bold": "Bold text",
+    "alignleft": "Align text left",
+    "aligncenter": "Center text",
+    "alignright": "Align text right",
+    "selected": "{{count}} objects selected",
+    "selectHint": "Select an object to adjust its design. Drag its corner to resize.",
+    "surface": "Redraw drawing surface",
+    "connectTarget": "Now choose the object to connect to",
+    "zoomOut": "Zoom out",
+    "zoomIn": "Zoom in",
+    "fit": "Fit to content",
+    "unsavedLeave": "This project has unsaved changes. Save or export your draft before leaving."
+  },
+  "errors": {
+    "loadFailed": "Projects could not be loaded. Try again.",
+    "projectUnavailable": "This project is unavailable in this workspace.",
+    "workspaceUnavailable": "Choose an accessible workspace to use Redraw.",
+    "titleRequired": "Give your project a title before saving.",
+    "pageLimit": "A project can contain up to 40 pages.",
+    "fileTooLarge": "Redraw files must be smaller than 4 MB.",
+    "imageTooLarge": "Choose an image smaller than 1.4 MB.",
+    "imageFormat": "Choose a PNG, JPEG or WebP image.",
+    "importFailed": "The file could not be imported. Use a valid Redraw JSON file.",
+    "exportFailed": "Export failed. Try exporting the project as JSON.",
+    "unsavedSignOut": "Save your Redraw changes or export a draft before signing out.",
+    "invalidDocument": "This change exceeds the document limits or creates an invalid hierarchy.",
+    "nativeLimit": "The file exceeds import limits (32 MB input, 96 MB expanded, 40 pages, 6,000 objects), or took too long to decode.",
+    "invalidNativeFile": "This file could not be decoded. Export a fresh .penpot or .fig file and try again.",
+    "legacyPenpot": "Legacy binary Penpot files must first be opened and re-exported by a current Penpot version.",
+    "importCancelled": "Import cancelled.",
+    "copyFailed": "Could not copy the link. Copy it from the address bar.",
+    "invalidPath": "This path could not be converted to editable nodes."
+  },
+  "buttons": {
+    "newBlackboard": "New Blackboard",
+    "newCanvas": "New Canvas",
+    "blackboard": "Blackboard",
+    "canvas": "Canvas",
+    "save": "Save",
+    "export": "Export",
+    "exportJson": "Redraw file (.json)",
+    "arrange": "Arrange",
+    "addBranch": "Add branch",
+    "toggleCurve": "Curved connector",
+    "toggleArrow": "Arrowhead",
+    "group": "Group",
+    "ungroup": "Ungroup",
+    "deletePage": "Remove page",
+    "duplicate": "Duplicate",
+    "unlock": "Unlock",
+    "lock": "Lock",
+    "bringFront": "Bring forward",
+    "sendBack": "Send backward",
+    "deleteSelection": "Delete selection",
+    "importProject": "Import project",
+    "dismiss": "Dismiss",
+    "archive": "Archive",
+    "all": "All projects",
+    "starred": "Starred",
+    "retry": "Retry",
+    "clearFilters": "Clear filters",
+    "keepEditing": "Keep editing",
+    "saveAndLeave": "Save and leave",
+    "discardChanges": "Leave without saving",
+    "exportDraft": "Export draft",
+    "layers": "Layers",
+    "properties": "Properties",
+    "back": "Back to projects",
+    "createComponent": "Create component",
+    "removeComponent": "Remove from library",
+    "updateComponent": "Update main component",
+    "resetComponent": "Reset overrides",
+    "detachComponent": "Detach instance",
+    "wrapLayout": "Wrap in auto-layout",
+    "enableLayout": "Enable auto-layout",
+    "removeLayout": "Remove auto-layout",
+    "toggleWrap": "Wrap children",
+    "confirmImport": "Import into workspace",
+    "cancelImport": "Cancel import",
+    "comments": "Comments",
+    "present": "Present prototype",
+    "fullscreen": "Open fullscreen",
+    "exitFullscreen": "Exit fullscreen",
+    "editVector": "Edit vector nodes",
+    "finishVector": "Done editing nodes",
+    "splitSegment": "Add node on next segment",
+    "openPath": "Open path",
+    "closePath": "Close path",
+    "deleteNode": "Delete node",
+    "closePanel": "Close panel",
+    "pinComment": "Pin a comment",
+    "hideResolved": "Hide resolved",
+    "showResolved": "Show resolved",
+    "deleteComment": "Delete comment",
+    "reopenThread": "Reopen thread",
+    "resolveThread": "Resolve thread",
+    "replyComment": "Reply",
+    "postComment": "Post comment",
+    "setPrototypeStart": "Set as starting screen",
+    "restartPrototype": "Restart",
+    "closePreview": "Close preview",
+    "addTag": "Add tag"
+  },
+  "inputs": {
+    "projectTitle": {
+      "label": "Project title",
+      "placeholder": "Project title"
+    },
+    "name": {
+      "label": "Name",
+      "placeholder": "Name"
+    },
+    "x": {
+      "label": "X",
+      "placeholder": "X"
+    },
+    "y": {
+      "label": "Y",
+      "placeholder": "Y"
+    },
+    "width": {
+      "label": "Width",
+      "placeholder": "Width"
+    },
+    "height": {
+      "label": "Height",
+      "placeholder": "Height"
+    },
+    "rotation": {
+      "label": "Rotation",
+      "placeholder": "Rotation"
+    },
+    "radius": {
+      "label": "Radius",
+      "placeholder": "Radius"
+    },
+    "fill": {
+      "label": "Fill",
+      "placeholder": "Fill"
+    },
+    "stroke": {
+      "label": "Stroke",
+      "placeholder": "Stroke"
+    },
+    "strokeWidth": {
+      "label": "Stroke width",
+      "placeholder": "Stroke width"
+    },
+    "opacity": {
+      "label": "Opacity %",
+      "placeholder": "Opacity %"
+    },
+    "text": {
+      "label": "Text",
+      "placeholder": "Text"
+    },
+    "fontSize": {
+      "label": "Font size",
+      "placeholder": "Font size"
+    },
+    "textColor": {
+      "label": "Text color",
+      "placeholder": "Text color"
+    },
+    "connectionLabel": {
+      "label": "Connection label",
+      "placeholder": "Connection label"
+    },
+    "pageName": {
+      "label": "Page name",
+      "placeholder": "Page name"
+    },
+    "background": {
+      "label": "Background",
+      "placeholder": "Background"
+    },
+    "search": {
+      "label": "Find a project…",
+      "placeholder": "Find a project…"
+    },
+    "componentName": {
+      "label": "Component name",
+      "placeholder": "Component name"
+    },
+    "parentFrame": {
+      "label": "Parent frame",
+      "placeholder": "Parent frame"
+    },
+    "widthMode": {
+      "label": "Width sizing",
+      "placeholder": "Width sizing"
+    },
+    "heightMode": {
+      "label": "Height sizing",
+      "placeholder": "Height sizing"
+    },
+    "layoutDirection": {
+      "label": "Direction",
+      "placeholder": "Direction"
+    },
+    "layoutAlign": {
+      "label": "Cross-axis alignment",
+      "placeholder": "Cross-axis alignment"
+    },
+    "layoutJustify": {
+      "label": "Distribution",
+      "placeholder": "Distribution"
+    },
+    "layoutGap": {
+      "label": "Gap",
+      "placeholder": "Gap"
+    },
+    "paddingTop": {
+      "label": "Top padding",
+      "placeholder": "Top padding"
+    },
+    "paddingRight": {
+      "label": "Right padding",
+      "placeholder": "Right padding"
+    },
+    "paddingBottom": {
+      "label": "Bottom padding",
+      "placeholder": "Bottom padding"
+    },
+    "paddingLeft": {
+      "label": "Left padding",
+      "placeholder": "Left padding"
+    },
+    "comment": {
+      "label": "Comment",
+      "placeholder": "Comment"
+    },
+    "fileTag": {
+      "label": "File tag",
+      "placeholder": "File tag"
+    },
+    "prototypeAction": {
+      "label": "Action",
+      "placeholder": "Action"
+    },
+    "prototypeTrigger": {
+      "label": "Trigger",
+      "placeholder": "Trigger"
+    },
+    "prototypeTarget": {
+      "label": "Destination",
+      "placeholder": "Destination"
+    },
+    "prototypeTransition": {
+      "label": "Transition",
+      "placeholder": "Transition"
+    },
+    "prototypeDuration": {
+      "label": "Duration (ms)",
+      "placeholder": "Duration (ms)"
+    }
+  },
+  "tools": {
+    "select": "Select",
+    "hand": "Pan",
+    "node": "Mind-map node",
+    "sticky": "Sticky note",
+    "connect": "Connector",
+    "frame": "Frame",
+    "rectangle": "Rectangle",
+    "ellipse": "Ellipse",
+    "diamond": "Diamond",
+    "text": "Text",
+    "path": "Pen",
+    "image": "Image",
+    "pen": "Vector pen"
+  },
+  "hints": {
+    "select": "Drag to move · Shift to select more · Scroll to pan",
+    "hand": "Drag to pan · Ctrl/⌘ + scroll to zoom",
+    "connect": "Choose two objects to connect",
+    "node": "Click to add · Drag to draw · Escape to cancel",
+    "sticky": "Click to add · Drag to draw · Escape to cancel",
+    "frame": "Click to add · Drag to draw · Escape to cancel",
+    "rectangle": "Click to add · Drag to draw · Escape to cancel",
+    "ellipse": "Click to add · Drag to draw · Escape to cancel",
+    "diamond": "Click to add · Drag to draw · Escape to cancel",
+    "text": "Click to add · Drag to draw · Escape to cancel",
+    "path": "Click to add · Drag to draw · Escape to cancel",
+    "image": "Click to add · Drag to draw · Escape to cancel",
+    "pen": "Click to add points. Click the first point to close; Enter finishes.",
+    "comment": "Click to pin a comment."
+  },
+  "align": {
+    "left": "Left",
+    "center": "Center",
+    "right": "Right",
+    "top": "Top",
+    "middle": "Middle",
+    "bottom": "Bottom"
+  },
+  "components": {
+    "library": "Components",
+    "nameHint": "Name this component",
+    "empty": "Select objects to create a reusable component.",
+    "insert": "Insert {{name}}",
+    "remove": "Remove {{name}} from library",
+    "instance": "Linked instance",
+    "overrideHint": "Alt-click an object or double-click its layer to edit an override. Updating the component preserves other instances’ overrides."
+  },
+  "layout": {
+    "title": "Auto-layout",
+    "frame": "Auto-layout frame",
+    "none": "No parent frame",
+    "fixed": "Fixed",
+    "hug": "Hug contents",
+    "fill": "Fill container",
+    "horizontal": "Horizontal",
+    "vertical": "Vertical",
+    "start": "Start",
+    "center": "Center",
+    "end": "End",
+    "stretch": "Stretch",
+    "space-between": "Space between"
+  },
+  "collaboration": {
+    "people": "People in this project",
+    "connecting": "Connecting…",
+    "live": "Live",
+    "offline": "Reconnecting · draft retained",
+    "share": "Copy project link",
+    "copied": "Link copied",
+    "shareHint": "Workspace members with access can join. Manage membership in workspace settings.",
+    "owner": "Owner",
+    "editor": "Editor",
+    "viewer": "Viewer"
+  },
+  "imports": {
+    "review": "Review import",
+    "summary": "{{pages}} pages · {{shapes}} objects · {{components}} components",
+    "changed": "Review these conversion differences before importing"
+  },
+  "importWarnings": {
+    "effects": "{{count}} objects: effects were omitted.",
+    "prototypes": "{{count}} objects: unsupported prototype interactions were omitted or simplified.",
+    "masks": "{{count}} objects: shape masks were omitted.",
+    "paints": "{{count}} objects: complex fills were simplified.",
+    "richText": "{{count}} objects: mixed text styles use one style.",
+    "paths": "{{count}} paths could not be fully converted.",
+    "images": "{{count}} images were unavailable, unsupported or above 1.4 MB.",
+    "layout": "{{count}} layouts were approximated or kept as fixed geometry.",
+    "components": "{{count}} component instances were expanded; original library links are not preserved.",
+    "transforms": "{{count}} transforms were approximated without skew or reflection.",
+    "unsupported": "{{count}} unsupported objects were omitted.",
+    "fonts": "{{count}} objects: font families were retained; unavailable fonts use a system fallback."
+  },
+  "vector": {
+    "title": "Vector editing",
+    "hint": "Select a node to edit its handles. Drag or use arrow keys; Enter finishes, Escape cancels a drag.",
+    "corner": "Corner",
+    "smooth": "Smooth",
+    "symmetric": "Symmetric"
+  },
+  "comments": {
+    "title": "Comments",
+    "openThread": "Open comment by {{name}}",
+    "loadFailed": "Comments could not be loaded.",
+    "empty": "No comments yet. Pin a comment on the drawing to start a discussion.",
+    "pinHint": "Click an object or a point on the drawing to place your comment."
+  },
+  "prototype": {
+    "title": "Prototype",
+    "preview": "Prototype preview",
+    "none": "No interaction",
+    "navigate": "Navigate to screen",
+    "overlay": "Open overlay",
+    "back": "Go back",
+    "close": "Close overlay",
+    "click": "On click",
+    "hover": "On hover",
+    "chooseTarget": "Choose a page or frame",
+    "instant": "Instant",
+    "dissolve": "Dissolve"
+  },
+  "tags": {
+    "title": "File tags",
+    "hint": "Find this file by tag in Redraw and workspace page mentions.",
+    "remove": "Remove #{{tag}}"
+  }
+}

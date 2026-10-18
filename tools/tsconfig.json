@@ -1,0 +1,11 @@
+{
+  "extends": "@monolith/configs/tsconfig/base.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["./src/**/*.ts"],
+  "exclude": ["./src/templates/**/*"]
+}

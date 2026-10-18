@@ -1,0 +1,202 @@
+{
+  "title": "技術實驗室",
+  "description": "管理家庭實驗室裝置、服務與觀測狀態。",
+  "navigation": "技術實驗室導覽",
+  "loading": "正在載入技術實驗室…",
+  "sections": {
+    "overview": "總覽",
+    "devices": "裝置",
+    "services": "服務",
+    "health": "健康狀態",
+    "import": "匯入與設定"
+  },
+  "items": {
+    "devices": "裝置",
+    "services": "服務"
+  },
+  "overview": {
+    "devices": "裝置",
+    "services": "服務與連結",
+    "up": "可連線",
+    "attention": "需要關注",
+    "title": "你的家庭實驗室",
+    "collector": "只要 monolith API 正在執行，已啟用的監視器就在背景檢查，即使瀏覽器已關閉。API 重新啟動後會恢復檢查。造訪技術實驗室或儲存已啟用的監視器也會註冊檢查。",
+    "updated": "快照更新於 {{date}}"
+  },
+  "kinds": {
+    "service": "託管服務",
+    "game": "遊戲伺服器",
+    "link": "連結與書籤"
+  },
+  "status": {
+    "up": "可連線",
+    "down": "無法連線",
+    "error": "檢查錯誤",
+    "stale": "資料過期",
+    "disabled": "已停用",
+    "unknown": "未知"
+  },
+  "monitors": {
+    "none": "不監視",
+    "http": "HTTP 可連線性",
+    "tcp": "TCP 連線",
+    "minecraft": "Minecraft 狀態"
+  },
+  "inputs": {
+    "name": "名稱",
+    "kind": "類型",
+    "host": "主機 / IP",
+    "os": "作業系統",
+    "cpu": "CPU",
+    "gpu": "GPU",
+    "ram_gb": "記憶體容量（GB）",
+    "storage": "儲存",
+    "location": "位置",
+    "management_url": "管理網址",
+    "glances_url": "Glances API 網址",
+    "notes": "備註",
+    "tags": "標籤",
+    "category": "分類",
+    "device": "所在裝置",
+    "service": "服務",
+    "url": "網頁網址（HTTP / HTTPS）",
+    "address": "其他位址（TCP / SMB / 遊戲）",
+    "description": "說明",
+    "monitor_kind": "監視協定",
+    "monitor_target": "監視網址 / 主機",
+    "monitor_port": "監視連接埠",
+    "monitor_enabled": "啟用伺服器監視",
+    "monitor_interval_seconds": "檢查間隔（秒）",
+    "auto_refresh_seconds": "頁面更新間隔（秒）",
+    "stale_after_multiplier": "過期門檻（未檢查的間隔數）",
+    "history_retention_days": "檢查歷史保留天數",
+    "format": "來源格式",
+    "file": "選擇清單檔案",
+    "source": "清單原始文字"
+  },
+  "filters": {
+    "allKinds": "所有類型",
+    "allDevices": "所有裝置",
+    "unassigned": "未指定裝置",
+    "allCategories": "所有分類",
+    "allTags": "所有標籤",
+    "allStatuses": "所有狀態",
+    "status": "監視狀態",
+    "results": "{{count}} / {{total}} 項目"
+  },
+  "devices": {
+    "empty": "尚無裝置。新增伺服器、電腦、NAS 或網路裝置。",
+    "glancesHelp": "使用不含嵌入憑證的 HTTP 或 HTTPS Glances API 網址。留空則不讀取遙測資料。",
+    "telemetry": "即時裝置遙測",
+    "telemetryDisabled": "未設定遙測",
+    "telemetryError": "遙測無法使用",
+    "utilization": "目前使用率",
+    "cpu": "CPU 使用率",
+    "ram": "記憶體使用率",
+    "memory": "記憶體：{{used}} / {{total}}",
+    "uptime": "裝置運作時間：{{hours}} 小時",
+    "filesystems": "檔案系統使用率",
+    "captured": "測量時間：{{date}}",
+    "openManagement": "開啟管理頁面",
+    "linkedServices": "託管服務（{{count}}）",
+    "noServices": "沒有服務連結至此裝置。"
+  },
+  "services": {
+    "empty": "尚無服務。新增託管應用程式、遊戲伺服器或連結。"
+  },
+  "health": {
+    "title": "觀測到的監視狀態",
+    "configuration": "監視設定",
+    "monitorHelp": "檢查衡量可連線性，不代表已登入應用程式的健康狀態。HTTP 401 和 403 表示端點可連線，但需要授權。僅檢查明確啟用的監視器。",
+    "latency": "最近延遲",
+    "observed24h": "可連線檢查比例 · 最近 24 小時",
+    "samples": "{{count}} 次觀測檢查",
+    "lastChecked": "最近檢查：{{date}}",
+    "nextCheck": "下次排程檢查：{{date}}",
+    "interval": "每 {{seconds}} 秒",
+    "range": "歷史範圍",
+    "ranges": {
+      "24": "最近 24 小時",
+      "168": "最近 7 天",
+      "720": "最近 30 天"
+    },
+    "failures": "最近 24 小時的失敗",
+    "failureCounts": "{{down}} 次無法連線 · {{errors}} 次檢查錯誤",
+    "observedHelp": "此比例依據目前監視設定的觀測檢查，包含檢查錯誤，並不代表連續運作時間。沒有樣本時狀態為未知。",
+    "players": "玩家：{{online}} / {{max}}",
+    "latencyHistory": "可連線檢查的延遲",
+    "historyHelp": "失敗與錯誤檢查在延遲圖中保留空白。歷史紀錄保留先前的監視目標與版本。",
+    "checkHistory": "檢查歷史（{{count}}）",
+    "noChecks": "此範圍內沒有檢查紀錄。",
+    "truncated": "此範圍超出歷史結果上限，僅顯示部分紀錄。",
+    "revision": "監視版本 {{revision}}",
+    "viewHistory": "檢視檢查歷史",
+    "editMonitor": "編輯監視器"
+  },
+  "settings": {
+    "title": "更新與保留設定",
+    "help": "頁面更新與各監視器的檢查間隔相互獨立。資料過期門檻按未檢查的間隔數計算。保留設定控制儲存的檢查紀錄。"
+  },
+  "messages": {
+    "unsaved": "你有未儲存的修改。繼續編輯或放棄修改後離開。",
+    "discardChanges": "放棄未儲存的修改？",
+    "newerVersion": "此項目已在其他位置變更。你的草稿已保留，過期版本的儲存會被拒絕。取消並重新開啟以載入最新版本。",
+    "deleteDevice": "刪除「{{name}}」？關聯服務將保留在清單中，但不再指定裝置。",
+    "deleteService": "刪除「{{name}}」？伺服器將保留已儲存的檢查快照。",
+    "notFound": "你的清單中沒有此項目。",
+    "noMatches": "沒有符合篩選條件的項目。",
+    "emptyInventory": "新增服務或審核 Homepage 匯入來建立清單。",
+    "failureHelp": "操作失敗。現有清單與編輯草稿仍可使用。重試或重新開啟最新項目後再儲存。"
+  },
+  "import": {
+    "title": "審核清單匯入",
+    "help": "上傳或貼上原生 JSON 清單或 Homepage 服務／書籤檔案。先預覽再套用。匯入合併項目並略過現有項目，不匯入來源憑證及不支援的小工具。",
+    "formats": {
+      "native-json": "原生 JSON 清單",
+      "homepage-services": "Homepage 服務（YAML / JSON）",
+      "homepage-bookmarks": "Homepage 書籤（YAML / JSON）"
+    },
+    "tooLarge": "來源檔案或貼上的內容不能超過 1 MiB。",
+    "readFailed": "無法讀取檔案。請重新選擇或貼上文字。",
+    "review": "審核匯入項目",
+    "counts": {
+      "devices": "裝置",
+      "services": "服務 / 遊戲",
+      "bookmarks": "連結 / 書籤",
+      "duplicates": "來源檔案中的重複項目"
+    },
+    "monitorsDisabled": "所有匯入的監視器預設停用。匯入後審核每個目標，再明確啟用監視。",
+    "applied": "已新增 {{devices}} 台裝置與 {{services}} 項服務／連結。",
+    "skipped": "已略過 {{devices}} 台現有裝置與 {{services}} 項現有服務／連結。",
+    "export": "匯出清單",
+    "exportHelp": "以 JSON 下載裝置、服務、監視設定與設定。不包含檢查歷史與憑證。匯入時合併清單並停用監視，不恢復設定或檢查歷史。"
+  },
+  "buttons": {
+    "save": "儲存",
+    "cancel": "取消",
+    "retry": "重試",
+    "refresh": "更新",
+    "edit": "編輯",
+    "delete": "刪除",
+    "back": "返回",
+    "clear": "清除",
+    "open": "開啟",
+    "details": "詳細資料",
+    "keepEditing": "繼續編輯",
+    "discardChanges": "放棄修改",
+    "clearFilters": "清除篩選",
+    "addDevice": "新增裝置",
+    "editDevice": "編輯裝置",
+    "addService": "新增服務",
+    "editService": "編輯服務",
+    "checkNow": "立即檢查",
+    "previewImport": "預覽匯入",
+    "applyImport": "套用已審核的匯入",
+    "exportInventory": "下載 JSON 清單",
+    "copyAddress": "複製位址"
+  },
+  "addDevice": "新增裝置",
+  "editDevice": "編輯裝置",
+  "addService": "新增服務",
+  "editService": "編輯服務"
+}

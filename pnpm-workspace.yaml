@@ -1,0 +1,35 @@
+packages:
+  - './apps/api'
+  - './apps/web'
+  - './apps/desktop'
+  - './apps/site'
+  - './packages/*'
+  - './modules/*'
+  - './locales/*'
+  - './tools'
+
+verifyDepsBeforeRun: false
+
+# Yjs uses constructor identity for CRDT values; all editor packages must share
+# one installed runtime and matching declaration types.
+overrides:
+  yjs: 13.6.33
+
+allowBuilds:
+  argon2: true
+  edgedriver: false
+  geckodriver: false
+  core-js: true
+  es5-ext: true
+  esbuild: true
+  fsevents: true
+  sharp: true
+  tesseract.js: true
+  zipfile: true
+
+minimumReleaseAgeExclude:
+  - '@aws-sdk/lib-storage@3.1145.0'
+  - '@aws-sdk/s3-request-presigner@3.1145.0'
+
+patchedDependencies:
+  drizzle-kit@1.0.0-rc.4: patches/drizzle-kit@1.0.0-rc.4.patch

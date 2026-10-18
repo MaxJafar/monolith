@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#191919" />
+    <title>monolith Gym · Offline</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --page: #191919;
+        --panel: #202020;
+        --text: #f4f4f5;
+        --muted: #a1a1aa;
+        --accent: #eeeeec;
+        --border: #36363f;
+        --space: 1rem;
+        --small: 0.5rem;
+        --radius: 0.75rem;
+        --control: 2.75rem;
+        --line: 1.5;
+        --font: Inter, system-ui, sans-serif;
+        --columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: var(--space);
+        background: var(--page);
+        color: var(--text);
+        font-family: var(--font);
+        line-height: var(--line);
+      }
+      main {
+        max-width: 76rem;
+        margin: auto;
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        overflow-wrap: anywhere;
+      }
+      nav,
+      .fields,
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--small);
+        align-items: center;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: var(--columns);
+        gap: var(--space);
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: var(--space);
+        margin-block: var(--space);
+        min-width: 0;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      button,
+      input,
+      textarea {
+        font: inherit;
+        color: var(--text);
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        min-height: var(--control);
+        padding: var(--small);
+        max-width: 100%;
+      }
+      button {
+        cursor: pointer;
+      }
+      button:focus-visible,
+      input:focus-visible,
+      textarea:focus-visible {
+        outline: 2px solid var(--accent);
+      }
+      button[aria-current='page'] {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      input[type='number'] {
+        width: 7rem;
+      }
+      input[type='checkbox'] {
+        width: var(--control);
+        accent-color: var(--accent);
+      }
+      label {
+        display: grid;
+        gap: var(--small);
+        font-size: 0.875rem;
+      }
+      textarea {
+        width: 100%;
+      }
+      .accent {
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>monolith <span class="accent">Gym</span></h1>
+      <p id="status" role="status"></p>
+      <p id="help" class="muted"></p>
+      <nav id="navigation" aria-label="Gym"></nav>
+      <div id="content"></div>
+      <div class="row">
+        <button id="reconnect" type="button">Reconnect</button>
+        <button id="clear" type="button">Remove device cache</button>
+      </div>
+    </main>
+    <script type="module" src="/zillion-gym-offline.js"></script>
+  </body>
+</html>

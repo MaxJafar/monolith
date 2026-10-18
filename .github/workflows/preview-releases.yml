@@ -1,0 +1,179 @@
+name: Publish Monolith unsigned installers
+
+on:
+  push:
+    tags: ['v*-preview.*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: monolith-preview-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  MONOLITH_MANUAL_RELEASE_FLAG: ${{ contains(github.ref_name, '-preview.') && '--preview' || '--unsigned' }}
+
+jobs:
+  desktop_web:
+    if: contains(github.ref_name, '-preview.')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm release:version
+      - run: pnpm desktop:bundle
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-web
+          path: apps/desktop/dist
+          if-no-files-found: error
+          retention-days: 7
+
+  clients:
+    needs: desktop_web
+    if: contains(github.ref_name, '-preview.')
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: windows-amd64
+          - os: macos-15-intel
+            target: darwin-universal
+    runs-on: ${{ matrix.os }}
+    env:
+      MONOLITH_BUILD_MEMORY_MIB: ${{ matrix.os == 'macos-15-intel' && '2048' || '4096' }}
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm release:version
+      - run: pnpm updater:test
+      - uses: actions/download-artifact@v4
+        with:
+          name: desktop-web
+          path: apps/desktop/dist
+      - name: Build and test Windows installer
+        if: runner.os == 'Windows'
+        run: |
+          pnpm desktop:windows:test
+          pnpm --dir apps/desktop exec tauri build --bundles nsis
+      - name: Build and test universal Mac installer
+        if: runner.os == 'macOS'
+        run: |
+          pnpm exec node tools/macos-build.mjs --test
+          pnpm exec node tools/macos-build.mjs
+      - run: pnpm exec node tools/preview-release.mjs client ${{ matrix.target }} ${{ env.MONOLITH_MANUAL_RELEASE_FLAG }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: preview-${{ matrix.target }}
+          path: dist/platform-releases/${{ github.ref_name }}/*
+          retention-days: 7
+          if-no-files-found: error
+
+  server:
+    if: contains(github.ref_name, '-preview.')
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            target: linux-amd64
+          - os: ubuntu-24.04-arm
+            target: linux-arm64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: pnpm
+      - uses: docker/setup-buildx-action@v3
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm release:version
+      - run: pnpm gateway:test
+      - run: pnpm release:platform server ${{ matrix.target }}
+      - run: pnpm exec node tools/preview-release.mjs kit ${{ env.MONOLITH_MANUAL_RELEASE_FLAG }}
+      - run: pnpm exec node tools/smoke-release-server.mjs ${{ matrix.target }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: preview-${{ matrix.target }}
+          path: |
+            dist/platform-releases/${{ github.ref_name }}/*.tar.gz
+            dist/platform-releases/${{ github.ref_name }}/*.part*
+            dist/platform-releases/${{ github.ref_name }}/*.artifact.json
+            dist/platform-releases/${{ github.ref_name }}/monolith-updater-*
+          retention-days: 7
+          if-no-files-found: error
+
+  extras:
+    if: contains(github.ref_name, '-preview.')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm release:version
+      - run: pnpm core:check
+      - run: pnpm typecheck
+      - run: pnpm exec node --test tools/platform-release.test.mjs tools/preview-release.test.mjs
+      - run: pnpm --filter @monolith/client test
+      - run: pnpm --filter @monolith/configs test
+      - run: pnpm --filter @monolith/module-runtime test
+      - run: pnpm --filter @monolith/server-utils test
+      - run: pnpm exec vitest run --config tools/vitest.addons.config.ts
+      - run: pnpm agent:test
+      - run: pnpm release:addons
+        env:
+          MONOLITH_RELEASE_PRIVATE_KEY: ${{ secrets.MONOLITH_ADDON_CATALOG_PRIVATE_KEY }}
+      - run: pnpm exec node tools/preview-release.mjs extras ${{ env.MONOLITH_MANUAL_RELEASE_FLAG }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: preview-extras
+          path: dist/platform-releases/${{ github.ref_name }}/*
+          retention-days: 7
+          if-no-files-found: error
+
+  publish:
+    needs: [clients, server, extras]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+      - run: pnpm release:version
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: preview-*
+          path: dist/platform-releases/${{ github.ref_name }}
+          merge-multiple: true
+      - run: pnpm exec node tools/preview-release.mjs manifest ${{ env.MONOLITH_MANUAL_RELEASE_FLAG }}
+      - name: Publish the complete manual release
+        run: pnpm exec node tools/publish-platform-release.mjs ${{ env.MONOLITH_MANUAL_RELEASE_FLAG }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          MONOLITH_RELEASE_NOTES_FILE: ${{ contains(github.ref_name, '-preview.') && 'release/PREVIEW.md' || 'release/UNSIGNED.md' }}

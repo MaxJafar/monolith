@@ -1,0 +1,128 @@
+import React, { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+
+import { encrypt, usePromiseLoading } from '@monolith/api'
+import type { EndpointClient } from '@monolith/api'
+
+import { Button, TextInput } from '@/components/inputs'
+import { Box, Flex, Icon, Text } from '@/components/primitives'
+import { toast } from '@/providers'
+
+export function LockedScreen({
+  challengeController,
+  verifyController,
+  onRecoveryRequested,
+  setMasterPassword
+}: {
+  challengeController: EndpointClient
+  verifyController: EndpointClient
+  onRecoveryRequested?: () => void
+  setMasterPassword: React.Dispatch<React.SetStateAction<string>>
+}) {
+  const [masterPassWordInputContent, setMasterPassWordInputContent] =
+    useState<string>('')
+
+  const { t } = useTranslation(['common.vault', 'common.fetch'])
+
+  async function handleSubmit(): Promise<void> {
+    if (masterPassWordInputContent.trim() === '') {
+      toast.error('Please fill in all the field')
+
+      return
+    }
+
+    try {
+      const challenge = (await challengeController.query()) as string
+
+      const data = await verifyController.mutate({
+        password: encrypt(masterPassWordInputContent, challenge)
+      } as never)
+
+      if (data === true) {
+        toast.success(
+          t('common.fetch:success', {
+            action: t('common.fetch:unlock')
+          })
+        )
+        setMasterPassword(masterPassWordInputContent)
+        setMasterPassWordInputContent('')
+      } else {
+        toast.error(
+          t('common.fetch:failure', {
+            action: t('common.fetch:unlock')
+          })
+        )
+      }
+    } catch {
+      toast.error(
+        t('common.fetch:failure', {
+          action: t('common.fetch:unlock')
+        })
+      )
+    }
+  }
+
+  const [loading, onSubmit] = usePromiseLoading(handleSubmit)
+
+  return (
+    <Flex
+      align="center"
+      direction="column"
+      gap="md"
+      height="100%"
+      justify="center"
+      width="100%"
+    >
+      <Text asChild>
+        <Icon icon="tabler:lock-access" size="7rem" />
+      </Text>
+      <Text align="center" size="4xl" weight="semibold">
+        {t('vault.lockedMessage')}
+      </Text>
+      <Text align="center" color="muted" mb="3xl" size="lg">
+        {t('vault.passwordRequired')}
+      </Text>
+      <Box width={{ base: '100%', md: '75%', xl: '50%' }}>
+        <TextInput
+          isPassword
+          icon="tabler:lock"
+          label="vault.inputs.masterPassword"
+          namespace="common.vault"
+          placeholder="••••••••••••••••"
+          value={masterPassWordInputContent}
+          onChange={setMasterPassWordInputContent}
+          onKeyDown={e => {
+            if (e.key === 'Enter') {
+              onSubmit().catch(console.error)
+            }
+          }}
+        />
+      </Box>
+      <Box mt="lg" width={{ base: '100%', md: '75%', xl: '50%' }}>
+        <Button
+          icon="tabler:lock"
+          loading={loading}
+          namespace="common.vault"
+          width="100%"
+          onClick={() => {
+            onSubmit().catch(console.error)
+          }}
+        >
+          vault.buttons.unlock
+        </Button>
+        {onRecoveryRequested && (
+          <Button
+            icon="tabler:lock-open"
+            mt="sm"
+            namespace="common.vault"
+            variant="plain"
+            width="100%"
+            onClick={onRecoveryRequested}
+          >
+            vault.buttons.recoverAccount
+          </Button>
+        )}
+      </Box>
+    </Flex>
+  )
+}

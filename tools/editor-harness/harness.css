@@ -1,0 +1,90 @@
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  font:
+    15px/1.6 Inter,
+    system-ui,
+    sans-serif;
+  color: #252525;
+  background: #fff;
+}
+header {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid #e8e8e5;
+  padding: 16px 32px;
+}
+header a {
+  font-weight: 750;
+  letter-spacing: -0.04em;
+  font-size: 24px;
+  color: inherit;
+  text-decoration: none;
+}
+header span,
+.harness-hint {
+  color: #73736f;
+}
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 16px 32px;
+}
+button {
+  color: inherit;
+  background: #f7f7f5;
+  border: 1px solid #e2e2df;
+  border-radius: 6px;
+  padding: 7px 12px;
+  cursor: pointer;
+  font: inherit;
+}
+button:hover {
+  background: #ededeb;
+}
+.harness-hint {
+  margin: 0 32px 32px;
+}
+.harness-document {
+  max-width: 1000px;
+  margin: auto;
+  padding: 0 48px 120px;
+}
+.harness-embed {
+  border: 1px solid #e2e2df;
+  border-radius: 6px;
+  padding: 16px;
+}
+.harness-embed > span {
+  display: block;
+  color: #73736f;
+}
+.harness-embed table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  margin-top: 16px;
+}
+.harness-embed th,
+.harness-embed td {
+  padding: 8px;
+  border: 1px solid #e2e2df;
+}
+.harness-embed input {
+  width: 100%;
+  font: inherit;
+  border: 0;
+  background: transparent;
+}
+.harness-embed small {
+  color: #73736f;
+}
+pre {
+  white-space: pre-wrap;
+  max-width: 1000px;
+  margin: auto;
+  overflow-wrap: anywhere;
+}

@@ -1,0 +1,218 @@
+import { decrypt, encrypt } from '@functions/auth/encryption'
+import { eq } from 'drizzle-orm'
+import speakeasy from 'speakeasy'
+import { v4 } from 'uuid'
+import z from 'zod'
+
+import { users } from '../../user/schema.drizzle'
+import { getCookieOptions } from '../constants/cookie'
+import endpoints from '../endpoints'
+import { pending2FASessions, pendingTOTPSetups } from '../utils/2fa'
+import { storeRefreshToken } from '../utils/refreshTokenStore'
+import {
+  generateFamily,
+  generateRefreshToken,
+  signAccessToken
+} from '../utils/tokens'
+
+const MASTER_KEY = process.env.MASTER_KEY!
+
+export const generate = endpoints
+  .mutation({
+    description: 'Generate 2FA authenticator app setup link',
+    encrypted: false,
+    input: {},
+    output: {
+      OK: z.object({
+        tid: z.string(),
+        link: z.string()
+      })
+    }
+  })
+  .callback(async ({ res, db, response }) => {
+    const user = await db.query.users.findFirst({
+      where: { id: res.locals.userId as string }
+    })
+
+    if (!user) {
+      return response.unauthorized()
+    }
+
+    const secret = speakeasy.generateSecret({
+      name: user.email,
+      length: 32,
+      issuer: 'Monolith'
+    }).base32
+
+    const tid = v4()
+
+    pendingTOTPSetups.set(tid, { secret, userId: user.id })
+
+    const otpauthUrl = `otpauth://totp/${encodeURIComponent(user.email)}?secret=${secret}&issuer=Monolith`
+
+    return response.ok({
+      tid,
+      link: otpauthUrl
+    })
+  })
+
+export const enable = endpoints
+  .mutation({
+    description: 'Verify OTP and enable two-factor authentication',
+    encrypted: false,
+    input: {
+      body: z.object({
+        otp: z.string(),
+        tid: z.string()
+      })
+    },
+    output: {
+      NO_CONTENT: true
+    }
+  })
+  .callback(async ({ res, db, body: { otp, tid }, response }) => {
+    const pending = pendingTOTPSetups.get(tid)
+
+    if (!pending || pending.userId !== res.locals.userId) {
+      return response.unauthorized()
+    }
+
+    const verified = speakeasy.totp.verify({
+      secret: pending.secret,
+      encoding: 'base32',
+      token: otp,
+      window: 1
+    })
+
+    if (!verified) {
+      return response.unauthorized()
+    }
+
+    // Only consume the setup session once verification succeeds, so a wrong or
+    // late code can be retried within the TTL.
+    pendingTOTPSetups.del(tid)
+
+    const user = await db.query.users.findFirst({
+      where: { id: res.locals.userId as string }
+    })
+
+    if (!user) {
+      return response.unauthorized()
+    }
+
+    await db
+      .update(users)
+      .set({
+        twoFASecret: encrypt(Buffer.from(pending.secret), MASTER_KEY).toString(
+          'base64'
+        ),
+        updated: new Date()
+      })
+      .where(eq(users.id, user.id))
+
+    return response.noContent()
+  })
+
+export const disable = endpoints
+  .mutation({
+    description: 'Disable two-factor authentication',
+    encrypted: false,
+    input: {},
+    output: {
+      NO_CONTENT: true
+    }
+  })
+  .callback(async ({ res, db, response }) => {
+    const user = await db.query.users.findFirst({
+      where: { id: res.locals.userId as string }
+    })
+
+    if (!user) {
+      return response.unauthorized()
+    }
+
+    await db
+      .update(users)
+      .set({ twoFASecret: null, updated: new Date() })
+      .where(eq(users.id, user.id))
+
+    return response.noContent()
+  })
+
+export const verify = endpoints
+  .mutation({
+    description: 'Verify two-factor authentication code during login',
+    noAuth: true,
+    encrypted: false,
+    input: {
+      body: z.object({
+        otp: z.string(),
+        tid: z.string()
+      })
+    },
+    output: {
+      OK: z.object({
+        accessToken: z.string()
+      })
+    }
+  })
+  .callback(async ({ db, body: { otp, tid }, req, res, response }) => {
+    const pending = pending2FASessions.get(tid)
+
+    if (!pending) {
+      return response.unauthorized()
+    }
+
+    const user = await db.query.users.findFirst({
+      where: { id: pending.userId }
+    })
+
+    const encryptedSecret = user?.twoFASecret
+
+    if (!encryptedSecret) {
+      return response.unauthorized()
+    }
+
+    const secret = decrypt(
+      Buffer.from(encryptedSecret, 'base64'),
+      MASTER_KEY
+    ).toString('utf-8')
+
+    const verified = speakeasy.totp.verify({
+      secret,
+      encoding: 'base32',
+      token: otp,
+      window: 1
+    })
+
+    if (!verified) {
+      return response.unauthorized()
+    }
+
+    // Only consume the login session once verification succeeds, so a wrong or
+    // late code can be retried within the TTL.
+    pending2FASessions.del(tid)
+
+    const userId = pending.userId
+    const ip = req.ip || req.socket.remoteAddress || '127.0.0.1'
+
+    const accessToken = signAccessToken(userId)
+    const refreshToken = generateRefreshToken()
+    const family = generateFamily()
+
+    await storeRefreshToken({
+      userId,
+      token: refreshToken,
+      family,
+      ip
+    })
+
+    res.cookie('refresh_token', refreshToken, getCookieOptions(req))
+    res.cookie('access_token', accessToken, {
+      ...getCookieOptions(req),
+      path: '/',
+      maxAge: 15 * 60 * 1000
+    })
+
+    return response.ok({ accessToken })
+  })

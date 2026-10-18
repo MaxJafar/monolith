@@ -1,0 +1,156 @@
+/* Shared board anatomy for project tasks and connected database pages. */
+.monolith-board {
+  scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain;
+  scrollbar-gutter: stable;
+  scroll-padding-inline: 4px;
+}
+.monolith-board-column {
+  background: color-mix(in srgb, var(--text-primary) 3%, var(--bg-primary));
+  border: 1px solid transparent;
+  scroll-snap-align: start;
+  transition:
+    background-color var(--motion-fast) var(--motion-ease),
+    border-color var(--motion-fast) var(--motion-ease);
+}
+.monolith-board-column[data-over='true'] {
+  background: color-mix(in srgb, var(--text-primary) 7%, var(--bg-primary));
+  border-color: var(--text-muted);
+}
+.monolith-board-column h3 {
+  font-size: 14px;
+  letter-spacing: normal;
+  line-height: 1.5;
+}
+.monolith-board-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--card-shadow);
+  overflow-wrap: anywhere;
+  transition:
+    border-color var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease),
+    transform var(--motion-standard) var(--motion-ease),
+    opacity var(--motion-fast);
+  animation: monolith-card-enter 380ms var(--motion-ease);
+  transform-origin: top center;
+}
+.monolith-board-card[draggable='true'] {
+  cursor: grab;
+}
+.monolith-board-card:hover,
+.monolith-board-card:focus-within {
+  border-color: var(--border-medium);
+  box-shadow: 0 3px 10px #0000000a;
+}
+.monolith-board-card[data-dragging='true'] {
+  opacity: 0.35;
+  transform: scale(0.98);
+}
+.monolith-board-card-link {
+  text-decoration: none;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+.monolith-board-card-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+.monolith-board-card-link:focus-visible {
+  outline-offset: 4px;
+}
+.monolith-board-actions {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity var(--motion-fast);
+}
+.monolith-board-card:hover .monolith-board-actions,
+.monolith-board-card:focus-within .monolith-board-actions,
+.monolith-board-actions[data-state='open'] {
+  opacity: 1;
+}
+.monolith-board-create {
+  color: var(--text-muted);
+}
+.monolith-board-create:hover {
+  color: var(--text-primary);
+}
+.monolith-project-title {
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  background: transparent;
+  cursor: pointer;
+  padding-block: 3px;
+}
+.monolith-project-title:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.monolith-task-assignee {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+  font-size: 12px;
+}
+.monolith-task-assignee:hover {
+  color: var(--text-primary);
+}
+.monolith-board-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.monolith-view-tabs {
+  border-bottom: 1px solid var(--border-subtle);
+}
+.monolith-view-tabs [aria-current='page'] {
+  box-shadow: inset 0 -2px var(--text-primary);
+  border-radius: 0;
+}
+@keyframes monolith-card-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.975, 1.025) rotate(-0.4deg);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-1px) scale(1.009, 0.993) rotate(0.2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .monolith-board-card {
+    animation: none;
+    transition: none;
+    transform: none !important;
+  }
+  .monolith-board-column,
+  .monolith-board-actions {
+    transition: none;
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  .monolith-board-card:hover {
+    transform: translateY(-1px);
+  }
+}
+@media (pointer: coarse), (max-width: 700px) {
+  .monolith-board-actions {
+    opacity: 1;
+  }
+  .monolith-board-actions,
+  .monolith-board-column button[aria-label] {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

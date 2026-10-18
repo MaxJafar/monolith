@@ -1,0 +1,4 @@
+{
+  "extends": "@monolith/configs/tsconfig/module-server.json",
+  "include": ["./**/*", "../shared.ts"]
+}

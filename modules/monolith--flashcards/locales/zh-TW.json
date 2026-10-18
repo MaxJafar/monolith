@@ -1,0 +1,54 @@
+{
+  "title": "閃卡",
+  "description": "建立學習卡組，透過間隔複習鞏固記憶。",
+  "create": "建立",
+  "edit": "編輯",
+  "save": "儲存",
+  "cancel": "取消",
+  "delete": "刪除",
+  "confirmDelete": "刪除此記錄及其關聯項目？",
+  "empty": "尚無記錄，建立第一筆記錄。",
+  "noResults": "沒有符合的記錄。",
+  "loading": "載入中…",
+  "retry": "重試",
+  "none": "無",
+  "yes": "是",
+  "no": "否",
+  "saveFailed": "無法儲存記錄。",
+  "study": "學習",
+  "reveal": "顯示答案",
+  "again": "再來一次",
+  "good": "記住了",
+  "finished": "所有卡片已複習。",
+  "search": "搜尋",
+  "board": "看板",
+  "manage": "管理",
+  "entities": {
+    "tags": "標籤",
+    "decks": "卡組",
+    "cards": "卡片"
+  },
+  "inputs": {
+    "search": "搜尋",
+    "name": "名稱",
+    "color": "顏色",
+    "description": "描述",
+    "tag_id": "標籤",
+    "question": "問題",
+    "answer": "答案",
+    "deck_id": "卡組"
+  },
+  "options": {
+    "private": "私密",
+    "public": "公開",
+    "unlisted": "不公開列出",
+    "note": "筆記",
+    "folder": "資料夾"
+  },
+  "manageWidget": "管理牌組與卡片",
+  "widgets": {
+    "flashcardStudy": {
+      "title": "閃卡"
+    }
+  }
+}

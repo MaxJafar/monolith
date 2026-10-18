@@ -1,0 +1,35 @@
+{
+  "name": "@monolith/site",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Monolith product website and public documentation",
+  "homepage": "https://monolith-site-maxjafars-projects.vercel.app",
+  "author": "Monolith contributors",
+  "license": "CC BY-NC-SA 4.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MaxJafar/monolith.git",
+    "directory": "apps/site"
+  },
+  "scripts": {
+    "dev": "astro dev --host 127.0.0.1 --port 4321",
+    "build": "node \"../../tools/build-guard.mjs\" --task build",
+    "preview": "astro preview --host 127.0.0.1 --port 4321",
+    "typecheck": "astro check",
+    "verify": "node scripts/verify.mjs",
+    "stage:deploy": "node scripts/stage.mjs",
+    "format": "prettier --write --config .prettierrc.json src scripts tests *.json *.ts *.mjs README.md"
+  },
+  "dependencies": {
+    "astro": "7.4.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.10",
+    "prettier-plugin-astro": "1.1.1",
+    "typescript": "npm:@typescript/typescript6@6.0.2"
+  },
+  "monolithBuilds": {
+    "build": "astro build"
+  }
+}

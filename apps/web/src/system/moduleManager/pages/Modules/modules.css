@@ -1,0 +1,256 @@
+.addon-manager {
+  color: var(--text-primary);
+  margin: 0 auto;
+}
+.addon-workspace {
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border-subtle);
+}
+.addon-status-tabs {
+  padding: 3px;
+  border-radius: var(--radius-md);
+  background: var(--bg-sidebar);
+}
+.addon-status-tabs button {
+  transition:
+    background-color var(--motion-fast),
+    box-shadow var(--motion-fast),
+    color var(--motion-fast);
+}
+.addon-status-tabs button[aria-pressed='true'] {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  box-shadow: 0 1px 3px #00000012;
+}
+.addon-search {
+  width: 17rem;
+}
+.addon-search .monolith-input {
+  padding: 9px 12px;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  box-shadow: none;
+}
+.addon-filter-select {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 7px 28px 7px 10px;
+  max-width: 100%;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.addon-filter-select:focus-visible,
+.addon-toggle button:focus-visible {
+  outline: 2px solid var(--selection-color);
+  outline-offset: 3px;
+}
+.addon-result-count {
+  margin-left: auto;
+}
+.addon-card {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+  animation: addon-reveal 180ms var(--motion-ease) both;
+  transition:
+    border-color var(--motion-fast),
+    box-shadow var(--motion-fast);
+}
+.addon-card:hover,
+.addon-card:focus-within {
+  border-color: var(--border-medium);
+  box-shadow: var(--card-shadow);
+}
+.addon-card[data-enabled='true'] {
+  border-color: color-mix(in srgb, var(--text-primary) 22%, transparent);
+}
+.addon-icon {
+  background: var(--bg-sidebar);
+  color: var(--text-primary);
+}
+.addon-toggle button[role='switch'] {
+  width: 38px;
+  height: 22px;
+  background: var(--bg-lifted);
+  border: 1px solid var(--border-medium);
+  transition:
+    background-color 180ms var(--motion-ease),
+    box-shadow 180ms ease;
+}
+.addon-toggle button[aria-checked='true'] {
+  background: var(--interactive-primary);
+  border-color: transparent;
+}
+.addon-toggle button[role='switch'] > span {
+  width: 14px;
+  height: 14px;
+  transition:
+    transform 220ms var(--motion-spring),
+    background-color 180ms ease;
+}
+.addon-toggle button[aria-checked='true'] > span {
+  transform: translateX(8px) !important;
+}
+.addon-toggle button[aria-checked='false'] > span {
+  transform: translateX(-8px) !important;
+}
+.addon-tag {
+  padding: 3px 7px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-sidebar);
+}
+.addon-card-footer {
+  margin-top: auto;
+  padding-top: 8px;
+}
+.addon-special .urpg-panel {
+  border: 0;
+  background: transparent;
+  height: 100%;
+}
+.addon-empty,
+.addon-developer {
+  border-top: 1px solid var(--border-subtle);
+}
+.addon-developer summary {
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.addon-developer pre {
+  background: var(--bg-sidebar);
+  font-size: 12px;
+}
+.addon-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+@keyframes addon-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (max-width: 640px) {
+  .addon-search {
+    width: 100%;
+  }
+  .addon-status-tabs {
+    width: 100%;
+  }
+  .addon-status-tabs button {
+    flex: 1;
+  }
+  .addon-result-count {
+    width: 100%;
+    margin-left: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .addon-manager *,
+  .addon-manager *::before,
+  .addon-manager *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+.shop-title {
+  font-size: clamp(28px, 3vw, 40px);
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+}
+.shop-eyebrow {
+  letter-spacing: 0.12em;
+}
+.shop-summary {
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border-subtle);
+}
+.shop-sections {
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 8px;
+  overflow-x: auto;
+}
+.shop-sections button {
+  white-space: nowrap;
+  transition:
+    background-color var(--motion-fast),
+    transform var(--motion-fast);
+}
+.shop-sections button[aria-pressed='true'] {
+  background: var(--interactive-primary);
+  color: var(--interactive-on-primary);
+}
+.shop-card {
+  min-height: 270px;
+}
+.shop-card-actions {
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+}
+.shop-enable {
+  margin-left: auto;
+}
+.shop-detail {
+  max-width: 360px;
+}
+.shop-detail-note,
+.shop-widget-preview {
+  background: var(--bg-sidebar);
+}
+.shop-widget-preview {
+  max-height: 340px;
+  overflow-y: auto;
+}
+.shop-widget-popover {
+  max-height: 75vh;
+  overflow-y: auto;
+}
+.shop-update {
+  padding: 3px 6px;
+  border: 1px solid var(--border-medium);
+  border-radius: 4px;
+}
+.shop-progress progress {
+  height: 5px;
+  border: 0;
+  border-radius: 5px;
+  overflow: hidden;
+  accent-color: var(--text-primary);
+}
+.shop-progress progress::-webkit-progress-bar {
+  background: var(--bg-lifted);
+}
+.shop-progress progress::-webkit-progress-value {
+  background: var(--text-primary);
+  transition: width 180ms linear;
+}
+.shop-footer {
+  border-top: 1px solid var(--border-subtle);
+}
+@media (max-width: 700px) {
+  .shop-sections button {
+    flex: 1;
+  }
+  .shop-card {
+    min-height: 240px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .shop-sections button,
+  .shop-progress progress::-webkit-progress-value {
+    transition: none;
+  }
+}

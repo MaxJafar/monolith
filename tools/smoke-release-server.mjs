@@ -8,7 +8,8 @@ if (process.env.CI !== 'true' || process.platform !== 'linux')
 const target = process.argv[2]
 if (!['linux-amd64', 'linux-arm64'].includes(target))
   throw Error('Invalid server target')
-const { version } = JSON.parse(await fs.readFile('package.json', 'utf8'))
+const manifest = JSON.parse(await fs.readFile('package.json', 'utf8'))
+const { version } = manifest
 const kit = path.resolve('.temp', `server-kit-${version}`)
 const project = 'monolith-release-test'
 const rehearse = process.argv.includes('--updates')
@@ -17,8 +18,12 @@ const baselineImage = `monolith-rehearsal:baseline-${target}`
 if (rehearse) {
   const dockerfile = path.join(kit, 'Dockerfile.baseline')
   await fs.writeFile(
+    path.join(kit, 'package.baseline.json'),
+    JSON.stringify({ ...manifest, version: '0.0.0' }, null, 2) + '\n'
+  )
+  await fs.writeFile(
     dockerfile,
-    `FROM ${candidateImage}\nLABEL org.opencontainers.image.version=0.0.0\nENV MONOLITH_RELEASE_VERSION=0.0.0\n`
+    `FROM ${candidateImage}\nCOPY --chown=node:node package.baseline.json /monolith/package.json\nLABEL org.opencontainers.image.version=0.0.0\nENV MONOLITH_RELEASE_VERSION=0.0.0\n`
   )
   const built = spawnSync(
     'docker',

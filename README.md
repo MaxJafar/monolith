@@ -10,7 +10,7 @@
 
 Your pages, projects and everyday tools in one self-hosted workspace.<br />Use the web, Windows or macOS. Connect your agents. Add the tools that fit your day.
 
-[![Unsigned release](https://img.shields.io/badge/release-0.1.7_unsigned-555555?style=flat)](https://github.com/MaxJafar/monolith/releases/tag/v0.1.7) [![Self-hosted](https://img.shields.io/badge/hosting-self--hosted-222222?style=flat)](https://monolith-site-maxjafars-projects.vercel.app/docs/self-hosting) [![MCP and CLI](https://img.shields.io/badge/agents-MCP_%2B_CLI-555555?style=flat)](https://monolith-site-maxjafars-projects.vercel.app/docs/agents)
+[![Unsigned release](https://img.shields.io/badge/release-0.1.8_unsigned-555555?style=flat)](https://github.com/MaxJafar/monolith/releases/tag/v0.1.8) [![Self-hosted](https://img.shields.io/badge/hosting-self--hosted-222222?style=flat)](https://monolith-site-maxjafars-projects.vercel.app/docs/self-hosting) [![MCP and CLI](https://img.shields.io/badge/agents-MCP_%2B_CLI-555555?style=flat)](https://monolith-site-maxjafars-projects.vercel.app/docs/agents)
 
 **[Website](https://monolith-site-maxjafars-projects.vercel.app)** · **[Documentation](https://monolith-site-maxjafars-projects.vercel.app/docs)** · **[Quickstart](https://monolith-site-maxjafars-projects.vercel.app/docs/quickstart)** · **[Addons and Widgets](https://monolith-site-maxjafars-projects.vercel.app/addons)** · **[Releases](https://github.com/MaxJafar/monolith/releases)**
 
@@ -89,10 +89,10 @@ Build and sign in before generating configuration. Follow the **[MCP and CLI gui
 ## Get started
 
 - **Browser** — Run a local development workspace or connect to your configured host.
-- **Desktop** — Download the [Windows x64 installer](https://github.com/MaxJafar/monolith/releases/download/v0.1.7/monolith-0.1.7-windows-amd64.exe) or [universal macOS disk image](https://github.com/MaxJafar/monolith/releases/download/v0.1.7/monolith-0.1.7-darwin-universal.dmg).
-- **Self-host** — Download a Linux server image and the [setup kit](https://github.com/MaxJafar/monolith/releases/download/v0.1.7/monolith-0.1.7-server-kit.zip) from the [release](https://github.com/MaxJafar/monolith/releases/tag/v0.1.7), then follow the [installation guide](release/INSTALL.md).
+- **Desktop** — Download the [Windows x64 installer](https://github.com/MaxJafar/monolith/releases/download/v0.1.8/monolith-0.1.8-windows-amd64.exe) or [universal macOS disk image](https://github.com/MaxJafar/monolith/releases/download/v0.1.8/monolith-0.1.8-darwin-universal.dmg).
+- **Self-host** — Download a Linux server image and the [setup kit](https://github.com/MaxJafar/monolith/releases/download/v0.1.8/monolith-0.1.8-server-kit.zip) from the [release](https://github.com/MaxJafar/monolith/releases/tag/v0.1.8), then follow the [installation guide](release/INSTALL.md).
 
-> **[Download 0.1.7](https://github.com/MaxJafar/monolith/releases/tag/v0.1.7):** Windows, macOS, Linux x64/ARM64, 14 addon and widget packages, and the CLI/MCP bridge. Automatic updates are enabled with authenticated downloads, progress and rollback. Windows installers remain unsigned and macOS is not notarized. Older clients need this installer once to receive the trusted update key. See [installation instructions](release/INSTALL.md) and [checksums](https://github.com/MaxJafar/monolith/releases/download/v0.1.7/SHA256SUMS).
+> **[Download 0.1.8](https://github.com/MaxJafar/monolith/releases/tag/v0.1.8):** Windows, macOS, Linux x64/ARM64, 14 addon and widget packages, and the CLI/MCP bridge. This release adds calendar drag and resize, recurring tasks/events, shared invitations and reminders. Automatic updates use authenticated downloads, progress and rollback. Windows installers remain unsigned and macOS is not notarized. Clients from 0.1.3 and preview builds need this installer once; 0.1.7 clients update automatically. Servers need the [calendar schema migration](docs/CALENDAR.md) before activating 0.1.8. See [installation instructions](release/INSTALL.md) and [checksums](https://github.com/MaxJafar/monolith/releases/download/v0.1.8/SHA256SUMS).
 
 <details>
 <summary><strong>Run the development workspace from source</strong></summary>

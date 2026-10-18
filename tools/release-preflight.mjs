@@ -9,8 +9,6 @@ export function releaseProblems(env, pinnedKey) {
     'MONOLITH_RELEASE_PUBLIC_KEY',
     'MONOLITH_RELEASE_PRIVATE_KEY',
     'MONOLITH_ADDON_CATALOG_PRIVATE_KEY',
-    'WINDOWS_CERTIFICATE_P12',
-    'WINDOWS_CERTIFICATE_PASSWORD',
     'MACOS_CERTIFICATE_P12',
     'MACOS_CERTIFICATE_PASSWORD',
     'MACOS_SIGN_IDENTITY',
@@ -18,6 +16,17 @@ export function releaseProblems(env, pinnedKey) {
     'APPLE_ID',
     'APPLE_APP_PASSWORD'
   ]
+  const provider = env.WINDOWS_SIGNING_PROVIDER || 'esigner'
+  if (provider === 'esigner')
+    required.push(
+      'ESIGNER_USERNAME',
+      'ESIGNER_PASSWORD',
+      'ESIGNER_CREDENTIAL_ID',
+      'ESIGNER_TOTP_SECRET'
+    )
+  else if (provider === 'pfx')
+    required.push('WINDOWS_CERTIFICATE_P12', 'WINDOWS_CERTIFICATE_PASSWORD')
+  else problems.push('WINDOWS_SIGNING_PROVIDER must be esigner or pfx')
   for (const name of required)
     if (!env[name]?.trim()) problems.push(`Missing ${name}`)
   const publicDer = value => {

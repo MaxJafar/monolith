@@ -14,6 +14,7 @@ concurrency:
 
 env:
   MONOLITH_SIGNED_RELEASE: '1'
+  WINDOWS_SIGNING_PROVIDER: ${{ vars.WINDOWS_SIGNING_PROVIDER || 'esigner' }}
   MONOLITH_RELEASE_PUBLIC_KEY: ${{ vars.MONOLITH_RELEASE_PUBLIC_KEY }}
 
 jobs:
@@ -32,6 +33,10 @@ jobs:
         env:
           MONOLITH_RELEASE_PRIVATE_KEY: ${{ secrets.MONOLITH_RELEASE_PRIVATE_KEY }}
           MONOLITH_ADDON_CATALOG_PRIVATE_KEY: ${{ secrets.MONOLITH_ADDON_CATALOG_PRIVATE_KEY }}
+          ESIGNER_USERNAME: ${{ secrets.ESIGNER_USERNAME }}
+          ESIGNER_PASSWORD: ${{ secrets.ESIGNER_PASSWORD }}
+          ESIGNER_CREDENTIAL_ID: ${{ secrets.ESIGNER_CREDENTIAL_ID }}
+          ESIGNER_TOTP_SECRET: ${{ secrets.ESIGNER_TOTP_SECRET }}
           WINDOWS_CERTIFICATE_P12: ${{ secrets.WINDOWS_CERTIFICATE_P12 }}
           WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
           MACOS_CERTIFICATE_P12: ${{ secrets.MACOS_CERTIFICATE_P12 }}
@@ -76,21 +81,65 @@ jobs:
         run: |
           pnpm desktop:windows:test
           pnpm --dir apps/desktop exec tauri build --no-bundle
-      - name: Sign Windows binaries
-        if: runner.os == 'Windows'
+      - name: Sign Windows binaries with PFX
+        if: runner.os == 'Windows' && env.WINDOWS_SIGNING_PROVIDER == 'pfx'
         env:
           WINDOWS_CERTIFICATE_P12: ${{ secrets.WINDOWS_CERTIFICATE_P12 }}
           WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
         run: pnpm exec node tools/sign-windows-release.mjs binaries
+      - name: Prepare Windows binaries for eSigner
+        if: runner.os == 'Windows' && env.WINDOWS_SIGNING_PROVIDER == 'esigner'
+        run: pnpm exec node tools/sign-windows-release.mjs binaries --prepare-cloud
+      - name: Cloud-sign Windows binaries
+        if: runner.os == 'Windows' && env.WINDOWS_SIGNING_PROVIDER == 'esigner'
+        uses: SSLcom/esigner-codesign@cf5f6c1d38ad10f47e3ed9aca873f429b1a8d85b # v1.3.2
+        with:
+          command: batch_sign
+          username: ${{ secrets.ESIGNER_USERNAME }}
+          password: ${{ secrets.ESIGNER_PASSWORD }}
+          credential_id: ${{ secrets.ESIGNER_CREDENTIAL_ID }}
+          totp_secret: ${{ secrets.ESIGNER_TOTP_SECRET }}
+          dir_path: ${{ github.workspace }}/.temp/windows-signing/binaries/input
+          output_path: ${{ github.workspace }}/.temp/windows-signing/binaries/signed
+          environment_name: PROD
+          signing_method: v2
+          malware_block: true
+          clean_logs: true
+          jvm_max_memory: 512M
+      - name: Verify and collect Windows binaries
+        if: runner.os == 'Windows' && env.WINDOWS_SIGNING_PROVIDER == 'esigner'
+        run: pnpm exec node tools/sign-windows-release.mjs binaries --collect-cloud
       - name: Bundle Windows installer
         if: runner.os == 'Windows'
         run: pnpm --dir apps/desktop exec tauri bundle --bundles nsis --no-binary-patching
-      - name: Sign Windows installer
-        if: runner.os == 'Windows'
+      - name: Sign Windows installer with PFX
+        if: runner.os == 'Windows' && env.WINDOWS_SIGNING_PROVIDER == 'pfx'
         env:
           WINDOWS_CERTIFICATE_P12: ${{ secrets.WINDOWS_CERTIFICATE_P12 }}
           WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
         run: pnpm exec node tools/sign-windows-release.mjs installers
+      - name: Prepare Windows installers for eSigner
+        if: runner.os == 'Windows' && env.WINDOWS_SIGNING_PROVIDER == 'esigner'
+        run: pnpm exec node tools/sign-windows-release.mjs installers --prepare-cloud
+      - name: Cloud-sign Windows installers
+        if: runner.os == 'Windows' && env.WINDOWS_SIGNING_PROVIDER == 'esigner'
+        uses: SSLcom/esigner-codesign@cf5f6c1d38ad10f47e3ed9aca873f429b1a8d85b # v1.3.2
+        with:
+          command: batch_sign
+          username: ${{ secrets.ESIGNER_USERNAME }}
+          password: ${{ secrets.ESIGNER_PASSWORD }}
+          credential_id: ${{ secrets.ESIGNER_CREDENTIAL_ID }}
+          totp_secret: ${{ secrets.ESIGNER_TOTP_SECRET }}
+          dir_path: ${{ github.workspace }}/.temp/windows-signing/installers/input
+          output_path: ${{ github.workspace }}/.temp/windows-signing/installers/signed
+          environment_name: PROD
+          signing_method: v2
+          malware_block: true
+          clean_logs: true
+          jvm_max_memory: 512M
+      - name: Verify and collect Windows installers
+        if: runner.os == 'Windows' && env.WINDOWS_SIGNING_PROVIDER == 'esigner'
+        run: pnpm exec node tools/sign-windows-release.mjs installers --collect-cloud
       - name: Configure macOS signing
         if: runner.os == 'macOS'
         env:

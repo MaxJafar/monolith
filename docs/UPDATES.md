@@ -28,21 +28,26 @@ The workflow runs `pnpm release:preflight` before starting builds and reports mi
 
 Required settings:
 
-| Name                             | Kind                          | Purpose                                                                 |
-| -------------------------------- | ----------------------------- | ----------------------------------------------------------------------- |
-| `MONOLITH_RELEASE_PUBLIC_KEY`    | Repository variable           | Ed25519 public PEM embedded in clients and used by the host supervisor. |
-| `MONOLITH_RELEASE_PRIVATE_KEY`   | `release` environment secret  | Matching private PEM for signing and the credential preflight check.    |
-| `WINDOWS_CERTIFICATE_P12`        | Repository or release secret  | Base64-encoded Authenticode signing certificate and private key.        |
-| `WINDOWS_CERTIFICATE_PASSWORD`   | Repository or release secret  | Certificate password.                                                   |
-| `MACOS_CERTIFICATE_P12`          | Repository or release secret  | Base64-encoded Developer ID Application certificate and private key.    |
-| `MACOS_CERTIFICATE_PASSWORD`     | Repository or release secret  | Certificate password.                                                   |
-| `MACOS_SIGN_IDENTITY`            | Repository or release secret  | Developer ID Application signing identity.                              |
-| `MACOS_TEAM_ID`                  | Repository or release secret  | Ten-character Apple Developer team ID.                                  |
-| `APPLE_ID`, `APPLE_APP_PASSWORD` | Repository or release secrets | Apple notarization credentials.                                         |
+| Name                                           | Kind                          | Purpose                                                                     |
+| ---------------------------------------------- | ----------------------------- | --------------------------------------------------------------------------- |
+| `MONOLITH_RELEASE_PUBLIC_KEY`                  | Repository variable           | Ed25519 public PEM embedded in clients and used by the host supervisor.     |
+| `MONOLITH_RELEASE_PRIVATE_KEY`                 | `release` environment secret  | Matching private PEM for signing and the credential preflight check.        |
+| `WINDOWS_SIGNING_PROVIDER`                     | Repository variable           | `esigner` (default) or `pfx`.                                               |
+| `ESIGNER_USERNAME`, `ESIGNER_PASSWORD`         | Repository or release secrets | SSL.com eSigner account credentials for cloud signing.                      |
+| `ESIGNER_CREDENTIAL_ID`, `ESIGNER_TOTP_SECRET` | Repository or release secrets | Enrolled code-signing certificate ID and automation TOTP secret.            |
+| `WINDOWS_CERTIFICATE_P12`                      | Repository or release secret  | PFX provider only: base64-encoded Authenticode certificate and private key. |
+| `WINDOWS_CERTIFICATE_PASSWORD`                 | Repository or release secret  | PFX provider only: certificate password.                                    |
+| `MACOS_CERTIFICATE_P12`                        | Repository or release secret  | Base64-encoded Developer ID Application certificate and private key.        |
+| `MACOS_CERTIFICATE_PASSWORD`                   | Repository or release secret  | Certificate password.                                                       |
+| `MACOS_SIGN_IDENTITY`                          | Repository or release secret  | Developer ID Application signing identity.                                  |
+| `MACOS_TEAM_ID`                                | Repository or release secret  | Ten-character Apple Developer team ID.                                      |
+| `APPLE_ID`, `APPLE_APP_PASSWORD`               | Repository or release secrets | Apple notarization credentials.                                             |
 
 `MONOLITH_ADDON_CATALOG_PRIVATE_KEY` is the separate repository secret used to sign the add-on catalog against `release/keys/addon-catalog.pem`. Keep both signing keys backed up securely outside Git.
 
-The native signing jobs import credentials only on ephemeral GitHub runners. The macOS job uses a temporary keychain and removes it even when a later step fails. If your Windows certificate requires a hardware/cloud signing provider, adapt `tools/sign-windows-release.mjs` to that provider before enabling the workflow. The checked-in implementation supports an exportable P12/PFX certificate. This is not a recommendation to purchase an exportable certificate: modern public Windows code-signing offerings commonly use hardware or cloud key custody. Select the provider first, then configure its CI integration.
+The default Windows provider is SSL.com eSigner cloud signing. Enroll the appropriate IV/OV certificate in eSigner, enable its CI automation and set the four `ESIGNER_*` secrets above. The workflow uses the [official eSigner action](https://github.com/SSLcom/esigner-codesign) pinned to a commit, stages only the expected application/helper or installer files, and requires trusted, timestamped signatures before collecting them. The private signing key stays in the provider's HSM. Account issuance and a real signed-build rehearsal are still required; this configuration alone does not establish a trusted release. See [SSL.com's GitHub integration](https://www.ssl.com/how-to/cloud-code-signing-integration-with-github-actions/).
+
+An existing compatible P12/PFX setup can select `WINDOWS_SIGNING_PROVIDER=pfx` and supply the two `WINDOWS_CERTIFICATE_*` secrets instead. This fallback is not a recommendation to purchase an exportable certificate: modern public Windows code-signing offerings commonly use hardware or cloud key custody. Other signing services need an adapter before release. The macOS job imports credentials into a temporary keychain on an ephemeral runner and removes it even when a later step fails.
 
 For Windows, the release owner must supply the legal publisher identity, individual/company status, country and chosen signing provider. Cloud signing normally needs scoped CI access and a certificate profile; a hardware token needs an appropriately connected signing runner. Check [Microsoft's signing options](https://learn.microsoft.com/windows/apps/package-and-deploy/code-signing-options) and [Artifact Signing eligibility](https://learn.microsoft.com/en-us/azure/artifact-signing/quickstart) before selecting a service. A valid signature does not guarantee immediate SmartScreen reputation.
 
@@ -139,9 +144,9 @@ pnpm --filter @monolith/client build
 pnpm desktop:bundle
 ```
 
-The Go suite tests signed metadata, hostile redirects/archives, truncated and corrupt downloads, multipart downloads, version/schema gates, atomic file replacement, failed launch/health, interrupted transactions, rollback failure retention, preferences, supervisor authentication and Docker command selection. Docker tests use a fake command runner and health transport; they do not replace a live deployment.
+The Go suite tests signed metadata, hostile redirects/archives, truncated and corrupt downloads, multipart downloads, version/schema gates, atomic file replacement, failed launch/health, interrupted transactions, rollback failure retention, preferences, supervisor authentication and Docker command selection. The default Docker unit tests use a fake command runner and health transport. The separate Linux rehearsal opts into real Compose services, packaged images and persistent volumes.
 
-Implementation verification on Windows passed 26 updater tests, 30 client tests, three release-packaging tests, three native Windows tests, the gateway suite including a read-only database health check, and production builds for the API, web app and desktop frontend. The Go supervisor cross-compiled for both Linux and macOS architectures. UI acceptance covered administrator and viewer permissions, notifications, download progress, recovery errors, light/dark themes and mobile layouts without browser errors. The Swift host and signed distribution upgrades require macOS/release infrastructure; a live Docker rollout has not been exercised on this development machine.
+The [release-preparation CI run](https://github.com/MaxJafar/monolith/actions/runs/39086140315) passed core/web/gateway checks, production builds, website browser checks, Windows native tests/builds and macOS native tests/universal builds. Focused coverage includes 50 web-client tests, 20 CLI/MCP tests and nine release-packaging/preflight tests. UI acceptance covers administrator and viewer permissions, notifications, download progress, recovery errors, light/dark themes and mobile layouts. Native CI builds are development distributions; they do not establish trusted signing, Apple notarization or installed-client upgrade compatibility.
 
 For UI/API acceptance, start an isolated fixture API with `pnpm --filter @monolith/server exec tsx ../../tools/fixtures/updates-host.mts`, run the web preview on port 5187 with `VITE_API_HOST=http://localhost:3638`, then run `pnpm exec node tools/updates-smoke.mjs`. It creates and removes synthetic accounts in the guarded local development database. The privileged supervisor is simulated; the real API authentication, proxy, frontend polling and controls are exercised. Screenshots go to `.temp/update-acceptance`.
 

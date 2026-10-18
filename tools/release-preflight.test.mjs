@@ -17,6 +17,7 @@ function fixture() {
         .export({ format: 'pem', type: 'pkcs8' })
         .toString(),
       MONOLITH_ADDON_CATALOG_PRIVATE_KEY: 'configured',
+      WINDOWS_SIGNING_PROVIDER: 'pfx',
       WINDOWS_CERTIFICATE_P12: 'configured',
       WINDOWS_CERTIFICATE_PASSWORD: 'private-value',
       MACOS_CERTIFICATE_P12: 'configured',
@@ -58,4 +59,30 @@ test('release preflight rejects accidental key rotation and development signing 
   const message = releaseProblems(f.env, f.publicKey).join('\n')
   assert.match(message, /pinned Ed25519/)
   assert.ok(!message.includes('invalid private material'))
+})
+
+test('cloud signing accepts eSigner credentials without an exported private key', () => {
+  const f = fixture()
+  delete f.env.WINDOWS_SIGNING_PROVIDER
+  delete f.env.WINDOWS_CERTIFICATE_P12
+  delete f.env.WINDOWS_CERTIFICATE_PASSWORD
+  Object.assign(f.env, {
+    ESIGNER_USERNAME: 'signer@example.invalid',
+    ESIGNER_PASSWORD: 'secret-password',
+    ESIGNER_CREDENTIAL_ID: 'credential-id',
+    ESIGNER_TOTP_SECRET: 'secret-totp'
+  })
+  assert.deepEqual(releaseProblems(f.env, f.publicKey), [])
+  delete f.env.ESIGNER_TOTP_SECRET
+  assert.deepEqual(releaseProblems(f.env, f.publicKey), [
+    'Missing ESIGNER_TOTP_SECRET'
+  ])
+  f.env.WINDOWS_SIGNING_PROVIDER = 'unknown'
+  assert.match(
+    releaseProblems(f.env, f.publicKey).join('\n'),
+    /must be esigner or pfx/
+  )
+  assert.ok(
+    !releaseProblems(f.env, f.publicKey).join('\n').includes('secret-password')
+  )
 })

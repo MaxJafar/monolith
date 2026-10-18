@@ -10,15 +10,8 @@ if (
   !process.env.RUNNER_TEMP
 )
   throw Error('Run release signing only on the ephemeral Windows CI runner')
-if (
-  !process.env.WINDOWS_CERTIFICATE_P12 ||
-  !process.env.WINDOWS_CERTIFICATE_PASSWORD
-)
-  throw Error('Configure the Windows certificate and password release secrets')
-const folder = await fs.mkdtemp(
-    path.join(process.env.RUNNER_TEMP, 'monolith-signing-')
-  ),
-  pfx = path.join(folder, 'release.pfx')
+if (!['binaries', 'installers'].includes(process.argv[2]))
+  throw Error('Choose binaries or installers')
 const files =
   process.argv[2] === 'installers'
     ? (await fs.readdir('apps/desktop/src-tauri/target/release/bundle/nsis'))
@@ -36,6 +29,47 @@ const files =
         path.resolve('apps/desktop/src-tauri/updater/monolith-updater.exe')
       ]
 if (!files.length) throw Error('No Windows artifacts to sign')
+const cloudRoot = path.resolve('.temp/windows-signing', process.argv[2])
+if (process.argv.includes('--prepare-cloud')) {
+  const input = path.join(cloudRoot, 'input')
+  await fs.mkdir(input, { recursive: true })
+  if ((await fs.readdir(input)).length)
+    throw Error('Cloud signing inputs must start empty')
+  for (const file of files)
+    await fs.copyFile(file, path.join(input, path.basename(file)))
+  console.log(
+    'Prepared only the expected Windows release files for cloud signing'
+  )
+  process.exit(0)
+}
+if (process.argv.includes('--collect-cloud')) {
+  const output = path.join(cloudRoot, 'signed')
+  const names = files.map(file => path.basename(file)).sort()
+  if (
+    JSON.stringify((await fs.readdir(output)).sort()) !== JSON.stringify(names)
+  )
+    throw Error('Cloud signing did not return the exact Windows artifact set')
+  const signed = names.map(name => path.join(output, name))
+  await verifyWindowsFiles(signed)
+  for (const file of files)
+    await fs.copyFile(path.join(output, path.basename(file)), file)
+  console.log('Collected verified cloud-signed Windows release files')
+  process.exit(0)
+}
+if (process.argv.includes('--verify')) {
+  await verifyWindowsFiles(files)
+  console.log('Verified trusted, timestamped Windows release signatures')
+  process.exit(0)
+}
+if (
+  !process.env.WINDOWS_CERTIFICATE_P12 ||
+  !process.env.WINDOWS_CERTIFICATE_PASSWORD
+)
+  throw Error('Configure the Windows certificate and password release secrets')
+const folder = await fs.mkdtemp(
+    path.join(process.env.RUNNER_TEMP, 'monolith-signing-')
+  ),
+  pfx = path.join(folder, 'release.pfx')
 await fs.writeFile(
   pfx,
   Buffer.from(process.env.WINDOWS_CERTIFICATE_P12, 'base64')

@@ -47,9 +47,32 @@ jobs:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
 
-  clients:
+  desktop_web:
     if: github.event_name == 'push'
     needs: preflight
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm release:version
+      - run: pnpm --filter @monolith/client test
+      - run: pnpm desktop:bundle
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-web
+          path: apps/desktop/dist
+          if-no-files-found: error
+          retention-days: 7
+
+  clients:
+    if: github.event_name == 'push'
+    needs: [preflight, desktop_web]
     environment: release
     strategy:
       fail-fast: false
@@ -73,11 +96,13 @@ jobs:
         with:
           node-version: '22'
           cache: pnpm
-      - run: pnpm install --frozen-lockfile
+      - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: pnpm release:version
       - run: pnpm updater:test
-      - run: pnpm --filter @monolith/client test
-      - run: pnpm desktop:bundle
+      - uses: actions/download-artifact@v4
+        with:
+          name: desktop-web
+          path: apps/desktop/dist
       - name: Windows tests and application
         if: runner.os == 'Windows'
         run: |

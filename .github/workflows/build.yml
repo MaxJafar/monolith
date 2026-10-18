@@ -14,6 +14,25 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  desktop_web:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm desktop:bundle
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-web
+          path: apps/desktop/dist
+          if-no-files-found: error
+          retention-days: 7
+
   core:
     name: Core, web and gateway
     runs-on: ubuntu-24.04
@@ -46,6 +65,7 @@ jobs:
       - run: pnpm site:test
 
   native:
+    needs: desktop_web
     name: Native (${{ matrix.os }})
     strategy:
       fail-fast: false
@@ -62,8 +82,11 @@ jobs:
         with:
           node-version: '22'
           cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm desktop:bundle
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - uses: actions/download-artifact@v4
+        with:
+          name: desktop-web
+          path: apps/desktop/dist
       - run: pnpm agent:test
       - name: Windows core tests
         if: runner.os == 'Windows'

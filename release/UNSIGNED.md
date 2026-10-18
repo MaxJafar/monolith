@@ -1,4 +1,4 @@
-Monolith 0.1.2 brings pages, projects, calendar, connected databases, rooms, dashboard widgets and installable add-ons into one self-hosted workspace.
+Monolith 0.1.3 brings pages, projects, calendar, connected databases, rooms, dashboard widgets and installable add-ons into one self-hosted workspace.
 
 Downloads include:
 

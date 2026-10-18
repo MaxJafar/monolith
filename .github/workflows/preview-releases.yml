@@ -15,7 +15,29 @@ env:
   MONOLITH_MANUAL_RELEASE_FLAG: ${{ contains(github.ref_name, '-preview.') && '--preview' || '--unsigned' }}
 
 jobs:
+  desktop_web:
+    if: contains(github.ref_name, '-preview.') || vars.MONOLITH_RELEASE_MODE == 'unsigned'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm release:version
+      - run: pnpm desktop:bundle
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-web
+          path: apps/desktop/dist
+          if-no-files-found: error
+          retention-days: 7
+
   clients:
+    needs: desktop_web
     if: contains(github.ref_name, '-preview.') || vars.MONOLITH_RELEASE_MODE == 'unsigned'
     strategy:
       fail-fast: false
@@ -36,10 +58,13 @@ jobs:
         with:
           node-version: '22'
           cache: pnpm
-      - run: pnpm install --frozen-lockfile
+      - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: pnpm release:version
       - run: pnpm updater:test
-      - run: pnpm desktop:bundle
+      - uses: actions/download-artifact@v4
+        with:
+          name: desktop-web
+          path: apps/desktop/dist
       - name: Build and test Windows installer
         if: runner.os == 'Windows'
         run: |

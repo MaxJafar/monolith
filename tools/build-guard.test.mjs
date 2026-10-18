@@ -4,7 +4,11 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import test, { after } from 'node:test'
 
-import { budgetMiB, childEnvironment } from './build-guard.mjs'
+import {
+  budgetMiB,
+  childEnvironment,
+  macAvailableMemory
+} from './build-guard.mjs'
 
 const root = path.resolve(import.meta.dirname, '..')
 const guard = path.join(root, 'tools/build-guard.mjs')
@@ -278,4 +282,17 @@ test('all checked-in build scripts are guarded and Turbo is serial', async () =>
     }
   }
   assert.ok(checked > 50)
+})
+
+test('macOS reserves include inactive pages without counting active or wired memory', () => {
+  const report = pageSize =>
+    `Mach Virtual Memory Statistics: (page size of ${pageSize} bytes)\nPages free: 262144.\nPages inactive: 1835008.\nPages active: 200000.\nPages wired down: 300000.\nPages purgeable: 100000.\n`
+  assert.equal(macAvailableMemory(report(4096)), 8 * 1024 ** 3)
+  assert.equal(macAvailableMemory(report(16384)), 32 * 1024 ** 3)
+  assert.throws(() => macAvailableMemory('unavailable'))
+  assert.throws(() =>
+    macAvailableMemory(
+      report(4096).replace('Pages inactive: 1835008.', 'Pages inactive: -1.')
+    )
+  )
 })

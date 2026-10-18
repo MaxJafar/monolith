@@ -1,4 +1,4 @@
-import { spawn } from 'node:child_process'
+import { execFileSync, spawn } from 'node:child_process'
 import { randomUUID } from 'node:crypto'
 import { readFileSync, realpathSync } from 'node:fs'
 import net from 'node:net'
@@ -45,6 +45,49 @@ export function childEnvironment(token, limit) {
     DOTNET_PROCESSOR_COUNT: '2',
     TURBO_CONCURRENCY: '1'
   }
+}
+
+// Node 22 reports only unused pages on macOS; inactive pages are reclaimable.
+export function macAvailableMemory(statistics) {
+  const pageSize = Number(statistics.match(/page size of (\d+) bytes/)?.[1])
+  const counts = ['free', 'inactive'].map(name =>
+    Number(
+      statistics.match(
+        new RegExp('^Pages ' + name + ':\\s+(\\d+)\\.$', 'm')
+      )?.[1]
+    )
+  )
+  if (
+    !pageSize ||
+    counts.some(count => !Number.isSafeInteger(count) || count < 0)
+  )
+    throw Error('Could not read macOS available memory')
+  const bytes = counts.reduce((sum, count) => sum + count, 0) * pageSize
+  if (!Number.isSafeInteger(bytes)) throw Error('Invalid macOS memory counters')
+  return bytes
+}
+
+function totalMemory() {
+  const total = os.totalmem()
+  const constrained =
+    process.platform === 'linux' ? process.constrainedMemory?.() : 0
+  return constrained ? Math.min(total, constrained) : total
+}
+
+function availableMemory() {
+  if (process.platform === 'darwin') {
+    try {
+      return Math.min(
+        os.totalmem(),
+        macAvailableMemory(
+          execFileSync('/usr/bin/vm_stat', { encoding: 'utf8', timeout: 1000 })
+        )
+      )
+    } catch {
+      return os.freemem()
+    }
+  }
+  return process.availableMemory?.() ?? os.freemem()
 }
 
 function lineReader(socket, receive) {
@@ -251,12 +294,13 @@ export async function main(args = process.argv.slice(2)) {
         { env, stdio: 'inherit', windowsHide: true }
       )
     } else {
+      const available = availableMemory()
       if (
-        os.freemem() < Math.max(2 * GiB, limit * 2 * 1024 ** 2) ||
-        1 - os.freemem() / os.totalmem() >= 0.75
+        available < Math.max(2 * GiB, limit * 2 * 1024 ** 2) ||
+        1 - available / totalMemory() >= 0.75
       )
         throw Error(
-          'Build refused: insufficient free RAM for the configured cap or memory use at least 75%.'
+          `Build refused: ${(available / GiB).toFixed(1)} GiB available of ${(totalMemory() / GiB).toFixed(1)} GiB; insufficient reserve or memory use at least 75%.`
         )
       child = spawn(
         process.execPath,
@@ -267,9 +311,10 @@ export async function main(args = process.argv.slice(2)) {
     const monitor =
       !windows &&
       setInterval(() => {
+        const available = availableMemory()
         if (
-          os.freemem() < Math.max(GiB, limit * 1.5 * 1024 ** 2) ||
-          1 - os.freemem() / os.totalmem() >= 0.8
+          available < Math.max(GiB, limit * 1.5 * 1024 ** 2) ||
+          1 - available / totalMemory() >= 0.8
         )
           abort()
       }, 1000)

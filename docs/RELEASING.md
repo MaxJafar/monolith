@@ -1,6 +1,6 @@
 # Monolith release preparation
 
-Monolith has one maintained source tree: `apps/web`, `apps/api`, `apps/gateway`, the Windows shell in `apps/desktop`, the macOS shell in `apps/desktop-macos`, shared `packages`, and optional `modules`. Build outputs, downloaded packages, database clusters and credentials stay outside Git. The first distribution target is **0.1.0-preview.1**, a manual-install preview. Stable releases require platform signing and notarization.
+Monolith has one maintained source tree: `apps/web`, `apps/api`, `apps/gateway`, the Windows shell in `apps/desktop`, the macOS shell in `apps/desktop-macos`, shared `packages`, and optional `modules`. Build outputs, downloaded packages, database clusters and credentials stay outside Git. The current distribution is **0.1.1**, an unsigned release with manual installation. Set the GitHub repository variable `MONOLITH_RELEASE_MODE=unsigned` to publish this explicit distribution through **Publish Monolith unsigned installers**. Remove that variable or set it to `signed` once platform credentials are configured; **Publish Monolith releases** will then require signing and notarization before publishing automatic updates. Published artifacts are immutable. A failed, unpublished tag does not become an installable release.
 
 ## Build and verify
 

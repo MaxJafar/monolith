@@ -5,13 +5,13 @@
 <key>CFBundleExecutable</key><string>Monolith</string>
 <key>CFBundleName</key><string>Monolith</string>
 <key>CFBundleIconFile</key><string>Monolith.icns</string>
-<key>CFBundleShortVersionString</key><string>0.1.0</string>
-<key>MonolithReleaseVersion</key><string>0.1.0</string>
+<key>CFBundleShortVersionString</key><string>0.1.1</string>
+<key>MonolithReleaseVersion</key><string>0.1.1</string>
 <key>NSAppTransportSecurity</key><dict>
 <key>NSExceptionDomains</key><dict>
 <key>127.0.0.1</key><dict><key>NSExceptionAllowsInsecureHTTPLoads</key><true/></dict>
 </dict></dict>
-<key>CFBundleVersion</key><string>0.1.0</string>
+<key>CFBundleVersion</key><string>0.1.1</string>
 <key>CFBundlePackageType</key><string>APPL</string>
 <key>LSMinimumSystemVersion</key><string>14.0</string>
 <key>LSMultipleInstancesProhibited</key><true/>

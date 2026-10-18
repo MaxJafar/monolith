@@ -62,6 +62,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
     env:
+      MONOLITH_BUILD_MEMORY_MIB: ${{ matrix.os == 'macos-15-intel' && '2048' || '4096' }}
       MACOS_SIGN_IDENTITY: ${{ secrets.MACOS_SIGN_IDENTITY }}
       MACOS_TEAM_ID: ${{ secrets.MACOS_TEAM_ID }}
       MACOS_NOTARY_PROFILE: monolith-release

@@ -26,6 +26,8 @@ jobs:
           - os: macos-15-intel
             target: darwin-universal
     runs-on: ${{ matrix.os }}
+    env:
+      MONOLITH_BUILD_MEMORY_MIB: ${{ matrix.os == 'macos-15-intel' && '2048' || '4096' }}
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4

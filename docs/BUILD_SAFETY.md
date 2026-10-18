@@ -71,3 +71,5 @@ References: [Turbo concurrency](https://turborepo.dev/docs/reference/configurati
 [Windows job memory limits](https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-jobobject_extended_limit_information).
 
 On macOS the available-memory check includes free and inactive pages reported by `vm_stat`; active, wired and compressed memory is not counted as available. Linux uses Node's available-memory reading, including container limits. The 4 GiB maximum, reserve thresholds and Windows job limits are unchanged.
+
+Go-based tools, including the TypeScript compiler, receive `GOMEMLIMIT` of at most 1536 MiB and `GOGC=50`. macOS CI runners use a smaller 2048 MiB budget so their reserve check fits the runner capacity; local defaults and the 4 GiB hard ceiling remain unchanged.

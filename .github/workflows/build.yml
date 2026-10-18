@@ -52,6 +52,8 @@ jobs:
       matrix:
         os: [windows-latest, macos-15-intel]
     runs-on: ${{ matrix.os }}
+    env:
+      MONOLITH_BUILD_MEMORY_MIB: ${{ matrix.os == 'macos-15-intel' && '2048' || '4096' }}
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4

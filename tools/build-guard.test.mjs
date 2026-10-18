@@ -105,6 +105,9 @@ test('memory cap cannot be raised and heap/worker limits override inherited valu
     assert.equal(env.NODE_OPTIONS, '--no-warnings --max-old-space-size=2048')
     assert.equal(env.RAYON_NUM_THREADS, '2')
     assert.equal(env.CARGO_BUILD_JOBS, '1')
+    assert.equal(env.GOMEMLIMIT, '1536MiB')
+    assert.equal(env.GOGC, '50')
+    assert.equal(childEnvironment('fixture', 2048).GOMEMLIMIT, '1024MiB')
   } finally {
     if (old === undefined) delete process.env.NODE_OPTIONS
     else process.env.NODE_OPTIONS = old

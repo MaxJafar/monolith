@@ -40,6 +40,8 @@ export function childEnvironment(token, limit) {
     RAYON_NUM_THREADS: '2',
     UV_THREADPOOL_SIZE: '2',
     GOMAXPROCS: '2',
+    GOMEMLIMIT: `${Math.min(1536, Math.floor(limit / 2))}MiB`,
+    GOGC: '50',
     CARGO_BUILD_JOBS: '1',
     CMAKE_BUILD_PARALLEL_LEVEL: '1',
     DOTNET_PROCESSOR_COUNT: '2',

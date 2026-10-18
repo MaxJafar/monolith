@@ -1,6 +1,6 @@
 # Install Monolith
 
-Download the files for the same version from [GitHub Releases](https://github.com/MaxJafar/monolith/releases). Check the release notes and distribution before installing. Monolith 0.1.1 is an unsigned release with manual installation. Both `manual-unsigned` and `manual-preview` downloads have an unsigned Windows executable, an ad-hoc signed Mac application and no automatic application updates. A future signed release includes an update manifest, trusted Windows signatures and an Apple-notarized Mac app. Install that first signed client manually to establish its publisher identity; subsequent signed updates use the built-in updater.
+Download the files for the same version from [GitHub Releases](https://github.com/MaxJafar/monolith/releases). Check the release notes and distribution before installing. Monolith 0.1.2 is an unsigned release with manual installation. Both `manual-unsigned` and `manual-preview` downloads have an unsigned Windows executable, an ad-hoc signed Mac application and no automatic application updates. A future signed release includes an update manifest, trusted Windows signatures and an Apple-notarized Mac app. Install that first signed client manually to establish its publisher identity; subsequent signed updates use the built-in updater.
 
 ## Desktop clients
 

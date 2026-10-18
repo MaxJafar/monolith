@@ -9,18 +9,18 @@ Monolith's current source is public on [GitHub](https://github.com/MaxJafar/mono
 
 ## Current release
 
-Version **0.1.6** is available from [GitHub Releases](https://github.com/MaxJafar/monolith/releases/tag/v0.1.6). The complete download set passed its platform builds, package verification and fresh-database server startup checks.
+Version **0.1.7** is available from [GitHub Releases](https://github.com/MaxJafar/monolith/releases/tag/v0.1.7). The complete download set passed its platform builds, package verification and fresh-database server startup checks.
 
 | Download                                                                                                                                  | Platform or purpose                                                        |
 | ----------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| [Windows installer](https://github.com/MaxJafar/monolith/releases/download/v0.1.6/monolith-0.1.6-windows-amd64.exe)   | Windows x64, Tauri and WebView2.                                           |
-| [macOS disk image](https://github.com/MaxJafar/monolith/releases/download/v0.1.6/monolith-0.1.6-darwin-universal.dmg) | Universal application for Apple Silicon and Intel.                         |
-| [Linux x64 image](https://github.com/MaxJafar/monolith/releases/download/v0.1.6/monolith-0.1.6-linux-amd64.tar.gz)    | Docker server image for amd64 hosts.                                       |
-| [Linux ARM64 image](https://github.com/MaxJafar/monolith/releases/download/v0.1.6/monolith-0.1.6-linux-arm64.tar.gz)  | Docker server image for arm64 hosts.                                       |
-| [Server setup kit](https://github.com/MaxJafar/monolith/releases/download/v0.1.6/monolith-0.1.6-server-kit.zip)       | Compose configuration, environment template and installation instructions. |
-| [MCP and CLI package](https://github.com/MaxJafar/monolith/releases/download/v0.1.6/monolith-agent-tools-0.1.6.tgz)   | Node.js bridge for external agent clients.                                 |
-| [Addons and widgets](https://github.com/MaxJafar/monolith/releases/tag/v0.1.6)                                                  | 14 independently versioned packages with a signed catalog.                 |
-| [SHA256SUMS](https://github.com/MaxJafar/monolith/releases/download/v0.1.6/SHA256SUMS)                                          | Checksums for the complete download set.                                   |
+| [Windows installer](https://github.com/MaxJafar/monolith/releases/download/v0.1.7/monolith-0.1.7-windows-amd64.exe)   | Windows x64, Tauri and WebView2.                                           |
+| [macOS disk image](https://github.com/MaxJafar/monolith/releases/download/v0.1.7/monolith-0.1.7-darwin-universal.dmg) | Universal application for Apple Silicon and Intel.                         |
+| [Linux x64 image](https://github.com/MaxJafar/monolith/releases/download/v0.1.7/monolith-0.1.7-linux-amd64.tar.gz)    | Docker server image for amd64 hosts.                                       |
+| [Linux ARM64 image](https://github.com/MaxJafar/monolith/releases/download/v0.1.7/monolith-0.1.7-linux-arm64.tar.gz)  | Docker server image for arm64 hosts.                                       |
+| [Server setup kit](https://github.com/MaxJafar/monolith/releases/download/v0.1.7/monolith-0.1.7-server-kit.zip)       | Compose configuration, environment template and installation instructions. |
+| [MCP and CLI package](https://github.com/MaxJafar/monolith/releases/download/v0.1.7/monolith-agent-tools-0.1.7.tgz)   | Node.js bridge for external agent clients.                                 |
+| [Addons and widgets](https://github.com/MaxJafar/monolith/releases/tag/v0.1.7)                                                  | 14 independently versioned packages with a signed catalog.                 |
+| [SHA256SUMS](https://github.com/MaxJafar/monolith/releases/download/v0.1.7/SHA256SUMS)                                          | Checksums for the complete download set.                                   |
 
 This release supports **automatic updates with unsigned installers**. Windows installers are unsigned; macOS applications have an ad-hoc signature and are not notarized. Operating systems may block these downloads. Desktop clients require a separately hosted server. The browser client is included in the server image. See the [installation instructions](https://github.com/MaxJafar/monolith/blob/main/release/INSTALL.md).
 

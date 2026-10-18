@@ -81,20 +81,11 @@ func (c *Compose) Prepare(ctx context.Context, r *Release, a Artifact, archive s
 	if _, err = c.run(ctx, "docker", "image", "load", "--input", archive); err != nil {
 		return nil, err
 	}
-	out, err := c.run(ctx, "docker", "image", "inspect", a.ImageID)
+	image, err := c.resolveImage(ctx, r, a, archive)
 	if err != nil {
 		return nil, err
 	}
-	var images []struct {
-		ID           string `json:"Id"`
-		Architecture string
-		OS           string `json:"Os"`
-		Config       struct{ Labels map[string]string }
-	}
-	if json.Unmarshal(out, &images) != nil || len(images) != 1 || images[0].ID != a.ImageID || images[0].OS != "linux" || images[0].Architecture != strings.TrimPrefix(c.Config.Target, "linux-") || images[0].Config.Labels["org.opencontainers.image.version"] != r.Version || images[0].Config.Labels["app.monolith.schema"] != r.SchemaHash {
-		return nil, errors.New("Loaded server image identity, architecture, schema or version does not match the signed release")
-	}
-	return &Journal{Kind: "compose", OldImages: old, NewImage: a.ImageID}, nil
+	return &Journal{Kind: "compose", OldImages: old, NewImage: image}, nil
 }
 
 // Inspect the running immutable images, rather than assuming an old config file

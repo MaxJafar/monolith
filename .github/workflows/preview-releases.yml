@@ -2,7 +2,7 @@ name: Publish Monolith unsigned installers
 
 on:
   push:
-    tags: ['v[0-9]*']
+    tags: ['v*-preview.*']
 
 permissions:
   contents: read
@@ -16,7 +16,7 @@ env:
 
 jobs:
   desktop_web:
-    if: contains(github.ref_name, '-preview.') || vars.MONOLITH_RELEASE_MODE == 'unsigned'
+    if: contains(github.ref_name, '-preview.')
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -38,7 +38,7 @@ jobs:
 
   clients:
     needs: desktop_web
-    if: contains(github.ref_name, '-preview.') || vars.MONOLITH_RELEASE_MODE == 'unsigned'
+    if: contains(github.ref_name, '-preview.')
     strategy:
       fail-fast: false
       matrix:
@@ -84,7 +84,7 @@ jobs:
           if-no-files-found: error
 
   server:
-    if: contains(github.ref_name, '-preview.') || vars.MONOLITH_RELEASE_MODE == 'unsigned'
+    if: contains(github.ref_name, '-preview.')
     strategy:
       fail-fast: false
       matrix:
@@ -121,7 +121,7 @@ jobs:
           if-no-files-found: error
 
   extras:
-    if: contains(github.ref_name, '-preview.') || vars.MONOLITH_RELEASE_MODE == 'unsigned'
+    if: contains(github.ref_name, '-preview.')
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     steps:

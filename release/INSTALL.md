@@ -1,6 +1,6 @@
 # Install Monolith
 
-Download the files for the same version from [GitHub Releases](https://github.com/MaxJafar/monolith/releases). Check the release notes and distribution before installing. Monolith 0.1.3 is an unsigned release with manual installation. Both `manual-unsigned` and `manual-preview` downloads have an unsigned Windows executable, an ad-hoc signed Mac application and no automatic application updates. A future signed release includes an update manifest, trusted Windows signatures and an Apple-notarized Mac app. Install that first signed client manually to establish its publisher identity; subsequent signed updates use the built-in updater.
+Download the files for the same version from [GitHub Releases](https://github.com/MaxJafar/monolith/releases). Starting with 0.1.4, both clients and the Linux server support automatic updates even while the Windows installer remains unsigned and the Mac app uses an ad-hoc signature without notarization. Every update is authenticated by the pinned Monolith release key. Existing 0.1.3 and preview clients need this new installer once because those builds omitted the key.
 
 ## Desktop clients
 
@@ -33,11 +33,11 @@ docker compose --env-file env/.env.docker -f compose.yaml ps
 
 Forward your HTTPS proxy to `127.0.0.1:8080`. Open the server address and create the first account using your bootstrap token. Persistent named volumes store the database and uploaded files; keep them when replacing containers. Back up these volumes and the environment file before upgrades. Do not use `down --volumes` on an installation whose data you want to keep.
 
-## Automatic updates in signed releases
+## Automatic updates
 
-After installing the first signed client, enable **Settings → Updates → Install automatically** on each device. Downloads and notifications use public GitHub Releases. The client waits for an idle, saved session before restarting and retains the previous version for recovery.
+Automatic downloads and installation are enabled by default in updater-enabled clients. Manage them separately in **Settings → Updates** on each device. Downloads and notifications use public GitHub Releases. The client waits for an idle, saved session before restarting and retains the previous version for recovery.
 
-Server automatic updates require the host supervisor outside the containers. Signed server kits include `UPDATES.md`, the systemd unit, configuration example and pinned update verification key under `docker/updates/`. Follow that guide with your actual Compose file, environment path, administrator IDs and maintenance hour. The updater retains the prior image and rolls back a failed health check. Database schema changes require a planned migration.
+Server automatic updates require the host supervisor outside the containers. Updater-enabled server kits include `UPDATES.md`, the systemd unit, configuration example and pinned update verification key under `docker/updates/`. Follow that guide with your actual Compose file, environment path, administrator IDs and maintenance hour. The updater retains the prior image and rolls back a failed health check. Database schema changes require a planned migration.
 
 ## Add-ons and widgets
 

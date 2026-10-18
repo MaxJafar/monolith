@@ -102,13 +102,14 @@ if (command === 'client') {
       ? await fs.mkdtemp(path.join(output, 'windows-app-'))
       : path.join(root, '.temp/macos/Monolith.app')
   if (target === 'windows-amd64') {
-    await verifyWindowsFiles([
-      path.join(
-        root,
-        'apps/desktop/src-tauri/target/release/monolith-desktop.exe'
-      ),
-      path.join(root, 'apps/desktop/src-tauri/updater/monolith-updater.exe')
-    ])
+    if (process.env.MONOLITH_UNSIGNED_INSTALLERS !== '1')
+      await verifyWindowsFiles([
+        path.join(
+          root,
+          'apps/desktop/src-tauri/target/release/monolith-desktop.exe'
+        ),
+        path.join(root, 'apps/desktop/src-tauri/updater/monolith-updater.exe')
+      ])
     // A dedicated generated staging directory; no application/user files are removed.
     await fs.mkdir(app, { recursive: true })
     await fs.copyFile(
@@ -152,9 +153,22 @@ if (command === 'client') {
   if (!embeddedKey.equals(releaseKey))
     throw Error('Client public key does not match the release key')
   if (target === 'darwin-universal') {
-    if (!settings.macTeamId) throw Error('A Developer ID team is required')
-    run('codesign', ['--verify', '--deep', '--strict', app])
-    run('spctl', ['--assess', '--type', 'execute', app])
+    if (process.env.MONOLITH_UNSIGNED_INSTALLERS === '1') {
+      if (!settings.macAllowAdHoc || settings.macTeamId)
+        throw Error('Unsigned Mac updates require an explicit ad-hoc policy')
+    } else if (!settings.macTeamId || settings.macAllowAdHoc) {
+      throw Error('A Developer ID team is required for signed installers')
+    }
+    run('codesign', [
+      '--verify',
+      '--deep',
+      '--strict',
+      '-R',
+      'identifier "app.monolith.desktop"',
+      app
+    ])
+    if (process.env.MONOLITH_UNSIGNED_INSTALLERS !== '1')
+      run('spctl', ['--assess', '--type', 'execute', app])
   }
   const filename = `monolith-${version}-${target}.zip`,
     file = path.join(output, filename)

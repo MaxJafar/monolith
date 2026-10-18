@@ -17,16 +17,17 @@ import (
 const ManifestName = "monolith-release.json"
 
 type Config struct {
-	Repository string         `json:"repository"`
-	PublicKey  string         `json:"publicKey"`
-	Version    string         `json:"version"`
-	Target     string         `json:"target"`
-	Protocol   int            `json:"protocol"`
-	SchemaHash string         `json:"schemaHash,omitempty"`
-	MacTeamID  string         `json:"macTeamId,omitempty"`
-	Compose    *ComposeConfig `json:"compose,omitempty"`
-	Listen     string         `json:"listen,omitempty"`
-	TokenFile  string         `json:"tokenFile,omitempty"`
+	Repository    string         `json:"repository"`
+	PublicKey     string         `json:"publicKey"`
+	Version       string         `json:"version"`
+	Target        string         `json:"target"`
+	Protocol      int            `json:"protocol"`
+	SchemaHash    string         `json:"schemaHash,omitempty"`
+	MacTeamID     string         `json:"macTeamId,omitempty"`
+	MacAllowAdHoc bool           `json:"macAllowAdHoc,omitempty"`
+	Compose       *ComposeConfig `json:"compose,omitempty"`
+	Listen        string         `json:"listen,omitempty"`
+	TokenFile     string         `json:"tokenFile,omitempty"`
 }
 type ComposeConfig struct {
 	Files     []string `json:"files"`

@@ -5,9 +5,9 @@ section: Host & build
 order: 31
 ---
 
-Monolith’s Windows client, universal macOS client and single-host Linux Docker deployment have update support built around signed GitHub Releases. This requires release signing and an updater-enabled installation; it is not activated by publishing this website.
+Monolith’s Windows client, universal macOS client and single-host Linux Docker deployment have update support built around signed GitHub Releases. This requires the signed update manifest and an updater-enabled installation; it is not activated by publishing this website.
 
-The first public preview uses manual installation. Its unsigned Windows and unnotarized Mac downloads do not enable automatic application updates. See [release availability](/docs/availability) for the current distribution status.
+Starting with 0.1.4, automatic updates are enabled while installers remain unsigned. Update manifests and archives are authenticated with Monolith’s pinned release key. Existing 0.1.3 and preview desktop clients need the new installer once to receive that key. See [release availability](/docs/availability) for the current distribution status.
 
 ## See available updates
 
@@ -17,7 +17,7 @@ Checks run at supervisor startup and every six hours, with a manual check availa
 
 ## Control download and installation separately
 
-Automatic downloads are enabled by default once signing is configured. Automatic installation starts **off** and can be enabled separately for each desktop client and the hosted server.
+Automatic downloads are enabled by default once signing is configured. Automatic installation starts **on** for new updater-enabled installations and can be disabled separately for each desktop client and the hosted server. Existing configured preferences are preserved.
 
 - **Desktop:** automatic installation waits for the app to be in the background and idle for two minutes. Save and persisted-draft guards must pass.
 - **Server:** installation uses the chosen one-hour UTC maintenance window. Host administrators can also install immediately.
@@ -41,7 +41,7 @@ Rollback is startup and health recovery. It does not reverse a database migratio
 
 ## Configure the release system
 
-Maintainers configure the release signing key, Windows signing certificate and macOS signing/notarization credentials in the release workflow. Public clients receive only the trusted public key. The updater currently reads public GitHub release assets; private GitHub and mirrored transports need an explicit extension.
+Maintainers configure the release signing key in the release workflow. Windows publisher certificates and macOS Developer ID/notarization can be added later without changing the update key or feed. The unsigned mode still verifies every archive and Mac bundle. Public clients receive only the trusted public key. The updater currently reads public GitHub release assets; private GitHub and mirrored transports need an explicit extension.
 
 The repository’s `docs/UPDATES.md` contains the exact signing variables, supervisor service configuration and platform rollout checks. The supervisor runs outside the containers and currently targets one Linux Docker host, not Kubernetes or a multi-host deployment.
 

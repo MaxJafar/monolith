@@ -87,7 +87,10 @@ if (target === 'windows-amd64' || target === 'darwin-universal')
         target,
         protocol: 1,
         ...(target === 'darwin-universal'
-          ? { macTeamId: process.env.MACOS_TEAM_ID || '' }
+          ? {
+              macTeamId: process.env.MACOS_TEAM_ID || '',
+              macAllowAdHoc: process.env.MONOLITH_UNSIGNED_INSTALLERS === '1'
+            }
           : {})
       },
       null,

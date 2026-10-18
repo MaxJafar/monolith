@@ -243,17 +243,19 @@ func (d *Desktop) Prepare(ctx context.Context, r *Release, _ Artifact, archive s
 		return nil, err
 	}
 	if d.Config.Target == "darwin-universal" {
-		if !regexp.MustCompile(`^[A-Z0-9]{10}$`).MatchString(d.Config.MacTeamID) {
-			return nil, errors.New("A Developer ID team is required for macOS updates")
+		requirement, notarized, err := macRequirement(d.Config, candidate)
+		if err != nil {
+			return nil, err
 		}
-		requirement := `anchor apple generic and identifier "app.monolith.desktop" and certificate leaf[subject.OU] = "` + d.Config.MacTeamID + `"`
 		command := exec.CommandContext(ctx, "/usr/bin/codesign", "--verify", "--deep", "--strict", "-R", requirement, j.Stage)
 		if out, err := command.CombinedOutput(); err != nil {
 			return nil, fmt.Errorf("macOS signature verification failed: %s", strings.TrimSpace(string(out)))
 		}
-		command = exec.CommandContext(ctx, "/usr/sbin/spctl", "--assess", "--type", "execute", j.Stage)
-		if err := command.Run(); err != nil {
-			return nil, errors.New("macOS did not accept this notarized application")
+		if notarized {
+			command = exec.CommandContext(ctx, "/usr/sbin/spctl", "--assess", "--type", "execute", j.Stage)
+			if err := command.Run(); err != nil {
+				return nil, errors.New("macOS did not accept this notarized application")
+			}
 		}
 	}
 	if d.Config.Target == "darwin-universal" {
@@ -262,6 +264,29 @@ func (d *Desktop) Prepare(ctx context.Context, r *Release, _ Artifact, archive s
 	ok = true
 	return j, nil
 }
+
+// The Ed25519 release envelope authenticates every candidate before extraction.
+// Ad-hoc distributions additionally verify the bundle's sealed contents and ID.
+// Once a Developer ID is installed, subsequent updates must retain that team.
+func macRequirement(installed, candidate Config) (string, bool, error) {
+	if installed.MacTeamID != "" && installed.MacTeamID != candidate.MacTeamID {
+		return "", false, errors.New("The macOS update must retain the installed Developer ID team")
+	}
+	if installed.MacTeamID == "" && !installed.MacAllowAdHoc {
+		return "", false, errors.New("This installation has not enabled ad-hoc macOS updates")
+	}
+	if candidate.MacTeamID != "" {
+		if !regexp.MustCompile(`^[A-Z0-9]{10}$`).MatchString(candidate.MacTeamID) {
+			return "", false, errors.New("Invalid macOS Developer ID team")
+		}
+		return `anchor apple generic and identifier "app.monolith.desktop" and certificate leaf[subject.OU] = "` + candidate.MacTeamID + `"`, true, nil
+	}
+	if !candidate.MacAllowAdHoc {
+		return "", false, errors.New("Candidate does not declare its macOS signing policy")
+	}
+	return `identifier "app.monolith.desktop"`, false, nil
+}
+
 func waitExit(ctx context.Context, pid int) error {
 	ticker := time.NewTicker(200 * time.Millisecond)
 	defer ticker.Stop()

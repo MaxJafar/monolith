@@ -40,9 +40,16 @@ func New(cfg Config, root string, installer Installer) (*Engine, error) {
 	if err := os.MkdirAll(root, 0700); err != nil {
 		return nil, err
 	}
-	e := &Engine{Config: cfg, Root: root, Client: NewClient(), Installer: installer, state: State{Phase: "idle", Preferences: Preferences{Channel: "stable", AutoDownload: true, InstallHourUTC: 3}}}
+	e := &Engine{Config: cfg, Root: root, Client: NewClient(), Installer: installer, state: State{Phase: "idle", Preferences: Preferences{Channel: "stable", AutoDownload: true, AutoInstall: true, InstallHourUTC: 3}}}
 	if err := readJSON(e.path("state.json"), &e.state); err != nil && !os.IsNotExist(err) {
 		return nil, fmt.Errorf("Update state is unreadable; recovery data was preserved: %w", err)
+	}
+	// Manual-only builds could not offer update preferences. Enable automation
+	// when such an installation first receives its trusted release key. Preserve
+	// explicit preferences from already configured installations.
+	if !e.state.Configured && cfg.PublicKey != "" {
+		e.state.Preferences.AutoDownload = true
+		e.state.Preferences.AutoInstall = true
 	}
 	e.state.Configured = cfg.PublicKey != ""
 	e.state.Target = cfg.Target

@@ -190,6 +190,8 @@ export default function UpdatesProvider({ children }: { children: ReactNode }) {
       state?.configured &&
       [
         'available',
+        'downloading',
+        'verifying',
         'ready',
         'rolledBack',
         'failed',

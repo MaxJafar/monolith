@@ -30,6 +30,23 @@ function fixture() {
   }
 }
 
+test('unsigned installers still require matching release keys but no OS certificate', () => {
+  const f = fixture()
+  const env = Object.fromEntries(
+    Object.entries(f.env).filter(([name]) => name.startsWith('MONOLITH_'))
+  )
+  env.MONOLITH_UNSIGNED_INSTALLERS = '1'
+  assert.deepEqual(releaseProblems(env, f.publicKey), [])
+  assert.match(
+    releaseProblems(env, fixture().publicKey).join('\n'),
+    /pinned Ed25519/
+  )
+  delete env.MONOLITH_RELEASE_PRIVATE_KEY
+  assert.deepEqual(releaseProblems(env, f.publicKey), [
+    'Missing MONOLITH_RELEASE_PRIVATE_KEY'
+  ])
+})
+
 test('release preflight accepts matching keys and names missing credentials without leaking values', () => {
   const f = fixture()
   assert.deepEqual(releaseProblems(f.env, f.publicKey), [])

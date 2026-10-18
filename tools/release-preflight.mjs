@@ -5,28 +5,33 @@ import { pathToFileURL } from 'node:url'
 
 export function releaseProblems(env, pinnedKey) {
   const problems = []
+  const unsigned = env.MONOLITH_UNSIGNED_INSTALLERS === '1'
   const required = [
     'MONOLITH_RELEASE_PUBLIC_KEY',
     'MONOLITH_RELEASE_PRIVATE_KEY',
-    'MONOLITH_ADDON_CATALOG_PRIVATE_KEY',
-    'MACOS_CERTIFICATE_P12',
-    'MACOS_CERTIFICATE_PASSWORD',
-    'MACOS_SIGN_IDENTITY',
-    'MACOS_TEAM_ID',
-    'APPLE_ID',
-    'APPLE_APP_PASSWORD'
+    'MONOLITH_ADDON_CATALOG_PRIVATE_KEY'
   ]
+  if (!unsigned)
+    required.push(
+      'MACOS_CERTIFICATE_P12',
+      'MACOS_CERTIFICATE_PASSWORD',
+      'MACOS_SIGN_IDENTITY',
+      'MACOS_TEAM_ID',
+      'APPLE_ID',
+      'APPLE_APP_PASSWORD'
+    )
   const provider = env.WINDOWS_SIGNING_PROVIDER || 'esigner'
-  if (provider === 'esigner')
+  if (!unsigned && provider === 'esigner')
     required.push(
       'ESIGNER_USERNAME',
       'ESIGNER_PASSWORD',
       'ESIGNER_CREDENTIAL_ID',
       'ESIGNER_TOTP_SECRET'
     )
-  else if (provider === 'pfx')
+  else if (!unsigned && provider === 'pfx')
     required.push('WINDOWS_CERTIFICATE_P12', 'WINDOWS_CERTIFICATE_PASSWORD')
-  else problems.push('WINDOWS_SIGNING_PROVIDER must be esigner or pfx')
+  else if (!unsigned)
+    problems.push('WINDOWS_SIGNING_PROVIDER must be esigner or pfx')
   for (const name of required)
     if (!env[name]?.trim()) problems.push(`Missing ${name}`)
   const publicDer = value => {
@@ -53,11 +58,16 @@ export function releaseProblems(env, pinnedKey) {
       )
     }
   }
-  if (env.MACOS_TEAM_ID && !/^[A-Z0-9]{10}$/.test(env.MACOS_TEAM_ID))
+  if (
+    !unsigned &&
+    env.MACOS_TEAM_ID &&
+    !/^[A-Z0-9]{10}$/.test(env.MACOS_TEAM_ID)
+  )
     problems.push(
       'MACOS_TEAM_ID must be the ten-character Apple team identifier'
     )
   if (
+    !unsigned &&
     env.MACOS_SIGN_IDENTITY &&
     (!env.MACOS_SIGN_IDENTITY.startsWith('Developer ID Application: ') ||
       !env.MACOS_SIGN_IDENTITY.endsWith(`(${env.MACOS_TEAM_ID})`))
@@ -85,6 +95,8 @@ if (
     process.exitCode = 1
   } else
     console.log(
-      'Release credentials are present and the update signing keys match. Platform jobs will verify certificate trust and notarization.'
+      process.env.MONOLITH_UNSIGNED_INSTALLERS === '1'
+        ? 'Update signing keys match. Installers will remain unsigned; update manifests remain authenticated.'
+        : 'Release credentials are present and the update signing keys match. Platform jobs will verify certificate trust and notarization.'
     )
 }

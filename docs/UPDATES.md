@@ -2,7 +2,7 @@
 
 Monolith's Windows client, universal macOS client and single-host Linux Docker deployment use signed GitHub Releases. **Settings → Updates** shows the installed version, release notes, actual downloaded bytes, installation/restart status and recovery results. A notification appears when a release is available or an installation needs attention. Desktop onboarding also has an Updates button.
 
-This code does not configure a public release, provision signing credentials or deploy your server. Existing clients need one installation of an updater-enabled, signed release before they can update themselves. Existing servers need the external supervisor described below.
+Starting with 0.1.4, automatic updates work with unsigned Windows installers and ad-hoc signed, unnotarized Mac apps. The update manifest is still signed with Monolith’s pinned Ed25519 key. OS publisher signing is a separate release option. Existing 0.1.3 and preview clients need the new installer once because their update key was omitted; future releases use the updater. Existing servers need the external supervisor described below.
 
 ## Automatic behavior
 
@@ -10,7 +10,7 @@ This code does not configure a public release, provision signing credentials or 
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Release checks         | At supervisor startup and every six hours; manual checks are available. Errors back off instead of continuously requesting GitHub.                                                          |
 | Download automatically | On by default once signing is configured. A failed installation's version is not automatically retried.                                                                                     |
-| Install automatically  | Off initially; enable independently for each desktop installation and for the hosted server. Enabling it also enables downloads.                                                            |
+| Install automatically  | On by default for new updater-enabled installations. Existing configured preferences are preserved. Disable independently on each client or server.                                         |
 | Desktop installation   | Waits until the app is in the background and has had no keyboard/pointer input for two minutes. Editor save guards and native persisted-draft checks must pass.                             |
 | Server installation    | Installs a verified download during the chosen one-hour UTC maintenance window. Host administrators can also install immediately.                                                           |
 | Browser refresh        | When server automatic installation is enabled, an outdated browser tab reloads after two minutes of idle time in the background, subject to save guards. A manual reload is also available. |
@@ -20,11 +20,13 @@ The updater currently reads public GitHub release assets. It does not embed a Gi
 
 ## Build and publish a release
 
-The workflow `.github/workflows/platform-releases.yml` runs for `v<semver>` tags. It aligns root/web/API/Windows/macOS versions with the tag, tests the updater, builds both native clients and both Linux architectures, signs/notarizes clients and signs a complete release manifest. It creates a draft GitHub release, uploads every artifact, uploads the manifest last, and publishes only after all uploads succeed. A failed upload leaves a draft that can be retried; an already published version is never overwritten.
+The workflow `.github/workflows/platform-releases.yml` runs for `v<semver>` tags. It aligns root/web/API/Windows/macOS versions with the tag, tests the updater, builds both native clients and both Linux architectures, signs a complete release manifest and optionally signs/notarizes clients. Set the repository variable `MONOLITH_RELEASE_MODE=unsigned` to keep Windows installers unsigned and Mac apps ad-hoc signed without notarization. The same verified update archives are published in either mode. It creates a draft GitHub release, uploads every artifact, uploads the manifest last, and publishes only after all uploads succeed. A failed upload leaves a draft that can be retried; an already published version is never overwritten.
 
 The **release** GitHub environment holds the main manifest-signing private key. The repository variable `MONOLITH_RELEASE_PUBLIC_KEY` must match `release/keys/app-release.pem`; preflight rejects accidental key rotation. Configure the remaining secrets in that environment or as repository secrets. Never paste private keys or passwords into issues, documentation or chat.
 
 The workflow runs `pnpm release:preflight` before starting builds and reports missing credential names without their values. Running **Publish Monolith releases** manually checks credentials only; publishing still requires a version tag. It then verifies trusted, timestamped Windows signatures, validates the stapled Apple notarization tickets, packages the server installation kit, CLI/MCP and signed add-on catalog, and verifies the full download inventory before publishing.
+
+The three `MONOLITH_*` signing keys are required in both modes. OS certificate/provider credentials below are required only when `MONOLITH_RELEASE_MODE` is not `unsigned`. Changing to certificate signing later keeps the same update key and feed. Once a Developer ID team is installed, the Mac updater requires that team and refuses an ad-hoc downgrade.
 
 Required settings:
 
@@ -78,7 +80,7 @@ pnpm release:downloads extras
 pnpm release:downloads manifest
 ```
 
-`GITHUB_REPOSITORY` selects the release repository; otherwise the root package's repository is used. The workflow generates release notes with the [GitHub Releases API](https://docs.github.com/en/rest/releases/releases#generate-release-notes-content-for-a-release) and includes the same text in the signed manifest and published release. `MONOLITH_RELEASE_NOTES_FILE` can supply a UTF-8 file when packaging locally. Version and schema changes are not chosen automatically for you. Tag only a reviewed, tested commit. Unconfigured development builds expose update setup information and cannot install unsigned releases.
+`GITHUB_REPOSITORY` selects the release repository; otherwise the root package's repository is used. The workflow generates release notes with the [GitHub Releases API](https://docs.github.com/en/rest/releases/releases#generate-release-notes-content-for-a-release) and includes the same text in the signed manifest and published release. `MONOLITH_RELEASE_NOTES_FILE` can supply a UTF-8 file when packaging locally. Version and schema changes are not chosen automatically for you. Tag only a reviewed, tested commit. Unconfigured development builds expose update setup information and cannot install updates without a trusted release key. Installer publisher signatures are independent of the mandatory manifest signature.
 
 Outputs are under `dist/platform-releases/v<version>/`. `monolith-release.json` contains a base64 payload plus an Ed25519 signature. Its payload binds the version, channel, updater protocol, database-schema fingerprint, platform, exact size, SHA-256 and GitHub asset URL. Server artifacts also pin an immutable Docker image ID. Large Docker archives are split into parts below [GitHub's 2 GiB per-asset limit](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases); the updater verifies each part and the complete reassembled archive. `release-downloads.json` inventories installers, update archives, server supervisors, the installation kit, CLI/MCP and add-ons. `SHA256SUMS` covers every published download. The publisher checks that the archive checksums in the inventory still match the signed update manifest.
 
@@ -118,7 +120,7 @@ Downloads enter a temporary file. Signature, repository/tag binding, platform, s
 
 **Windows:** the helper runs from the user's application-data directory, outside the installation it replaces. It stages the candidate next to the installed app, preserves installer registration and backs up the previous files. It waits for the app to exit and atomically replaces individual files while preserving the launch path. The durable journal restores a mixed file set after interruption. Use the per-user NSIS installation; a non-writable system installation requires a manual installer.
 
-**macOS:** the candidate must have the expected Developer ID team and pass code-signature and notarization assessment. The helper atomically exchanges the `.app` bundles on the same volume, preserving the old bundle. Install in a writable directory rather than launching from the DMG.
+**macOS:** ad-hoc installations verify the Ed25519 release, sealed bundle contents and application identifier without requiring an Apple account. They can transition to a notarized Developer ID release authenticated by the same update key. A Developer ID installation requires its original team and notarization for every subsequent update. The helper atomically exchanges the `.app` bundles on the same volume, preserving the old bundle. Install in a writable directory rather than launching from the DMG.
 
 Both clients launch the candidate and require its native version/PID and mounted workspace or onboarding UI to acknowledge readiness within two minutes. An early exit, launch error or missing acknowledgement triggers restoration and relaunch of the old version. **Restore previous version** provides manual rollback after success. Credentials, drafts and settings remain in application-data storage outside the replaced application.
 

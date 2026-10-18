@@ -17,15 +17,23 @@ if (process.env.GITHUB_REF !== `refs/tags/${tag}`)
   throw Error('Release tag does not match the built version')
 const folder = path.resolve('dist/platform-releases', tag)
 const preview = process.argv.includes('--preview')
+const unsigned = process.argv.includes('--unsigned')
+if (preview && unsigned) throw Error('Choose one release distribution')
+const manual = preview || unsigned
 let inventory
-if (preview) {
+if (manual) {
   inventory = JSON.parse(
     await fs.readFile(path.join(folder, 'manual-release.json'), 'utf8')
   )
-  if (inventory.version !== pkg.version) throw Error('Preview version mismatch')
+  if (inventory.version !== pkg.version)
+    throw Error('Manual release version mismatch')
   await validateInventory(folder, inventory)
-  if (inventory.distribution !== 'manual-preview')
-    throw Error('Preview publication requires a manual preview inventory')
+  if (
+    inventory.distribution !== (unsigned ? 'manual-unsigned' : 'manual-preview')
+  )
+    throw Error(
+      'Manual publication requires the selected distribution inventory'
+    )
 } else {
   inventory = JSON.parse(
     await fs.readFile(path.join(folder, 'release-downloads.json'), 'utf8')
@@ -80,7 +88,7 @@ if (!release)
   })
 const assets = [
   ...inventory.files.map(file => file.name),
-  preview ? 'manual-release.json' : 'release-downloads.json',
+  manual ? 'manual-release.json' : 'release-downloads.json',
   'SHA256SUMS'
 ]
 // Publish the signed manifest last, and make the release visible only when every

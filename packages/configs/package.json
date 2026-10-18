@@ -31,7 +31,7 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "vite build && tsc --emitDeclarationOnly",
+    "build": "node \"../../tools/build-guard.mjs\" --task build",
     "test": "vitest run"
   },
   "dependencies": {
@@ -41,5 +41,8 @@
   "devDependencies": {
     "@types/react": "^19.2.0"
   },
-  "author": "Monolith contributors"
+  "author": "Monolith contributors",
+  "monolithBuilds": {
+    "build": "vite build && tsc --emitDeclarationOnly"
+  }
 }

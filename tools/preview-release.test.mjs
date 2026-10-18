@@ -59,8 +59,10 @@ test('preview publication rejects missing platforms, tampered downloads and unli
   )
 })
 
-for (const automatic of [false, true])
-  test(`complete ${automatic ? 'signed release' : 'preview'} verifies catalogs and module inventory`, async t => {
+for (const mode of ['preview', 'unsigned', 'signed'])
+  test(`complete ${mode} release verifies catalogs and module inventory`, async t => {
+    const automatic = mode === 'signed'
+    const unsigned = mode === 'unsigned'
     const parent = path.resolve('.temp')
     await fs.mkdir(parent, { recursive: true })
     const root = await fs.mkdtemp(path.join(parent, 'preview-catalog-test-'))
@@ -68,7 +70,7 @@ for (const automatic of [false, true])
       assert.equal(path.dirname(root), parent)
       await fs.rm(root, { recursive: true, force: true })
     })
-    const version = automatic ? '0.1.0' : '0.1.0-preview.1'
+    const version = automatic || unsigned ? '0.1.0' : '0.1.0-preview.1'
     const inventoryName = automatic
       ? 'release-downloads.json'
       : 'manual-release.json'
@@ -191,10 +193,28 @@ for (const automatic of [false, true])
         })
       )
     }
-    await prepare(root, 'manifest', undefined, { automatic })
+    await prepare(root, 'manifest', undefined, { automatic, unsigned })
     const manifest = JSON.parse(
       await fs.readFile(path.join(folder, inventoryName), 'utf8')
     )
+    assert.equal(
+      manifest.distribution,
+      automatic
+        ? 'signed-updates'
+        : unsigned
+          ? 'manual-unsigned'
+          : 'manual-preview'
+    )
+    if (unsigned) {
+      await assert.rejects(prepare(root, 'manifest'), /explicit preview/)
+      await assert.rejects(
+        prepare(root, 'manifest', undefined, {
+          automatic: true,
+          unsigned: true
+        }),
+        /one release distribution/
+      )
+    }
     assert.equal(
       manifest.files.filter(file => file.target === 'addons').length,
       1
@@ -232,7 +252,7 @@ for (const automatic of [false, true])
     }
     await fs.mkdir(path.join(root, 'modules/monolith--missing'))
     await assert.rejects(
-      prepare(root, 'manifest', undefined, { automatic }),
+      prepare(root, 'manifest', undefined, { automatic, unsigned }),
       /Every optional addon/
     )
   })

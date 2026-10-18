@@ -7,11 +7,14 @@
   "module": "dist/index.js",
   "typings": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc"
+    "build": "node \"../../tools/build-guard.mjs\" --task build"
   },
   "dependencies": {
     "@monolith/api": "workspace:*",
     "@module-federation/runtime": "^2.8.0"
   },
-  "author": "Monolith contributors"
+  "author": "Monolith contributors",
+  "monolithBuilds": {
+    "build": "tsc"
+  }
 }

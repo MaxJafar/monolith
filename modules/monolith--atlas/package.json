@@ -6,9 +6,9 @@
   "description": "A connected knowledge space for Monolith: maps, backlinks and discovery.",
   "author": "Monolith contributors",
   "scripts": {
-    "build": "pnpm build:server && pnpm build:client",
-    "build:server": "vite build --config server/vite.config.ts",
-    "build:client": "vite build --config client/vite.config.ts",
+    "build": "node \"../../tools/build-guard.mjs\" --task build",
+    "build:server": "node \"../../tools/build-guard.mjs\" --task build:server",
+    "build:client": "node \"../../tools/build-guard.mjs\" --task build:client",
     "typecheck": "tsc -p client/tsconfig.json && tsc -p server/tsconfig.json",
     "test": "vitest run client/src/model.test.ts"
   },
@@ -34,5 +34,10 @@
         "page"
       ]
     }
+  },
+  "monolithBuilds": {
+    "build": "pnpm build:server && pnpm build:client",
+    "build:server": "vite build --config server/vite.config.ts",
+    "build:client": "vite build --config client/vite.config.ts"
   }
 }

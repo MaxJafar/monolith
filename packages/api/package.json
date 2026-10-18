@@ -8,7 +8,7 @@
   "typings": "dist/index.d.ts",
   "scripts": {
     "dev": "vite build --watch",
-    "build": "rimraf dist && tsc -b --noEmit && vite build",
+    "build": "node \"../../tools/build-guard.mjs\" --task build",
     "test": "vitest run",
     "typecheck": "tsc -b --noEmit"
   },
@@ -22,5 +22,8 @@
     "@monolith/configs": "workspace:*",
     "@types/crypto-js": "^4.2.2"
   },
-  "author": "Monolith contributors"
+  "author": "Monolith contributors",
+  "monolithBuilds": {
+    "build": "rimraf dist && tsc -b --noEmit && vite build"
+  }
 }

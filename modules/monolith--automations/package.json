@@ -6,9 +6,9 @@
   "author": "Monolith contributors",
   "description": "Connect triggers, data and actions in visual workflows.",
   "scripts": {
-    "build": "pnpm build:server && pnpm build:client",
-    "build:server": "vite build --config server/vite.config.ts",
-    "build:client": "node client/build.mjs",
+    "build": "node \"../../tools/build-guard.mjs\" --task build",
+    "build:server": "node \"../../tools/build-guard.mjs\" --task build:server",
+    "build:client": "node \"../../tools/build-guard.mjs\" --task build:client",
     "typecheck": "tsc -p client/tsconfig.json && tsc -p server/tsconfig.json",
     "test": "vitest run --config vitest.config.ts",
     "contract": "tsx server/index.ts",
@@ -44,5 +44,10 @@
     "postgres": "^3.4.9",
     "ipaddr.js": "2.5.0",
     "dotenv": "^17.2.3"
+  },
+  "monolithBuilds": {
+    "build": "pnpm build:server && pnpm build:client",
+    "build:server": "vite build --config server/vite.config.ts",
+    "build:client": "node client/build.mjs"
   }
 }

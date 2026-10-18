@@ -1,6 +1,6 @@
 {
   "name": "@monolith/agent-tools",
-  "version": "0.1.0-preview.1",
+  "version": "0.1.0",
   "description": "Monolith CLI and MCP bridge for coding agents",
   "author": "Monolith contributors",
   "license": "CC-BY-NC-SA-4.0",
@@ -18,7 +18,7 @@
     "node": ">=22.16.0"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "node \"../../tools/build-guard.mjs\" --task build",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "pnpm build && vitest run"
   },
@@ -33,5 +33,8 @@
     "@types/node": "25.9.5",
     "typescript": "^7.0.2",
     "vitest": "^4.1.10"
+  },
+  "monolithBuilds": {
+    "build": "tsc -p tsconfig.json"
   }
 }

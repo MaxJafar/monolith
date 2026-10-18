@@ -14,7 +14,7 @@
     }
   },
   "scripts": {
-    "build": "vite build && tsc --project tsconfig.json",
+    "build": "node \"../../tools/build-guard.mjs\" --task build",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -28,5 +28,8 @@
     "@monolith/configs": "workspace:*",
     "@types/node": "^25.0.6"
   },
-  "author": "Monolith contributors"
+  "author": "Monolith contributors",
+  "monolithBuilds": {
+    "build": "vite build && tsc --project tsconfig.json"
+  }
 }

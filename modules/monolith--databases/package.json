@@ -9,9 +9,9 @@
     "typecheck": "pnpm run typecheck:client && pnpm run typecheck:server",
     "typecheck:client": "tsc -p client/tsconfig.json",
     "typecheck:server": "tsc -p server/tsconfig.json",
-    "build": "pnpm run build:client && pnpm run build:server",
-    "build:client": "vite build --config client/vite.config.ts",
-    "build:server": "vite build --config server/vite.config.ts",
+    "build": "node \"../../tools/build-guard.mjs\" --task build",
+    "build:client": "node \"../../tools/build-guard.mjs\" --task build:client",
+    "build:server": "node \"../../tools/build-guard.mjs\" --task build:server",
     "test": "vitest run server/model.test.ts server/knowledgeRetrieval.test.ts server/urpg.test.ts && vitest run --config client/vitest.config.ts"
   },
   "peerDependencies": {
@@ -42,5 +42,10 @@
     "category": "Workspace",
     "id": "monolith--databases",
     "routeId": "695849793876b1af20bbfe4e0682c59d264ed3c2f3024e6ec010888f59efb038"
+  },
+  "monolithBuilds": {
+    "build": "pnpm run build:client && pnpm run build:server",
+    "build:client": "vite build --config client/vite.config.ts",
+    "build:server": "vite build --config server/vite.config.ts"
   }
 }

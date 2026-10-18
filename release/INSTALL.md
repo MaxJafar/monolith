@@ -1,10 +1,10 @@
 # Install Monolith
 
-Download the files for the same version from [GitHub Releases](https://github.com/MaxJafar/monolith/releases). Check the release channel before installing. A `preview` release requires manual installation: its Windows executable is unsigned, its Mac application is ad-hoc signed and automatic application updates are disabled. A signed stable release includes an update manifest, trusted Windows signatures and an Apple-notarized Mac app.
+Download the files for the same version from [GitHub Releases](https://github.com/MaxJafar/monolith/releases). Check the release notes and distribution before installing. Monolith 0.1.0 is an unsigned release with manual installation. Both `manual-unsigned` and `manual-preview` downloads have an unsigned Windows executable, an ad-hoc signed Mac application and no automatic application updates. A future signed release includes an update manifest, trusted Windows signatures and an Apple-notarized Mac app. Install that first signed client manually to establish its publisher identity; subsequent signed updates use the built-in updater.
 
 ## Desktop clients
 
-On Windows x64, run the `windows-amd64.exe` installer. On macOS, open the `darwin-universal.dmg` and drag Monolith to Applications. The Mac application supports Apple Silicon and Intel. Your operating system may block preview downloads because they lack a trusted publisher signature. Use the web client if your device policy disallows unsigned applications.
+On Windows x64, run the `windows-amd64.exe` installer. On macOS, open the `darwin-universal.dmg` and drag Monolith to Applications. The Mac application supports Apple Silicon and Intel. Your operating system may block unsigned downloads because they lack a trusted publisher signature. Use the web client if your device policy disallows unsigned applications.
 
 Both clients connect to a Monolith server using its HTTPS address. They do not install a server or database on your computer.
 

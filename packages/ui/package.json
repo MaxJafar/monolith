@@ -28,8 +28,8 @@
   },
   "scripts": {
     "dev": "storybook dev -p 6006",
-    "build": "tsc -b && rimraf dist && vite build",
-    "build-storybook": "tsc -b && storybook build",
+    "build": "node \"../../tools/build-guard.mjs\" --task build",
+    "build-storybook": "node \"../../tools/build-guard.mjs\" --task build-storybook",
     "typecheck": "tsc -b",
     "test": "vitest run --config vitest.config.ts"
   },
@@ -104,5 +104,9 @@
     "storybook-addon-deep-controls": "^0.10.0",
     "tsup": "^8.5.0",
     "vite-tsconfig-paths": "^6.1.1"
+  },
+  "monolithBuilds": {
+    "build": "tsc -b && rimraf dist && vite build",
+    "build-storybook": "tsc -b && storybook build"
   }
 }

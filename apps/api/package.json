@@ -2,7 +2,7 @@
   "name": "@monolith/server",
   "private": true,
   "description": "Monolith workspace API",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "license": "CC BY-NC-SA 4.0",
   "author": "Monolith contributors",
   "homepage": "https://github.com/MaxJafar/monolith",
@@ -14,7 +14,7 @@
   "type": "module",
   "main": "./dist/server.js",
   "scripts": {
-    "build": "tsc -b && vite build",
+    "build": "node \"../../tools/build-guard.mjs\" --task build",
     "start": "tsc -b && cross-env NODE_ENV=production tsx ./src/index.ts",
     "start:prod": "cross-env NODE_ENV=production node --env-file=../../env/.env.local ./dist/server.js",
     "start:watch": "cross-env NODE_ENV=production node --watch --env-file=../../env/.env.local ./dist/server.js",
@@ -78,5 +78,8 @@
     "@types/speakeasy": "^2.0.10",
     "@vitest/ui": "^4.0.2",
     "axios": "^1.18.1"
+  },
+  "monolithBuilds": {
+    "build": "tsc -b && vite build"
   }
 }

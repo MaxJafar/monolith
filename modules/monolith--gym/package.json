@@ -6,9 +6,9 @@
   "author": "Monolith contributors",
   "description": "Native training plans, workouts and strength history.",
   "scripts": {
-    "build": "pnpm run build:client && pnpm run build:server",
-    "build:client": "vite build --config client/vite.config.ts",
-    "build:server": "vite build --config server/vite.config.ts",
+    "build": "node \"../../tools/build-guard.mjs\" --task build",
+    "build:client": "node \"../../tools/build-guard.mjs\" --task build:client",
+    "build:server": "node \"../../tools/build-guard.mjs\" --task build:server",
     "typecheck": "pnpm run typecheck:client && pnpm run typecheck:server",
     "typecheck:client": "tsc -p client/tsconfig.json",
     "typecheck:server": "tsc -p server/tsconfig.json",
@@ -46,5 +46,10 @@
         "gym"
       ]
     }
+  },
+  "monolithBuilds": {
+    "build": "pnpm run build:client && pnpm run build:server",
+    "build:client": "vite build --config client/vite.config.ts",
+    "build:server": "vite build --config server/vite.config.ts"
   }
 }

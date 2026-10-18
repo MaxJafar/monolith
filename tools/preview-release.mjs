@@ -29,19 +29,20 @@ const run = (command, args, cwd) => {
 
 export async function validateInventory(folder, manifest, publicKey) {
   const automatic = manifest.distribution === 'signed-updates'
+  const unsigned = manifest.distribution === 'manual-unsigned'
   const inventoryName = automatic
     ? 'release-downloads.json'
     : 'manual-release.json'
   if (
     manifest.format !== 1 ||
-    (!automatic && manifest.distribution !== 'manual-preview') ||
+    (!automatic && !unsigned && manifest.distribution !== 'manual-preview') ||
     !(
-      automatic
+      automatic || unsigned
         ? /^\d+\.\d+\.\d+(?:-(?:beta|rc)\.\d+)?$/
         : /^\d+\.\d+\.\d+-preview\.\d+$/
     ).test(manifest.version)
   )
-    throw Error('Invalid preview or signed release version')
+    throw Error('Invalid preview, unsigned or signed release version')
   for (const target of [...targets, 'server-kit', 'agent-tools', 'addons'])
     if (!manifest.files.some(file => file.target === target))
       throw Error(`Missing release target: ${target}`)
@@ -116,20 +117,23 @@ export async function prepare(
   root,
   command,
   target,
-  { automatic = false } = {}
+  { automatic = false, unsigned = false } = {}
 ) {
+  if (automatic && unsigned) throw Error('Choose one release distribution')
   const pkg = JSON.parse(
     await fs.readFile(path.join(root, 'package.json'), 'utf8')
   )
   const version = pkg.version
   if (
     !(
-      automatic
+      automatic || unsigned
         ? /^\d+\.\d+\.\d+(?:-(?:beta|rc)\.\d+)?$/
         : /^\d+\.\d+\.\d+-preview\.\d+$/
     ).test(version)
   )
-    throw Error('Select an explicit preview or a signed stable/beta/rc version')
+    throw Error(
+      'Select an explicit preview, unsigned or signed stable/beta/rc version'
+    )
   const inventoryName = automatic
     ? 'release-downloads.json'
     : 'manual-release.json'
@@ -361,7 +365,11 @@ export async function prepare(
     }
     const manifest = {
       format: 1,
-      distribution: automatic ? 'signed-updates' : 'manual-preview',
+      distribution: automatic
+        ? 'signed-updates'
+        : unsigned
+          ? 'manual-unsigned'
+          : 'manual-preview',
       version,
       files: files.sort((a, b) => a.name.localeCompare(b.name))
     }
@@ -388,9 +396,7 @@ export async function prepare(
         .map(file => `${file.sha256}  ${file.name}`)
         .join('\n') + '\n'
     )
-    console.log(
-      `Verified ${files.length} ${automatic ? 'signed release' : 'preview'} downloads.`
-    )
+    console.log(`Verified ${files.length} ${manifest.distribution} downloads.`)
   } else throw Error('Select client, kit, extras or manifest')
 }
 
@@ -401,5 +407,6 @@ if (
   await prepare(
     path.resolve(import.meta.dirname, '..'),
     process.argv[2],
-    process.argv[3]
+    process.argv[3],
+    { unsigned: process.argv.includes('--unsigned') }
   )

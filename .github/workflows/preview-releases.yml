@@ -1,8 +1,8 @@
-name: Publish Monolith preview
+name: Publish Monolith unsigned installers
 
 on:
   push:
-    tags: ['v*-preview.*']
+    tags: ['v[0-9]*']
 
 permissions:
   contents: read
@@ -11,15 +11,19 @@ concurrency:
   group: monolith-preview-${{ github.ref }}
   cancel-in-progress: false
 
+env:
+  MONOLITH_MANUAL_RELEASE_FLAG: ${{ contains(github.ref_name, '-preview.') && '--preview' || '--unsigned' }}
+
 jobs:
   clients:
+    if: contains(github.ref_name, '-preview.') || vars.MONOLITH_RELEASE_MODE == 'unsigned'
     strategy:
       fail-fast: false
       matrix:
         include:
           - os: windows-latest
             target: windows-amd64
-          - os: macos-latest
+          - os: macos-15-intel
             target: darwin-universal
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
@@ -34,17 +38,17 @@ jobs:
       - run: pnpm release:version
       - run: pnpm updater:test
       - run: pnpm desktop:bundle
-      - name: Build and test Windows preview
+      - name: Build and test Windows installer
         if: runner.os == 'Windows'
         run: |
           pnpm desktop:windows:test
           pnpm --dir apps/desktop exec tauri build --bundles nsis
-      - name: Build and test universal Mac preview
+      - name: Build and test universal Mac installer
         if: runner.os == 'macOS'
         run: |
           pnpm exec node tools/macos-build.mjs --test
           pnpm exec node tools/macos-build.mjs
-      - run: pnpm exec node tools/preview-release.mjs client ${{ matrix.target }}
+      - run: pnpm exec node tools/preview-release.mjs client ${{ matrix.target }} ${{ env.MONOLITH_MANUAL_RELEASE_FLAG }}
       - uses: actions/upload-artifact@v4
         with:
           name: preview-${{ matrix.target }}
@@ -53,6 +57,7 @@ jobs:
           if-no-files-found: error
 
   server:
+    if: contains(github.ref_name, '-preview.') || vars.MONOLITH_RELEASE_MODE == 'unsigned'
     strategy:
       fail-fast: false
       matrix:
@@ -75,7 +80,7 @@ jobs:
       - run: pnpm release:version
       - run: pnpm gateway:test
       - run: pnpm release:platform server ${{ matrix.target }}
-      - run: pnpm exec node tools/preview-release.mjs kit
+      - run: pnpm exec node tools/preview-release.mjs kit ${{ env.MONOLITH_MANUAL_RELEASE_FLAG }}
       - run: pnpm exec node tools/smoke-release-server.mjs ${{ matrix.target }}
       - uses: actions/upload-artifact@v4
         with:
@@ -89,6 +94,7 @@ jobs:
           if-no-files-found: error
 
   extras:
+    if: contains(github.ref_name, '-preview.') || vars.MONOLITH_RELEASE_MODE == 'unsigned'
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     steps:
@@ -112,7 +118,7 @@ jobs:
       - run: pnpm release:addons
         env:
           MONOLITH_RELEASE_PRIVATE_KEY: ${{ secrets.MONOLITH_ADDON_CATALOG_PRIVATE_KEY }}
-      - run: pnpm exec node tools/preview-release.mjs extras
+      - run: pnpm exec node tools/preview-release.mjs extras ${{ env.MONOLITH_MANUAL_RELEASE_FLAG }}
       - uses: actions/upload-artifact@v4
         with:
           name: preview-extras
@@ -138,9 +144,9 @@ jobs:
           pattern: preview-*
           path: dist/platform-releases/${{ github.ref_name }}
           merge-multiple: true
-      - run: pnpm exec node tools/preview-release.mjs manifest
-      - name: Publish the complete manual preview
-        run: pnpm exec node tools/publish-platform-release.mjs --preview
+      - run: pnpm exec node tools/preview-release.mjs manifest ${{ env.MONOLITH_MANUAL_RELEASE_FLAG }}
+      - name: Publish the complete manual release
+        run: pnpm exec node tools/publish-platform-release.mjs ${{ env.MONOLITH_MANUAL_RELEASE_FLAG }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          MONOLITH_RELEASE_NOTES_FILE: release/PREVIEW.md
+          MONOLITH_RELEASE_NOTES_FILE: ${{ contains(github.ref_name, '-preview.') && 'release/PREVIEW.md' || 'release/UNSIGNED.md' }}

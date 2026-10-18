@@ -14,9 +14,9 @@
     "typecheck": "pnpm run typecheck:client && pnpm run typecheck:server",
     "typecheck:client": "cd client && tsc",
     "typecheck:server": "cd server && tsc",
-    "build": "pnpm run build:client && pnpm run build:server",
-    "build:client": "cd client && vite build",
-    "build:server": "cd server && vite build"
+    "build": "node \"../../tools/build-guard.mjs\" --task build",
+    "build:client": "node \"../../tools/build-guard.mjs\" --task build:client",
+    "build:server": "node \"../../tools/build-guard.mjs\" --task build:server"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.9",
@@ -49,5 +49,10 @@
         "widget"
       ]
     }
+  },
+  "monolithBuilds": {
+    "build": "pnpm run build:client && pnpm run build:server",
+    "build:client": "cd client && vite build",
+    "build:server": "cd server && vite build"
   }
 }

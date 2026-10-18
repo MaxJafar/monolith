@@ -14,9 +14,9 @@
     "typecheck": "pnpm run typecheck:client && pnpm run typecheck:server",
     "typecheck:client": "cd client && tsc",
     "typecheck:server": "cd server && tsc",
-    "build": "pnpm run build:client && pnpm run build:server",
-    "build:client": "cd client && vite build",
-    "build:server": "cd server && vite build"
+    "build": "node \"../../tools/build-guard.mjs\" --task build",
+    "build:client": "node \"../../tools/build-guard.mjs\" --task build:client",
+    "build:server": "node \"../../tools/build-guard.mjs\" --task build:server"
   },
   "dependencies": {
     "@vis.gl/react-google-maps": "^1.5.5",
@@ -63,5 +63,10 @@
     },
     "id": "monolith--wallet",
     "routeId": "444fbd5671dabea6430b9bf6cb879fe1a4f79c0107bf639d662eb6d9a3cdd7d1"
+  },
+  "monolithBuilds": {
+    "build": "pnpm run build:client && pnpm run build:server",
+    "build:client": "cd client && vite build",
+    "build:server": "cd server && vite build"
   }
 }

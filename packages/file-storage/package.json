@@ -20,7 +20,7 @@
     }
   },
   "scripts": {
-    "build": "rimraf dist && vite build && tsc --emitDeclarationOnly",
+    "build": "node \"../../tools/build-guard.mjs\" --task build",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --emitDeclarationOnly"
@@ -48,5 +48,8 @@
     "@types/node": "^22.13.10",
     "express": "^4.21.2"
   },
-  "author": "Monolith contributors"
+  "author": "Monolith contributors",
+  "monolithBuilds": {
+    "build": "rimraf dist && vite build && tsc --emitDeclarationOnly"
+  }
 }

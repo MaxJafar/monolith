@@ -1,6 +1,7 @@
 name: Publish Monolith releases
 
 on:
+  workflow_dispatch:
   push:
     tags: ['v[0-9]*', '!v*-preview.*']
 
@@ -12,10 +13,38 @@ concurrency:
   cancel-in-progress: false
 
 env:
+  MONOLITH_SIGNED_RELEASE: '1'
   MONOLITH_RELEASE_PUBLIC_KEY: ${{ vars.MONOLITH_RELEASE_PUBLIC_KEY }}
 
 jobs:
+  preflight:
+    runs-on: ubuntu-24.04
+    environment: release
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+      - name: Verify release credentials before building
+        run: pnpm release:preflight
+        env:
+          MONOLITH_RELEASE_PRIVATE_KEY: ${{ secrets.MONOLITH_RELEASE_PRIVATE_KEY }}
+          MONOLITH_ADDON_CATALOG_PRIVATE_KEY: ${{ secrets.MONOLITH_ADDON_CATALOG_PRIVATE_KEY }}
+          WINDOWS_CERTIFICATE_P12: ${{ secrets.WINDOWS_CERTIFICATE_P12 }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+          MACOS_CERTIFICATE_P12: ${{ secrets.MACOS_CERTIFICATE_P12 }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          MACOS_SIGN_IDENTITY: ${{ secrets.MACOS_SIGN_IDENTITY }}
+          MACOS_TEAM_ID: ${{ secrets.MACOS_TEAM_ID }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+
   clients:
+    if: github.event_name == 'push'
+    needs: preflight
+    environment: release
     strategy:
       fail-fast: false
       matrix:
@@ -76,8 +105,8 @@ jobs:
           pnpm exec node tools/macos-build.mjs --test
           pnpm exec node tools/macos-build.mjs
       - run: pnpm release:platform client ${{ matrix.target }}
-      - name: Collect installers
-        run: pnpm exec node tools/collect-installers.mjs
+      - name: Collect verified installers
+        run: pnpm release:downloads client ${{ matrix.target }}
       - uses: actions/upload-artifact@v4
         with:
           name: release-${{ matrix.target }}
@@ -88,13 +117,22 @@ jobs:
             dist/platform-releases/${{ github.ref_name }}/*.dmg
           retention-days: 7
           if-no-files-found: error
+      - name: Remove temporary macOS signing keychain
+        if: always() && runner.os == 'macOS'
+        run: pnpm exec node tools/configure-macos-signing.mjs --cleanup
 
   server:
+    if: github.event_name == 'push'
+    needs: preflight
     strategy:
       fail-fast: false
       matrix:
-        target: [linux-amd64, linux-arm64]
-    runs-on: ubuntu-24.04
+        include:
+          - os: ubuntu-24.04
+            target: linux-amd64
+          - os: ubuntu-24.04-arm
+            target: linux-arm64
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
@@ -103,12 +141,14 @@ jobs:
         with:
           node-version: '22'
           cache: pnpm
-      - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
       - run: pnpm install --frozen-lockfile
       - run: pnpm release:version
       - run: pnpm gateway:test
       - run: pnpm release:platform server ${{ matrix.target }}
+      - run: pnpm release:downloads kit
+      - name: Rehearse automatic install and rollback with persistent data
+        run: pnpm exec node tools/smoke-release-server.mjs ${{ matrix.target }} --updates
       - uses: actions/upload-artifact@v4
         with:
           name: release-${{ matrix.target }}
@@ -120,8 +160,43 @@ jobs:
           retention-days: 7
           if-no-files-found: error
 
+  extras:
+    if: github.event_name == 'push'
+    needs: preflight
+    environment: release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm release:version
+      - run: pnpm core:check
+      - run: pnpm typecheck
+      - run: pnpm exec node --test tools/platform-release.test.mjs tools/preview-release.test.mjs tools/release-preflight.test.mjs
+      - run: pnpm --filter @monolith/client test
+      - run: pnpm --filter @monolith/configs test
+      - run: pnpm --filter @monolith/module-runtime test
+      - run: pnpm --filter @monolith/server-utils test
+      - run: pnpm exec vitest run --config tools/vitest.addons.config.ts
+      - run: pnpm agent:test
+      - run: pnpm release:addons
+        env:
+          MONOLITH_RELEASE_PRIVATE_KEY: ${{ secrets.MONOLITH_ADDON_CATALOG_PRIVATE_KEY }}
+      - run: pnpm release:downloads extras
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-extras
+          path: dist/platform-releases/${{ github.ref_name }}/*
+          retention-days: 7
+          if-no-files-found: error
+
   publish:
-    needs: [clients, server]
+    needs: [clients, server, extras]
     runs-on: ubuntu-24.04
     environment: release
     timeout-minutes: 60
@@ -152,6 +227,8 @@ jobs:
         env:
           MONOLITH_RELEASE_PRIVATE_KEY: ${{ secrets.MONOLITH_RELEASE_PRIVATE_KEY }}
         run: pnpm release:platform manifest
+      - name: Verify the complete installer and add-on inventory
+        run: pnpm release:downloads manifest
       - name: Publish complete release
         env:
           GITHUB_TOKEN: ${{ github.token }}

@@ -26,6 +26,7 @@ jobs:
           node-version: '22'
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm exec node --test tools/platform-release.test.mjs tools/preview-release.test.mjs tools/release-preflight.test.mjs
       - run: pnpm core:check
       - run: pnpm typecheck
       - run: pnpm --filter @monolith/configs test

@@ -88,6 +88,16 @@ if (existsSync(png)) {
   ])
 }
 const identity = process.env.MACOS_SIGN_IDENTITY || '-'
+if (
+  process.env.MONOLITH_SIGNED_RELEASE === '1' &&
+  (!identity.startsWith('Developer ID Application: ') ||
+    !process.env.MACOS_TEAM_ID ||
+    !identity.endsWith('(' + process.env.MACOS_TEAM_ID + ')') ||
+    !process.env.MACOS_NOTARY_PROFILE)
+)
+  throw Error(
+    'Signed releases require a matching Developer ID identity and notarization profile'
+  )
 run(process.execPath, ['tools/build-updater.mjs', 'darwin-universal'])
 const updaterResources = resolve(resources, 'updater')
 mkdirSync(updaterResources, { recursive: true })
@@ -145,10 +155,25 @@ if (process.env.MACOS_NOTARY_PROFILE) {
     dmg,
     '--keychain-profile',
     process.env.MACOS_NOTARY_PROFILE,
+    ...(process.env.MACOS_SIGNING_KEYCHAIN
+      ? ['--keychain', process.env.MACOS_SIGNING_KEYCHAIN]
+      : []),
     '--wait'
   ])
   run('xcrun', ['stapler', 'staple', dmg])
   run('xcrun', ['stapler', 'staple', app])
+  run('xcrun', ['stapler', 'validate', dmg])
+  run('xcrun', ['stapler', 'validate', app])
+  run('spctl', ['--assess', '--type', 'execute', '--verbose=2', app])
+  run('spctl', [
+    '--assess',
+    '--type',
+    'open',
+    '--context',
+    'context:primary-signature',
+    '--verbose=2',
+    dmg
+  ])
 }
 console.log(
   identity === '-'

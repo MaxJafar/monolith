@@ -33,6 +33,8 @@
     "agent:test": "pnpm --filter @monolith/agent-tools test",
     "updater:build": "node tools/build-updater.mjs",
     "updater:test": "pnpm native go test ./internal/updates",
+    "release:preflight": "node tools/release-preflight.mjs",
+    "release:downloads": "node tools/release-downloads.mjs",
     "release:version": "node tools/release-version.mjs",
     "release:platform": "node tools/platform-release.mjs",
     "release:addons": "node tools/build-release-addons.mjs",

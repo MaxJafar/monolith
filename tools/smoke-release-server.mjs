@@ -11,8 +11,25 @@ if (!['linux-amd64', 'linux-arm64'].includes(target))
 const { version } = JSON.parse(await fs.readFile('package.json', 'utf8'))
 const kit = path.resolve('.temp', `server-kit-${version}`)
 const project = 'monolith-release-test'
+const rehearse = process.argv.includes('--updates')
+const candidateImage = `monolith-release:${version}-${target}`
+const baselineImage = `monolith-rehearsal:baseline-${target}`
+if (rehearse) {
+  const dockerfile = path.join(kit, 'Dockerfile.baseline')
+  await fs.writeFile(
+    dockerfile,
+    `FROM ${candidateImage}\nLABEL org.opencontainers.image.version=0.0.0\nENV MONOLITH_RELEASE_VERSION=0.0.0\n`
+  )
+  const built = spawnSync(
+    'docker',
+    ['build', '--file', dockerfile, '--tag', baselineImage, kit],
+    { stdio: 'inherit' }
+  )
+  if (built.status !== 0)
+    throw Error('Could not build isolated rollback baseline')
+}
 const environment = {
-  MONOLITH_SERVER_IMAGE: `monolith-release:${version}-${target}`,
+  MONOLITH_SERVER_IMAGE: rehearse ? baselineImage : candidateImage,
   MONOLITH_DB_ADMIN_PASSWORD: randomBytes(32).toString('hex'),
   MONOLITH_DB_APP_PASSWORD: randomBytes(32).toString('hex'),
   MASTER_KEY: randomBytes(32).toString('hex'),
@@ -55,9 +72,44 @@ try {
     signal: AbortSignal.timeout(10000)
   })
   if (!response.ok)
-    throw Error(`Gateway health check failed: ${response.status}`)
+    throw Error('Gateway health check failed: ' + response.status)
+  if (rehearse) {
+    const result = spawnSync(
+      process.execPath,
+      [
+        'tools/native-toolchain.mjs',
+        'go',
+        'test',
+        './internal/updates',
+        '-run',
+        '^TestComposeRealDockerRelease$',
+        '-count=1',
+        '-v',
+        '-timeout=20m'
+      ],
+      {
+        stdio: 'inherit',
+        env: {
+          ...process.env,
+          MONOLITH_DOCKER_REHEARSAL: '1',
+          MONOLITH_REHEARSAL_KIT: kit,
+          MONOLITH_REHEARSAL_ARTIFACT: path.resolve(
+            'dist/platform-releases',
+            'v' + version,
+            target + '.artifact.json'
+          ),
+          MONOLITH_REHEARSAL_VERSION: version,
+          MONOLITH_REHEARSAL_TARGET: target
+        }
+      }
+    )
+    if (result.status !== 0)
+      throw Error('Real server update and rollback rehearsal failed')
+  }
   console.log(
-    `Packaged ${target} server passed database migration, API and gateway health checks.`
+    'Packaged ' +
+      target +
+      ' server passed database migration, API and gateway health checks.'
   )
 } catch (error) {
   compose(['logs', '--tail', '100'])

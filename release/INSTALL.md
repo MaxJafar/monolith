@@ -1,10 +1,10 @@
-# Install the Monolith preview
+# Install Monolith
 
-Download the files for the same version from [GitHub Releases](https://github.com/MaxJafar/monolith/releases). This preview is for manual installation. Windows executables are unsigned; the universal macOS application is ad-hoc signed and is not notarized. Signed automatic application updates are not enabled for this preview.
+Download the files for the same version from [GitHub Releases](https://github.com/MaxJafar/monolith/releases). Check the release channel before installing. A `preview` release requires manual installation: its Windows executable is unsigned, its Mac application is ad-hoc signed and automatic application updates are disabled. A signed stable release includes an update manifest, trusted Windows signatures and an Apple-notarized Mac app.
 
 ## Desktop clients
 
-On Windows x64, run the `windows-amd64.exe` installer. On macOS, open the `darwin-universal.dmg` and drag Monolith to Applications. The Mac application supports Apple Silicon and Intel. Your operating system may block these preview downloads because they lack a trusted publisher signature. Use the web client if your device policy disallows unsigned applications.
+On Windows x64, run the `windows-amd64.exe` installer. On macOS, open the `darwin-universal.dmg` and drag Monolith to Applications. The Mac application supports Apple Silicon and Intel. Your operating system may block preview downloads because they lack a trusted publisher signature. Use the web client if your device policy disallows unsigned applications.
 
 Both clients connect to a Monolith server using its HTTPS address. They do not install a server or database on your computer.
 
@@ -32,6 +32,12 @@ docker compose --env-file env/.env.docker -f compose.yaml ps
 ```
 
 Forward your HTTPS proxy to `127.0.0.1:8080`. Open the server address and create the first account using your bootstrap token. Persistent named volumes store the database and uploaded files; keep them when replacing containers. Back up these volumes and the environment file before upgrades. Do not use `down --volumes` on an installation whose data you want to keep.
+
+## Automatic updates in signed releases
+
+After installing the first signed client, enable **Settings → Updates → Install automatically** on each device. Downloads and notifications use public GitHub Releases. The client waits for an idle, saved session before restarting and retains the previous version for recovery.
+
+Server automatic updates require the host supervisor outside the containers. Signed server kits include `UPDATES.md`, the systemd unit, configuration example and pinned update verification key under `docker/updates/`. Follow that guide with your actual Compose file, environment path, administrator IDs and maintenance hour. The updater retains the prior image and rolls back a failed health check. Database schema changes require a planned migration.
 
 ## Add-ons and widgets
 

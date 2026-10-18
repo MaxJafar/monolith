@@ -22,21 +22,31 @@ The updater currently reads public GitHub release assets. It does not embed a Gi
 
 The workflow `.github/workflows/platform-releases.yml` runs for `v<semver>` tags. It aligns root/web/API/Windows/macOS versions with the tag, tests the updater, builds both native clients and both Linux architectures, signs/notarizes clients and signs a complete release manifest. It creates a draft GitHub release, uploads every artifact, uploads the manifest last, and publishes only after all uploads succeed. A failed upload leaves a draft that can be retried; an already published version is never overwritten.
 
-Create the GitHub environment **release** and protect it according to your release policy. Configure these repository variables/secrets:
+The **release** GitHub environment holds the main manifest-signing private key. The repository variable `MONOLITH_RELEASE_PUBLIC_KEY` must match `release/keys/app-release.pem`; preflight rejects accidental key rotation. Configure the remaining secrets in that environment or as repository secrets. Never paste private keys or passwords into issues, documentation or chat.
 
-| Name                             | Kind                         | Purpose                                                                 |
-| -------------------------------- | ---------------------------- | ----------------------------------------------------------------------- |
-| `MONOLITH_RELEASE_PUBLIC_KEY`    | Repository variable          | Ed25519 public PEM embedded in clients and used by the host supervisor. |
-| `MONOLITH_RELEASE_PRIVATE_KEY`   | `release` environment secret | Matching private PEM used only by the manifest-signing job.             |
-| `WINDOWS_CERTIFICATE_P12`        | Repository secret            | Base64-encoded Authenticode signing certificate and private key.        |
-| `WINDOWS_CERTIFICATE_PASSWORD`   | Repository secret            | Certificate password.                                                   |
-| `MACOS_CERTIFICATE_P12`          | Repository secret            | Base64-encoded Developer ID Application certificate and private key.    |
-| `MACOS_CERTIFICATE_PASSWORD`     | Repository secret            | Certificate password.                                                   |
-| `MACOS_SIGN_IDENTITY`            | Repository secret            | Developer ID Application signing identity.                              |
-| `MACOS_TEAM_ID`                  | Repository secret            | Ten-character Apple Developer team ID.                                  |
-| `APPLE_ID`, `APPLE_APP_PASSWORD` | Repository secrets           | Apple notarization credentials.                                         |
+The workflow runs `pnpm release:preflight` before starting builds and reports missing credential names without their values. Running **Publish Monolith releases** manually checks credentials only; publishing still requires a version tag. It then verifies trusted, timestamped Windows signatures, validates the stapled Apple notarization tickets, packages the server installation kit, CLI/MCP and signed add-on catalog, and verifies the full download inventory before publishing.
 
-The native signing jobs import credentials only on ephemeral GitHub runners. If your Windows certificate requires a hardware/cloud signing provider, adapt `tools/sign-windows-release.mjs` to that provider before enabling the workflow. The checked-in implementation supports an exportable P12/PFX certificate.
+Required settings:
+
+| Name                             | Kind                          | Purpose                                                                 |
+| -------------------------------- | ----------------------------- | ----------------------------------------------------------------------- |
+| `MONOLITH_RELEASE_PUBLIC_KEY`    | Repository variable           | Ed25519 public PEM embedded in clients and used by the host supervisor. |
+| `MONOLITH_RELEASE_PRIVATE_KEY`   | `release` environment secret  | Matching private PEM for signing and the credential preflight check.    |
+| `WINDOWS_CERTIFICATE_P12`        | Repository or release secret  | Base64-encoded Authenticode signing certificate and private key.        |
+| `WINDOWS_CERTIFICATE_PASSWORD`   | Repository or release secret  | Certificate password.                                                   |
+| `MACOS_CERTIFICATE_P12`          | Repository or release secret  | Base64-encoded Developer ID Application certificate and private key.    |
+| `MACOS_CERTIFICATE_PASSWORD`     | Repository or release secret  | Certificate password.                                                   |
+| `MACOS_SIGN_IDENTITY`            | Repository or release secret  | Developer ID Application signing identity.                              |
+| `MACOS_TEAM_ID`                  | Repository or release secret  | Ten-character Apple Developer team ID.                                  |
+| `APPLE_ID`, `APPLE_APP_PASSWORD` | Repository or release secrets | Apple notarization credentials.                                         |
+
+`MONOLITH_ADDON_CATALOG_PRIVATE_KEY` is the separate repository secret used to sign the add-on catalog against `release/keys/addon-catalog.pem`. Keep both signing keys backed up securely outside Git.
+
+The native signing jobs import credentials only on ephemeral GitHub runners. The macOS job uses a temporary keychain and removes it even when a later step fails. If your Windows certificate requires a hardware/cloud signing provider, adapt `tools/sign-windows-release.mjs` to that provider before enabling the workflow. The checked-in implementation supports an exportable P12/PFX certificate. This is not a recommendation to purchase an exportable certificate: modern public Windows code-signing offerings commonly use hardware or cloud key custody. Select the provider first, then configure its CI integration.
+
+For Windows, the release owner must supply the legal publisher identity, individual/company status, country and chosen signing provider. Cloud signing normally needs scoped CI access and a certificate profile; a hardware token needs an appropriately connected signing runner. Check [Microsoft's signing options](https://learn.microsoft.com/windows/apps/package-and-deploy/code-signing-options) and [Artifact Signing eligibility](https://learn.microsoft.com/en-us/azure/artifact-signing/quickstart) before selecting a service. A valid signature does not guarantee immediate SmartScreen reputation.
+
+For macOS, supply an active Apple Developer Program membership, a **Developer ID Application** certificate with its private key exported as a password-protected `.p12`, its exact signing identity and Team ID. The current notarization integration uses an Apple ID and an **app-specific password**, not the account password. The Account Holder creates the Developer ID certificate; see [Apple's certificate instructions](https://developer.apple.com/help/account/certificates/create-developer-id-certificates/) and [notarization workflow](https://developer.apple.com/documentation/security/customizing-the-notarization-workflow). A Developer ID Installer certificate is unnecessary for the current DMG distribution.
 
 For a release prepared locally, use the appropriate build host:
 
@@ -58,11 +68,20 @@ pnpm release:platform server linux-arm64
 
 # With all four artifacts collected and release keys configured:
 pnpm release:platform manifest
+# After packaging the matching signed add-on catalog, CLI and server kit:
+pnpm release:downloads extras
+pnpm release:downloads manifest
 ```
 
 `GITHUB_REPOSITORY` selects the release repository; otherwise the root package's repository is used. The workflow generates release notes with the [GitHub Releases API](https://docs.github.com/en/rest/releases/releases#generate-release-notes-content-for-a-release) and includes the same text in the signed manifest and published release. `MONOLITH_RELEASE_NOTES_FILE` can supply a UTF-8 file when packaging locally. Version and schema changes are not chosen automatically for you. Tag only a reviewed, tested commit. Unconfigured development builds expose update setup information and cannot install unsigned releases.
 
-Outputs are under `dist/platform-releases/v<version>/`. `monolith-release.json` contains a base64 payload plus an Ed25519 signature. Its payload binds the version, channel, updater protocol, database-schema fingerprint, platform, exact size, SHA-256 and GitHub asset URL. Server artifacts also pin an immutable Docker image ID. Large Docker archives are split into parts below [GitHub's 2 GiB per-asset limit](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases); the updater verifies each part and the complete reassembled archive. `SHA256SUMS` also covers first-install installers and host helper binaries.
+Outputs are under `dist/platform-releases/v<version>/`. `monolith-release.json` contains a base64 payload plus an Ed25519 signature. Its payload binds the version, channel, updater protocol, database-schema fingerprint, platform, exact size, SHA-256 and GitHub asset URL. Server artifacts also pin an immutable Docker image ID. Large Docker archives are split into parts below [GitHub's 2 GiB per-asset limit](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases); the updater verifies each part and the complete reassembled archive. `release-downloads.json` inventories installers, update archives, server supervisors, the installation kit, CLI/MCP and add-ons. `SHA256SUMS` covers every published download. The publisher checks that the archive checksums in the inventory still match the signed update manifest.
+
+## Rehearse server updates
+
+The stable pipeline builds natively on x64 and ARM64 and runs the actual packaged server with disposable Compose services. It creates a temporary rollback baseline from the candidate image, exercises automatic download/activation and explicit rollback, then pauses the replacement API to verify failed-health recovery. Database rows, uploaded files and database/migration container identities must survive. This validates deployment mechanics against the current package; it does not substitute for a real previous-release compatibility rehearsal.
+
+The **Rehearse server automatic updates** Actions workflow runs this check without publishing or requiring platform certificates. Its version is local to the runner. Native signed installer-to-installer upgrade testing and a backup/recovery rehearsal on the intended host remain prerequisites for the first stable tag.
 
 ## Connect the hosted server
 

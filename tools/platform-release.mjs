@@ -11,6 +11,8 @@ import path from 'node:path'
 import { pipeline } from 'node:stream/promises'
 import { createGzip } from 'node:zlib'
 
+import { verifyWindowsFiles } from './verify-windows-release.mjs'
+
 const root = path.resolve(import.meta.dirname, '..')
 const pkg = JSON.parse(
   await fs.readFile(path.join(root, 'package.json'), 'utf8')
@@ -100,6 +102,13 @@ if (command === 'client') {
       ? await fs.mkdtemp(path.join(output, 'windows-app-'))
       : path.join(root, '.temp/macos/Monolith.app')
   if (target === 'windows-amd64') {
+    await verifyWindowsFiles([
+      path.join(
+        root,
+        'apps/desktop/src-tauri/target/release/monolith-desktop.exe'
+      ),
+      path.join(root, 'apps/desktop/src-tauri/updater/monolith-updater.exe')
+    ])
     // A dedicated generated staging directory; no application/user files are removed.
     await fs.mkdir(app, { recursive: true })
     await fs.copyFile(

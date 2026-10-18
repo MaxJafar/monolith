@@ -2,6 +2,8 @@ import { spawnSync } from 'node:child_process'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
+import { verifyWindowsFiles } from './verify-windows-release.mjs'
+
 if (
   process.platform !== 'win32' ||
   process.env.CI !== 'true' ||
@@ -76,4 +78,5 @@ try {
 } finally {
   await fs.unlink(pfx)
 }
-console.log(`Signed ${files.length} Windows release artifacts`)
+await verifyWindowsFiles(files)
+console.log(`Signed and verified ${files.length} Windows release artifacts`)

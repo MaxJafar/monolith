@@ -24,7 +24,23 @@ if (preview) {
   )
   if (inventory.version !== pkg.version) throw Error('Preview version mismatch')
   await validateInventory(folder, inventory)
-} else await fs.access(path.join(folder, 'monolith-release.json'))
+  if (inventory.distribution !== 'manual-preview')
+    throw Error('Preview publication requires a manual preview inventory')
+} else {
+  inventory = JSON.parse(
+    await fs.readFile(path.join(folder, 'release-downloads.json'), 'utf8')
+  )
+  if (
+    inventory.version !== pkg.version ||
+    inventory.distribution !== 'signed-updates'
+  )
+    throw Error('Signed release inventory mismatch')
+  await validateInventory(
+    folder,
+    inventory,
+    await fs.readFile('release/keys/app-release.pem')
+  )
+}
 await fs.access(path.join(folder, 'SHA256SUMS'))
 const headers = {
   Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
@@ -62,21 +78,11 @@ if (!release)
     draft: true,
     prerelease: pkg.version.includes('-')
   })
-const assets = preview
-  ? [
-      ...inventory.files.map(file => file.name),
-      'manual-release.json',
-      'SHA256SUMS'
-    ]
-  : (await fs.readdir(folder, { withFileTypes: true }))
-      .filter(
-        entry =>
-          entry.isFile() &&
-          (/\.(zip|gz|exe|dmg)$|\.part\d+$/.test(entry.name) ||
-            entry.name.startsWith('monolith-updater-') ||
-            ['SHA256SUMS', 'monolith-release.json'].includes(entry.name))
-      )
-      .map(entry => entry.name)
+const assets = [
+  ...inventory.files.map(file => file.name),
+  preview ? 'manual-release.json' : 'release-downloads.json',
+  'SHA256SUMS'
+]
 // Publish the signed manifest last, and make the release visible only when every
 // asset has uploaded successfully. A partial job leaves a recoverable draft.
 assets.sort(

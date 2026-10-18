@@ -26,7 +26,11 @@ async function fixture(t) {
     await fs.mkdir(path.dirname(full), { recursive: true })
     await fs.writeFile(full, data)
   }
-  for (const file of ['platform-release.mjs', 'release-version.mjs'])
+  for (const file of [
+    'platform-release.mjs',
+    'release-version.mjs',
+    'verify-windows-release.mjs'
+  ])
     await write(
       'tools/' + file,
       await fs.readFile(path.join(root, 'tools', file))

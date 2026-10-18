@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process'
-import { createHash, verify } from 'node:crypto'
+import { createHash, createPublicKey, verify } from 'node:crypto'
 import { createReadStream } from 'node:fs'
 import fs from 'node:fs/promises'
 import path from 'node:path'
@@ -27,13 +27,21 @@ const run = (command, args, cwd) => {
   if (result.status !== 0) throw Error(`${command} failed: ${result.status}`)
 }
 
-export async function validateInventory(folder, manifest) {
+export async function validateInventory(folder, manifest, publicKey) {
+  const automatic = manifest.distribution === 'signed-updates'
+  const inventoryName = automatic
+    ? 'release-downloads.json'
+    : 'manual-release.json'
   if (
     manifest.format !== 1 ||
-    manifest.distribution !== 'manual-preview' ||
-    !/^\d+\.\d+\.\d+-preview\.\d+$/.test(manifest.version)
+    (!automatic && manifest.distribution !== 'manual-preview') ||
+    !(
+      automatic
+        ? /^\d+\.\d+\.\d+(?:-(?:beta|rc)\.\d+)?$/
+        : /^\d+\.\d+\.\d+-preview\.\d+$/
+    ).test(manifest.version)
   )
-    throw Error('Only explicitly versioned manual previews are accepted')
+    throw Error('Invalid preview or signed release version')
   for (const target of [...targets, 'server-kit', 'agent-tools', 'addons'])
     if (!manifest.files.some(file => file.target === target))
       throw Error(`Missing release target: ${target}`)
@@ -58,19 +66,73 @@ export async function validateInventory(folder, manifest) {
     entry =>
       entry.isFile() &&
       !entry.name.endsWith('.artifact.json') &&
-      !['manual-release.json', 'SHA256SUMS'].includes(entry.name)
+      ![inventoryName, 'SHA256SUMS'].includes(entry.name)
   )
   if (files.some(file => !names.has(file.name)))
     throw Error('Unlisted release asset')
+  if (automatic) {
+    if (!publicKey) throw Error('A pinned release public key is required')
+    const envelope = JSON.parse(
+      await fs.readFile(path.join(folder, 'monolith-release.json'), 'utf8')
+    )
+    const payload = Buffer.from(envelope.payload, 'base64')
+    if (
+      !verify(
+        null,
+        payload,
+        publicKey,
+        Buffer.from(envelope.signature, 'base64')
+      )
+    )
+      throw Error('Invalid main release signature')
+    const release = JSON.parse(payload)
+    if (
+      release.version !== manifest.version ||
+      release.format !== 1 ||
+      release.protocol !== 1 ||
+      release.channel !== (manifest.version.includes('-') ? 'beta' : 'stable')
+    )
+      throw Error('Signed release metadata does not match the downloads')
+    for (const target of targets) {
+      const artifacts = release.artifacts.filter(item => item.target === target)
+      if (artifacts.length !== 1)
+        throw Error('Missing signed update target: ' + target)
+      for (const part of artifacts[0].parts || artifacts) {
+        const name = new URL(part.url).pathname.split('/').at(-1)
+        const item = manifest.files.find(file => file.name === name)
+        if (!item || item.bytes !== part.bytes || item.sha256 !== part.sha256)
+          throw Error(
+            'Signed update archive does not match downloads: ' + target
+          )
+      }
+    }
+    for (const target of targets.slice(2))
+      if (!names.has('monolith-updater-' + target))
+        throw Error('Missing server update supervisor: ' + target)
+  }
 }
 
-export async function prepare(root, command, target) {
+export async function prepare(
+  root,
+  command,
+  target,
+  { automatic = false } = {}
+) {
   const pkg = JSON.parse(
     await fs.readFile(path.join(root, 'package.json'), 'utf8')
   )
   const version = pkg.version
-  if (!/^\d+\.\d+\.\d+-preview\.\d+$/.test(version))
-    throw Error('This command only packages explicit preview versions')
+  if (
+    !(
+      automatic
+        ? /^\d+\.\d+\.\d+(?:-(?:beta|rc)\.\d+)?$/
+        : /^\d+\.\d+\.\d+-preview\.\d+$/
+    ).test(version)
+  )
+    throw Error('Select an explicit preview or a signed stable/beta/rc version')
+  const inventoryName = automatic
+    ? 'release-downloads.json'
+    : 'manual-release.json'
   const folder = path.join(root, 'dist/platform-releases', `v${version}`)
   await fs.mkdir(folder, { recursive: true })
   const kit = async () => {
@@ -105,6 +167,21 @@ export async function prepare(root, command, target) {
       `MONOLITH_SERVER_IMAGE=monolith-release:${version}-linux-amd64\n` +
         environment
     )
+    if (automatic) {
+      await fs.cp(
+        path.join(root, 'docker/updates'),
+        path.join(stage, 'docker/updates'),
+        { recursive: true }
+      )
+      await fs.copyFile(
+        path.join(root, 'release/keys/app-release.pem'),
+        path.join(stage, 'docker/updates/app-release.pem')
+      )
+      await fs.copyFile(
+        path.join(root, 'docs/UPDATES.md'),
+        path.join(stage, 'UPDATES.md')
+      )
+    }
     await fs.copyFile(
       path.join(root, 'release/INSTALL.md'),
       path.join(stage, 'README.md')
@@ -171,11 +248,25 @@ export async function prepare(root, command, target) {
       await fs.readFile(path.join(folder, 'addon-catalog.signed.json'), 'utf8')
     )
     const payload = Buffer.from(envelope.payload, 'base64')
+    const catalogKey = await fs.readFile(
+      path.join(root, 'release/keys/addon-catalog.pem')
+    )
+    const packagedKey = await fs.readFile(
+      path.join(folder, 'addon-catalog-public.pem')
+    )
+    if (
+      !createPublicKey(catalogKey)
+        .export({ format: 'der', type: 'spki' })
+        .equals(
+          createPublicKey(packagedKey).export({ format: 'der', type: 'spki' })
+        )
+    )
+      throw Error('Packaged addon key does not match the pinned catalog key')
     if (
       !verify(
         null,
         payload,
-        await fs.readFile(path.join(folder, 'addon-catalog-public.pem')),
+        catalogKey,
         Buffer.from(envelope.signature, 'base64')
       )
     )
@@ -247,7 +338,7 @@ export async function prepare(root, command, target) {
       if (
         !entry.isFile() ||
         name.endsWith('.artifact.json') ||
-        ['manual-release.json', 'SHA256SUMS'].includes(name)
+        [inventoryName, 'SHA256SUMS'].includes(name)
       )
         continue
       const target =
@@ -270,13 +361,19 @@ export async function prepare(root, command, target) {
     }
     const manifest = {
       format: 1,
-      distribution: 'manual-preview',
+      distribution: automatic ? 'signed-updates' : 'manual-preview',
       version,
       files: files.sort((a, b) => a.name.localeCompare(b.name))
     }
-    await validateInventory(folder, manifest)
+    await validateInventory(
+      folder,
+      manifest,
+      automatic
+        ? await fs.readFile(path.join(root, 'release/keys/app-release.pem'))
+        : undefined
+    )
     await fs.writeFile(
-      path.join(folder, 'manual-release.json'),
+      path.join(folder, inventoryName),
       JSON.stringify(manifest, null, 2) + '\n'
     )
     await fs.writeFile(
@@ -284,15 +381,15 @@ export async function prepare(root, command, target) {
       [
         ...manifest.files,
         {
-          name: 'manual-release.json',
-          sha256: await hash(path.join(folder, 'manual-release.json'))
+          name: inventoryName,
+          sha256: await hash(path.join(folder, inventoryName))
         }
       ]
         .map(file => `${file.sha256}  ${file.name}`)
         .join('\n') + '\n'
     )
     console.log(
-      `Verified ${files.length} preview downloads; signed automatic-update manifests are unchanged.`
+      `Verified ${files.length} ${automatic ? 'signed release' : 'preview'} downloads.`
     )
   } else throw Error('Select client, kit, extras or manifest')
 }

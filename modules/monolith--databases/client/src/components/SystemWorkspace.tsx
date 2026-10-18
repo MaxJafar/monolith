@@ -1,5 +1,5 @@
 import dayjs from 'dayjs'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useSearchParams } from 'react-router'
 
@@ -42,6 +42,10 @@ import { DatabaseCalendar } from './DatabaseCalendar'
 import { JournalActivity } from './JournalActivity'
 import { ProjectTimeline } from './ProjectTimeline'
 import { RecordEditor } from './RecordEditor'
+import {
+  CalendarCreatePopover,
+  type CalendarCreation
+} from './calendar/CalendarCreatePopover'
 import { useCalendarSchedules } from './calendar/useCalendarSchedules'
 import './systemWorkspace.css'
 
@@ -65,6 +69,9 @@ export function SystemWorkspace({ area }: { area: string }) {
   const { t } = useTranslation('common.systemViews')
   const [params] = useSearchParams()
   const schedules = useCalendarSchedules(area === 'actions')
+  const createButton = useRef<HTMLButtonElement>(null)
+  const [calendarCreation, setCalendarCreation] =
+    useState<CalendarCreation | null>(null)
 
   const [filter, setFilter] = useState('today'),
     [query, setQuery] = useState(''),
@@ -365,10 +372,27 @@ export function SystemWorkspace({ area }: { area: string }) {
           </Button>
         )}
         <Button
+          ref={createButton}
+          aria-haspopup={area === 'calendar' ? 'dialog' : undefined}
+          aria-expanded={area === 'calendar' ? !!calendarCreation : creating}
           disabled={readOnly}
           icon="lucide:plus"
           namespace={false}
-          onClick={() => {
+          onClick={event => {
+            if (area === 'calendar') {
+              const now = dayjs()
+              const start = now
+                .minute(Math.ceil(now.minute() / 15) * 15)
+                .second(0)
+              if (!calendarCreation)
+                setCalendarCreation({
+                  anchor: event.currentTarget,
+                  database: suggestedDatabase,
+                  start: start.format('YYYY-MM-DDTHH:mm'),
+                  end: start.add(1, 'hour').format('YYYY-MM-DDTHH:mm')
+                })
+              return
+            }
             setTargetDatabase(suggestedDatabase)
             setCreating(!creating)
           }}
@@ -484,7 +508,13 @@ export function SystemWorkspace({ area }: { area: string }) {
           </Flex>
         )}
       </Flex>
-      {creating && (
+      {calendarCreation && (
+        <CalendarCreatePopover
+          initial={calendarCreation}
+          onClose={() => setCalendarCreation(null)}
+        />
+      )}
+      {creating && area !== 'calendar' && (
         <Stack
           as="form"
           className="monolith-system-create"
@@ -580,13 +610,15 @@ export function SystemWorkspace({ area }: { area: string }) {
               end_date_field_id: 'end_date'
             })
           }}
-          onCreate={values => {
-            setTargetDatabase(suggestedDatabase)
-            setDate(dayjs(String(values.date)).format('YYYY-MM-DDTHH:mm'))
-            setEventEnd(
-              dayjs(String(values.end_date)).format('YYYY-MM-DDTHH:mm')
-            )
-            setCreating(true)
+          onCreate={(values, anchor) => {
+            const element = anchor ?? createButton.current
+            if (!element || calendarCreation) return
+            setCalendarCreation({
+              anchor: element,
+              database: suggestedDatabase,
+              start: dayjs(String(values.date)).format('YYYY-MM-DDTHH:mm'),
+              end: dayjs(String(values.end_date)).format('YYYY-MM-DDTHH:mm')
+            })
           }}
         />
       ) : area === 'projects' && layout === 'board' ? (

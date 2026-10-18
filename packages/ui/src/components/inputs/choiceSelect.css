@@ -1,8 +1,9 @@
 .monolith-choice-select {
-  min-height: 32px;
+  min-height: 34px;
   width: 100%;
-  border: 1px solid var(--border-subtle);
-  background: var(--bg-primary);
+  border: 1px solid var(--border-medium);
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
   box-shadow: none;
   color: var(--text-primary);
   font: inherit;
@@ -10,11 +11,20 @@
   text-align: left;
 }
 .monolith-choice-select:focus-visible {
-  outline: 1px solid color-mix(in srgb, var(--selection-color) 35%, transparent);
-  outline-offset: -1px;
+  outline: 2px solid color-mix(in srgb, var(--text-primary) 45%, transparent);
+  outline-offset: 2px;
 }
 .monolith-choice-select:focus-visible:hover {
-  outline-color: color-mix(in srgb, var(--selection-color) 85%, transparent);
+  outline-color: var(--text-muted);
+}
+.monolith-choice-select:not(:disabled):hover {
+  background: var(--bg-lifted);
+}
+.monolith-choice-select[data-open] > svg {
+  transform: rotate(180deg);
+}
+.monolith-choice-select > svg {
+  transition: transform 140ms var(--motion-ease);
 }
 .monolith-choice-select > svg {
   width: 14px;

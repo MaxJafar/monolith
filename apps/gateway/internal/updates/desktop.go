@@ -190,10 +190,10 @@ func (d *Desktop) validateRoot() error {
 	return nil
 }
 func (d *Desktop) validateJournal(j *Journal) error {
-	if j.Kind != "desktop" || j.Install != d.InstallPath {
+	if j.Kind != "desktop" || !sameApplicationPath(j.Install, d.InstallPath) {
 		return errors.New("Recovery journal does not belong to this application")
 	}
-	parent := filepath.Dir(d.InstallPath)
+	parent := filepath.Dir(j.Install)
 	for _, p := range []string{j.Stage, j.Backup} {
 		if filepath.Dir(p) != parent || !strings.HasPrefix(filepath.Base(p), ".monolith-") {
 			return errors.New("Recovery path is outside the application directory")
@@ -397,11 +397,11 @@ func (d *Desktop) Rollback(ctx context.Context, j *Journal) error {
 	d.mu.Lock()
 	readyVersion := d.readyVersion
 	d.mu.Unlock()
-	if readyVersion == j.To || pid == 0 || (processAlive(d.Parent()) && strings.EqualFold(filepath.Clean(processExecutable(d.Parent())), filepath.Clean(d.executable(j.Install)))) {
+	if readyVersion == j.To || pid == 0 || (processAlive(d.Parent()) && sameApplicationPath(processExecutable(d.Parent()), d.executable(j.Install))) {
 		pid = d.Parent()
 	}
 	if pid > 0 && processAlive(pid) {
-		if !strings.EqualFold(filepath.Clean(processExecutable(pid)), filepath.Clean(d.executable(j.Install))) {
+		if !sameApplicationPath(processExecutable(pid), d.executable(j.Install)) {
 			return errors.New("Candidate process identity changed; recovery files were preserved")
 		}
 		process, err := os.FindProcess(pid)
@@ -421,6 +421,24 @@ func (d *Desktop) Rollback(ctx context.Context, j *Journal) error {
 	}
 	_, err = d.launch(j.Install)
 	return err
+}
+
+// Windows package redirection and filesystem aliases can expose one installation
+// through different paths. Accept an alias only when the OS confirms file identity;
+// equal contents or a matching filename are not sufficient to stop a process.
+func sameApplicationPath(a, b string) bool {
+	if a == "" || b == "" {
+		return false
+	}
+	if filepath.Clean(a) == filepath.Clean(b) {
+		return true
+	}
+	left, err := os.Stat(a)
+	if err != nil {
+		return false
+	}
+	right, err := os.Stat(b)
+	return err == nil && os.SameFile(left, right)
 }
 
 // Windows keeps the install directory and executable path present at all times.

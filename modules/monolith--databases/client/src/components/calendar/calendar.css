@@ -5,6 +5,75 @@
     transparent
   );
 }
+.monolith-calendar-modes {
+  padding: 3px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--bg-sidebar);
+}
+.monolith-calendar-modes > button {
+  min-height: 28px;
+  padding: 5px 12px;
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+}
+.monolith-calendar-modes > button[aria-pressed='true'] {
+  background: var(--bg-lifted);
+  border-color: var(--border-medium);
+  color: var(--text-primary);
+  box-shadow: var(--card-shadow);
+}
+.monolith-calendar-create-title {
+  width: 100%;
+  padding: 4px 0 12px;
+  border: 0;
+  border-bottom: 1px solid var(--border-subtle);
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+.monolith-calendar-create-title:focus-visible {
+  outline: none !important;
+  border-bottom-color: var(--text-muted);
+}
+.monolith-calendar-create-title::placeholder {
+  color: var(--text-muted);
+}
+.monolith-calendar-create-times {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-subtle);
+}
+.monolith-calendar-create-time {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+.monolith-calendar-create-time input {
+  min-width: 0;
+  width: 100%;
+  min-height: 34px;
+  padding: 6px 8px;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  font: inherit;
+  font-size: 13px;
+  color-scheme: inherit;
+}
+.monolith-calendar-create-footer {
+  border-top: 1px solid var(--border-subtle);
+}
+@media (pointer: coarse) {
+  .monolith-calendar-modes > button,
+  .monolith-calendar-create-time input {
+    min-height: 44px;
+  }
+}
 .monolith-time-scroll {
   border: 1px solid var(--calendar-line);
   border-radius: var(--radius-lg, 8px);

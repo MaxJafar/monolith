@@ -7,6 +7,7 @@ import { useModuleTranslation } from '@monolith/localization'
 import {
   Box,
   Button,
+  ChoiceSelect,
   Flex,
   Grid,
   Stack,
@@ -62,7 +63,7 @@ export function DatabaseCalendar({
   records: RecordPage[]
   fields: Field[]
   view: SavedView
-  onCreate: (values: Record<string, CellValue>) => void
+  onCreate: (values: Record<string, CellValue>, anchor?: HTMLElement) => void
 }) {
   const {
     api,
@@ -222,21 +223,24 @@ export function DatabaseCalendar({
     })
     return !!result
   }
-  function create(start: string, end: string) {
+  function create(start: string, end: string, anchor?: HTMLElement) {
     if (disabled) return
     const a = system ? 'date' : (view.config.date_field_id ?? 'date')
     const b = system ? 'end_date' : view.config.end_date_field_id
-    onCreate({
-      [a]: a === 'date' ? start : dayjs(start).format('YYYY-MM-DD'),
-      ...(b
-        ? {
-            [b]:
-              b === 'end_date'
-                ? end
-                : dayjs(end).subtract(1, 'millisecond').format('YYYY-MM-DD')
-          }
-        : {})
-    })
+    onCreate(
+      {
+        [a]: a === 'date' ? start : dayjs(start).format('YYYY-MM-DD'),
+        ...(b
+          ? {
+              [b]:
+                b === 'end_date'
+                  ? end
+                  : dayjs(end).subtract(1, 'millisecond').format('YYYY-MM-DD')
+            }
+          : {})
+      },
+      anchor
+    )
   }
   function monthMove(item: CalendarOccurrence, date: string) {
     const next = moveToDate(item, date)
@@ -285,30 +289,36 @@ export function DatabaseCalendar({
           </Text>
         </Flex>
         {system && (
-          <Box as="label" className="monolith-calendar-field" width="220px">
-            <select
-              aria-label={t('scheduling.startProperty')}
+          <Box width="250px">
+            <ChoiceSelect
+              label={t('scheduling.startProperty')}
               value={field ?? ''}
-              onChange={event => void setField(event.target.value || null)}
-            >
-              <option value="">{t('scheduling.automaticDates')}</option>
-              <option value="date">{t('itemDate')}</option>
-              {fields
-                .filter(field => field.kind === 'date')
-                .map(field => (
-                  <option key={field.id} value={field.id}>
-                    {field.name}
-                  </option>
-                ))}
-            </select>
+              onChange={value => void setField(value || null)}
+              options={[
+                {
+                  value: '',
+                  label: t('scheduling.automaticDates'),
+                  icon: 'lucide:calendar'
+                },
+                { value: 'date', label: t('itemDate') },
+                ...fields
+                  .filter(field => field.kind === 'date')
+                  .map(field => ({ value: field.id, label: field.name }))
+              ]}
+            />
           </Box>
         )}
-        <Flex gap="xs" wrap="wrap">
+        <Flex
+          className="monolith-calendar-modes"
+          gap="xs"
+          role="group"
+          aria-label={t('viewLayout')}
+        >
           {modes.map(value => (
             <Button
               key={value}
               namespace={false}
-              variant={mode === value ? 'primary' : 'secondary'}
+              variant="plain"
               aria-pressed={mode === value}
               onClick={() => void setMode(value)}
             >
@@ -403,10 +413,11 @@ export function DatabaseCalendar({
                     variant="plain"
                     disabled={disabled}
                     aria-label={t('calendarView.newOn', { date })}
-                    onClick={() =>
+                    onClick={event =>
                       create(
                         dayjs(date).hour(9).toISOString(),
-                        dayjs(date).hour(10).toISOString()
+                        dayjs(date).hour(10).toISOString(),
+                        event.currentTarget
                       )
                     }
                   />

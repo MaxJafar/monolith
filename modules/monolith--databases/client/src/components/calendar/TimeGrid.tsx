@@ -63,7 +63,7 @@ export function TimeGrid({
     end: string
   ) => Promise<void>
   eventStyle?: (item: CalendarOccurrence) => CSSProperties | undefined
-  onCreate: (start: string, end: string) => void
+  onCreate: (start: string, end: string, anchor: HTMLElement) => void
 }) {
   const { t, i18n } = useModuleTranslation()
 
@@ -387,7 +387,7 @@ export function TimeGrid({
                       tabIndex={slot === 18 ? 0 : -1}
                       top={`${(slot * HOUR_HEIGHT) / 2}px`}
                       width="100%"
-                      onClick={() =>
+                      onClick={event =>
                         onCreate(
                           dayjs(date)
                             .hour(Math.floor(slot / 2))
@@ -396,7 +396,8 @@ export function TimeGrid({
                           dayjs(date)
                             .hour(Math.floor(slot / 2) + 1)
                             .minute((slot % 2) * 30)
-                            .toISOString()
+                            .toISOString(),
+                          event.currentTarget
                         )
                       }
                     />

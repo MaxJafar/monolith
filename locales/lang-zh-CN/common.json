@@ -1142,7 +1142,14 @@
     "count_one": "{{count}} 个条目",
     "count_other": "{{count}} 个条目",
     "endDate": "结束日期",
-    "recurringWindow": "重复任务显示过去 30 天和未来 31 天。打开日历可查看其他日期。"
+    "recurringWindow": "重复任务显示过去 30 天和未来 31 天。打开日历可查看其他日期。",
+    "eventCreation": {
+      "title": "新建日程",
+      "placeholder": "有什么安排？",
+      "openPage": "创建并打开页面",
+      "invalidRange": "结束时间必须晚于开始时间。",
+      "saveFailed": "无法创建日程，草稿仍保留在此处。"
+    }
   },
   "inlineDatabase": {
     "createHint": "选择布局，再在页面上命名。",

@@ -1120,7 +1120,14 @@
     "count_one": "{{count}} item",
     "count_other": "{{count}} items",
     "endDate": "End date",
-    "recurringWindow": "Repeating actions show the previous 30 days and next 31 days. Open Calendar to browse other dates."
+    "recurringWindow": "Repeating actions show the previous 30 days and next 31 days. Open Calendar to browse other dates.",
+    "eventCreation": {
+      "title": "New event",
+      "placeholder": "What’s happening?",
+      "openPage": "Create & open page",
+      "invalidRange": "Choose an end time after the start.",
+      "saveFailed": "Could not create the event. Your draft is still here."
+    }
   },
   "inlineDatabase": {
     "createHint": "Choose a layout. Name it on the page.",

@@ -8,6 +8,7 @@ import {
   ChoiceSelect,
   Flex,
   Icon,
+  SliderInput,
   Stack,
   Switch,
   Text,
@@ -310,15 +311,15 @@ function SidebarSettings() {
         {t('devicePreferences')}
       </Text>
       <SettingRow help={`${p.width}px`} title={t('sidebarWidth')}>
-        <Box
+        <SliderInput
           aria-label={t('sidebarWidth')}
-          as="input"
+          width="180px"
           max={420}
           min={220}
           step={4}
-          type="range"
           value={p.width}
-          onChange={e => update({ width: Number(e.target.value) })}
+          renderValue={value => `${value}px`}
+          onChange={width => update({ width })}
         />
       </SettingRow>
       <SettingRow title={t('compact')}>

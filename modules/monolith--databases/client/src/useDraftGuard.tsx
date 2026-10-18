@@ -66,7 +66,12 @@ export function DraftConfirmation({
         >
           {t('docs.keepEditing')}
         </Button>
-        <Button dangerous namespace={false} onClick={onDiscard}>
+        <Button
+          dangerous
+          namespace={false}
+          variant="secondary"
+          onClick={onDiscard}
+        >
           {t('docs.discard')}
         </Button>
       </Flex>

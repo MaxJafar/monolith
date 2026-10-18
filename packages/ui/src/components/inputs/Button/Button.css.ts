@@ -8,9 +8,31 @@ import { tertiary, tertiaryDangerous } from './styles/tertiary.css'
 
 export const buttonRecipe = recipe({
   base: {
+    appearance: 'none',
+    border: '1px solid transparent',
+    fontSize: 'var(--text-sm)',
+    lineHeight: '1.35',
     transition:
       'background-color var(--motion-fast) var(--motion-ease), color var(--motion-fast) var(--motion-ease), transform var(--motion-fast) var(--motion-ease), box-shadow var(--motion-fast) var(--motion-ease)',
     selectors: {
+      '&[data-variant="primary"]:not(:disabled)': {
+        boxShadow: '0 1px 2px #00000012, inset 0 1px 0 #ffffff12'
+      },
+      '&[data-variant="secondary"]': {
+        borderColor: 'var(--border-subtle)',
+        backgroundColor:
+          'color-mix(in srgb, var(--text-primary) 5%, var(--bg-surface))'
+      },
+      '&[data-variant="secondary"]:hover:not(:disabled)': {
+        borderColor: 'var(--border-medium)',
+        backgroundColor:
+          'color-mix(in srgb, var(--text-primary) 9%, var(--bg-surface))'
+      },
+      '&[data-dangerous="true"][data-variant="secondary"]': {
+        color: 'var(--color-dangerous)',
+        backgroundColor:
+          'color-mix(in srgb, var(--color-dangerous) 8%, var(--bg-surface))'
+      },
       '&:active:not(:disabled):not([aria-disabled="true"])': {
         transform: 'scale(.98)'
       }

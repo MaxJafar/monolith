@@ -1142,7 +1142,14 @@
     "count_one": "{{count}} 個項目",
     "count_other": "{{count}} 個項目",
     "endDate": "結束日期",
-    "recurringWindow": "重複任務顯示過去 30 天和未來 31 天。開啟行事曆可查看其他日期。"
+    "recurringWindow": "重複任務顯示過去 30 天和未來 31 天。開啟行事曆可查看其他日期。",
+    "eventCreation": {
+      "title": "新增行程",
+      "placeholder": "有什麼安排？",
+      "openPage": "建立並開啟頁面",
+      "invalidRange": "結束時間必須晚於開始時間。",
+      "saveFailed": "無法建立行程，草稿仍保留在此處。"
+    }
   },
   "inlineDatabase": {
     "createHint": "選擇版面配置，再於頁面上命名。",

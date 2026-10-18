@@ -1142,7 +1142,14 @@
     "count_one": "{{count}} item",
     "count_other": "{{count}} item",
     "endDate": "Tarikh tamat",
-    "recurringWindow": "Tindakan berulang memaparkan 30 hari lalu dan 31 hari akan datang. Buka Kalendar untuk tarikh lain."
+    "recurringWindow": "Tindakan berulang memaparkan 30 hari lalu dan 31 hari akan datang. Buka Kalendar untuk tarikh lain.",
+    "eventCreation": {
+      "title": "Acara baharu",
+      "placeholder": "Apa yang dirancang?",
+      "openPage": "Cipta & buka halaman",
+      "invalidRange": "Pilih masa tamat selepas masa mula.",
+      "saveFailed": "Acara tidak dapat dicipta. Draf anda masih disimpan di sini."
+    }
   },
   "inlineDatabase": {
     "createHint": "Pilih susun atur. Namakannya pada halaman.",

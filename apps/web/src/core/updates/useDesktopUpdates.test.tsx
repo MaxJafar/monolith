@@ -136,3 +136,32 @@ it('cancels an automatic restart when the user returns during draft flushing', a
     mocks.updater.mock.calls.some(([action]) => action === 'install')
   ).toBe(false)
 })
+
+it('shows short-download progress immediately and returns to idle polling when ready', async () => {
+  vi.useFakeTimers()
+  const state = {
+    ...emptyUpdateStatus('0.1.7', 'windows-amd64'),
+    configured: true,
+    phase: 'available' as 'available' | 'downloading' | 'ready',
+    received: 0,
+    total: 1000
+  }
+  mocks.updater.mockImplementation(async action => {
+    if (action === 'download') state.phase = 'downloading'
+    return { ...state }
+  })
+  await mount()
+  await act(async () => controller.act('download'))
+  state.received = 450
+  await act(async () => vi.advanceTimersByTimeAsync(500))
+  expect(controller.state?.received).toBe(450)
+  state.received = 1000
+  state.phase = 'ready'
+  await act(async () => vi.advanceTimersByTimeAsync(500))
+  expect(controller.state?.phase).toBe('ready')
+  mocks.updater.mockClear()
+  await act(async () => vi.advanceTimersByTimeAsync(9000))
+  expect(mocks.updater).not.toHaveBeenCalled()
+  await act(async () => vi.advanceTimersByTimeAsync(1000))
+  expect(mocks.updater).toHaveBeenCalledTimes(1)
+})

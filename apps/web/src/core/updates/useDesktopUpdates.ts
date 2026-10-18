@@ -25,6 +25,20 @@ export function useDesktopUpdates() {
   const lastAutomaticAttempt = useRef(0)
   const actionRef = useRef(false)
   const mounted = useRef(true)
+  // An action can start between idle polls. Switch cadence immediately so short
+  // downloads show byte progress instead of sitting at zero until the next poll.
+  const pollEvery =
+    pending ||
+    [
+      'checking',
+      'downloading',
+      'verifying',
+      'installing',
+      'restarting',
+      'rollingBack'
+    ].includes(state?.phase ?? '')
+      ? 500
+      : 10000
 
   const refresh = useCallback(async () => {
     if (!updater) return
@@ -113,20 +127,7 @@ export function useDesktopUpdates() {
         lastAutomaticAttempt.current = Date.now()
         await act('install', undefined, true)
       }
-      timer = setTimeout(
-        tick,
-        next &&
-          [
-            'checking',
-            'downloading',
-            'verifying',
-            'installing',
-            'restarting',
-            'rollingBack'
-          ].includes(next.phase)
-          ? 1500
-          : 10000
-      )
+      if (!cancelled) timer = setTimeout(tick, pollEvery)
     }
     void tick()
 
@@ -138,7 +139,7 @@ export function useDesktopUpdates() {
       window.removeEventListener('keydown', input)
       document.removeEventListener('visibilitychange', input)
     }
-  }, [updater, refresh, act])
+  }, [updater, refresh, act, pollEvery])
 
   return { available: !!updater, state, error, pending, act }
 }

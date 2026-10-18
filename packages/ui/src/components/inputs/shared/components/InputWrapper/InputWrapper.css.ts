@@ -33,14 +33,14 @@ export const inputWrapperRecipe = recipe({
         selectors: {
           '&:focus-within': {
             borderColor:
-              'color-mix(in srgb, var(--selection-color, #2383e2) 35%, transparent)',
+              'color-mix(in srgb, var(--text-primary) 40%, transparent)',
             outline:
-              '1px solid color-mix(in srgb, var(--selection-color, #2383e2) 35%, transparent)',
+              '1px solid color-mix(in srgb, var(--text-primary) 40%, transparent)',
             outlineOffset: '-1px'
           },
           '&:focus-within:hover': {
             outlineColor:
-              'color-mix(in srgb, var(--selection-color, #2383e2) 75%, transparent)'
+              'color-mix(in srgb, var(--text-primary) 55%, transparent)'
           }
         }
       }

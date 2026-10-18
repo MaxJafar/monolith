@@ -416,7 +416,9 @@ kbd {
 /* Shared selection and menu motion use the nearest customization accent. */
 .monolith-listbox-surface {
   background: var(--bg-surface) !important;
-  border-radius: 5px;
+  padding: 4px;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-lg);
   box-shadow: var(--floating-shadow);
   transform-origin: top left;
   transition:
@@ -432,11 +434,46 @@ kbd {
 }
 .monolith-listbox-surface [role='option'][data-focus],
 .monolith-listbox-surface [role='option'][aria-selected='true'] {
-  background: color-mix(
-    in srgb,
-    var(--selection-color, #2383e2) 9%,
-    transparent
-  );
+  background: color-mix(in srgb, var(--text-primary) 7%, transparent);
+}
+.monolith-listbox-surface [role='option'] {
+  min-height: 34px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+}
+.monolith-listbox-surface:focus-visible {
+  outline: none !important;
+}
+.monolith-input :is(input, textarea):focus-visible {
+  outline: none !important;
+  box-shadow: none;
+}
+.monolith-input :is(input, textarea) {
+  background: transparent;
+  border: 0;
+  letter-spacing: normal;
+}
+/* A single focus treatment per control; text and canvas selection keep their accent. */
+:where(
+  button[data-variant],
+  button[aria-haspopup='listbox'],
+  .monolith-input
+):focus-visible,
+:where(
+    button[data-variant],
+    button[aria-haspopup='listbox'],
+    .monolith-input
+  ):focus-visible:hover {
+  outline: 2px solid color-mix(in srgb, var(--text-primary) 45%, transparent) !important;
+  outline-offset: 2px;
+}
+@media (pointer: coarse) {
+  .monolith-listbox-surface [role='option'],
+  .monolith-choice-select {
+    min-height: 44px;
+  }
 }
 .canvas-block[data-selected='true'],
 .monolith-document-host [data-monolith-selected='true'],

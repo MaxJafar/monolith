@@ -243,7 +243,13 @@ func (d *Desktop) Prepare(ctx context.Context, r *Release, _ Artifact, archive s
 		return nil, err
 	}
 	if d.Config.Target == "darwin-universal" {
-		requirement, notarized, err := macRequirement(d.Config, candidate)
+		// A supervisor can outlive one activation. Read the currently installed
+		// bundle so a transition to Developer ID immediately pins its team.
+		installed, err := LoadConfig(d.marker(d.InstallPath))
+		if err != nil {
+			return nil, err
+		}
+		requirement, notarized, err := macRequirement(installed, candidate)
 		if err != nil {
 			return nil, err
 		}

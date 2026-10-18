@@ -2,7 +2,7 @@
 
 Monolith's Windows client, universal macOS client and single-host Linux Docker deployment use signed GitHub Releases. **Settings → Updates** shows the installed version, release notes, actual downloaded bytes, installation/restart status and recovery results. A notification appears when a release is available or an installation needs attention. Desktop onboarding also has an Updates button.
 
-Starting with 0.1.4, automatic updates work with unsigned Windows installers and ad-hoc signed, unnotarized Mac apps. The update manifest is still signed with Monolith’s pinned Ed25519 key. OS publisher signing is a separate release option. Existing 0.1.3 and preview clients need the new installer once because their update key was omitted; future releases use the updater. Existing servers need the external supervisor described below.
+Starting with 0.1.5, automatic updates work with unsigned Windows installers and ad-hoc signed, unnotarized Mac apps. The update manifest is still signed with Monolith’s pinned Ed25519 key. OS publisher signing is a separate release option. Existing 0.1.3 and preview clients need the new installer once because their update key was omitted; future releases use the updater. Existing servers need the external supervisor described below.
 
 ## Automatic behavior
 

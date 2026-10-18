@@ -10,7 +10,7 @@
 
 Your pages, projects and everyday tools in one self-hosted workspace.<br />Use the web, Windows or macOS. Connect your agents. Add the tools that fit your day.
 
-[![Unsigned release](https://img.shields.io/badge/release-0.1.3_unsigned-555555?style=flat)](https://github.com/MaxJafar/monolith/releases/tag/v0.1.3) [![Self-hosted](https://img.shields.io/badge/hosting-self--hosted-222222?style=flat)](https://monolith-site-maxjafars-projects.vercel.app/docs/self-hosting) [![MCP and CLI](https://img.shields.io/badge/agents-MCP_%2B_CLI-555555?style=flat)](https://monolith-site-maxjafars-projects.vercel.app/docs/agents)
+[![Unsigned release](https://img.shields.io/badge/release-0.1.5_unsigned-555555?style=flat)](https://github.com/MaxJafar/monolith/releases/tag/v0.1.5) [![Self-hosted](https://img.shields.io/badge/hosting-self--hosted-222222?style=flat)](https://monolith-site-maxjafars-projects.vercel.app/docs/self-hosting) [![MCP and CLI](https://img.shields.io/badge/agents-MCP_%2B_CLI-555555?style=flat)](https://monolith-site-maxjafars-projects.vercel.app/docs/agents)
 
 **[Website](https://monolith-site-maxjafars-projects.vercel.app)** · **[Documentation](https://monolith-site-maxjafars-projects.vercel.app/docs)** · **[Quickstart](https://monolith-site-maxjafars-projects.vercel.app/docs/quickstart)** · **[Addons and Widgets](https://monolith-site-maxjafars-projects.vercel.app/addons)** · **[Releases](https://github.com/MaxJafar/monolith/releases)**
 
@@ -89,10 +89,10 @@ Build and sign in before generating configuration. Follow the **[MCP and CLI gui
 ## Get started
 
 - **Browser** — Run a local development workspace or connect to your configured host.
-- **Desktop** — Download the [Windows x64 installer](https://github.com/MaxJafar/monolith/releases/download/v0.1.3/monolith-0.1.3-windows-amd64.exe) or [universal macOS disk image](https://github.com/MaxJafar/monolith/releases/download/v0.1.3/monolith-0.1.3-darwin-universal.dmg).
-- **Self-host** — Download a Linux server image and the [setup kit](https://github.com/MaxJafar/monolith/releases/download/v0.1.3/monolith-0.1.3-server-kit.zip) from the [release](https://github.com/MaxJafar/monolith/releases/tag/v0.1.3), then follow the [installation guide](release/INSTALL.md).
+- **Desktop** — Download the [Windows x64 installer](https://github.com/MaxJafar/monolith/releases/download/v0.1.5/monolith-0.1.5-windows-amd64.exe) or [universal macOS disk image](https://github.com/MaxJafar/monolith/releases/download/v0.1.5/monolith-0.1.5-darwin-universal.dmg).
+- **Self-host** — Download a Linux server image and the [setup kit](https://github.com/MaxJafar/monolith/releases/download/v0.1.5/monolith-0.1.5-server-kit.zip) from the [release](https://github.com/MaxJafar/monolith/releases/tag/v0.1.5), then follow the [installation guide](release/INSTALL.md).
 
-> **[Download 0.1.3](https://github.com/MaxJafar/monolith/releases/tag/v0.1.3):** Windows, macOS, Linux x64/ARM64, 14 addon and widget packages, and the CLI/MCP bridge. This is an unsigned release with manual installation: Windows is unsigned and macOS is not notarized. See [installation instructions](release/INSTALL.md) and [checksums](https://github.com/MaxJafar/monolith/releases/download/v0.1.3/SHA256SUMS).
+> **[Download 0.1.5](https://github.com/MaxJafar/monolith/releases/tag/v0.1.5):** Windows, macOS, Linux x64/ARM64, 14 addon and widget packages, and the CLI/MCP bridge. Automatic updates are enabled with authenticated downloads, progress and rollback. Windows installers remain unsigned and macOS is not notarized. Older clients need this installer once to receive the trusted update key. See [installation instructions](release/INSTALL.md) and [checksums](https://github.com/MaxJafar/monolith/releases/download/v0.1.5/SHA256SUMS).
 
 <details>
 <summary><strong>Run the development workspace from source</strong></summary>
@@ -127,7 +127,7 @@ Windows, macOS and the single-host Docker server have a GitHub Releases update s
 
 Automatic downloads and automatic installation are separate settings. Desktop updates respect saved-work checks; server installation uses a UTC maintenance window and health checks. Schema-changing releases require a planned migration: runtime rollback does not reverse database changes.
 
-Release signing, the external host supervisor and actual platform verification must be configured before rollout. **[Read the update guide](https://monolith-site-maxjafars-projects.vercel.app/docs/updates).**
+Automatic downloads and installation are enabled by default in updater-enabled clients. The hosted server requires the external supervisor. Update authentication uses Monolith’s release key independently of optional OS publisher signing. **[Read the update guide](https://monolith-site-maxjafars-projects.vercel.app/docs/updates).**
 
 ---
 
@@ -187,7 +187,7 @@ pnpm gateway:test
 pnpm agent:test
 ```
 
-Native packaging requires the matching platform and signing credentials. The public website has its own build and checks:
+Native packaging requires the matching platform. OS signing credentials are optional in the explicit unsigned installer mode; update manifests still require the release key. The public website has its own build and checks:
 
 ```sh
 pnpm site:build

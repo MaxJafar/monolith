@@ -22,3 +22,18 @@ export function setDesktopUpdater(updater: DesktopUpdater) {
 export function getDesktopUpdater() {
   return shared[key]
 }
+
+type DesktopBackgroundReader = () => Promise<boolean>
+const backgroundKey = Symbol.for('monolith.desktop.background')
+const backgroundShared = globalThis as unknown as Record<
+  symbol,
+  DesktopBackgroundReader | undefined
+>
+
+export function setDesktopBackgroundReader(reader: DesktopBackgroundReader) {
+  backgroundShared[backgroundKey] = reader
+}
+
+export function getDesktopBackgroundReader() {
+  return backgroundShared[backgroundKey]
+}

@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { checkSignOutGuards, getDesktopUpdater } from '@monolith/api'
+import {
+  checkSignOutGuards,
+  getDesktopBackgroundReader,
+  getDesktopUpdater
+} from '@monolith/api'
 import type {
   PlatformUpdateStatus,
   UpdateAction,
@@ -17,14 +21,27 @@ export async function guardUpdateRestart() {
 
 export function useDesktopUpdates() {
   const updater = getDesktopUpdater()
+  const backgroundReader = getDesktopBackgroundReader()
 
   const [state, setState] = useState<PlatformUpdateStatus>()
   const [error, setError] = useState('')
   const [pending, setPending] = useState(false)
   const lastInput = useRef(Date.now())
+  const wasBackground = useRef(false)
   const lastAutomaticAttempt = useRef(0)
   const actionRef = useRef(false)
   const mounted = useRef(true)
+  // Native window minimization does not reliably change WebView2 visibility.
+  // Unknown native state must never authorize an unattended restart.
+  const isBackground = useCallback(async () => {
+    try {
+      return backgroundReader
+        ? await backgroundReader()
+        : document.visibilityState === 'hidden'
+    } catch {
+      return false
+    }
+  }, [backgroundReader])
   // An action can start between idle polls. Switch cadence immediately so short
   // downloads show byte progress instead of sitting at zero until the next poll.
   const pollEvery =
@@ -76,8 +93,8 @@ export function useDesktopUpdates() {
           await guardUpdateRestart()
           if (
             automatic &&
-            (!mounted.current ||
-              document.visibilityState !== 'hidden' ||
+            (!(await isBackground()) ||
+              !mounted.current ||
               Date.now() - lastInput.current <= 120000)
           )
             return
@@ -97,7 +114,7 @@ export function useDesktopUpdates() {
         if (mounted.current) setPending(false)
       }
     },
-    [updater, refresh]
+    [updater, refresh, isBackground]
   )
   useEffect(() => {
     mounted.current = true
@@ -110,17 +127,23 @@ export function useDesktopUpdates() {
     }
     window.addEventListener('pointerdown', input)
     window.addEventListener('keydown', input)
+    window.addEventListener('focus', input)
+    window.addEventListener('blur', input)
     document.addEventListener('visibilitychange', input)
     const tick = async () => {
       const next = await refresh()
+      const background = await isBackground()
 
       if (cancelled) return
+      if (!background || background !== wasBackground.current)
+        lastInput.current = Date.now()
+      wasBackground.current = background
 
       if (
         next?.phase === 'ready' &&
         next.preferences.autoInstall &&
         next.release?.version !== next.failedVersion &&
-        document.visibilityState === 'hidden' &&
+        background &&
         Date.now() - lastInput.current > 120000 &&
         Date.now() - lastAutomaticAttempt.current > 60000
       ) {
@@ -137,9 +160,11 @@ export function useDesktopUpdates() {
       clearTimeout(timer)
       window.removeEventListener('pointerdown', input)
       window.removeEventListener('keydown', input)
+      window.removeEventListener('focus', input)
+      window.removeEventListener('blur', input)
       document.removeEventListener('visibilitychange', input)
     }
-  }, [updater, refresh, act, pollEvery])
+  }, [updater, refresh, act, pollEvery, isBackground])
 
   return { available: !!updater, state, error, pending, act }
 }

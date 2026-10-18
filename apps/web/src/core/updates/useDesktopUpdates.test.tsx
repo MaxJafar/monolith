@@ -7,9 +7,14 @@ import { emptyUpdateStatus } from '@monolith/configs'
 
 import { guardUpdateRestart, useDesktopUpdates } from './useDesktopUpdates'
 
-const mocks = vi.hoisted(() => ({ updater: vi.fn(), guard: vi.fn() }))
+const mocks = vi.hoisted(() => ({
+  updater: vi.fn(),
+  guard: vi.fn(),
+  backgroundReader: vi.fn()
+}))
 vi.mock('@monolith/api', () => ({
   getDesktopUpdater: () => mocks.updater,
+  getDesktopBackgroundReader: () => mocks.backgroundReader(),
   checkSignOutGuards: mocks.guard
 }))
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true })
@@ -25,6 +30,7 @@ function Probe() {
   return null
 }
 beforeEach(() => {
+  mocks.backgroundReader.mockReset().mockReturnValue(undefined)
   mocks.guard.mockReset().mockResolvedValue(undefined)
   mocks.updater.mockReset().mockResolvedValue({
     ...emptyUpdateStatus('1.0.0', 'windows-amd64'),
@@ -111,7 +117,7 @@ it('automatically installs only after a hidden idle period and clean drafts', as
     mocks.updater.mock.calls.some(([action]) => action === 'install')
   ).toBe(false)
   mocks.guard.mockRejectedValueOnce(Error('Still saving'))
-  await act(async () => vi.advanceTimersByTimeAsync(20000))
+  await act(async () => vi.advanceTimersByTimeAsync(30000))
   expect(
     mocks.updater.mock.calls.some(([action]) => action === 'install')
   ).toBe(false)
@@ -164,4 +170,46 @@ it('shows short-download progress immediately and returns to idle polling when r
   expect(mocks.updater).not.toHaveBeenCalled()
   await act(async () => vi.advanceTimersByTimeAsync(1000))
   expect(mocks.updater).toHaveBeenCalledTimes(1)
+})
+
+it('installs a minimized native window even when WebView2 still reports visible', async () => {
+  vi.useFakeTimers()
+  vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('visible')
+  const background = vi.fn().mockResolvedValue(false)
+  mocks.backgroundReader.mockReturnValue(background)
+  await mount()
+  await act(async () => vi.advanceTimersByTimeAsync(180000))
+  expect(
+    mocks.updater.mock.calls.some(([action]) => action === 'install')
+  ).toBe(false)
+  background.mockResolvedValue(true)
+  await act(async () => vi.advanceTimersByTimeAsync(120000))
+  expect(
+    mocks.updater.mock.calls.some(([action]) => action === 'install')
+  ).toBe(false)
+  await act(async () => vi.advanceTimersByTimeAsync(20000))
+  expect(
+    mocks.updater.mock.calls.filter(([action]) => action === 'install')
+  ).toHaveLength(1)
+})
+
+it('does not restart if native state fails or the user returns while drafts flush', async () => {
+  vi.useFakeTimers()
+  vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden')
+  const background = vi.fn().mockRejectedValue(Error('Window unavailable'))
+  mocks.backgroundReader.mockReturnValue(background)
+  await mount()
+  await act(async () => vi.advanceTimersByTimeAsync(180000))
+  expect(
+    mocks.updater.mock.calls.some(([action]) => action === 'install')
+  ).toBe(false)
+  background.mockResolvedValue(true)
+  mocks.guard.mockImplementation(async () =>
+    background.mockResolvedValue(false)
+  )
+  await act(async () => vi.advanceTimersByTimeAsync(140000))
+  expect(mocks.guard).toHaveBeenCalled()
+  expect(
+    mocks.updater.mock.calls.some(([action]) => action === 'install')
+  ).toBe(false)
 })

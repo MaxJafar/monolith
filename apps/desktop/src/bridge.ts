@@ -1,4 +1,9 @@
-import { GatewayError, type NativeHost, setDesktopUpdater } from '@monolith/api'
+import {
+  GatewayError,
+  type NativeHost,
+  setDesktopBackgroundReader,
+  setDesktopUpdater
+} from '@monolith/api'
 import { platformUpdateSchema } from '@monolith/configs'
 
 type Reply = { status?: number; code?: string; message?: string }
@@ -70,3 +75,7 @@ export const host: NativeHost = {
 setDesktopUpdater(async (action, preferences) =>
   platformUpdateSchema.parse(await call('updates', { action, preferences }))
 )
+setDesktopBackgroundReader(async () => {
+  const state = await host.windowControl!('state')
+  return state.background === true
+})

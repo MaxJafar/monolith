@@ -2,6 +2,7 @@
 mod secure;
 mod widgets;
 mod updates;
+#[cfg(windows)] mod taskbar;
 use base64::{Engine, engine::general_purpose::STANDARD};
 use serde::{Deserialize,Serialize};
 use serde_json::{Value,json};
@@ -127,7 +128,8 @@ async fn native_host(app:tauri::AppHandle,window:tauri::WebviewWindow,state:Stat
     "drag"=>window.start_dragging().map_err(|_|Failure::invalid())?,
     _=>return Err(Failure::invalid())
    }
-   Ok(json!({"maximized":window.is_maximized().unwrap_or(false)}))
+   let background=window.is_minimized().map_err(|_|Failure::invalid())? || !window.is_visible().map_err(|_|Failure::invalid())? || (!window.is_focused().map_err(|_|Failure::invalid())? && window.is_enabled().map_err(|_|Failure::invalid())?);
+   Ok(json!({"maximized":window.is_maximized().unwrap_or(false),"background":background}))
   },
   "profile"=>Ok(serde_json::to_value(state.connection().profile).map_err(|_|Failure::storage())?),
   "connect"=>{
@@ -213,6 +215,7 @@ fn main(){
  .setup(|app|{
   if let (Some(window), Some(icon)) = (app.get_webview_window("main"), app.default_window_icon()) {
    window.set_icon(icon.clone())?;
+   #[cfg(windows)] taskbar::set_icon(window.hwnd()?.0)?;
   }
   let directory=app.path().app_local_data_dir()?;fs::create_dir_all(&directory)?;
   let profile=fs::read(directory.join("profile.json")).ok().and_then(|bytes|serde_json::from_slice::<Profile>(&bytes).ok()).filter(|profile|origin(&profile.origin).is_ok());

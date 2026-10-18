@@ -71,7 +71,7 @@ export interface NativeHost {
   saveFile(name: string, content: string): Promise<void>
   windowControl?(
     action: 'state' | 'minimize' | 'maximize' | 'close' | 'drag'
-  ): Promise<{ maximized: boolean }>
+  ): Promise<{ maximized: boolean; background?: boolean }>
 }
 
 export class GatewayError extends Error {

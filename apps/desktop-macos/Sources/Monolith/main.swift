@@ -50,7 +50,8 @@ final class Bridge:NSObject,WKScriptMessageHandlerWithReply,WKNavigationDelegate
    case "drag": if let event=NSApp.currentEvent,event.type == .leftMouseDown {window.performDrag(with:event)}
    default: replyHandler(["error":HostFailure("invalid_action","Unknown window action").json],nil);return
    }
-   replyHandler(["value":["maximized":window.isZoomed]],nil);return
+   let background=window.isMiniaturized || !window.isVisible || (!NSApp.isActive && window.attachedSheet == nil)
+   replyHandler(["value":["maximized":window.isZoomed,"background":background]],nil);return
   }
   Task{do{let value=try await host.execute(operation,args:args);replyHandler(["value":value],nil)}catch let e as HostFailure{replyHandler(["error":e.json],nil)}catch{replyHandler(["error":HostFailure("native_error",error.localizedDescription).json],nil)}}
  }

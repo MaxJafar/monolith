@@ -169,6 +169,6 @@
     "editor:test": "pnpm editor:harness:build && playwright test --config tools/editor-harness/playwright.config.ts",
     "build": "turbo build --filter=\"./packages/*\" && turbo build --continue",
     "test": "turbo test",
-    "postinstall": "turbo build --filter=\"./packages/*\""
+    "postinstall": "pnpm --filter \"./packages/*\" --workspace-concurrency=1 --recursive run build"
   }
 }

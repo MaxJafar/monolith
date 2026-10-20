@@ -31,7 +31,7 @@ export function safePackagePath(file: string): boolean {
   )
     return false
   return (
-    /^(package\.json|LICENSE(?:\.md|\.txt)?|README\.md|client\/dist\/.+|server\/dist\/.+|locales\/(en|ms|zh-CN|zh-TW)\.json)$/.test(
+    /^(package\.json|LICENSE(?:\.md|\.txt)?|NOTICE\.md|README\.md|client\/dist\/.+|server\/dist\/.+|locales\/(en|ms|zh-CN|zh-TW)\.json)$/.test(
       file
     ) &&
     !/(^|\/)(node_modules|uploads)(\/|$)/.test(file) &&

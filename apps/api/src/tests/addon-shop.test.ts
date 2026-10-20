@@ -100,6 +100,17 @@ describe('verified addon packages', () => {
       unpackAddon(Buffer.concat([bytes, Buffer.from('bad')]), release)
     ).toThrow('integrity')
   })
+  it('preserves the license notices emitted by the release packager', () => {
+    const notice = {
+      path: 'NOTICE.md',
+      data: Buffer.from('Third-party license notice').toString('base64')
+    }
+    const { bytes, release } = fixture('1.1.0', [notice])
+    expect(unpackAddon(bytes, release)).toContainEqual({
+      path: notice.path,
+      data: Buffer.from('Third-party license notice')
+    })
+  })
   it.each([
     '../env/.env',
     '/package.json',
@@ -107,7 +118,9 @@ describe('verified addon packages', () => {
     'client/dist/CON.js',
     'client/dist/a\\b.js',
     'client/dist/.env',
-    'client/dist/secrets.key'
+    'client/dist/secrets.key',
+    'NOTICE.md/../../escape.js',
+    'NOTICE.js'
   ])('rejects unsafe path %s', name =>
     expect(safePackagePath(name)).toBe(false)
   )

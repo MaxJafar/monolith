@@ -9,7 +9,10 @@ import {
   coreAddonIds
 } from '@monolith/configs'
 
-import { safePackagePath } from '../apps/api/src/lib/modules/shop/archive'
+import {
+  safePackagePath,
+  unpackAddon
+} from '../apps/api/src/lib/modules/shop/archive'
 
 const root = process.cwd()
 const pkg = JSON.parse(
@@ -114,9 +117,8 @@ for (const dir of (
     { level: 9 }
   )
   const filename = `${dir.name}-${source.version}.monolith-addon`
-  await fs.writeFile(path.join(output, filename), bytes)
   const schema = files.find(file => file.path === 'server/dist/schema.js')
-  releases.push({
+  const release: AddonRelease = {
     id: dir.name,
     name: source.displayName,
     description: source.description,
@@ -131,7 +133,11 @@ for (const dir of (
     schemaHash: schema ? hash(Buffer.from(schema.data, 'base64')) : null,
     notes: `${source.displayName} ${source.version}. Built for Monolith ${pkg.version}.`,
     widgets: metadata.widgets.map((widget: { id: string }) => widget.id)
-  })
+  }
+  // Exercise the installer's complete validation before publishing a package.
+  unpackAddon(bytes, release)
+  await fs.writeFile(path.join(output, filename), bytes)
+  releases.push(release)
 }
 if (!releases.length) throw Error('No addon packages selected')
 const payload = Buffer.from(

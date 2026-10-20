@@ -8,6 +8,7 @@ export async function registerHostShares() {
   const modules = await Promise.all([
     import('react'),
     import('react-dom'),
+    import('react-dom/server.edge'),
     import('@tanstack/react-query'),
     import('i18next'),
     import('react-i18next'),
@@ -21,6 +22,7 @@ export async function registerHostShares() {
   ])
   const packages = await Promise.all([
     import('react/package.json'),
+    import('react-dom/package.json'),
     import('react-dom/package.json'),
     import('@tanstack/react-query/package.json'),
     import('i18next/package.json'),
@@ -36,6 +38,7 @@ export async function registerHostShares() {
   const names = [
     'react',
     'react-dom',
+    'react-dom/server',
     '@tanstack/react-query',
     'i18next',
     'react-i18next',

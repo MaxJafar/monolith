@@ -163,7 +163,7 @@
     "updater:build": "node tools/build-updater.mjs",
     "release:addons": "node tools/build-release-addons.mjs",
     "desktop:bundle": "pnpm --filter @monolith/desktop build",
-    "desktop:addons:test": "vite build --config tools/federation-harness/vite.config.ts && vite build --config tools/federation-harness/vite.config.ts --mode remote && node tools/federation-harness/test.mjs",
+    "desktop:addons:test": "vite build --config tools/federation-harness/vite.config.ts && node tools/federation-harness/build.mjs && node tools/federation-harness/test.mjs",
     "desktop:windows:build": "pnpm desktop:bundle && pnpm --dir apps/desktop exec tauri build",
     "desktop:windows:test": "pnpm updater:build windows-amd64 && pnpm native cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml",
     "gateway:build": "pnpm native go build ./cmd/monolith",

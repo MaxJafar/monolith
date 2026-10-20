@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useQueryState } from 'nuqs'
+import { renderToStaticMarkup } from 'react-dom/server'
 import { useTranslation } from 'react-i18next'
 
 import {
@@ -37,6 +38,12 @@ export default function Probe() {
       <p>{t('shop.moveArea', { name: 'Calendar' })}</p>
       <p>Host: {getNativeRuntime()?.profile.origin}</p>
       <p>Widget action: {actions?.[0]?.title}</p>
+      <p>
+        {renderToStaticMarkup(<span>Addon export</span>) ===
+        '<span>Addon export</span>'
+          ? 'Shared static renderer passed'
+          : 'Shared static renderer failed'}
+      </p>
       <button onClick={() => void setFilter('active')}>Filter: {filter}</button>
       <p>
         {query.data?.userData.name === 'Shared transport'

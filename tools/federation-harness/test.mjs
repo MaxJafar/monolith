@@ -49,6 +49,7 @@ try {
     page.getByText('Authenticated addon request passed')
   ).toBeVisible()
   await expect(page.getByText('Widget action: Shared action')).toBeVisible()
+  await expect(page.getByText('Shared static renderer passed')).toBeVisible()
   await page.getByRole('button', { name: 'Filter: all' }).click()
   await expect(
     page.getByRole('button', { name: 'Filter: active' })

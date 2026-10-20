@@ -18,7 +18,7 @@ import {
 const directory = path.dirname(fileURLToPath(import.meta.url))
 const root = path.resolve(directory, '../..')
 const editor = blocksuiteRuntime(root)
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   root: directory,
   publicDir: '../web/public',
   define: { 'import.meta.env.VITE_API_HOST': JSON.stringify('/api') },
@@ -34,22 +34,26 @@ export default defineConfig({
       }
     },
     react(),
-    federation({
-      name: 'host',
-      dts: false,
-      remotes: {},
-      shared: {
-        ...Object.fromEntries(
-          Object.entries(SHARED_DEPS).map(([name, config]) => [
-            name,
-            { ...config, singleton: true }
-          ])
-        ),
-        ...Object.fromEntries(
-          Object.keys(SHARED_PACKAGES).map(name => [name, { singleton: true }])
-        )
-      }
-    }),
+    command === 'build' &&
+      federation({
+        name: 'host',
+        dts: false,
+        remotes: {},
+        shared: {
+          ...Object.fromEntries(
+            Object.entries(SHARED_DEPS).map(([name, config]) => [
+              name,
+              { ...config, singleton: true }
+            ])
+          ),
+          ...Object.fromEntries(
+            Object.keys(SHARED_PACKAGES).map(name => [
+              name,
+              { singleton: true }
+            ])
+          )
+        }
+      }),
     vanillaExtractPlugin({
       unstable_pluginFilter: ({ name }) =>
         ['alias-resolver', 'monolith-blocksuite-syntax'].includes(name)
@@ -58,7 +62,16 @@ export default defineConfig({
   resolve: {
     alias: [
       ...editor.aliases,
-      ...['api', 'ui', 'federation', 'localization', 'blocks'].map(name => ({
+      // Production imports must pass through federation's shared module loader.
+      // Aliasing these to source bypasses it and gives downloaded addons a
+      // different AuthContext, token store, native transport and UI providers.
+      ...(command === 'serve'
+        ? Object.entries(SHARED_PACKAGES).map(([name, { entryPoint }]) => ({
+            find: new RegExp(`^${name}$`),
+            replacement: path.resolve(root, 'apps', entryPoint)
+          }))
+        : []),
+      ...['blocks'].map(name => ({
         find: new RegExp(`^@monolith/${name}$`),
         replacement: path.resolve(root, `packages/${name}/src/index.ts`)
       }))
@@ -87,4 +100,4 @@ export default defineConfig({
     ],
     rolldownOptions: { plugins: [blocksuiteSyntax()] }
   }
-})
+}))

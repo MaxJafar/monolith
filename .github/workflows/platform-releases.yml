@@ -62,6 +62,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm release:version
       - run: pnpm --filter @monolith/client test
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm desktop:addons:test
       - run: pnpm desktop:bundle
       - uses: actions/upload-artifact@v4
         with:

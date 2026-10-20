@@ -34,6 +34,9 @@ export async function initializeBundle() {
     if (match[2] === 'package') continue
     const language = (resources[match[1]!] ??= {})
     language[match[2] === 'common' ? 'common' : `apps.${match[2]}`] = value
+    // Match the hosted locale API: system pages live in common.*, while
+    // downloaded addon locales live in apps.*. Keep the sidebar title alias.
+    if (match[2] !== 'common') language[`common.${match[2]}`] = value
     if (match[2] === 'common')
       for (const [key, section] of Object.entries(value))
         if (section && typeof section === 'object')

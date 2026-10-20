@@ -33,11 +33,8 @@ export default function CoreFederationProvider({
     setError(null)
 
     try {
-      if (import.meta.env.DEV) {
-        const { registerDevelopmentShares } =
-          await import('./developmentShares')
-        await registerDevelopmentShares()
-      }
+      const { registerHostShares } = await import('./hostShares')
+      await registerHostShares()
 
       const result = await bootstrapModules(
         import.meta.env.VITE_API_HOST || '',

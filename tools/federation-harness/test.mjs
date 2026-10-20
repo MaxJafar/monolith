@@ -33,6 +33,10 @@ try {
   const page = await browser.newPage()
   const errors = []
   page.on('pageerror', error => errors.push(error.message))
+  page.on('console', message => {
+    if (message.type() === 'error' && message.text().includes('[nuqs]'))
+      errors.push(message.text())
+  })
   await page.goto(`http://127.0.0.1:${server.address().port}/`)
   await expect(page.getByText('Signed in as Monolith fixture')).toBeVisible()
   await expect(
@@ -44,6 +48,12 @@ try {
   await expect(
     page.getByText('Authenticated addon request passed')
   ).toBeVisible()
+  await expect(page.getByText('Widget action: Shared action')).toBeVisible()
+  await page.getByRole('button', { name: 'Filter: all' }).click()
+  await expect(
+    page.getByRole('button', { name: 'Filter: active' })
+  ).toBeVisible()
+  await expect(page).toHaveURL(/filter=active/)
   expect(errors).toEqual([])
   console.log(
     'PASS: production desktop federation shares auth, native transport, query, UI, metadata and translations with a separately built addon.'

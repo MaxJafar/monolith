@@ -5,10 +5,7 @@ import { fileURLToPath } from 'node:url'
 import { defineConfig, mergeConfig } from 'vite'
 
 import desktopConfig from '../../apps/desktop/vite.config'
-import {
-  SHARED_DEPS,
-  SHARED_PACKAGES
-} from '../../packages/configs/src/constants/shared-packages'
+import { ADDON_SHARED } from '../../packages/configs/src/constants/shared-packages'
 
 const directory = dirname(fileURLToPath(import.meta.url))
 
@@ -23,12 +20,7 @@ export default defineConfig(async env => {
             filename: 'remoteEntry.js',
             dts: false,
             exposes: { './Probe': resolve(directory, 'probe.tsx') },
-            shared: Object.fromEntries(
-              [
-                ...Object.entries(SHARED_DEPS),
-                ...Object.keys(SHARED_PACKAGES).map(name => [name, {}] as const)
-              ].map(([name, config]) => [name, { ...config, singleton: true }])
-            )
+            shared: ADDON_SHARED
           })
         ],
         build: { target: 'esnext', modulePreload: false }

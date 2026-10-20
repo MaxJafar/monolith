@@ -14,6 +14,19 @@ export function disableRateLimitForRoute(method: string, path: string): void {
 export default rateLimit({
   windowMs: 900000,
   max: 250,
+  // Expired clients keep polling application routes. Their exhausted budget
+  // must not prevent sign-in, session refresh or loading the public key needed
+  // to recover. Keep the same limit in each independent scope.
+  keyGenerator(request) {
+    const path = pathKey(request.path)
+    const scope =
+      path === '/auth' || path.startsWith('/auth/')
+        ? 'auth'
+        : path === '/encryptionpublickey'
+          ? 'bootstrap'
+          : 'application'
+    return `${scope}:${request.ip ?? request.socket.remoteAddress ?? 'unknown'}`
+  },
   skip(request) {
     const path = pathKey(request.path)
     if (exemptions.get(request.method.toUpperCase())?.has(path)) return true

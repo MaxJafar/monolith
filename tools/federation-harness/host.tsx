@@ -6,6 +6,7 @@ import {
 } from '@module-federation/runtime'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import i18n from 'i18next'
+import { NuqsAdapter } from 'nuqs/adapters/react'
 import { createRoot } from 'react-dom/client'
 import { initReactI18next } from 'react-i18next'
 
@@ -17,8 +18,13 @@ import {
 } from '@monolith/api'
 import { ModuleMetadataProvider } from '@monolith/federation'
 import { getI18n, setI18n } from '@monolith/localization'
-import { ModalProvider } from '@monolith/ui'
+import {
+  CanvasWidgetExtensionProvider,
+  ModalProvider,
+  useCanvasWidgets
+} from '@monolith/ui'
 
+import { registerHostShares } from '../../apps/web/src/core/providers/features/hostShares'
 import moduleManager from '../../locales/lang-en/module-manager.json'
 import type * as ProbeModule from './probe'
 
@@ -55,6 +61,7 @@ async function run() {
     interpolation: { escapeValue: false }
   })
   setI18n(i18n)
+  await registerHostShares()
   const remotes = [
     {
       name: 'probe',
@@ -71,6 +78,7 @@ async function run() {
     getNativeRuntime,
     getI18n,
     ModalProvider,
+    useCanvasWidgets,
     ModuleMetadataProvider
   }
   for (const name of Object.keys(hostShares) as (keyof typeof hostShares)[])
@@ -91,7 +99,24 @@ async function run() {
           } as never
         }
       >
-        <Probe />
+        <NuqsAdapter>
+          <CanvasWidgetExtensionProvider
+            value={{
+              widgets: {},
+              render: () => null,
+              actions: [
+                {
+                  id: 'shared-action',
+                  title: 'Shared action',
+                  done: false,
+                  project: 'Shared project'
+                }
+              ]
+            }}
+          >
+            <Probe />
+          </CanvasWidgetExtensionProvider>
+        </NuqsAdapter>
       </AuthContext>
     </QueryClientProvider>
   )

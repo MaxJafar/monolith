@@ -2,7 +2,7 @@ import { and, eq } from 'drizzle-orm'
 import z from 'zod'
 
 import { users } from '../../user/schema.drizzle'
-import { getCookieOptions } from '../constants/cookie'
+import { getCookieOptions, setRefreshCookie } from '../constants/cookie'
 import endpoints from '../endpoints'
 import { create2FASession } from '../utils/2fa'
 import {
@@ -105,7 +105,7 @@ export const login = endpoints
       ip
     })
 
-    res.cookie('refresh_token', refreshToken, getCookieOptions(req))
+    setRefreshCookie(req, res, refreshToken)
     res.cookie('access_token', accessToken, {
       ...getCookieOptions(req),
       path: '/',

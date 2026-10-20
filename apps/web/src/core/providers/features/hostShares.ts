@@ -1,8 +1,10 @@
 import { getInstance, init } from '@module-federation/runtime'
 
-/** Downloaded bundles must use the same React and provider contexts as Vite's
- * source modules. Production hosts register these through the federation plugin. */
-export async function registerDevelopmentShares() {
+/** Load the host's shared modules before registering any remotes. Otherwise an
+ * addon can supply a lazy singleton (notably nuqs) whose private context differs
+ * from the adapter already mounted by the host. Development also needs explicit
+ * registration because source aliases bypass the federation build plugin. */
+export async function registerHostShares() {
   const modules = await Promise.all([
     import('react'),
     import('react-dom'),

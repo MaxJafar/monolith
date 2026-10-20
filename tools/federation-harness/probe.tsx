@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { useQueryState } from 'nuqs'
 import { useTranslation } from 'react-i18next'
 
 import {
@@ -10,13 +11,14 @@ import {
 } from '@monolith/api'
 import { ModuleMetadataProvider } from '@monolith/federation'
 import { getI18n } from '@monolith/localization'
-import { ModalProvider } from '@monolith/ui'
+import { ModalProvider, useCanvasWidgets } from '@monolith/ui'
 
 export const shared = {
   AuthContext,
   getNativeRuntime,
   getI18n,
   ModalProvider,
+  useCanvasWidgets,
   ModuleMetadataProvider
 }
 const api = createApiClient(contract)
@@ -25,6 +27,8 @@ export default function Probe() {
   const { userData } = useAuth()
   const { t } = useTranslation('common.module-manager')
   const query = useQuery(api.user.me.rawQueryOptions())
+  const [filter, setFilter] = useQueryState('filter', { defaultValue: 'all' })
+  const { actions } = useCanvasWidgets()
 
   if (query.error) throw query.error
   return (
@@ -32,6 +36,8 @@ export default function Probe() {
       <p>Signed in as {userData?.name}</p>
       <p>{t('shop.moveArea', { name: 'Calendar' })}</p>
       <p>Host: {getNativeRuntime()?.profile.origin}</p>
+      <p>Widget action: {actions?.[0]?.title}</p>
+      <button onClick={() => void setFilter('active')}>Filter: {filter}</button>
       <p>
         {query.data?.userData.name === 'Shared transport'
           ? 'Authenticated addon request passed'

@@ -1,7 +1,7 @@
 import { v4 } from 'uuid'
 import z from 'zod'
 
-import { getCookieOptions } from '../constants/cookie'
+import { getCookieOptions, setRefreshCookie } from '../constants/cookie'
 import endpoints from '../endpoints'
 import { sessions } from '../utils/qrLogin'
 import { storeRefreshToken } from '../utils/refreshTokenStore'
@@ -197,7 +197,7 @@ export const claim = endpoints
       ip
     })
 
-    res.cookie('refresh_token', refreshToken, getCookieOptions(req))
+    setRefreshCookie(req, res, refreshToken)
     res.cookie('access_token', accessToken, {
       ...getCookieOptions(req),
       path: '/',

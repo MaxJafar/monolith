@@ -5,7 +5,7 @@ import { v4 } from 'uuid'
 import z from 'zod'
 
 import { users } from '../../user/schema.drizzle'
-import { getCookieOptions } from '../constants/cookie'
+import { getCookieOptions, setRefreshCookie } from '../constants/cookie'
 import endpoints from '../endpoints'
 import { pending2FASessions, pendingTOTPSetups } from '../utils/2fa'
 import { storeRefreshToken } from '../utils/refreshTokenStore'
@@ -207,7 +207,7 @@ export const verify = endpoints
       ip
     })
 
-    res.cookie('refresh_token', refreshToken, getCookieOptions(req))
+    setRefreshCookie(req, res, refreshToken)
     res.cookie('access_token', accessToken, {
       ...getCookieOptions(req),
       path: '/',

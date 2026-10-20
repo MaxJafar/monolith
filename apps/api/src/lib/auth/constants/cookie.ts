@@ -1,4 +1,4 @@
-import type { CookieOptions, Request } from 'express'
+import type { CookieOptions, Request, Response } from 'express'
 
 function options(request: Request, expires: boolean): CookieOptions {
   const secure = Boolean(
@@ -7,7 +7,8 @@ function options(request: Request, expires: boolean): CookieOptions {
     process.env.NODE_ENV === 'production'
   )
   return {
-    path: '/auth',
+    // Hosted clients reach auth through /api/auth; direct clients use /auth.
+    path: '/',
     httpOnly: true,
     secure,
     sameSite: secure ? 'none' : 'lax',
@@ -17,3 +18,17 @@ function options(request: Request, expires: boolean): CookieOptions {
 export const getCookieOptions = (request: Request) => options(request, false)
 export const getClearCookieOptions = (request: Request) =>
   options(request, true)
+
+export function setRefreshCookie(
+  request: Request,
+  response: Response,
+  token: string
+) {
+  response.cookie('refresh_token', token, getCookieOptions(request))
+  // Remove the older, more-specific cookie so direct clients cannot send a
+  // stale value ahead of the replacement at the root path.
+  response.cookie('refresh_token', '', {
+    ...getClearCookieOptions(request),
+    path: '/auth'
+  })
+}

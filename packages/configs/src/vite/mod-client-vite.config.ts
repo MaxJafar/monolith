@@ -11,7 +11,7 @@ import {
   mergeConfig
 } from 'vite'
 
-import { SHARED_DEPS, SHARED_PACKAGES } from '../constants/shared-packages'
+import { ADDON_SHARED, SHARED_PACKAGES } from '../constants/shared-packages'
 import extractModuleMetadata from '../metadata/extractModuleMetadata'
 import { resolveAddonIdentity } from '../utils/addonIdentity'
 import { blocksuiteRuntime, blocksuiteSyntax } from './blocksuite'
@@ -109,20 +109,7 @@ export function defineModuleClientConfig(
               './Manifest': './manifest.ts'
             },
             remotes: {},
-            shared: {
-              ...Object.fromEntries(
-                Object.entries(SHARED_DEPS).map(([name, config]) => [
-                  name,
-                  { ...config, singleton: true }
-                ])
-              ),
-              ...Object.fromEntries(
-                Object.keys(SHARED_PACKAGES).map(name => [
-                  name,
-                  { singleton: true }
-                ])
-              )
-            }
+            shared: ADDON_SHARED
           }),
         !isDev && emitModuleMetadataPlugin(path.resolve(dirname, '..'))
       ].filter(Boolean),

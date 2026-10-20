@@ -6,7 +6,7 @@
     "url": "https://github.com/MaxJafar/monolith.git",
     "directory": "modules/monolith--idea-box"
   },
-  "version": "0.0.1",
+  "version": "0.0.2",
   "type": "module",
   "author": "Monolith contributors",
   "description": "Capture them before the inspiration flies away!",

@@ -6,7 +6,7 @@
     "url": "https://github.com/MaxJafar/monolith.git",
     "directory": "modules/monolith--pomodoro-timer"
   },
-  "version": "0.0.1",
+  "version": "0.0.2",
   "type": "module",
   "author": "Monolith contributors",
   "description": "Stay focused with timed work sessions and built-in break reminders.",

@@ -70,7 +70,7 @@ export async function initializeEncryption(apiHost: string): Promise<void> {
   loading = (async () => {
     const response = await applicationFetch(
       apiHost.replace(/\/$/, '') + '/encryptionPublicKey',
-      { method: 'GET' }
+      { method: 'GET', signal: AbortSignal.timeout(15000) }
     )
     if (!response.ok)
       throw new Error('Failed to fetch public key: ' + response.status)

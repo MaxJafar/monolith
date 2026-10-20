@@ -29,3 +29,16 @@ export const SHARED_DEPS = {
     version: '2.9.0'
   }
 } as const
+
+// Addons run inside Monolith and must consume its providers and state. Bundling
+// fallback libraries can execute a second private context before loadShare even
+// selects the host singleton (for example nuqs' adapter context).
+export const ADDON_SHARED = Object.fromEntries(
+  [
+    ...Object.entries(SHARED_DEPS),
+    ...Object.keys(SHARED_PACKAGES).map(name => [name, {}] as const)
+  ].map(([name, config]) => [
+    name,
+    { ...config, singleton: true, import: false as const }
+  ])
+)

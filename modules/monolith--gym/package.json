@@ -1,7 +1,7 @@
 {
   "name": "@monolith/gym",
   "displayName": "Gym",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "type": "module",
   "author": "Monolith contributors",
   "description": "Native training plans, workouts and strength history.",

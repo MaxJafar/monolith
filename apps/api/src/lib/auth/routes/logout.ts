@@ -19,6 +19,10 @@ export const logout = endpoints
 
     res.cookie('access_token', '', { ...getClearCookieOptions(req), path: '/' })
     res.cookie('refresh_token', '', getClearCookieOptions(req))
+    res.cookie('refresh_token', '', {
+      ...getClearCookieOptions(req),
+      path: '/auth'
+    })
 
     if (!refreshToken) {
       return response.unauthorized()

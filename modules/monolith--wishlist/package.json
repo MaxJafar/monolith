@@ -1,7 +1,7 @@
 {
   "name": "@monolith/wishlist",
   "displayName": "Wishlist",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "type": "module",
   "description": "Wishlist for Monolith",
   "license": "CC-BY-NC-SA-4.0",

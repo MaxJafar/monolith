@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 import { CORS_ALLOWED_ORIGINS } from '../../../../core/routes/constants/corsAllowedOrigins'
-import { getCookieOptions } from '../../constants/cookie'
+import { getCookieOptions, setRefreshCookie } from '../../constants/cookie'
 import endpoints from '../../endpoints'
 import { create2FASession } from '../../utils/2fa'
 import { fetchUserEmail, getProvider } from '../../utils/oauth'
@@ -109,7 +109,7 @@ export const verify = endpoints
       ip: req.ip || req.socket.remoteAddress || '127.0.0.1'
     })
     const cookie = getCookieOptions(req)
-    res.cookie('refresh_token', refreshToken, cookie)
+    setRefreshCookie(req, res, refreshToken)
     res.cookie('access_token', accessToken, {
       ...cookie,
       path: '/',

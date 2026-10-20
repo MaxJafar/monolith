@@ -1,7 +1,7 @@
 {
   "name": "@monolith/flashcards",
   "displayName": "Flashcards",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "type": "module",
   "description": "Flashcards for Monolith",
   "license": "CC-BY-NC-SA-4.0",

@@ -56,7 +56,7 @@ jobs:
       - run: pnpm --filter @monolith/api test
       - run: pnpm --filter @monolith/server-utils test
       - run: pnpm agent:test
-      - run: pnpm --filter @monolith/server exec vitest run src/lib/integrations/catalog.test.ts
+      - run: pnpm --filter @monolith/server exec vitest run src/lib/integrations/catalog.test.ts src/tests/rate-limiting.test.ts src/tests/session-cookie.test.ts
       - run: pnpm --filter @monolith/ui test
       - run: pnpm --filter @monolith/client test
       - run: pnpm exec vitest run --config tools/vitest.addons.config.ts

@@ -1,6 +1,6 @@
 import z from 'zod'
 
-import { getCookieOptions } from '../constants/cookie'
+import { getCookieOptions, setRefreshCookie } from '../constants/cookie'
 import endpoints from '../endpoints'
 import {
   findToken,
@@ -74,7 +74,7 @@ export const refresh = endpoints
 
     if (!rotated) return response.unauthorized()
 
-    res.cookie('refresh_token', newRefreshToken, getCookieOptions(req))
+    setRefreshCookie(req, res, newRefreshToken)
     res.cookie('access_token', accessToken, {
       ...getCookieOptions(req),
       path: '/',

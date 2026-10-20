@@ -8,6 +8,10 @@ export async function registerHostShares() {
   const modules = await Promise.all([
     import('react'),
     import('react-dom'),
+    // Register this at runtime, not in every addon's shared build map.
+    // Federation inspects the browser entry by executing it, retaining a
+    // MessagePort even in addons that never import it. The edge entry has the
+    // same rendering API without that import-time handle.
     import('react-dom/server.edge'),
     import('@tanstack/react-query'),
     import('i18next'),

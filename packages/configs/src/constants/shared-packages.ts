@@ -20,9 +20,6 @@ export const SHARED_PACKAGES = {
 export const SHARED_DEPS = {
   react: {},
   'react-dom': {},
-  // Same Web Streams/static rendering API without the browser entry's
-  // import-time MessageChannel, which keeps build-time evaluators alive.
-  'react-dom/server': { import: 'react-dom/server.edge' },
   '@tanstack/react-query': {},
   i18next: {},
   'react-i18next': {},

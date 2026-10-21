@@ -85,13 +85,8 @@ export const databaseMigrations = [
       return null;
     end $$;`,
   ...Object.entries({
-    todo_list__entries: 'todo',
     projects__tasks: 'project-task',
     projects__entries: 'project',
-    notes__entries: 'note',
-    calendar__events: 'event',
-    calendar__events_single: 'event-date',
-    blog__entries: 'post',
     zillion_databases__documents: 'document'
   }).map(
     ([table, kind]) => `do $$ begin

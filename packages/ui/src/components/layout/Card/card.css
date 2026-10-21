@@ -1,0 +1,17 @@
+/* SPDX-License-Identifier: 0BSD */
+.monolith-card[data-interactive] {
+  cursor: pointer;
+  transition:
+    background-color var(--motion-fast, 140ms) var(--motion-ease, ease),
+    color var(--motion-fast, 140ms) var(--motion-ease, ease),
+    box-shadow var(--motion-fast, 140ms) var(--motion-ease, ease);
+}
+.monolith-card[data-interactive]:focus-visible {
+  outline: 2px solid var(--selection-color);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .monolith-card[data-interactive] {
+    transition: none;
+  }
+}

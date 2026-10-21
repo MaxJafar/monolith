@@ -1,168 +1,139 @@
-import { type ComponentPropsWithoutRef, type ElementType } from 'react'
-import tinycolor from 'tinycolor2'
+// SPDX-License-Identifier: 0BSD
+import { formatHex, parse, wcagContrast } from 'culori'
+import type {
+  CSSProperties,
+  ComponentPropsWithoutRef,
+  ElementType,
+  MouseEvent,
+  ReactNode
+} from 'react'
 
 import {
   Bordered,
   type BorderedOwnProps,
-  Box,
   Flex,
   Icon,
-  Text,
-  Transition
+  Text
 } from '@/components/primitives'
-import { usePersonalization } from '@/providers'
-import anyColorToHex from '@/utils/anyColorToHex'
 
-type TagChipProps<T extends ElementType> = Omit<
-  BorderedOwnProps,
-  'color' | 'as'
-> & {
-  as?: T
-  /** The text label displayed on the tag chip. */
-  label: string | React.ReactNode
-  /** The icon to display alongside the label. Can be an Iconify icon name or custom HTML string prefixed with 'customHTML:'. */
+import './tagChip.css'
+
+type OwnProps = {
+  label: ReactNode
   icon?: string
-  /** The color of the tag chip. If provided, it customizes the text, border and background colors. */
   color?: string
-  /** The size variant of the tag chip. */
   size?: 'sm' | 'base'
-  /** Optional action button properties, including icon and click handler.
-   * If provided, an action button will be displayed at the end of the tag chip. */
   variant?: 'outlined' | 'filled'
   actionButtonProps?: {
     icon: string
     onClick?: () => void
+    'aria-label'?: string
   }
-  /** Optional click handler for the entire tag chip. */
-  onClick?: (e: React.MouseEvent<HTMLSpanElement>) => void
-} & Omit<
+  onClick?: (event: MouseEvent<HTMLSpanElement>) => void
+}
+type TagChipProps<T extends ElementType> = OwnProps &
+  Omit<BorderedOwnProps, 'color' | 'as'> & { as?: T } & Omit<
     ComponentPropsWithoutRef<T>,
-    | keyof Omit<BorderedOwnProps, 'color' | 'as'>
-    | 'as'
-    | 'label'
-    | 'icon'
-    | 'color'
-    | 'size'
-    | 'variant'
-    | 'actionButtonProps'
-    | 'onClick'
+    keyof OwnProps | keyof BorderedOwnProps | 'as'
   >
 
 export function TagChip<T extends ElementType = 'button'>({
   label,
   icon,
   color,
-  variant = 'outlined',
   size = 'base',
+  variant = 'outlined',
   actionButtonProps,
   onClick,
-  ...rest
+  as,
+  ...props
 }: TagChipProps<T>) {
-  const { getMostReadableColor } = usePersonalization()
-
-  const convertedColor = color ? anyColorToHex(color) : color
-
-  const computedStyle: React.CSSProperties =
-    convertedColor !== undefined
-      ? variant === 'outlined'
-        ? {
-            borderColor: tinycolor(convertedColor).setAlpha(0.25).toString(),
-            backgroundColor: tinycolor(convertedColor)
-              .setAlpha(0.125)
-              .toString(),
-            color
-          }
-        : {
-            borderColor: convertedColor,
-            backgroundColor: convertedColor,
-            color: getMostReadableColor(convertedColor)
-          }
-      : {}
-
-  return (
-    <Transition>
-      <Text
-        asChild
-        color={
-          color === undefined
-            ? { base: 'bg-500', dark: 'bg-400' }
-            : { dark: 'bg-500' }
-        }
-      >
-        <Bordered
-          as={(rest.as ?? 'button') as ElementType}
-          bg={
-            color === undefined && variant === 'filled'
-              ? { base: 'bg-200', dark: 'bg-800' }
-              : undefined
-          }
-          borderColor={
-            color === undefined && variant === 'filled'
-              ? { base: 'bg-200', dark: 'bg-800' }
-              : {
-                  dark: 'bg-800',
-                  base: 'bg-300'
-                }
-          }
-          borderWidth="1px"
-          display="inline-block"
-          minWidth="0"
-          px="sm"
-          py="xs"
-          r="full"
-          onClick={onClick}
-          {...(rest as Record<string, unknown>)}
-          style={{
-            ...rest.style,
-            ...computedStyle
-          }}
+  const normalized = color ? formatHex(parse(color)) : undefined
+  const text =
+    normalized && variant === 'filled'
+      ? wcagContrast(normalized, '#ffffff') >=
+        wcagContrast(normalized, '#000000')
+        ? '#ffffff'
+        : '#000000'
+      : color
+  const style: CSSProperties = {
+    borderColor: color
+      ? 'color-mix(in srgb, ' + color + ' 30%, transparent)'
+      : 'var(--border-medium)',
+    background: color
+      ? variant === 'filled'
+        ? color
+        : 'color-mix(in srgb, ' + color + ' 12%, transparent)'
+      : variant === 'filled'
+        ? 'var(--bg-lifted)'
+        : 'transparent',
+    color: text || 'var(--text-muted)',
+    ...props.style
+  }
+  const element = as ?? (onClick ? 'button' : 'span')
+  const body = (
+    <Bordered
+      {...props}
+      as={element as ElementType}
+      className={['monolith-tag-chip', props.className]
+        .filter(Boolean)
+        .join(' ')}
+      style={style}
+      {...(element === 'button' ? { type: 'button' } : {})}
+      px="sm"
+      py="xs"
+      r="full"
+      display="inline-block"
+      minWidth="0"
+      onClick={onClick}
+    >
+      <Flex as="span" align="center" gap="xs" minWidth="0">
+        {icon &&
+          (icon.startsWith('customHTML:') ? (
+            <img
+              alt=""
+              width={16}
+              height={16}
+              src={'data:image/svg+xml,' + encodeURIComponent(icon.slice(11))}
+            />
+          ) : (
+            <Icon
+              icon={icon}
+              size={size === 'sm' ? '12px' : '15px'}
+              aria-hidden
+            />
+          ))}
+        <Text
+          as="span"
+          truncate
+          size={size === 'sm' ? 'xs' : 'sm'}
+          weight="medium"
         >
-          <Flex align="center" flexShrink="0" gap="xs" minWidth="0">
-            {(() => {
-              if (!icon) return null
-
-              if (icon.startsWith('customHTML:')) {
-                if (icon.replace(/^customHTML:/, '') === '') return null
-
-                return (
-                  <Flex as="span" height="md" width="md">
-                    <span
-                      dangerouslySetInnerHTML={{
-                        __html: icon.replace(/^customHTML:/, '')
-                      }}
-                    />
-                  </Flex>
-                )
-              } else {
-                return (
-                  <Icon icon={icon} size={size === 'base' ? '1em' : '0.75em'} />
-                )
-              }
-            })()}
-            {typeof label === 'string' ? (
-              <Box asChild minWidth="0">
-                <Text
-                  truncate
-                  size={size === 'base' ? 'sm' : 'xs'}
-                  weight="medium"
-                >
-                  {label}
-                </Text>
-              </Box>
-            ) : (
-              label
-            )}
-            {actionButtonProps && (
-              <>
-                <Box as="span" width="xs" />
-                <button onClick={actionButtonProps.onClick}>
-                  <Icon icon={actionButtonProps.icon} size="1em" />
-                </button>
-              </>
-            )}
-          </Flex>
-        </Bordered>
-      </Text>
-    </Transition>
+          {label}
+        </Text>
+      </Flex>
+    </Bordered>
+  )
+  return actionButtonProps ? (
+    <Flex as="span" display="inline-flex" align="center" gap="xs" minWidth="0">
+      {body}
+      <button
+        type="button"
+        className="monolith-tag-action"
+        aria-label={
+          actionButtonProps['aria-label'] ??
+          (typeof label === 'string' ? 'Remove ' + label : 'Remove tag')
+        }
+        onClick={event => {
+          event.preventDefault()
+          event.stopPropagation()
+          actionButtonProps.onClick?.()
+        }}
+      >
+        <Icon icon={actionButtonProps.icon} size="14px" aria-hidden />
+      </button>
+    </Flex>
+  ) : (
+    body
   )
 }

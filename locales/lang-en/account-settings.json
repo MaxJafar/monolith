@@ -1,6 +1,6 @@
 {
   "title": "Account Settings",
-  "description": "The place to manage all your account details",
+  "description": "Your identity and sign-in preferences.",
   "settings": {
     "title": {
       "profilePicture": "Profile Picture",
@@ -13,14 +13,14 @@
       "oauth": "OAuth Providers"
     },
     "desc": {
-      "profilePicture": "Upload a profile picture to personalize your account.",
-      "username": "The name that identifies you on the platform.",
-      "displayName": "The name displayed to other users.",
-      "email": "The email address you use to log in to your account.",
-      "password": "Set a strong password to protect your account.",
-      "dateOfBirth": "Set your date of birth, and we'll give you a surprise!",
-      "twoFA": "Enable two-factor authentication when logging into the system.",
-      "oauth": "Configure OAuth providers to enable third-party logins."
+      "profilePicture": "Choose the image shown on your profile.",
+      "username": "Your unique account identifier.",
+      "displayName": "Choose how your name appears in the workspace.",
+      "email": "Manage the address used to sign in.",
+      "password": "Update your account password.",
+      "dateOfBirth": "Add a birthday for a personal greeting.",
+      "twoFA": "Require an authenticator code when signing in.",
+      "oauth": "Connect external identity providers."
     },
     "empty": "Not Set"
   },
@@ -39,13 +39,13 @@
       "update": "Update Date of Birth"
     },
     "enable2FA": {
-      "title": "Enable Two-Factor Authentication",
-      "description": "Please scan the QR code below with your preferred authenticator app, such as Google Authenticator, and click proceed.",
-      "confirmationDescription": "Please enter the OTP shown in your authenticator app to confirm enabling 2FA."
+      "title": "Set up an authenticator",
+      "description": "Add this QR code to your authenticator, then continue to verify a code.",
+      "confirmationDescription": "Enter the current code from the authenticator you just connected."
     },
     "disable2FA": {
-      "title": "Disable Two-Factor Authentication",
-      "description": "Are you sure you want to disable two-factor authentication?"
+      "title": "Remove the authenticator requirement",
+      "description": "Future sign-ins will no longer require an authenticator code. Continue?"
     },
     "changePassword": {
       "title": "Change Password"
@@ -84,15 +84,15 @@
   },
   "messages": {
     "twoFA": {
-      "enableSuccess": "Two-factor authentication enabled successfully.",
-      "disableSuccess": "Two-factor authentication disabled successfully.",
+      "enableSuccess": "Authenticator protection is on.",
+      "disableSuccess": "Authenticator protection is off.",
       "disableFailed": "Two-factor authentication could not be disabled.",
       "setupFailed": "The setup code could not be loaded.",
       "verifyFailed": "The code was not accepted. Try the current code from your authenticator."
     },
     "oauth": {
-      "changeConfirm": "Are you sure you want to change the OAuth credentials?",
-      "changeAlert": "Updating the client ID and secret will replace existing ones. This action is not reversible.",
+      "changeConfirm": "Replace the saved provider credentials?",
+      "changeAlert": "The new client ID and secret replace the saved values. Keep your own backup if you need the old credentials.",
       "keepBlank": "Leave a field blank to keep its saved value. A supplied value replaces it, and saving enables this provider.",
       "saved": "Sign-in provider saved.",
       "loadFailed": "Provider status is unavailable.",
@@ -109,7 +109,7 @@
   "misc": {
     "enabled": "Enabled",
     "disabled": "Disabled",
-    "oauthStatus": "{{confCount}} configured, {{enabledCount}} enabled",
+    "oauthStatus": "Ready: {{confCount}} · Active: {{enabledCount}}",
     "lastUpdated": "Last updated:"
   },
   "tabs": {

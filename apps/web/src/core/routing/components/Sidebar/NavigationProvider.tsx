@@ -1,5 +1,3 @@
-import { useAuth } from '@monolith/api'
-import { useFederation } from '@monolith/federation'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   type ReactNode,
@@ -12,6 +10,9 @@ import {
 } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate } from 'react-router'
+
+import { useAuth } from '@monolith/api'
+import { useFederation } from '@monolith/federation'
 
 import { useAppAppearance } from '@/core/appearance/AppearanceContext'
 import { useWorkspace } from '@/core/workspaces/WorkspaceProvider'
@@ -223,7 +224,7 @@ function useNavigationState() {
             appearance.pages[modulePath(item.name)]?.icon ||
             item.icon ||
             'lucide:puzzle',
-          href: `${modulePath(item.name) === '/blog' ? '/journal' : modulePath(item.name)}?workspace=${scope}`,
+          href: `${modulePath(item.name)}?workspace=${scope}`,
           parent: null
         }))
     ],

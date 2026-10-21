@@ -1,25 +1,16 @@
+// SPDX-License-Identifier: 0BSD
 export type Breakpoint = 'base' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'print'
 
-export interface PropDef {
-  className: string
-  customProperties: `--${string}`[]
-}
-
-declare const __responsive_meta__: unique symbol
-
-type ResponsiveObject<TValue, TInput, TOutput> = {
-  [K in Breakpoint]?: TValue
-} & {
-  readonly [__responsive_meta__]?: {
-    input: TInput
-    output: TOutput
-  }
-}
-
+type AtBreakpoints<Value> = Partial<Record<Breakpoint, Value>>
 export type ResponsiveProp<
-  TInput,
-  TOutput = TInput,
-  Mode extends 'input' | 'output' = 'input'
-> =
-  | (Mode extends 'output' ? TOutput : TInput)
-  | ResponsiveObject<Mode extends 'output' ? TOutput : TInput, TInput, TOutput>
+  Input,
+  Output = Input,
+  Direction extends 'input' | 'output' = 'input'
+> = Direction extends 'output'
+  ? Output | AtBreakpoints<Output>
+  : Input | AtBreakpoints<Input>
+
+export type PropDef = {
+  className: string
+  customProperties: Array<`--${string}`>
+}

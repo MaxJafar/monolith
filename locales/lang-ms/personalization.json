@@ -1,159 +1,64 @@
 {
-  "title": "Personalisasi",
-  "description": "Jadikan ia milik anda! Siapa yang mahu sistem yang membosankan?",
-  "themeSelector": {
-    "title": "Tema",
-    "desc": "Pilih tema yang sesuai dengan gaya anda.",
-    "theme": {
-      "system": "Sistem",
-      "light": "Cerah",
-      "dark": "Gelap"
-    },
-    "customBgColor": "Warna Latar Belakang Tersuai"
-  },
-  "themeColorSelector": {
-    "title": "Warna Tema",
-    "desc": "Pilih warna yang paling sesuai dengan antara muka anda.",
-    "colors": {
-      "red": "Merah",
-      "pink": "Merah Jambu",
-      "purple": "Ungu",
-      "deepPurple": "Ungu Tua",
-      "indigo": "Indigo",
-      "blue": "Biru",
-      "lightBlue": "Biru Muda",
-      "cyan": "Sian",
-      "teal": "Hijau Kebiruan",
-      "green": "Hijau",
-      "lightGreen": "Hijau Muda",
-      "lime": "Limau Nipis",
-      "yellow": "Kuning",
-      "amber": "Kuning Jingga",
-      "orange": "Oren",
-      "deepOrange": "Oren Tua",
-      "brown": "Coklat",
-      "grey": "Kelabu",
-      "custom": "Warna Tersuai"
-    }
-  },
-  "languageSelector": {
-    "title": "Bahasa",
-    "desc": "Pilih bahasa pilihan anda."
-  },
-  "bgTempSelector": {
-    "title": "Suhu Latar Belakang",
-    "desc": "Pilih suhu latar belakang yang sesuai dengan mood anda.",
-    "cool": "Sejuk",
-    "warm": "Panas",
-    "customBgTemp": "Tersuai"
-  },
-  "fontFamily": {
-    "title": "Gaya Fon",
-    "desc": "Pilih fon yang sesuai dengan keutamaan anda",
-    "tooltip": "Untuk maklumat terperinci mengenai semua fon, lawati laman web Google Fonts.",
-    "tooltipTitle": "Dikuasakan oleh Google Fonts",
-    "tabs": {
-      "googleFonts": "Google Fonts",
-      "customFonts": "Fon Tersuai"
-    },
-    "empty": {
-      "apiKey": {
-        "title": "Kunci API Google Cloud Tidak Ditemui",
-        "description": "Untuk mengaktifkan ciri ini, sila tambahkan kunci API Google Cloud ke dalam peti API anda."
-      },
-      "search": {
-        "title": "Tiada Keluarga Fon Ditemui",
-        "description": "Tiada keluarga fon ditemui untuk pertanyaan yang diberikan. Sila cuba yang lain."
-      },
-      "customFont": {
-        "title": "Tiada Fon Tersuai",
-        "description": "Anda belum memuat naik sebarang fon tersuai lagi. Klik butang di atas untuk memuat naik satu."
-      }
-    },
-    "inputs": {
-      "displayName": "Nama Paparan",
-      "fontFamily": "Keluarga Fon",
-      "fontWeight": "Ketebalan Fon",
-      "fontFile": "Fail Fon"
-    },
-    "modals": {
-      "fontFamilySelector": "Pemilih Keluarga Fon",
-      "customFonts": {
-        "upload": "Muat Naik Fon Tersuai",
-        "edit": "Edit Fon Tersuai",
-        "delete": {
-          "title": "Padam Fon Tersuai",
-          "description": "Adakah anda pasti mahu memadam fon tersuai ini? Tindakan ini tidak boleh dibatalkan."
-        }
-      }
-    },
-    "buttons": {
-      "uploadButton": "Muat Naik Fon Tersuai"
-    },
-    "items": {
-      "fontFamily": "keluarga fon"
-    }
-  },
-  "fontScaleSelector": {
-    "title": "Skala Fon",
-    "desc": "Pilih skala fon yang sesuai dengan keluarga fon yang anda pilih."
-  },
-  "borderRadiusSelector": {
-    "title": "Jejari Sempadan",
-    "desc": "Laraskan kebulataan sudut di seluruh antara muka.",
-    "options": {
-      "none": "Tiada",
-      "small": "Kecil",
-      "default": "Lalai",
-      "medium": "Sederhana",
-      "large": "Besar",
-      "full": "Penuh"
-    }
-  },
-  "borderedSelector": {
-    "title": "Komponen Bersempadan",
-    "desc": "Dayakan sempadan yang kelihatan pada komponen UI."
-  },
-  "bgImageSelector": {
-    "title": "Imej Latar Belakang",
-    "desc": "Muat naik atau cari imej latar belakang",
-    "pixabayDisabled": {
-      "tooltip": "Untuk mencari imej dari Pixabay, sila tambahkan kunci API Pixabay anda ke dalam peti API. Untuk maklumat lanjut, rujuk kepada"
-    },
-    "modals": {
-      "adjustBackground": {
-        "title": "Selaraskan Imej Latar Belakang",
-        "modals": {
-          "adjustBackgroundImage": "Selaraskan Imej Latar Belakang"
-        },
-        "columns": {
-          "blur": {
-            "title": "Kesan Kabur",
-            "desc": "Sesuaikan tahap kabur gambar latar belakang."
-          },
-          "brightness": {
-            "title": "Kecerahan",
-            "desc": "Laraskan kecerahan imej latar."
-          },
-          "contrast": {
-            "title": "Kontras",
-            "desc": "Laraskan kontras imej latar belakang anda."
-          },
-          "saturation": {
-            "title": "Ketepuan",
-            "desc": "Laraskan intensiti warna dalam imej latar."
-          },
-          "overlayOpacity": {
-            "title": "Kelegapan Lapisan",
-            "desc": "Laraskan ketelusan overlay latar belakang."
-          }
-        }
-      }
-    }
-  },
-  "inputs": {
-    "colorHex": "Kod Warna Hex"
-  },
-  "notApplicable": "Tidak Berkenaan",
-  "unsupportedModulesWarning": "Addon berikut tidak menyokong bahasa yang dipilih:"
+  "title": "Pemperibadian",
+  "description": "Tetapan paparan akaun Monolith anda.",
+  "monolith": {
+    "workspace": "Rupa ruang kerja",
+    "workspaceHelp": "Tetapkan rupa lalai aplikasi atau sesuaikan ruang kerja aktif.",
+    "appStyle": "Rupa aplikasi",
+    "workspaceStyle": "Rupa ruang kerja",
+    "language": "Bahasa",
+    "untranslated": "Tambahan ini menggunakan bahasa sandaran:",
+    "theme": "Mod warna",
+    "light": "Cerah",
+    "dark": "Gelap",
+    "system": "Ikut sistem",
+    "accent": "Warna aksen",
+    "surface": "Palet permukaan",
+    "custom": "Warna tersuai",
+    "scale": "Saiz teks",
+    "corners": "Bentuk penjuru",
+    "square": "Segi empat",
+    "standard": "Standard",
+    "borders": "Tunjukkan sempadan panel",
+    "background": "Imej latar",
+    "chooseImage": "Pilih imej",
+    "remove": "Buang",
+    "removeBackground": "Buang imej latar?",
+    "removeBackgroundHelp": "Ruang kerja akan menggunakan palet permukaan yang dipilih.",
+    "preview": "Pratonton ruang kerja",
+    "blur": "Kabur",
+    "brightness": "Kecerahan",
+    "contrast": "Kontras",
+    "saturation": "Ketepuan",
+    "overlayOpacity": "Lapisan",
+    "reset": "Tetapkan semula pelarasan",
+    "save": "Simpan",
+    "cancel": "Batal",
+    "fonts": "Fon",
+    "category": "Kategori fon",
+    "allCategories": "Semua kategori",
+    "noFonts": "Tiada fon sepadan dengan penapis ini.",
+    "variants": "gaya",
+    "favorite": "Tukar kegemaran",
+    "selected": "Dipilih",
+    "useFont": "Gunakan fon",
+    "requestFailed": "Permintaan gagal. Sila cuba lagi.",
+    "googleSetup": "Tambahkan kunci API Google Fonts dalam Kunci API untuk melayari katalog. Fon muat naik masih tersedia.",
+    "deleteFont": "Padam fon yang dimuat naik?",
+    "uploadFont": "Muat naik fon",
+    "noUploads": "Keluarga fon yang dimuat naik akan muncul di sini.",
+    "edit": "Sunting",
+    "defaultFont": "Gunakan fon terbina",
+    "fontSource": "Sumber fon",
+    "uploads": "Fon muat naik",
+    "editFont": "Sunting fon",
+    "fontFile": "Fail fon",
+    "keepFontFile": "Biarkan fail kosong untuk mengekalkan fon semasa.",
+    "displayName": "Nama paparan",
+    "family": "Keluarga fon",
+    "weight": "Ketebalan fon",
+    "metadataHelp": "Masukkan keluarga dan ketebalan fon secara manual untuk fail ini.",
+    "requiredNames": "Masukkan nama paparan dan keluarga fon.",
+    "chooseFont": "Pilih fail fon sebelum menyimpan."
+  }
 }

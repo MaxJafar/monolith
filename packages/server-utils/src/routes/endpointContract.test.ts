@@ -1,82 +1,74 @@
-import { pgTable, uuid } from 'drizzle-orm/pg-core'
-import { describe, expect, it } from 'vitest'
-import z from 'zod'
+// SPDX-License-Identifier: 0BSD
+import { integer, pgTable } from 'drizzle-orm/pg-core'
+import { expect, it, vi } from 'vitest'
+import { z } from 'zod'
 
+import type { RequestContext } from '../typescript/core/endpoint_contract.types'
 import { defineEndpoints } from './contracts'
+import defineRoutes from './defineRoutes'
 
-describe('defineEndpoints', () => {
-  it('should construct query contract and register a callback', () => {
-    const endpoints = defineEndpoints()
-
-    const contract = endpoints
-      .query({
-        description: 'Test Query',
-        input: {
-          query: z.object({
-            id: z.string()
-          })
-        },
-        output: {
-          OK: z.object({
-            message: z.string()
-          })
-        }
-      })
-      .callback(async ({ query, response }) => {
-        return response.ok({ message: `Hello ${query?.id}` })
-      })
-
-    expect(contract.__isEndpointContract).toBe(true)
-
-    const val = contract.getValue()
-
-    expect(val.method).toBe('get')
-    expect(val.description).toBe('Test Query')
+it('binds typed input, core ownership and response helpers to a query callback', async () => {
+  const api = defineEndpoints({
+    moduleId: 'calendar',
+    modulePathAlias: '@calendar'
   })
-
-  it('should default rateLimit to true', () => {
-    const endpoints = defineEndpoints()
-    const contract = endpoints
-      .query({
-        description: 'Test rateLimit default',
-        output: {
-          OK: z.string()
-        }
-      })
-      .callback(async ({ response }) => {
-        return response.ok('test')
-      })
-
-    const val = contract.getValue()
-    expect(val.rateLimit).toBe(true)
-  })
-
-  it('should set rateLimit to false if explicitly defined', () => {
-    const endpoints = defineEndpoints()
-    const contract = endpoints
-      .query({
-        description: 'Test rateLimit false',
-        rateLimit: false,
-        output: {
-          OK: z.string()
-        }
-      })
-      .callback(async ({ response }) => {
-        return response.ok('test')
-      })
-
-    const val = contract.getValue()
-    expect(val.rateLimit).toBe(false)
-  })
-
-  it('should expose a typed existsIn bound to the module schema', () => {
-    const users = pgTable('users', { id: uuid('id').primaryKey() })
-    const endpoints = defineEndpoints({
-      schema: { tables: { users }, relations: () => ({}) }
+  const contract = api
+    .query({
+      description: 'Find project',
+      input: { query: z.object({ id: z.number() }) },
+      output: { OK: z.object({ id: z.number() }) }
     })
-
-    const schema = z.string()
-
-    expect(endpoints.existsIn(schema, users)).toBe(schema)
+    .callback(async ({ query, response }) => response.ok({ id: query.id }))
+  const result = contract.getValue()
+  expect(result).toMatchObject({
+    method: 'get',
+    callerModule: { source: 'core', id: 'calendar' },
+    noAuth: false,
+    encrypted: true,
+    rateLimit: true
   })
+  expect(contract.modulePathAlias).toBe('@calendar')
+  expect(await result.callback({ query: { id: 7 } } as RequestContext)).toEqual(
+    { $status: 200, payload: { id: 7 } }
+  )
+})
+it('copies middleware/schema containers so catalog consumers cannot corrupt a contract', () => {
+  const middleware = vi.fn()
+  const source = [middleware]
+  const contract = defineEndpoints()
+    .mutation({
+      description: 'Save',
+      input: { body: z.object({ title: z.string() }) },
+      output: { NO_CONTENT: true },
+      middlewares: source,
+      rateLimit: false,
+      encrypted: false,
+      noAuth: true
+    })
+    .callback(async ({ response }) => response.noContent())
+  source.length = 0
+  const first = contract.getValue()
+  first.middlewares.length = 0
+  first.schema.body = undefined
+  expect(contract.getValue().middlewares).toEqual([middleware])
+  expect(contract.getValue().schema.body).toBeDefined()
+  expect(contract.getValue()).toMatchObject({
+    method: 'post',
+    encrypted: false,
+    rateLimit: false,
+    noAuth: true
+  })
+})
+it('keeps module schemas and exact route keys available to consumers', () => {
+  const projects = pgTable('project_fixture', { id: integer().primaryKey() })
+  const api = defineEndpoints({
+    schema: { tables: { projects }, relations: () => ({}) }
+  })
+  const query = z.number()
+  expect(api.existsIn(query, projects)).toBe(query)
+  const endpoint = api
+    .query({ description: 'Accepted', output: { ACCEPTED: true } })
+    .callback(async ({ response }) => response.accepted())
+  const tree = { nested: { endpoint } }
+  expect(defineRoutes(tree)).toBe(tree)
 })

@@ -1,84 +1,82 @@
-import fs from 'fs'
-import os from 'os'
-import path from 'path'
+// SPDX-License-Identifier: 0BSD
+import {
+  existsSync,
+  lstatSync,
+  mkdtempSync,
+  readFileSync,
+  realpathSync,
+  renameSync,
+  rmSync
+} from 'node:fs'
+import { dirname, join, resolve, sep } from 'node:path'
 
-import { installDeps } from './commands'
-import { downloadArchive, readRepoSlug } from './github'
-import { assertKebabRepo } from './kebab'
+import { addonPackageName } from '@monolith/configs'
+
+import { ROOT_DIR } from './constants'
+import { downloadArchive } from './github/archive'
 import type { LockKind } from './moduleLock'
-import { addDependency } from './packageJson'
 import type { RegistryEntry } from './registryIndex'
 
-interface InstallFromGithubOptions {
+export function managedPackagePath(kind: LockKind, destination: string) {
+  const root = resolve(ROOT_DIR, kind),
+    target = resolve(destination)
+  if (!target.startsWith(root + sep) || dirname(target) !== root)
+    throw Error('Package path must be a direct workspace child')
+  if (realpathSync(root) !== join(realpathSync(ROOT_DIR), kind))
+    throw Error('Package root must not be a filesystem link')
+  if (existsSync(target) && lstatSync(target).isSymbolicLink())
+    throw Error('Package path must not be a filesystem link')
+  return target
+}
+export async function installFromGithub(options: {
   kind: LockKind
-  /** Scope-stripped module/locale id (e.g. `monolith--wallet`). */
   id: string
   entry: RegistryEntry
   targetDir: string
   version: string
-}
-
-/**
- * Installs a module/locale from its GitHub repo: downloads the archive at the
- * index-pinned commit, verifies its identity, moves it into place, and links it
- * as a workspace dependency.
- *
- * @returns The resolved commit SHA and the archive's declared package name.
- */
-export async function installFromGithub({
-  kind,
-  id,
-  entry,
-  targetDir,
-  version
-}: InstallFromGithubOptions): Promise<{ commitSha: string; name: string }> {
-  const commitSha = entry.versions[version]
-
-  if (!commitSha) {
-    throw new Error(`No release commit recorded for ${id}@${version}`)
-  }
-
-  assertKebabRepo(entry.repo)
-
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'endpoints-pkg-'))
-
+  activate?: (directory: string) => Promise<void>
+}): Promise<{ commitSha: string; name: string }> {
+  const { kind, id, entry, version } = options
+  const target = managedPackagePath(kind, options.targetDir),
+    commitSha = entry.versions[version]
+  if (!commitSha) throw Error('Release does not have a pinned commit')
+  const scratch = mkdtempSync(join(dirname(target), '.monolith-install-')),
+    incoming = join(scratch, 'incoming'),
+    previous = join(scratch, 'previous')
+  let active = false,
+    backedUp = false,
+    preserveRecovery = false
   try {
-    await downloadArchive(entry.repo, commitSha, tempDir)
-
-    const pkgPath = path.join(tempDir, 'package.json')
-
-    if (!fs.existsSync(pkgPath)) {
-      throw new Error(`Archive for ${id}@${version} has no package.json`)
+    await downloadArchive(entry.repo, commitSha, incoming)
+    const manifest = JSON.parse(
+      readFileSync(join(incoming, 'package.json'), 'utf8')
+    )
+    const expected = addonPackageName('@monolith/' + id)
+    if (manifest.name !== expected || manifest.version !== version)
+      throw Error(
+        'Downloaded package identity/version does not match the release'
+      )
+    if (existsSync(target)) {
+      renameSync(target, previous)
+      backedUp = true
     }
-
-    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8')) as {
-      name: string
-    }
-
-    const expectedName = `@monolith/${id}`
-
-    if (pkg.name !== expectedName) {
-      throw new Error(
-        `Identity check failed for ${id}: expected ${expectedName}, got ${pkg.name}`
+    renameSync(incoming, target)
+    active = true
+    await options.activate?.(target)
+    return { commitSha, name: manifest.name }
+  } catch (error) {
+    try {
+      if (active) rmSync(target, { recursive: true, force: true })
+      if (backedUp) renameSync(previous, target)
+    } catch (recoveryError) {
+      preserveRecovery = true
+      throw new AggregateError(
+        [error, recoveryError],
+        'Activation and recovery failed; preserved source at ' + scratch
       )
     }
-
-    const slug = readRepoSlug(tempDir)
-
-    if (slug && slug.toLowerCase() !== entry.repo.toLowerCase()) {
-      throw new Error(
-        `Repository check failed for ${id}: expected ${entry.repo}, got ${slug}`
-      )
-    }
-
-    fs.rmSync(targetDir, { recursive: true, force: true })
-    fs.cpSync(tempDir, targetDir, { recursive: true })
-
-    addDependency(expectedName, kind)
-    installDeps()
-
-    return { commitSha, name: pkg.name }
+    throw error
   } finally {
-    fs.rmSync(tempDir, { recursive: true, force: true })
+    if (!preserveRecovery) rmSync(scratch, { recursive: true, force: true })
   }
 }

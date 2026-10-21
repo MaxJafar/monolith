@@ -1,80 +1,50 @@
+// SPDX-License-Identifier: 0BSD
 import { decrypt2 } from '@functions/auth/encryption'
 import { createServiceLogger } from '@functions/logging'
+
 import { ModuleRegistry } from '@monolith/module-runtime/registry'
-import chalk from 'chalk'
 
 import type { db } from '../../drizzle'
 
-const logger = createServiceLogger('API Key Vault')
-
+type Caller = { source: 'app' | 'core'; id: string }
 export async function validateCallerAccess(
-  callerModule: { source: 'app' | 'core'; id: string },
-  id: string
-) {
-  if (callerModule.source === 'core') {
-    return
-  }
-
-  const entry = ModuleRegistry.entries.find(
-    candidate =>
-      candidate.name === callerModule.id || candidate.id === callerModule.id
+  caller: Caller,
+  key: string
+): Promise<void> {
+  if (caller.source === 'core') return
+  const registration = ModuleRegistry.entries.find(
+    item => item.id === caller.id || item.name === caller.id
   )
-
-  if (!entry) {
-    throw new Error(`Module ${callerModule.id} is not registered`)
-  }
-
-  const access = entry.APIKeyAccess?.[id]
-
-  if (!access) {
-    throw new Error(`API access for ${id} not found`)
-  }
-}
-
-async function getAPIKey(
-  database: typeof db,
-  id: string,
-  callerModule?: { source: 'app' | 'core'; id: string }
-): Promise<string> {
-  try {
-    if (!callerModule) {
-      throw new Error(
-        'Unable to determine caller module for API key validation.'
-      )
-    }
-
-    const record = await database.query.apiKeysEntries.findFirst({
-      where: { keyId: id }
-    })
-
-    if (!record) {
-      throw new Error(`API key for ${id} not found`)
-    }
-
-    if (!record.exposable) {
-      await validateCallerAccess(callerModule, id)
-    }
-
-    try {
-      logger.info(
-        `API key for ${chalk.blue(id)} retrieved by ${chalk.blue(callerModule.source)}:${chalk.blue(callerModule.id)}`
-      )
-
-      return decrypt2(record.key, process.env.MASTER_KEY!)
-    } catch {
-      throw new Error(`Failed to decrypt API key for ${id}.`)
-    }
-  } catch (err) {
-    throw new Error(
-      `Failed to retrieve API key for ${id}: ${err instanceof Error ? err.message : String(err)}`,
-      { cause: err }
-    )
-  }
+  if (!registration) throw new Error('Module is not registered: ' + caller.id)
+  if (!registration.APIKeyAccess?.[key])
+    throw new Error('Module has not declared API access: ' + key)
 }
 
 export default function getAPIKeyFactory(
   database: typeof db,
-  callerModule?: { source: 'app' | 'core'; id: string }
+  caller?: Caller
 ): (id: string) => Promise<string> {
-  return (id: string) => getAPIKey(database, id, callerModule)
+  return async key => {
+    if (!caller) throw new Error('API credentials require a registered caller')
+    const saved = await database.query.apiKeysEntries.findFirst({
+      where: { keyId: key }
+    })
+    if (!saved) throw new Error('API key is not configured: ' + key)
+    if (!saved.exposable) await validateCallerAccess(caller, key)
+    const secret = process.env.MASTER_KEY
+    if (!secret)
+      throw new Error('MASTER_KEY is required to open API credentials')
+    let value: string
+    try {
+      value = decrypt2(saved.key, secret)
+    } catch (cause) {
+      throw new Error('Stored API credential could not be decrypted: ' + key, {
+        cause
+      })
+    }
+    createServiceLogger('API Key Vault').info(
+      'Credential accessed: ' + key + ' by ' + caller.source + ':' + caller.id
+    )
+    return value
+  }
 }

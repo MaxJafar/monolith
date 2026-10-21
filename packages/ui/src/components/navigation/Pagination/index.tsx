@@ -1,49 +1,71 @@
-import { Flex, type FlexProps } from '@/components/primitives'
+// SPDX-License-Identifier: 0BSD
+import { Button } from '@/components/inputs'
+import { Flex, type FlexProps, Text } from '@/components/primitives'
 
-import { NavButton } from './components/NavButton'
-import { PageNumbers } from './components/PageNumbers'
-
-interface PaginationProps extends FlexProps<'div'> {
-  /** Current active page */
-  page: number
-  /** Callback function when the page is changed */
-  onPageChange: (page: number) => void
-  /** Total number of pages */
-  totalPages: number
-  /** Additional class names for the pagination container */
-  className?: string
-}
+import { visiblePages } from './pages'
 
 export function Pagination({
   page,
-  onPageChange,
   totalPages,
-  ...rest
-}: PaginationProps): React.ReactElement {
-  const previousPage = () => {
-    onPageChange(Math.max(1, page - 1))
-  }
-
-  const nextPage = () => {
-    onPageChange(Math.min(totalPages, page + 1))
-  }
-
+  onPageChange,
+  ...layout
+}: FlexProps<'div'> & {
+  page: number
+  totalPages: number
+  onPageChange: (page: number) => void
+}) {
+  const count = Number.isFinite(totalPages)
+    ? Math.max(0, Math.floor(totalPages))
+    : 0
+  const current = Number.isFinite(page)
+    ? Math.max(1, Math.min(count || 1, Math.floor(page)))
+    : 1
   return (
-    <Flex align="center" gap="sm" justify="between" {...rest}>
-      <NavButton
-        direction="previous"
-        hidden={page === 1}
-        onClick={previousPage}
+    <Flex
+      aria-label="Pagination"
+      align="center"
+      justify="between"
+      gap="sm"
+      {...layout}
+    >
+      <Button
+        namespace={false}
+        variant="plain"
+        icon="tabler:chevron-left"
+        aria-label="Previous page"
+        disabled={!count || current <= 1}
+        onClick={() => onPageChange(Math.max(1, current - 1))}
       />
-      <PageNumbers
-        page={page}
-        totalPages={totalPages}
-        onPageChange={onPageChange}
-      />
-      <NavButton
-        direction="next"
-        hidden={page === totalPages}
-        onClick={nextPage}
+      <Flex align="center" gap="xs" display={{ base: 'none', lg: 'flex' }}>
+        {visiblePages(current, count).map((value, index) =>
+          value === 'gap' ? (
+            <Text key={'gap-' + index} aria-hidden="true" color="muted">
+              …
+            </Text>
+          ) : (
+            <Button
+              key={value}
+              namespace={false}
+              variant={value === current ? 'secondary' : 'plain'}
+              aria-label={'Page ' + value}
+              aria-current={value === current ? 'page' : undefined}
+              onClick={() => onPageChange(value)}
+            >
+              {value}
+            </Button>
+          )
+        )}
+      </Flex>
+      <Text display={{ base: 'block', lg: 'none' }} color="muted">
+        {count ? current : 0} / {count}
+      </Text>
+      <Button
+        namespace={false}
+        variant="plain"
+        icon="tabler:chevron-right"
+        aria-label="Next page"
+        disabled={!count || current >= count}
+        onClick={() => onPageChange(Math.min(count, current + 1))}
       />
     </Flex>
   )

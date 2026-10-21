@@ -1,109 +1,54 @@
+/* SPDX-License-Identifier: 0BSD */
 :root {
-  interpolate-size: allow-keywords;
   font-size: 14px;
   --motion-fast: 160ms;
   --motion-normal: 240ms;
   --motion-slow: 360ms;
   --motion-ease: cubic-bezier(0.2, 0, 0, 1);
 }
-
-* {
-  -webkit-tap-highlight-color: transparent;
-  -webkit-touch-callout: none;
-  scrollbar-color: transparent transparent;
-  scrollbar-width: thin;
+html {
   interpolate-size: allow-keywords;
-  user-select: text;
-
-  &:disabled {
-    cursor: not-allowed;
-  }
-
-  &:not(._ring):focus,
-  &:not(._ring):focus-visible {
-    outline: none;
-  }
-
-  &::selection {
-    background-color: var(--color-custom-500);
-    color: var(--monolith-selection-bg);
-  }
 }
-
-input,
-textarea {
-  border: none;
-  caret-color: var(--color-custom-500) !important;
-  user-select: text;
+body {
+  font-family: var(--font-family, Inter, system-ui, sans-serif);
 }
-
-button {
-  cursor: pointer;
-  user-select: none;
-
-  & > svg {
-    pointer-events: none;
-  }
-}
-
-code {
-  font-family: 'Jetbrains Mono', monospace;
-}
-
-@page {
-  size: A4 portrait;
-  margin: 10mm;
-}
-
-@media print {
-  .print-area footer {
-    position: fixed;
-    bottom: -5rem;
-    width: 100%;
-  }
-
-  .print-area {
-    page-break-inside: avoid;
-    zoom: 0.87;
-  }
-}
-
 #app {
-  font-size: var(--text-base);
-  vertical-align: bottom;
+  font-size: var(--text-base, 1rem);
 }
-
-/* Visible keyboard focus, selectable content and reduced motion. */
-:where(a, button, input, select, textarea, [role='button']):focus-visible {
-  outline: 2px solid var(--color-custom-500) !important;
-  outline-offset: 4px;
+:where(button, a, input, textarea, select, summary, [role='button']) {
+  -webkit-tap-highlight-color: transparent;
 }
-h1,
-h2,
-h3,
-h4 {
-  font-family: 'Inter', sans-serif;
+:where(button, [role='button']) {
+  user-select: none;
 }
-code,
-pre,
-kbd {
-  font-family: 'JetBrains Mono', monospace;
+:where(button) > svg {
+  pointer-events: none;
 }
-p,
-[contenteditable='true'] {
-  user-select: text;
+:where(input, textarea, [contenteditable='true']) {
+  caret-color: var(--accent-primary, var(--color-custom-500));
+}
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--selection-color, #2383e2);
+  outline-offset: 3px;
+}
+::selection {
+  background-color: var(--monolith-selection-bg, #2383e247);
+  color: inherit;
+}
+:where(code, pre, kbd, samp) {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
 }
 .zillion-route-enter > * {
-  animation: zillion-route-enter var(--motion-normal) var(--motion-ease) both;
+  animation: monolith-route-arrival var(--motion-normal) var(--motion-ease) both;
 }
-@keyframes zillion-route-enter {
+@keyframes monolith-route-arrival {
   from {
     opacity: 0;
-    transform: translateY(5px);
+    translate: 0 5px;
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    translate: 0 0;
   }
 }
 @media (prefers-reduced-motion: reduce) {

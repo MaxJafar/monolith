@@ -1,47 +1,35 @@
-import { memo } from 'react'
-
-import { Box, Icon, Transition } from '@/components/primitives'
+// SPDX-License-Identifier: 0BSD
+import { Box, Icon } from '@/components/primitives'
 
 import { useInputFocused } from '../contexts/InputFocusContext'
 
-function _InputIcon({
+export function InputIcon({
   icon,
   active,
-  hasError = false
+  hasError
 }: {
   icon: string
   active: boolean
   hasError?: boolean
 }) {
   const focused = useInputFocused()
-
   return (
-    <Transition>
-      <Box
-        asChild
+    <Box asChild flexShrink="0" mr="md">
+      <Icon
+        aria-hidden="true"
+        icon={icon}
         className="monolith-input-icon"
-        flexShrink="0"
-        mx="md"
-        style={{
-          pointerEvents: 'none'
-        }}
-      >
-        <Icon
-          color={
-            hasError
-              ? 'dangerous'
-              : focused
-                ? 'custom-500'
-                : !active
-                  ? 'bg-500'
-                  : undefined
-          }
-          icon={icon}
-          size="1.5em"
-        />
-      </Box>
-    </Transition>
+        size="1.25em"
+        color={
+          hasError
+            ? 'dangerous'
+            : focused
+              ? 'primary'
+              : active
+                ? 'inherit'
+                : 'muted'
+        }
+      />
+    </Box>
   )
 }
-
-export const InputIcon = memo(_InputIcon)

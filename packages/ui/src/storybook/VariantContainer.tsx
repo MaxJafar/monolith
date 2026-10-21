@@ -1,18 +1,22 @@
-import { Box, Text } from '@/components/primitives'
+// SPDX-License-Identifier: 0BSD
+import { type ReactNode, useId } from 'react'
+
+import { Stack, Text } from '@/components/primitives'
 
 export function VariantContainer({
   title,
   children
 }: {
   title: string
-  children: React.ReactNode
+  children: ReactNode
 }) {
+  const id = useId()
   return (
-    <Box mb="md">
-      <Text as="code" color={{ base: 'bg-500', dark: 'bg-400' }} size="sm">
+    <Stack as="section" aria-labelledby={id} gap="sm" pb="lg">
+      <Text as="h3" id={id} size="sm" weight="medium" color="muted">
         {title}
       </Text>
-      <Box mt="sm">{children}</Box>
-    </Box>
+      {children}
+    </Stack>
   )
 }

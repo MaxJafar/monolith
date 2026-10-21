@@ -1,7 +1,6 @@
 import dayjs from 'dayjs'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router'
 
 import { Box, Button, Flex, Icon, Stack, Text } from '@monolith/ui'
 
@@ -17,16 +16,8 @@ import {
 } from './CalendarCreatePopover'
 
 export function CalendarWorkspace() {
-  const {
-    data,
-    record,
-    closeRecord,
-    loading,
-    error,
-    retry,
-    readOnly,
-    workspaceId
-  } = useDatabases()
+  const { data, record, closeRecord, loading, error, retry, readOnly } =
+    useDatabases()
 
   const { t } = useTranslation('common.workHub')
   const [query, setQuery] = useState('')
@@ -120,16 +111,6 @@ export function CalendarWorkspace() {
                 </Flex>
               ))}
             </Stack>
-            <Button
-              as={Link}
-              icon="lucide:calendar-cog"
-              justify="start"
-              namespace={false}
-              to={`/calendar/sources?workspace=${workspaceId ?? ''}`}
-              variant="plain"
-            >
-              {t('calendars')}
-            </Button>
           </Stack>
         }
         toolbar={

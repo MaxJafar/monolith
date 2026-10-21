@@ -108,7 +108,9 @@ describe('input wrapper native interactions', () => {
       )
     )
     const selection = vi.spyOn(ref.current!, 'setSelectionRange')
-    await act(async () => host.querySelector<HTMLElement>('[role="button"] > span')!.click())
+    await act(async () =>
+      host.querySelector<HTMLElement>('[role="group"] > span')!.click()
+    )
     expect(document.activeElement).toBe(ref.current)
     expect(selection).not.toHaveBeenCalled()
   })

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: 0BSD
 import type { ElementType } from 'react'
 
 import {
@@ -9,42 +10,40 @@ import {
 } from '@/system'
 import { getResponsiveLayoutStyles } from '@/system/responsive/utils/getResponsiveLayoutStyles'
 
-import { Box, type BoxProps } from '../Box'
-import type { SurfaceOwnProps, SurfaceProps } from '../surface'
-import { ring } from './Ring.css'
+import {
+  type SurfaceOwnProps,
+  type SurfaceProps,
+  renderSurface
+} from '../surface'
+import './ring.css'
 
-interface RingOwnProps<T extends ElementType> extends SurfaceOwnProps<
+type RingOptions<T extends ElementType> = SurfaceOwnProps<
   T,
   'block' | 'inline' | 'inline-block' | 'none' | 'contents'
-> {
+> & {
   ringWidth?: ResponsiveProp<string>
-  ringColor?: ThemeConditionProp<ColorValue>
   ringOffsetWidth?: ResponsiveProp<string>
+  ringColor?: ThemeConditionProp<ColorValue>
 }
-
 export type RingProps<T extends ElementType = 'div'> = SurfaceProps<
   T,
-  RingOwnProps<T>
+  RingOptions<T>
 >
-
 export function Ring<T extends ElementType = 'div'>({
   ringWidth = '3px',
   ringOffsetWidth = '0px',
   ringColor = 'custom-500',
-  className,
   style,
-  ...surface
+  className,
+  ...content
 }: RingProps<T>) {
-  const resolved = mergeStyle(
-    resolveColorProp('ringColor', ringColor),
+  const visuals = mergeStyle(
     getResponsiveLayoutStyles({ ringWidth, ringOffsetWidth }),
+    resolveColorProp('ringColor', ringColor),
     {
-      className: ['_ring', ring, className].filter(Boolean).join(' '),
+      className: ['monolith-ring', className].filter(Boolean).join(' '),
       style: style ?? {}
     }
   )
-
-  // Rest destructuring loses the element-specific prop relation in TypeScript 7.
-
-  return <Box<T> {...(surface as BoxProps<T>)} {...resolved} />
+  return renderSurface({ ...content, ...visuals }, 'box')
 }

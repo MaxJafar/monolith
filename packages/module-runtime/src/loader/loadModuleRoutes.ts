@@ -1,211 +1,182 @@
-import chalk from 'chalk'
-import fs from 'fs'
-import path from 'path'
-import { pathToFileURL } from 'url'
+// SPDX-License-Identifier: 0BSD
+import { createHash } from 'node:crypto'
+import { readFile, readdir, stat } from 'node:fs/promises'
+import { join, resolve } from 'node:path'
+import { pathToFileURL } from 'node:url'
 
 import type { ModuleEntry } from '@monolith/configs'
 
 import { ModuleRegistry } from '../registry/ModuleRegistry'
-import { setLoadingModuleId } from '../registry/loadingModule'
+import {
+  getLoadingModuleId,
+  setLoadingModuleId
+} from '../registry/loadingModule'
+import type { ResolvedModuleSchema } from '../registry/types'
 import gatherModuleMetadata from './gatherModuleMetadata'
 import { loaderLogger } from './logger'
 import registerDevResolverHooks from './registerDevResolverHooks'
 import { registerManagedResolver } from './registerManagedResolver'
 
-/** Cache of remoteId -> imported server route tree, reused across reloads. */
-const routeTrees = new Map<string, ModuleEntry>()
-const loadedFiles = new Map<string, string>()
-// Node caches imported modules. Retain their schema too so returning to an
-// earlier immutable slot restores registrations without re-running its code.
-const artifacts = new Map<
-  string,
-  { routes: ModuleEntry; schema?: (typeof ModuleRegistry.schemaParts)[number] }
->()
-
-let hooksRegistered = false
-
-/**
- * Dynamically loads (and reconciles) module routes.
- * - In production: loads from pre-bundled dist/index.js
- * - In development: loads from TypeScript source (Pnpm runs TS natively)
- *
- * Safe to call repeatedly at runtime: modules already imported are reused,
- * modules whose directory disappeared are unregistered, and newly installed
- * modules are imported.
- */
-export async function loadModuleRoutes(options: {
+export interface LoadRoutesOptions {
   modulesDir: string
   additionalDirectories?: () => Promise<Record<string, string>>
   hostPackageFile?: string
   bundledIds?: readonly string[]
   isProduction: boolean
-}): Promise<Record<string, ModuleEntry>> {
-  const { modulesDir, isProduction } = options
+}
 
-  if (!isProduction && !hooksRegistered) {
-    registerDevResolverHooks()
-    hooksRegistered = true
-  }
+interface LoadedArtifact {
+  routes: ModuleEntry
+  schema?: ResolvedModuleSchema
+}
+const imported = new Map<string, LoadedArtifact>()
+let scanQueue: Promise<unknown> = Promise.resolve()
+const canonical = (path: string) => resolve(path).replaceAll('\\', '/')
 
-  if (!fs.existsSync(modulesDir)) {
-    for (const entry of ModuleRegistry.entries) {
-      ModuleRegistry.unregister(entry.name)
-      routeTrees.delete(entry.remoteId)
+async function candidates(options: LoadRoutesOptions) {
+  const directories = new Map<string, { path: string; managed: boolean }>()
+  try {
+    for (const item of await readdir(options.modulesDir, {
+      withFileTypes: true
+    })) {
+      if (!item.isDirectory() || item.name.startsWith('.')) continue
+      if (options.bundledIds && !options.bundledIds.includes(item.name))
+        continue
+      directories.set(item.name, {
+        path: resolve(options.modulesDir, item.name),
+        managed: false
+      })
     }
-
-    loaderLogger.warn('Modules directory not found, no module routes loaded')
-
-    return {}
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error
   }
-
+  // Managed packages can exist independently of the bundled modules directory.
   const managed = (await options.additionalDirectories?.()) ?? {}
   registerManagedResolver(Object.values(managed), options.hostPackageFile)
-  const directories = new Map(
-    fs
-      .readdirSync(modulesDir, { withFileTypes: true })
-      .filter(
-        entry =>
-          entry.isDirectory() &&
-          !entry.name.startsWith('.') &&
-          (!options.bundledIds || options.bundledIds.includes(entry.name))
-      )
-      .map(entry => [entry.name, path.join(modulesDir, entry.name)])
-  )
-  for (const [id, directory] of Object.entries(managed))
-    directories.set(id, directory)
-  // Drop removed or replaced modules before importing their immutable replacement.
-  for (const entry of ModuleRegistry.entries) {
-    const moduleDir = ModuleRegistry.getPath(entry.id)
+  for (const [id, path] of Object.entries(managed))
+    directories.set(id, { path: resolve(path), managed: true })
+  return directories
+}
 
-    if (
-      !moduleDir ||
-      !fs.existsSync(moduleDir) ||
-      directories.get(entry.id)?.replace(/\\/g, '/') !== moduleDir
-    ) {
-      ModuleRegistry.unregister(entry.name)
-      routeTrees.delete(entry.remoteId)
-      loadedFiles.delete(entry.remoteId)
-
-      loaderLogger.info(
-        `Unregistered removed module ${chalk.yellow(entry.displayName)}`
-      )
-    }
-  }
-
-  for (const [modDir, moduleDir] of directories) {
-    const managedPackage = managed[modDir] === moduleDir
-    const metadata = await gatherModuleMetadata(
-      moduleDir,
-      isProduction || managedPackage
-    )
-
-    if (metadata && managedPackage) metadata.remoteEntryUrl += '&managed=1'
-
-    // Continue if failing to parse metadata
-    if (!metadata) {
-      continue
-    }
-
-    // If module doesn't have server routes (client only module),
-    // simply register the entry, no further action needed.
-    if (!metadata.hasServerRoutes) {
-      const { hasServerRoutes: _, ...entry } = metadata
-      ModuleRegistry.register(entry, moduleDir)
-      continue
-    }
-
-    const distPath = path.join(moduleDir, 'server', 'dist', 'index.js')
-    const sourcePath = path.join(moduleDir, 'server', 'index.ts')
-
-    // In production, always load distPath.
-    // In development, prefer source path, falling back to dist path if exists.
-    const modulePath = (() => {
-      if (isProduction || managedPackage) {
-        return fs.existsSync(distPath) ? distPath : null
-      } else {
-        return fs.existsSync(sourcePath)
-          ? sourcePath
-          : fs.existsSync(distPath)
-            ? distPath
-            : null
-      }
-    })()
-
-    if (!modulePath) {
-      loaderLogger.warn(
-        `Skipping module ${chalk.yellow(metadata.displayName)}: No available server file found.`
-      )
-
-      continue
-    }
-
-    const { hasServerRoutes: _, ...entry } = metadata
-    ModuleRegistry.register(entry, moduleDir)
-
-    // Already imported in a previous load: reuse the cached route tree.
-    const fingerprint = `${modulePath}:${fs.statSync(modulePath).mtimeMs}`
-    const cached = artifacts.get(fingerprint)
-    if (cached) {
-      if (cached.schema)
-        ModuleRegistry.registerSchemaPart(entry.id, cached.schema)
-      routeTrees.set(metadata.remoteId, cached.routes)
-      loadedFiles.set(metadata.remoteId, fingerprint)
-      continue
-    }
-    if (
-      routeTrees.has(metadata.remoteId) &&
-      loadedFiles.get(metadata.remoteId) === fingerprint
-    ) {
-      continue
-    }
-
-    routeTrees.delete(metadata.remoteId)
+async function entryFile(root: string, production: boolean) {
+  const paths = production
+    ? ['server/dist/index.js']
+    : ['server/index.ts', 'server/dist/index.js']
+  for (const name of paths) {
+    const filename = join(root, name)
     try {
-      const version = fs.statSync(modulePath).mtimeMs
-
-      // Expose the module id to the code that runs during the import (schema
-      // registration, route definitions) so it doesn't need stack parsing.
-      setLoadingModuleId(entry.id)
-
-      let mod
-
-      try {
-        mod = await import(`${pathToFileURL(modulePath).href}?v=${version}`)
-      } finally {
-        setLoadingModuleId(undefined)
-      }
-
-      if (mod.default) {
-        routeTrees.set(metadata.remoteId, mod.default)
-        loadedFiles.set(metadata.remoteId, fingerprint)
-        artifacts.set(fingerprint, {
-          routes: mod.default,
-          schema: ModuleRegistry.schemaParts.find(
-            part => part.moduleId === entry.id
-          )
-        })
-      } else {
-        ModuleRegistry.unregister(entry.name)
-        loaderLogger.warn(
-          `Skipping module ${chalk.yellow(metadata.displayName)}: The server file has no default export`
-        )
-      }
-    } catch (importError) {
-      ModuleRegistry.unregister(metadata.name)
-      loaderLogger.warn(
-        `Skipping module ${chalk.yellow(metadata.displayName)}: ${importError}`
-      )
+      if ((await stat(filename)).isFile()) return filename
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error
     }
   }
+  throw new Error('No server entry exists for the add-on')
+}
 
-  loaderLogger.info(
-    `Loaded ${chalk.green(Object.keys(ModuleRegistry.entries).length)} module(s): ${chalk.dim(
-      Object.values(ModuleRegistry.entries)
-        .map(e => e.displayName)
-        .sort()
-        .join(', ')
-    )}`
-  )
+async function importRoutes(
+  filename: string,
+  owner: string
+): Promise<LoadedArtifact> {
+  const hash = createHash('sha256')
+    .update(await readFile(filename))
+    .digest('hex')
+  const url = pathToFileURL(filename)
+  url.searchParams.set('v', hash)
+  const key = owner + ':' + url.href
+  const cached = imported.get(key)
+  if (cached) {
+    if (cached.schema) ModuleRegistry.registerSchemaPart(owner, cached.schema)
+    return cached
+  }
+  const previous = getLoadingModuleId()
+  setLoadingModuleId(owner)
+  try {
+    const module = await import(url.href)
+    if (!module.default)
+      throw new Error('The server entry needs a default route export')
+    const artifact = {
+      routes: module.default as ModuleEntry,
+      schema: ModuleRegistry.schemaParts.find(part => part.moduleId === owner)
+    }
+    imported.set(key, artifact)
+    return artifact
+  } finally {
+    setLoadingModuleId(previous)
+  }
+}
 
-  return Object.fromEntries(routeTrees)
+async function scan(
+  options: LoadRoutesOptions
+): Promise<Record<string, ModuleEntry>> {
+  if (!options.isProduction) registerDevResolverHooks()
+  const discovered: Array<{
+    entry: ModuleEntry
+    directory: string
+    server: boolean
+    production: boolean
+  }> = []
+  for (const candidate of (await candidates(options)).values()) {
+    const production = options.isProduction || candidate.managed
+    const result = await gatherModuleMetadata(candidate.path, production)
+    if (!result) continue
+    const { hasServerRoutes, ...entry } = result
+    if (candidate.managed) entry.remoteEntryUrl += '&managed=1'
+    discovered.push({
+      entry,
+      directory: candidate.path,
+      server: hasServerRoutes,
+      production
+    })
+  }
+  for (const installed of ModuleRegistry.entries) {
+    const current = discovered.find(
+      candidate =>
+        candidate.entry.name === installed.name &&
+        candidate.entry.id === installed.id
+    )
+    if (
+      !current ||
+      canonical(current.directory) !== ModuleRegistry.getPath(installed.id)
+    ) {
+      ModuleRegistry.unregister(installed.name)
+    }
+  }
+  const routes: Record<string, ModuleEntry> = Object.create(null)
+  for (const candidate of discovered) {
+    const { entry, directory, server, production } = candidate
+    try {
+      ModuleRegistry.register(entry, directory)
+      // Remove the previous schema before evaluating an updated package.
+      ModuleRegistry.unregisterSchemaPart(entry.id)
+      if (server) {
+        const artifact = await importRoutes(
+          await entryFile(directory, production),
+          entry.id
+        )
+        routes[entry.remoteId] = artifact.routes
+      }
+    } catch (error) {
+      // Never unregister somebody else's package on an identity collision.
+      const registered = ModuleRegistry.entries.find(
+        item => item.name === entry.name
+      )
+      if (registered === entry) ModuleRegistry.unregister(entry.name)
+      loaderLogger.warn('Add-on unavailable: ' + entry.displayName, {
+        error: String(error)
+      })
+    }
+  }
+  loaderLogger.info('Add-on registry loaded', {
+    count: ModuleRegistry.entries.length
+  })
+  return routes
+}
+
+/** Serialize imports because module initialization exposes a shared owner id. */
+export function loadModuleRoutes(
+  options: LoadRoutesOptions
+): Promise<Record<string, ModuleEntry>> {
+  const next = scanQueue.then(() => scan(options))
+  scanQueue = next.catch(() => undefined)
+  return next
 }

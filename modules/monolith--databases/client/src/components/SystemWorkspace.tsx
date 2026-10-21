@@ -1,7 +1,7 @@
 import dayjs from 'dayjs'
 import { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useSearchParams } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 
 import {
   Box,
@@ -48,6 +48,7 @@ import {
 } from './calendar/CalendarCreatePopover'
 import { CalendarWorkspace } from './calendar/CalendarWorkspace'
 import { useCalendarSchedules } from './calendar/useCalendarSchedules'
+import { JournalWorkspace } from './journal/JournalWorkspace'
 import './systemWorkspace.css'
 import { WorkHub } from './work/WorkHub'
 
@@ -56,6 +57,8 @@ export function SystemWorkspace({ area }: { area: string }) {
     <WorkHub area={area} />
   ) : area === 'calendar' ? (
     <CalendarWorkspace />
+  ) : area === 'journal' ? (
+    <JournalWorkspace />
   ) : (
     <SystemWorkspaceView area={area} />
   )
@@ -78,8 +81,8 @@ function SystemWorkspaceView({ area }: { area: string }) {
     workspaceId
   } = useDatabases()
 
+  const navigate = useNavigate()
   const { t } = useTranslation('common.systemViews')
-  const [params] = useSearchParams()
   const schedules = useCalendarSchedules(area === 'actions')
   const createButton = useRef<HTMLButtonElement>(null)
 
@@ -378,18 +381,7 @@ function SystemWorkspaceView({ area }: { area: string }) {
             <Text color="muted">{t(`descriptions.${area}`)}</Text>
           )}
         </Stack>
-        {area === 'calendar' && (
-          <Button
-            as={Link}
-            icon="lucide:calendar-cog"
-            namespace={false}
-            to={`/calendar/sources?workspace=${params.get('workspace') ?? ''}`}
-            variant="plain"
-            width="fit-content"
-          >
-            {t('calendarSources')}
-          </Button>
-        )}
+
         <Button
           ref={createButton}
           aria-expanded={area === 'calendar' ? !!calendarCreation : creating}
@@ -475,7 +467,14 @@ function SystemWorkspaceView({ area }: { area: string }) {
               namespace={false}
               role="tab"
               variant="plain"
-              onClick={() => setTab(value)}
+              onClick={() =>
+                value === 'journal'
+                  ? navigate(
+                      '/journal' +
+                        (workspaceId ? '?workspace=' + workspaceId : '')
+                    )
+                  : setTab(value)
+              }
             >
               {t(`titles.${value}`)}
             </Button>

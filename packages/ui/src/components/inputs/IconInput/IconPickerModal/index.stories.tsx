@@ -1,34 +1,34 @@
+// SPDX-License-Identifier: 0BSD
 import type { Meta, StoryObj } from '@storybook/react-vite'
+import { useState } from 'react'
 
 import { Button } from '@/components/inputs'
+import { Stack, Text } from '@/components/primitives'
 import { useModalStore } from '@/providers'
 
 import { IconPickerModal } from './index'
 
 const meta = {
+  title: 'Inputs/IconInput/Catalog',
   component: IconPickerModal,
-  title: 'Inputs/IconInput/IconPickerModal'
+  args: { data: { setSelectedIcon: () => {} }, onClose: () => {} }
 } satisfies Meta<typeof IconPickerModal>
-
 export default meta
-
 type Story = StoryObj<typeof meta>
-
-export const Default: Story = {
-  args: {
-    data: { setSelectedIcon: () => {} },
-    onClose: () => {}
-  },
-  render: args => {
+export const Browse: Story = {
+  render: function Browse() {
     const { open } = useModalStore()
-
+    const [value, setValue] = useState('')
     return (
-      <Button
-        icon="tabler:icons"
-        onClick={() => open(IconPickerModal, args.data)}
-      >
-        Open Icon Picker
-      </Button>
+      <Stack gap="sm">
+        <Button
+          namespace={false}
+          onClick={() => open(IconPickerModal, { setSelectedIcon: setValue })}
+        >
+          Browse icons
+        </Button>
+        <Text>{value}</Text>
+      </Stack>
     )
   }
 }

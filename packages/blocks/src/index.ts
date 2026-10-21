@@ -46,6 +46,8 @@ export type GraphNode<Kind extends string = PageKind> = Omit<
 > & {
   kind: Kind
   key: string
+  /** Stable alias for a source that has moved into native workspace storage. */
+  aliasOf?: string
   tags?: string[]
   parent?: string | null
   excerpt?: string

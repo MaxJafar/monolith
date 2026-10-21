@@ -1,5 +1,10 @@
-import { useEffect, useMemo, useState } from 'react'
-import { type DataRouter, createBrowserRouter } from 'react-router'
+// SPDX-License-Identifier: 0BSD
+import { useEffect, useRef, useState } from 'react'
+import {
+  type DataRouter,
+  type RouteObject,
+  createBrowserRouter
+} from 'react-router'
 
 import { useAuth } from '@monolith/api'
 import { useFederation } from '@monolith/federation'
@@ -10,107 +15,61 @@ import {
   createRouterConfig
 } from '../utils/routerFactory'
 
+interface RouterSnapshot {
+  router: DataRouter
+  owner: string
+  key: string
+}
 export function useAppRouter() {
   const { auth, authLoading, userData } = useAuth()
-  const { moduleGroups, loading: moduleGroupsLoading } = useFederation()
-
-  const [appRouter, setAppRouter] = useState<{
-    router: DataRouter
-    ownerId: string
-  } | null>(null)
-
-  const [routerId, setRouterId] = useState(0)
-
-  const ownerId = userData?.id ?? null
-
-  const loadingRouter = useMemo(
-    () => createBrowserRouter(createAuthLoadingConfig()),
-    []
-  )
-  const authRouter = useMemo(
-    () => createBrowserRouter(createAuthRouterConfig()),
-    []
-  )
+  const { moduleGroups, loading, error: moduleError } = useFederation()
+  const authenticated = Boolean(auth)
+  const owner = authenticated ? (userData?.id ?? '') : 'anonymous'
+  const [snapshot, setSnapshot] = useState<RouterSnapshot | null>(null)
+  const revision = useRef(0)
+  const [failure, setFailure] = useState<string | null>(null)
+  const waiting =
+    authLoading ||
+    (authenticated && (loading || !userData?.id || moduleGroups.length === 0))
   useEffect(() => {
-    if (!auth || !ownerId) {
-      setAppRouter(null)
-
-      return
+    let live = true
+    let owned: DataRouter | undefined
+    setFailure(null)
+    const activate = (routes: RouteObject[], kind: string) => {
+      if (!live) return
+      owned = createBrowserRouter(routes)
+      setSnapshot({
+        router: owned,
+        owner,
+        key: kind + ':' + owner + ':' + ++revision.current
+      })
     }
-
-    if (authLoading || moduleGroupsLoading || moduleGroups.length === 0) {
-      return
-    }
-
-    let cancelled = false
-
-    createRouterConfig({
-      routes: moduleGroups,
-      loadingMessage: 'loadingModule'
-    }).then(routerConfig => {
-      if (!cancelled) {
-        setAppRouter({ router: createBrowserRouter(routerConfig), ownerId })
-        setRouterId(id => id + 1)
-      }
-    })
-
+    if (waiting) activate(createAuthLoadingConfig(), 'loading')
+    else if (!authenticated) activate(createAuthRouterConfig(), 'auth')
+    else
+      void createRouterConfig({
+        routes: moduleGroups,
+        loadingMessage: 'loadingModule'
+      }).then(
+        routes => activate(routes, 'app'),
+        error => {
+          if (live)
+            setFailure(
+              error instanceof Error
+                ? error.message
+                : 'Navigation could not be prepared.'
+            )
+        }
+      )
     return () => {
-      cancelled = true
+      live = false
+      owned?.dispose()
     }
-  }, [auth, ownerId, authLoading, moduleGroups, moduleGroupsLoading])
-
-  useEffect(() => () => appRouter?.router.dispose(), [appRouter])
-
-  const router = useMemo(() => {
-    if (
-      authLoading ||
-      moduleGroupsLoading ||
-      (auth && moduleGroups.length === 0)
-    ) {
-      return loadingRouter
-    }
-
-    if (!auth) {
-      return authRouter
-    }
-
-    return appRouter?.ownerId === ownerId ? appRouter.router : loadingRouter
-  }, [
-    auth,
-    ownerId,
-    authLoading,
-    moduleGroupsLoading,
-    moduleGroups,
-    appRouter,
-    loadingRouter,
-    authRouter
-  ])
-
-  const routerKey = useMemo(() => {
-    if (
-      authLoading ||
-      moduleGroupsLoading ||
-      (auth && moduleGroups.length === 0)
-    ) {
-      return 'loading'
-    }
-
-    if (!auth) {
-      return 'auth'
-    }
-
-    return appRouter?.ownerId === ownerId
-      ? `app-${ownerId}-${routerId}`
-      : 'loading'
-  }, [
-    auth,
-    ownerId,
-    authLoading,
-    moduleGroupsLoading,
-    moduleGroups,
-    appRouter,
-    routerId
-  ])
-
-  return { router, isAuthenticated: !!auth, routerKey }
+  }, [authenticated, owner, waiting, moduleGroups])
+  return {
+    router: snapshot?.owner === owner ? snapshot.router : null,
+    routerKey: snapshot?.key ?? 'loading',
+    isAuthenticated: authenticated,
+    error: failure || (authenticated ? (moduleError?.message ?? null) : null)
+  }
 }

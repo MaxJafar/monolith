@@ -1,45 +1,23 @@
-import _ from 'lodash'
+// SPDX-License-Identifier: 0BSD
+import { camelCase } from 'lodash'
 
 import { useModuleTranslation } from '@monolith/localization'
 
 export function useInputLabel({
-  namespace,
-  label
+  label,
+  namespace
 }: {
-  namespace?: string | false
   label: string
+  namespace?: string | false
 }) {
   const { t } = useModuleTranslation(namespace ? [namespace] : undefined)
-
-  if (namespace === false) {
-    return label
-  }
-
-  return t(
-    [
-      `inputs.${_.camelCase(label)}.label`,
-      `inputs.${_.camelCase(label)}`,
-      `inputs.${label}.label`,
-      `inputs.${label}`,
-      `${_.camelCase(label)}.label`,
-      `${_.camelCase(label)}`,
-      `${label}.label`,
-      `${label}`,
-      ...(namespace
-        ? [
-            `${namespace}:inputs.${_.camelCase(label)}.label`,
-            `${namespace}:inputs.${_.camelCase(label)}`,
-            `${namespace}:inputs.${label}.label`,
-            `${namespace}:inputs.${label}`,
-            `${namespace}:${_.camelCase(label)}.label`,
-            `${namespace}:${_.camelCase(label)}`,
-            `${namespace}:${label}.label`,
-            `${namespace}:${label}`
-          ]
-        : [])
-    ],
-    {
-      defaultValue: label
-    }
+  if (namespace === false) return label
+  const forms = [...new Set([camelCase(label), label])]
+  const local = ['inputs.', ''].flatMap(prefix =>
+    forms.flatMap(name => [prefix + name + '.label', prefix + name])
   )
+  const keys = namespace
+    ? [...local, ...local.map(key => namespace + ':' + key)]
+    : local
+  return t(keys, { defaultValue: label })
 }

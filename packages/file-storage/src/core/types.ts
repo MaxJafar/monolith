@@ -1,36 +1,23 @@
+// SPDX-License-Identifier: 0BSD
 import type { Readable } from 'node:stream'
 
 import type { FileReference } from './contract/fileReference'
 
-/**
- * A file held in the staging area, before it is committed to the provider.
- * Produced by the upload middleware; consumed by `FileStorage.save`.
- */
-export interface StagedFile {
-  readonly __staged: true
-  readonly originalName: string
-  readonly mimeType: string
-  readonly size: number
-  /** Absolute path of the staged temp file (in-process convenience). */
-  readonly path: string
+type FileIdentity = { originalName: string; mimeType: string }
+export type BufferUpload = FileIdentity & { buffer: Buffer }
+export type StagedFile = Readonly<
+  FileIdentity & {
+    __staged: true
+    size: number
+    path: string
+  }
+> & {
   read(): Promise<Buffer>
   stream(): Readable
 }
-
-/** A file supplied directly as bytes (host-side/migrations). */
-export interface BufferUpload {
-  buffer: Buffer
-  originalName: string
-  mimeType: string
-}
-
-export interface StoredFileReference extends FileReference {
-  moduleId: string
-}
-
-/** Persistence boundary between `@monolith/file-storage` and the app. */
-export interface FileMetadataStore {
-  upsert(ref: StoredFileReference): Promise<void>
+export type StoredFileReference = FileReference & { moduleId: string }
+export type FileMetadataStore = {
   get(key: string): Promise<StoredFileReference | null>
+  upsert(reference: StoredFileReference): Promise<void>
   delete(key: string): Promise<void>
 }

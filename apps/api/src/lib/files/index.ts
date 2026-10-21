@@ -1,10 +1,10 @@
-import { create as createContentDisposition } from 'content-disposition'
-import { eq } from 'drizzle-orm'
-import path from 'node:path'
+// SPDX-License-Identifier: 0BSD
+import { create as disposition } from 'content-disposition'
+import { basename } from 'node:path'
+import { pipeline } from 'node:stream/promises'
 import { z } from 'zod'
 
 import { generateThumbKey } from '@monolith/file-storage'
-import { files } from '@monolith/file-storage/server'
 import { defineRoutes } from '@monolith/server-utils'
 
 import { storageProvider } from '@/core/storage'
@@ -13,68 +13,50 @@ import endpoints from './endpoints'
 
 const get = endpoints
   .query({
-    description: 'Retrieve a stored file or thumbnail',
+    description: 'Stream a file owned by the signed-in account',
     encrypted: false,
     rateLimit: false,
     input: {
       query: z.object({
-        key: z.string(),
+        key: z.string().min(1),
         thumb: z.string().optional(),
         download: z.string().optional()
       })
     },
     output: 'custom'
   })
-  .callback(async ({ db, query: { key, thumb, download }, res }) => {
-    const ownedFile = await db.query.files.findFirst({ where: { key } })
-
-    if (!ownedFile) {
-      res.status(404).json({ error: 'File not found' })
-
+  .callback(async ({ db, query, res }) => {
+    // The scoped database query must succeed before touching object storage.
+    const metadata = await db.query.files.findFirst({
+      where: { key: query.key }
+    })
+    const missing = () => res.status(404).json({ error: 'File not found' })
+    if (!metadata) {
+      missing()
       return
     }
-
-    const targetKey = thumb ? generateThumbKey(key, thumb) : key
-    const fileStream = await storageProvider.get(targetKey)
-
-    if (!fileStream) {
-      res.status(404).json({ error: 'File not found' })
-
+    const address = query.thumb
+      ? generateThumbKey(query.key, query.thumb)
+      : query.key
+    const object = await storageProvider.get(address)
+    if (!object) {
+      missing()
       return
     }
-
-    res.setHeader('Content-Type', fileStream.mimeType)
-
-    if (fileStream.size > 0) {
-      res.setHeader('Content-Length', fileStream.size)
-    }
-
-    res.setHeader('Cache-Control', 'private, max-age=300')
-
-    let downloadName = path.basename(targetKey)
-
-    if (download === 'true') {
-      const [row] = await db
-        .select({ originalName: files.originalName })
-        .from(files)
-        .where(eq(files.key, key))
-        .limit(1)
-
-      if (row) {
-        downloadName = row.originalName
-      }
-    }
-
-    res.setHeader(
-      'Content-Disposition',
-      createContentDisposition(downloadName, {
-        type: download === 'true' ? 'attachment' : 'inline'
-      })
-    )
-
-    fileStream.stream.pipe(res)
+    const attachment = query.download === 'true'
+    res.set({
+      'Content-Type': object.mimeType,
+      'Cache-Control': 'private, max-age=300',
+      'Content-Disposition': disposition(
+        attachment ? metadata.originalName : basename(address),
+        { type: attachment ? 'attachment' : 'inline' }
+      )
+    })
+    if (object.size > 0) res.set('Content-Length', String(object.size))
+    // Finish the ownership transaction before streaming a potentially large file.
+    // pipeline owns IO cleanup, including cancellation when the browser disconnects.
+    void pipeline(object.stream, res).catch(error => {
+      if (!res.destroyed) res.destroy(error)
+    })
   })
-
-export default defineRoutes({
-  get
-})
+export default defineRoutes({ get })

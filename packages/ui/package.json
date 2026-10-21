@@ -2,7 +2,7 @@
   "name": "@monolith/ui",
   "version": "0.25.29-1",
   "description": "Monolith UI component library",
-  "license": "CC-BY-NC-SA-4.0",
+  "license": "0BSD",
   "author": "Monolith contributors",
   "maintainers": [
     "Monolith contributors"
@@ -14,7 +14,8 @@
     "monolith"
   ],
   "sideEffects": [
-    "src/styles/index.css"
+    "**/*.css",
+    "**/*.css.ts"
   ],
   "main": "dist/index.js",
   "module": "dist/index.mjs",

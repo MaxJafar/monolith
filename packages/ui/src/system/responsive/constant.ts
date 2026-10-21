@@ -1,15 +1,18 @@
+// SPDX-License-Identifier: 0BSD
 import type { Breakpoint, PropDef } from './types'
 
 export const RESPONSIVE_CONDITIONS = {
   base: {},
-  sm: { '@media': '(min-width: 700px)' },
-  md: { '@media': '(min-width: 700px)' },
-  lg: { '@media': '(min-width: 1000px)' },
-  xl: { '@media': '(min-width: 1000px)' },
-  '2xl': { '@media': '(min-width: 1000px)' },
+  ...Object.fromEntries(
+    ['sm', 'md'].map(name => [name, { '@media': '(min-width: 700px)' }])
+  ),
+  ...Object.fromEntries(
+    ['lg', 'xl', '2xl'].map(name => [name, { '@media': '(min-width: 1000px)' }])
+  ),
   print: { '@media': 'print' }
-} as const satisfies Record<Breakpoint, object>
+} as Record<Breakpoint, { '@media'?: string }>
 
+// Compact identifiers are part of the CSS ABI used by prebuilt addon bundles.
 export const LAYOUT_PROPERTIES = {
   width: ['w', 'width'],
   minWidth: ['min-w', 'minWidth'],
@@ -37,12 +40,17 @@ export const LAYOUT_PROPERTIES = {
   aspectRatio: ['ar', 'aspectRatio']
 } as const
 export type LayoutPropDefsKey = keyof typeof LAYOUT_PROPERTIES
-export const LAYOUT_PROP_DEFS = Object.fromEntries(
-  Object.entries(LAYOUT_PROPERTIES).map(([name, [suffix]]) => [
-    name,
-    {
-      className: 'monolith-' + suffix,
-      customProperties: ['--monolith-' + suffix]
+function definitions() {
+  const result = {} as Record<LayoutPropDefsKey, PropDef>
+  for (const name of Object.keys(LAYOUT_PROPERTIES) as LayoutPropDefsKey[]) {
+    const identifier = 'monolith-' + LAYOUT_PROPERTIES[name][0]
+    result[name] = {
+      className: identifier,
+      customProperties: [
+        ('--' + identifier) as PropDef['customProperties'][number]
+      ]
     }
-  ])
-) as Record<LayoutPropDefsKey, PropDef>
+  }
+  return result
+}
+export const LAYOUT_PROP_DEFS = definitions()

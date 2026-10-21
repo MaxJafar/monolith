@@ -1,6 +1,6 @@
 # Gym module sources
 
-Training behavior was researched against alexpcosta/opengym at `678bf5bf10446e8997a77d43e89c9b2721d8d0fc`. Monolith implements its own UI, storage and training logic. OpenGym runtime code, diagrams, icons and media are not included. The existing LifeForge attribution and license remain in place.
+Training behavior was researched against alexpcosta/opengym at `678bf5bf10446e8997a77d43e89c9b2721d8d0fc`. Monolith implements its own UI, storage and training logic. OpenGym runtime code, diagrams, icons and media are not included.
 
 `catalog.json` and `catalog-zh.json` contain non-media exercise data from [hasaneyldrm/exercises-dataset](https://github.com/hasaneyldrm/exercises-dataset/tree/7455efae41b330c265e7cd4b78dfa848e7ce5ebd). This module does not distribute that dataset's images or animations. The dataset license is reproduced below.
 

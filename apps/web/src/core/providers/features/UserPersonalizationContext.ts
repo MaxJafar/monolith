@@ -1,28 +1,26 @@
+// SPDX-License-Identifier: 0BSD
 import { createContext, useContext } from 'react'
 
 import type { IBackdropFilters, IDashboardLayout } from '@monolith/ui'
 
-export const UserPersonalizationContext = createContext<{
-  changeFontFamily: (font: string) => Promise<void>
-  changeFontScale: (scale: number) => Promise<void>
-  changeTheme: (theme: 'light' | 'dark' | 'system') => Promise<void>
-  changeThemeColor: (color: string) => Promise<void>
-  changeBgTemp: (color: string) => Promise<void>
-  changeBackdropFilters: (filters: IBackdropFilters) => Promise<void>
-  changeLanguage: (language: string) => Promise<void>
-  changeDashboardLayout: (layout: IDashboardLayout) => Promise<void>
-  changeBorderRadiusMultiplier: (multiplier: number) => Promise<void>
-  changeBordered: (bordered: boolean) => Promise<void>
-} | null>(null)
-
-export function useUserPersonalization() {
-  const context = useContext(UserPersonalizationContext)
-
-  if (!context) {
-    throw new Error(
-      'useUserPersonalization must be used within a UserPersonalizationProvider'
-    )
-  }
-
-  return context
+type Change<T> = (value: T) => Promise<void>
+export interface AccountPreferences {
+  changeTheme: Change<'light' | 'dark' | 'system'>
+  changeThemeColor: Change<string>
+  changeBgTemp: Change<string>
+  changeBackdropFilters: Change<IBackdropFilters>
+  changeLanguage: Change<string>
+  changeFontFamily: Change<string>
+  changeFontScale: Change<number>
+  changeDashboardLayout: Change<IDashboardLayout>
+  changeBorderRadiusMultiplier: Change<number>
+  changeBordered: Change<boolean>
+}
+export const UserPersonalizationContext =
+  createContext<AccountPreferences | null>(null)
+export function useUserPersonalization(): AccountPreferences {
+  const actions = useContext(UserPersonalizationContext)
+  if (!actions)
+    throw new Error('Account preferences require UserPersonalizationProvider')
+  return actions
 }

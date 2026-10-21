@@ -1,0 +1,56 @@
+/* SPDX-License-Identifier: 0BSD */
+.monolith-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.monolith-check-box {
+  display: inline-grid;
+  place-items: center;
+  position: relative;
+  flex-shrink: 0;
+  width: 1.35em;
+  height: 1.35em;
+}
+.monolith-check-box input {
+  appearance: none;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  cursor: pointer;
+  border: 1.5px solid var(--border-medium, #858582);
+  border-radius: 4px;
+  background: var(--bg-surface, transparent);
+  transition:
+    background var(--motion-fast),
+    border-color var(--motion-fast);
+}
+.monolith-check-box input:checked {
+  background: var(--interactive-primary, #252525);
+  border-color: var(--interactive-primary, #252525);
+}
+.monolith-check-mark {
+  position: absolute;
+  width: 0.35em;
+  height: 0.66em;
+  border: solid var(--interactive-on-primary, white);
+  border-width: 0 1.8px 1.8px 0;
+  rotate: 45deg;
+  translate: 0 -1px;
+  scale: 0;
+  pointer-events: none;
+  transition: scale var(--motion-fast) var(--motion-ease);
+}
+.monolith-check-box input:checked + .monolith-check-mark {
+  scale: 1;
+}
+.monolith-check[data-disabled] {
+  opacity: 0.45;
+}
+.monolith-check[data-disabled] input,
+.monolith-check[data-disabled] label {
+  cursor: default;
+}
+.monolith-check label {
+  cursor: pointer;
+}

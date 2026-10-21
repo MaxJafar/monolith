@@ -1,5 +1,8 @@
+// SPDX-License-Identifier: 0BSD
+import { is } from 'drizzle-orm'
+import { PgDialect, PgTable, getTableConfig } from 'drizzle-orm/pg-core'
 import { createHash } from 'node:crypto'
-import fs from 'node:fs'
+import { realpathSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
 import postgres from 'postgres'
 
@@ -7,253 +10,217 @@ export interface PushResult {
   applied: number
   failures: string[]
 }
+type Connection = ReturnType<typeof postgres>
+type Transaction = postgres.TransactionSql
+const identifier = (value: string) => '"' + value.replaceAll('"', '""') + '"'
 
-type Sql = ReturnType<typeof postgres>
-
-interface NodePgAdapter {
-  execute(query: unknown): Promise<{ rows: unknown[] }>
-}
-
-/**
- * Adapts a postgres-js client to the node-postgres shape that drizzle-kit's
- * programmatic `pushSchema` expects (`execute(sql)` -> `{ rows }`).
- */
-async function createAdapter(sql: Sql): Promise<NodePgAdapter> {
-  const { PgDialect } = await import('drizzle-orm/pg-core')
-
-  const dialect = new PgDialect()
-
-  return {
-    execute: async (query: unknown) => {
-      const { sql: text } = dialect.sqlToQuery(query as never)
-
-      return { rows: (await sql.unsafe(text)) as unknown[] }
-    }
-  }
-}
-
-/** Extracts the SQL table names exported by a schema module. */
-async function getTableNames(
-  imports: Record<string, unknown>
-): Promise<string[]> {
-  const { getTableName } = await import('drizzle-orm')
-
-  const names = new Set<string>()
-
-  for (const value of Object.values(imports)) {
-    if (value === null || typeof value !== 'object') continue
-
-    try {
-      const name = getTableName(value as never) as string | undefined
-
-      if (typeof name === 'string' && name.length > 0) {
-        names.add(name)
-      }
-    } catch {
-      // Not a drizzle table (e.g. the `relations` helper).
-    }
-  }
-
-  return [...names]
-}
-
-/**
- * Applies the given schema files to the database using drizzle-kit's diff
- * engine, scoped to each file's own tables.
- *
- * Destructive statements are never applied, so objects that aren't part of the
- * provided schemas (e.g. tables/enums from modules that are no longer
- * installed) are left untouched — the database is only ever extended.
- */
-export async function pushSchemaFiles(files: string[]): Promise<PushResult> {
-  const databaseUrl = process.env.DATABASE_ADMIN_URL || process.env.DATABASE_URL
-
-  if (!databaseUrl) {
-    throw new Error('DATABASE_URL is not set')
-  }
-
-  const { pushSchema } = await import('drizzle-kit/api-postgres')
-
-  const sql = postgres(databaseUrl, { max: 1, onnotice: () => {} })
-
-  let applied = 0
-
-  const failures: string[] = []
-
-  try {
-    await sql`select 1`
-
-    const adapter = await createAdapter(sql)
-
-    const allImports: Record<string, unknown> = {}
-
-    for (const [index, file] of files.entries()) {
-      if (!fs.existsSync(file)) throw new Error(`Schema file missing: ${file}`)
-
-      const imports = (await import(pathToFileURL(file).href)) as Record<
-        string,
-        unknown
-      >
-
-      for (const [key, value] of Object.entries(imports)) {
-        allImports[`${index}_${key}`] = value
-      }
-    }
-
-    const tables = await getTableNames(allImports)
-    const { sqlStatements, hints } = await pushSchema(
-      allImports,
-      adapter as never,
-      { tables } as never
-    )
-
-    if (hints.some(hint => hint.statement)) {
-      throw new Error(
-        'Schema change requires a reviewed data migration; destructive hints were not applied.'
+export function schemaStatements(statements: string[]): string[] {
+  return statements.filter(statement => {
+    // Constraint expressions are reconciled separately against PostgreSQL's canonical form.
+    if (
+      /^\s*ALTER\s+TABLE[\s\S]*\bADD\s+CONSTRAINT[\s\S]*\bCHECK\s*\(/i.test(
+        statement
       )
-    }
-
-    const additive = sqlStatements.filter(
-      statement =>
-        !/\b(DROP|TRUNCATE)\b/i.test(statement) &&
-        !/^\s*ALTER\s+TABLE\b[\s\S]*\bADD\s+CONSTRAINT\b[\s\S]*\bCHECK\s*\(/i.test(
-          statement
-        )
     )
-    await sql.begin(async transaction => {
-      for (const statement of additive) {
-        await transaction.unsafe(statement)
-        applied++
-      }
+      return false
+    if (/\b(?:DROP|TRUNCATE|DELETE)\b/i.test(statement)) return false
+    return true
+  })
+}
 
-      // drizzle-kit's additive diff can miss changed expressions under an existing CHECK name.
-      // Ask PostgreSQL to canonicalize the new expression, then replace only changed checks.
-      // Validation and replacement share this transaction; invalid existing rows roll everything back.
-      const { is } = await import('drizzle-orm')
-      const { PgTable, PgDialect, getTableConfig } =
-        await import('drizzle-orm/pg-core')
-      const dialect = new PgDialect()
-      const checked = new Set<string>()
-      const quote = (name: string) => '"' + name.replaceAll('"', '""') + '"'
+async function readDefinitions(paths: string[]) {
+  const definitions: Record<string, unknown> = {}
+  const migrations: string[] = []
+  let index = 0
+  for (const file of new Set(paths.map(value => realpathSync(value)))) {
+    const exports = await import(pathToFileURL(file).href)
+    for (const [name, value] of Object.entries(exports)) {
+      if (name === 'databaseMigrations') {
+        if (!Array.isArray(value) || value.some(sql => typeof sql !== 'string'))
+          throw Error('Invalid databaseMigrations in ' + file)
+        migrations.push(...value)
+      } else definitions['definition_' + index++] = value
+    }
+  }
+  const tables = [
+    ...new Set(
+      Object.values(definitions).filter((value): value is PgTable =>
+        is(value, PgTable)
+      )
+    )
+  ]
+  return { definitions, migrations, tables }
+}
 
-      for (const value of Object.values(allImports)) {
-        if (!is(value, PgTable)) continue
+async function reconcileChecks(
+  transaction: Transaction,
+  table: PgTable
+): Promise<number> {
+  const config = getTableConfig(table)
+  const tableName =
+    identifier(config.schema ?? 'public') + '.' + identifier(config.name)
+  let count = 0
+  for (const check of config.checks) {
+    const provisional =
+      'monolith_check_' +
+      createHash('sha256')
+        .update(tableName + check.name)
+        .digest('hex')
+        .slice(0, 24)
+    const expression = new PgDialect().sqlToQuery(
+      check.value.inlineParams()
+    ).sql
+    await transaction.unsafe(
+      'alter table ' +
+        tableName +
+        ' add constraint ' +
+        identifier(provisional) +
+        ' check (' +
+        expression +
+        ')'
+    )
+    const constraints = await transaction.unsafe(
+      'select conname, pg_get_constraintdef(oid) as definition from pg_constraint where conrelid = $1::regclass and contype = $2 and conname = any($3::text[])',
+      [tableName, 'c', [provisional, check.name]]
+    )
+    const current = constraints.find(row => row.conname === check.name)
+    const expected = constraints.find(row => row.conname === provisional)
+    if (!expected) throw Error('Could not verify constraint ' + check.name)
+    if (current?.definition === expected.definition) {
+      await transaction.unsafe(
+        'alter table ' +
+          tableName +
+          ' drop constraint ' +
+          identifier(provisional)
+      )
+      continue
+    }
+    if (current)
+      await transaction.unsafe(
+        'alter table ' +
+          tableName +
+          ' drop constraint ' +
+          identifier(check.name)
+      )
+    await transaction.unsafe(
+      'alter table ' +
+        tableName +
+        ' rename constraint ' +
+        identifier(provisional) +
+        ' to ' +
+        identifier(check.name)
+    )
+    count++
+  }
+  return count
+}
 
-        const config = getTableConfig(value)
+async function enforceOwnership(transaction: Transaction, table: PgTable) {
+  const config = getTableConfig(table)
+  if (!(
+    config.name === 'files' ||
+    (config.name.includes('__') && !config.name.startsWith('auth__'))
+  ))
+    return
+  const schema = config.schema ?? 'public'
+  const name = identifier(schema) + '.' + identifier(config.name)
+  await transaction.unsafe(
+    'alter table ' + name + ' add column if not exists owner_id uuid'
+  )
+  const missing = await transaction.unsafe(
+    'select 1 from ' + name + ' where owner_id is null limit 1'
+  )
+  if (missing.length)
+    throw Error(
+      'Owner mapping required for ' +
+        config.name +
+        '; schema changes have been rolled back.'
+    )
+  // The setting and policy names form part of the existing connection protocol.
+  const owner = "nullif(current_setting('zillion.user_id', true), '')::uuid"
+  for (const action of [
+    'alter column owner_id set not null',
+    'alter column owner_id set default ' + owner,
+    'enable row level security',
+    'force row level security'
+  ]) {
+    await transaction.unsafe('alter table ' + name + ' ' + action)
+  }
+  const policies = await transaction.unsafe(
+    'select 1 from pg_policies where schemaname = $1 and tablename = $2 and policyname = $3',
+    [schema, config.name, 'zillion_owner']
+  )
+  if (!policies.length)
+    await transaction.unsafe(
+      'create policy zillion_owner on ' +
+        name +
+        ' using (owner_id = ' +
+        owner +
+        ') with check (owner_id = ' +
+        owner +
+        ')'
+    )
+}
 
-        for (const check of config.checks) {
-          const key = config.name + ':' + check.name
-
-          if (checked.has(key)) continue
-          checked.add(key)
-          const [existing] =
-            await transaction`select pg_get_constraintdef(oid) as definition from pg_constraint where conrelid = ${config.name}::regclass and conname = ${check.name} and contype = 'c'`
-          const temporary =
-            'zillion_check_' +
-            createHash('sha256').update(key).digest('hex').slice(0, 24)
-          const expression = dialect.sqlToQuery(check.value.inlineParams()).sql
-          await transaction.unsafe(
-            `alter table ${quote(config.name)} add constraint ${quote(temporary)} check (${expression})`
+export async function pushSchemaFiles(files: string[]): Promise<PushResult> {
+  const url = process.env.DATABASE_ADMIN_URL ?? process.env.DATABASE_URL
+  if (!url)
+    throw Error('Set DATABASE_ADMIN_URL or DATABASE_URL before migrating')
+  const { definitions, migrations, tables } = await readDefinitions(files)
+  if (!tables.length) return { applied: 0, failures: [] }
+  const connection = postgres(url, { max: 1, onnotice: () => {} })
+  try {
+    const { pushSchema } = await import('drizzle-kit/api-postgres')
+    const dialect = new PgDialect()
+    const adapter = {
+      execute: async (query: Parameters<PgDialect['sqlToQuery']>[0]) => {
+        const prepared = dialect.sqlToQuery(query)
+        return {
+          rows: await connection.unsafe(
+            prepared.sql,
+            prepared.params as postgres.ParameterOrJSON<never>[]
           )
-          const [expected] =
-            await transaction`select pg_get_constraintdef(oid) as definition from pg_constraint where conrelid = ${config.name}::regclass and conname = ${temporary}`
-
-          if (existing?.definition === expected?.definition)
-            await transaction.unsafe(
-              `alter table ${quote(config.name)} drop constraint ${quote(temporary)}`
-            )
-          else {
-            if (existing)
-              await transaction.unsafe(
-                `alter table ${quote(config.name)} drop constraint ${quote(check.name)}`
-              )
-            await transaction.unsafe(
-              `alter table ${quote(config.name)} rename constraint ${quote(temporary)} to ${quote(check.name)}`
-            )
-            applied++
-          }
         }
       }
-
-      // Shared row isolation also protects legacy modules' raw SQL/aggregates.
-      // Existing rows require an explicitly reviewed owner mapping before migration.
-      for (const name of tables.filter(
-        name =>
-          (name.includes('__') && !name.startsWith('auth__')) ||
-          name === 'files'
-      )) {
-        const identifier = '"' + name.replaceAll('"', '""') + '"'
-        await transaction.unsafe(
-          `alter table ${identifier} add column if not exists owner_id uuid`
-        )
-        const [{ count } = { count: 0 }] = await transaction.unsafe(
-          `select count(*)::int as count from ${identifier} where owner_id is null`
-        )
-
-        if (Number(count) > 0)
-          throw new Error(
-            `Owner mapping required for ${name}. No owner was inferred and the schema transaction was rolled back.`
-          )
-        await transaction.unsafe(
-          `alter table ${identifier} alter column owner_id set not null`
-        )
-        await transaction.unsafe(
-          `alter table ${identifier} alter column owner_id set default nullif(current_setting('zillion.user_id', true), '')::uuid`
-        )
-        await transaction.unsafe(
-          `alter table ${identifier} enable row level security`
-        )
-        await transaction.unsafe(
-          `alter table ${identifier} force row level security`
-        )
-        const policies =
-          await transaction`select 1 from pg_policies where schemaname = 'public' and tablename = ${name} and policyname = 'zillion_owner'`
-
-        if (!policies.length)
-          await transaction.unsafe(
-            `create policy zillion_owner on ${identifier} using (owner_id = nullif(current_setting('zillion.user_id', true), '')::uuid) with check (owner_id = nullif(current_setting('zillion.user_id', true), '')::uuid)`
-          )
+    }
+    const names = tables.map(table => getTableConfig(table).name)
+    const plan = await pushSchema(
+      definitions,
+      adapter as never,
+      { tables: names } as never
+    )
+    if (plan.hints.some(hint => hint.statement))
+      throw Error(
+        'This change requires an explicit data migration; no schema changes were applied.'
+      )
+    const applied = await connection.begin(async transaction => {
+      let changes = 0
+      for (const statement of schemaStatements(plan.sqlStatements)) {
+        await transaction.unsafe(statement)
+        changes++
       }
-
-      if (tables.includes('achievements__categories')) {
-        // Replace the old global category-name constraint with an owner constraint.
-        await transaction.unsafe(
-          'alter table achievements__categories drop constraint if exists achievements__categories_name_unique'
-        )
-        await transaction.unsafe(
-          'alter table achievements__categories drop constraint if exists achievements__categories_name_key'
-        )
-        await transaction.unsafe(
-          'create unique index if not exists achievements_categories_owner_name on achievements__categories (owner_id, name)'
-        )
+      for (const table of tables) {
+        changes += await reconcileChecks(transaction, table)
+        await enforceOwnership(transaction, table)
       }
-
       if (
-        tables.includes('zillion_agents__usage_records') &&
-        tables.includes('zillion_agents__runs')
+        names.includes('zillion_agents__runs') &&
+        names.includes('zillion_agents__usage_records')
       ) {
-        // Capture pre-ledger costs before native task deletion can cascade old runs.
-        // Missing counters remain NULL. Existing records are never overwritten.
         await transaction.unsafe(`insert into zillion_agents__usage_records
           (id, owner_id, original_run_id, run_id, principal_id, task_title, adapter, status, cost_cents, charged_at, created, updated)
           select id, owner_id, id, id, principal_id, task_snapshot->>'title', adapter, status, cost_cents,
             coalesce(settled_at, created), created, coalesce(settled_at, created)
-          from zillion_agents__runs
-          on conflict (owner_id, original_run_id) do nothing`)
+          from zillion_agents__runs on conflict (owner_id, original_run_id) do nothing`)
       }
-
-      for (const [key, statements] of Object.entries(allImports)) {
-        if (!key.endsWith('_databaseMigrations') || !Array.isArray(statements)) continue
-        for (const statement of statements) {
-          if (typeof statement !== 'string') throw new Error('Invalid module migration')
-          await transaction.unsafe(statement)
-          applied++
-        }
+      for (const migration of migrations) {
+        await transaction.unsafe(migration)
+        changes++
       }
+      return changes
     })
+    return { applied, failures: [] }
   } finally {
-    await sql.end()
+    await connection.end()
   }
-
-  return { applied, failures }
 }

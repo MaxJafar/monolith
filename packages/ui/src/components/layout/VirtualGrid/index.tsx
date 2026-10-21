@@ -1,31 +1,64 @@
-import { useEffect, useMemo, useRef } from 'react'
+// SPDX-License-Identifier: 0BSD
 import {
-  AutoSizer,
-  CellMeasurer,
-  CellMeasurerCache,
-  List
-} from 'react-virtualized'
+  type ReactNode,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState
+} from 'react'
 
 import { Box, Grid } from '@/components/primitives'
+import useDivSize from '@/hooks/useDivSize'
+
+import { rowOffsets, visibleRows } from './rows'
 
 interface VirtualGridProps<T> {
-  /** The array of items to render in the grid */
   items: T[]
-  /** Function to render each individual item. Receives the item and returns a React node */
-  renderItem: (item: T) => React.ReactNode
-  /** Function to extract a unique key from each item */
+  renderItem: (item: T) => ReactNode
   getItemKey: (item: T) => string | number
-  /** Minimum width of each item in pixels. Used to calculate items per row */
   itemMinWidth?: number
-  /** Default estimated height for rows before measurement. Defaults to 320px */
   defaultRowHeight?: number
 }
 
-/**
- * A virtualized grid component that efficiently renders large lists of items
- * with dynamic row heights. Uses react-virtualized under the hood for optimal
- * performance with large datasets.
- */
+function MeasuredRow({
+  top,
+  columns,
+  children,
+  report
+}: {
+  top: number
+  columns: number
+  children: ReactNode
+  report: (height: number) => void
+}) {
+  const ref = useRef<HTMLDivElement>(null)
+  const latest = useRef(report)
+  latest.current = report
+  useEffect(() => {
+    const element = ref.current
+    if (!element) return
+    const measure = () =>
+      latest.current(Math.ceil(element.getBoundingClientRect().height))
+    measure()
+    if (typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(measure)
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [])
+  return (
+    <Box ref={ref} position="absolute" top={top + 'px'} left="0" width="100%">
+      <Grid
+        templateCols={`repeat(${columns}, minmax(0, 1fr))`}
+        gap="md"
+        pb="md"
+      >
+        {children}
+      </Grid>
+    </Box>
+  )
+}
+
 export function VirtualGrid<T>({
   items,
   renderItem,
@@ -33,75 +66,80 @@ export function VirtualGrid<T>({
   itemMinWidth = 240,
   defaultRowHeight = 320
 }: VirtualGridProps<T>) {
-  const listRef = useRef<List>(null)
-
-  const cache = useMemo(
-    () =>
-      new CellMeasurerCache({
-        defaultHeight: defaultRowHeight,
-        fixedWidth: true
-      }),
-    [defaultRowHeight]
+  const container = useRef<HTMLDivElement>(null)
+  const { width, height } = useDivSize(container)
+  const [scroll, setScroll] = useState(0)
+  const [heights, setHeights] = useState<ReadonlyMap<string, number>>(new Map())
+  const itemOrder = JSON.stringify(items.map(getItemKey))
+  useLayoutEffect(() => {
+    if (container.current) container.current.scrollTop = 0
+    setScroll(0)
+  }, [itemOrder])
+  const columns = Math.max(
+    1,
+    Math.floor(
+      width / (Number.isFinite(itemMinWidth) ? Math.max(1, itemMinWidth) : 240)
+    )
   )
-  // Clear cache, recompute row positions, and scroll to top when items change
+  const estimate = Number.isFinite(defaultRowHeight)
+    ? Math.max(1, defaultRowHeight)
+    : 320
+  const rows = useMemo(() => {
+    const result: { key: string; items: T[] }[] = []
+    for (let index = 0; index < items.length; index += columns) {
+      const members = items.slice(index, index + columns)
+      result.push({
+        key: JSON.stringify([Math.round(width), ...members.map(getItemKey)]),
+        items: members
+      })
+    }
+    return result
+  }, [items, columns, width, getItemKey])
+  const offsets = rowOffsets(rows.length, estimate, row =>
+    heights.get(rows[row].key)
+  )
+  const range = visibleRows(offsets, scroll, height || estimate)
   useEffect(() => {
-    cache.clearAll()
-    listRef.current?.recomputeRowHeights()
-    listRef.current?.scrollToRow(0)
-  }, [items, cache])
-
+    const keys = new Set(rows.map(row => row.key))
+    setHeights(current => {
+      if ([...current.keys()].every(key => keys.has(key))) return current
+      return new Map([...current].filter(([key]) => keys.has(key)))
+    })
+  }, [rows])
   return (
-    <AutoSizer>
-      {({ width, height }: { width: number; height: number }) => {
-        const itemsPerRow = Math.floor(width / itemMinWidth) || 1
-
-        return (
-          <List
-            ref={listRef}
-            className="virtual-grid"
-            deferredMeasurementCache={cache}
-            height={height}
-            rowCount={Math.ceil(items.length / itemsPerRow)}
-            rowHeight={cache.rowHeight}
-            rowRenderer={({ index, key, style, parent }) => {
-              const fromIndex = index * itemsPerRow
-
-              const toIndex = fromIndex + itemsPerRow
-
-              return (
-                <CellMeasurer
-                  key={key}
-                  cache={cache}
-                  columnIndex={0}
-                  parent={parent}
-                  rowIndex={index}
-                >
-                  <Grid
-                    as="div"
-                    gap="md"
-                    pb="md"
-                    style={style}
-                    templateCols={`repeat(${itemsPerRow}, 1fr)`}
-                    width="100%"
-                  >
-                    {items.slice(fromIndex, toIndex).map(item => (
-                      <Box
-                        key={getItemKey(item)}
-                        as="div"
-                        minWidth="0"
-                        width="100%"
-                      >
-                        {renderItem(item)}
-                      </Box>
-                    ))}
-                  </Grid>
-                </CellMeasurer>
+    <Box
+      ref={container}
+      className="virtual-grid"
+      width="100%"
+      height="100%"
+      minHeight="0"
+      overflowY="auto"
+      position="relative"
+      onScroll={event => setScroll(event.currentTarget.scrollTop)}
+    >
+      <Box position="relative" width="100%" height={offsets.at(-1) + 'px'}>
+        {rows.slice(range.from, range.to).map((row, index) => (
+          <MeasuredRow
+            key={row.key}
+            columns={columns}
+            top={offsets[range.from + index]}
+            report={next => {
+              if (next <= 0) return
+              setHeights(current =>
+                current.get(row.key) === next
+                  ? current
+                  : new Map(current).set(row.key, next)
               )
             }}
-            width={width}
-          />
-        )
-      }}
-    </AutoSizer>
+          >
+            {row.items.map(item => (
+              <Box key={getItemKey(item)} minWidth="0" width="100%">
+                {renderItem(item)}
+              </Box>
+            ))}
+          </MeasuredRow>
+        ))}
+      </Box>
+    </Box>
   )
 }

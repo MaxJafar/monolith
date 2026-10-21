@@ -1,68 +1,27 @@
-import { useCallback } from 'react'
-import { z } from 'zod'
+// SPDX-License-Identifier: 0BSD
+import { useEffect, useId, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
-import { Flex, Icon, Text } from '@/components/primitives'
+import { Flex, Icon, Stack, Text } from '@/components/primitives'
 import { useModalStore } from '@/providers'
-import { surface } from '@/system'
 
+import { Button } from '../Button'
 import { useInputLabel } from '../shared/hooks/useInputLabel'
 import { FilePickerModal } from './FilePickerModal'
-import { CompactFileDisplay } from './components/CompactFileDisplay'
-import { EmptyFileInput } from './components/EmptyFileInput'
-import { PreviewFileDisplay } from './components/PreviewFileDisplay'
+import { FilePreview } from './Preview'
+import './fileInput.css'
+import {
+  type FilePickerSourceConfig,
+  type FileValue,
+  isLocalFile,
+  selectedName
+} from './model'
 
-export type FileValue =
-  | {
-      type: 'empty'
-    }
-  | {
-      type: 'existing'
-      id: string
-      filename: string
-      preview?: string
-    }
-  | {
-      type: 'upload'
-      file: File
-      preview?: string
-    }
-  | {
-      type: 'url'
-      url: string
-      preview?: string
-    }
-
-export const fileValueSchema = z.discriminatedUnion('type', [
-  z.object({
-    type: z.literal('empty')
-  }),
-  z.object({
-    type: z.literal('existing'),
-    id: z.string(),
-    filename: z.string(),
-    preview: z.string().optional()
-  }),
-  z.object({
-    type: z.literal('upload'),
-    file: z.instanceof(File),
-    preview: z.string().optional()
-  }),
-  z.object({
-    type: z.literal('url'),
-    url: z.string(),
-    preview: z.string().optional()
-  })
-])
-
-export interface FilePickerSourceConfig {
-  pixabay?: boolean
-  url?: boolean
-  ai?:
-    | {
-        defaultPrompt: string
-      }
-    | false
-}
+export {
+  fileValueSchema,
+  type FileValue,
+  type FilePickerSourceConfig
+} from './model'
 
 export function FileInput({
   icon,
@@ -73,11 +32,7 @@ export function FileInput({
   required,
   namespace,
   disabled,
-  sources = {
-    pixabay: false,
-    ai: false,
-    url: false
-  },
+  sources = {},
   mimeTypes,
   errorMsg
 }: {
@@ -93,86 +48,98 @@ export function FileInput({
   mimeTypes?: Record<string, string[]>
   errorMsg?: string
 }) {
-  const { open } = useModalStore()
-  const inputLabel = useInputLabel({ namespace, label })
-
-  const handleFilePickerOpen = useCallback(() => {
+  const { open } = useModalStore(),
+    id = useId()
+  const caption = useInputLabel({ label, namespace })
+  const { t } = useTranslation('common.modals')
+  const [localPreview, setLocalPreview] = useState<{
+    file: File
+    url: string
+  } | null>(null)
+  const file = value.type === 'upload' ? value.file : null
+  const supplied = value.type !== 'empty' ? value.preview : undefined
+  useEffect(() => {
+    if (!file || supplied || !file.type.startsWith('image/')) return
+    const url = URL.createObjectURL(file)
+    setLocalPreview({ file, url })
+    return () => URL.revokeObjectURL(url)
+  }, [file, supplied])
+  const preview =
+    supplied ?? (localPreview?.file === file ? localPreview?.url : undefined)
+  const choose = () => {
+    if (disabled) return
     open(FilePickerModal, {
       sources,
       mimeTypes,
-      onSelect: async function (file: string | File, preview: string | null) {
-        if (file instanceof File) {
-          onChange({
-            type: 'upload',
-            file,
-            preview: preview ?? undefined
-          })
-        } else {
-          onChange({
-            type: 'url',
-            url: file,
-            preview: preview ?? undefined
-          })
-        }
+      onSelect: async (selected, preview) => {
+        onChange(
+          isLocalFile(selected)
+            ? { type: 'upload', file: selected, preview: preview ?? undefined }
+            : { type: 'url', url: selected, preview: preview ?? undefined }
+        )
       }
     })
-  }, [sources, mimeTypes, onChange])
-
-  const previewUrl = value.type !== 'empty' ? value.preview : undefined
-
+  }
   return (
-    <Flex direction="column" gap="sm" width="100%">
-      <Flex
-        shadow
-        bg={surface.lightInteractive}
-        className="__file-input"
-        direction="column"
-        p="lg"
-        r="md"
-        style={{
-          opacity: disabled ? 0.5 : 1,
-          pointerEvents: disabled ? 'none' : 'auto',
-          outline: errorMsg ? '2px solid var(--color-dangerous)' : undefined
-        }}
-        width="100%"
-      >
-        <Text asChild color={errorMsg ? 'dangerous' : 'muted'}>
-          <Flex align="center" gap="sm">
-            <Icon icon={icon} size="1.5rem" />
-            <Text as="span" color="inherit" weight="medium">
-              {inputLabel}{' '}
-              {required === true && (
-                <Text as="span" color="dangerous">
-                  *
-                </Text>
-              )}
-            </Text>
-          </Flex>
+    <Stack
+      role="group"
+      aria-labelledby={id}
+      aria-invalid={!!errorMsg || undefined}
+      aria-describedby={errorMsg ? id + '-error' : undefined}
+      inert={disabled || undefined}
+      className="monolith-file-input"
+      gap="md"
+      style={{ opacity: disabled ? 0.5 : 1 }}
+    >
+      <Flex align="center" gap="sm">
+        <Icon icon={icon} color="muted" />
+        <Text id={id} size="sm" weight="medium">
+          {caption}
+          {required ? ' *' : ''}
         </Text>
-        {value.type === 'empty' ? (
-          <EmptyFileInput
-            acceptedMimeTypes={mimeTypes}
-            reminderText={reminderText}
-            onSelect={handleFilePickerOpen}
-          />
-        ) : (
-          <>
-            {previewUrl &&
-            (previewUrl.startsWith('http') ||
-              previewUrl.startsWith('blob:') ||
-              previewUrl.startsWith('data:')) ? (
-              <PreviewFileDisplay previewUrl={previewUrl} onChange={onChange} />
-            ) : (
-              <CompactFileDisplay value={value} onChange={onChange} />
-            )}
-          </>
+      </Flex>
+      {value.type !== 'empty' && (
+        <FilePreview
+          name={
+            value.type === 'existing'
+              ? value.filename
+              : selectedName(value.type === 'upload' ? value.file : value.url)
+          }
+          preview={preview}
+        />
+      )}
+      {reminderText && (
+        <Text color="muted" size="sm">
+          {reminderText}
+        </Text>
+      )}
+      <Flex gap="sm">
+        <Button
+          namespace="common.modals"
+          variant="secondary"
+          icon="tabler:upload"
+          disabled={disabled}
+          aria-label={t('imagePicker.choose') + ' · ' + caption}
+          onClick={choose}
+        >
+          imagePicker.choose
+        </Button>
+        {value.type !== 'empty' && (
+          <Button
+            variant="plain"
+            icon="tabler:x"
+            disabled={disabled}
+            onClick={() => onChange({ type: 'empty' })}
+          >
+            remove
+          </Button>
         )}
       </Flex>
       {errorMsg && (
-        <Text color="dangerous" display="block" px="md" size="sm">
+        <Text id={id + '-error'} color="dangerous" role="alert" size="sm">
           {errorMsg}
         </Text>
       )}
-    </Flex>
+    </Stack>
   )
 }

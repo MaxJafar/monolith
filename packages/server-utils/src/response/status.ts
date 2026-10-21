@@ -1,88 +1,51 @@
-export const Output = {
-  OK: {
-    $status: 200,
-    kind: 'success',
-    key: 'ok',
-    hasPayload: true
-  },
-  CREATED: {
-    $status: 201,
-    kind: 'success',
-    key: 'created',
-    hasPayload: true
-  },
-  ACCEPTED: {
-    $status: 202,
-    kind: 'success',
-    key: 'accepted'
-  },
-  NO_CONTENT: {
-    $status: 204,
-    kind: 'success',
-    key: 'noContent'
-  },
-  BAD_REQUEST: {
-    $status: 400,
-    kind: 'error',
-    key: 'badRequest',
-    hasPayload: true
-  },
-  UNAUTHORIZED: {
-    $status: 401,
-    kind: 'error',
-    key: 'unauthorized'
-  },
-  FORBIDDEN: {
-    $status: 403,
-    kind: 'error',
-    key: 'forbidden'
-  },
-  NOT_FOUND: {
-    $status: 404,
-    kind: 'error',
-    key: 'notFound'
-  },
-  CONFLICT: {
-    $status: 409,
-    kind: 'error',
-    key: 'conflict'
-  }
-} as const satisfies Record<
-  string,
-  {
-    $status: number
-    kind: 'success' | 'error'
-    key: string
-    hasPayload?: true
-  }
->
-
-export type OutputType = typeof Output
-
-export type SuccessOutputKey = {
-  [K in keyof OutputType]: OutputType[K] extends { kind: 'success' } ? K : never
-}[keyof OutputType]
-
-export type ErrorOutputKey = Exclude<keyof OutputType, SuccessOutputKey>
-
-export function isSuccessOutputKey(key: string): key is SuccessOutputKey {
-  return (
-    Object.prototype.hasOwnProperty.call(Output, key) &&
-    Output[key as keyof OutputType].kind === 'success'
-  )
+// SPDX-License-Identifier: 0BSD
+function status<
+  const N extends number,
+  const K extends string,
+  const T extends 'success' | 'error'
+>($status: N, key: K, kind: T) {
+  return { $status, key, kind }
+}
+function data<const T extends object>(entry: T) {
+  return { ...entry, hasPayload: true as const }
 }
 
-export function getStatusMessage(status: number): string {
-  const matchingKey = Object.keys(Output).find(
-    key => Output[key as keyof typeof Output].$status === status
+export const Output = {
+  OK: data(status(200, 'ok', 'success')),
+  CREATED: data(status(201, 'created', 'success')),
+  ACCEPTED: status(202, 'accepted', 'success'),
+  NO_CONTENT: status(204, 'noContent', 'success'),
+  BAD_REQUEST: data(status(400, 'badRequest', 'error')),
+  UNAUTHORIZED: status(401, 'unauthorized', 'error'),
+  FORBIDDEN: status(403, 'forbidden', 'error'),
+  NOT_FOUND: status(404, 'notFound', 'error'),
+  CONFLICT: status(409, 'conflict', 'error')
+}
+export type OutputType = typeof Output
+type NamesOfKind<T> = {
+  [K in keyof OutputType]: OutputType[K]['kind'] extends T ? K : never
+}[keyof OutputType]
+export type SuccessOutputKey = NamesOfKind<'success'>
+export type ErrorOutputKey = NamesOfKind<'error'>
+
+const descriptions = new Map<number, string>(
+  Object.entries(Output).map(([name, entry]) => [
+    entry.$status,
+    name
+      .toLowerCase()
+      .replace(
+        /(^|_)([a-z])/g,
+        (_, gap: string, letter: string) =>
+          (gap ? ' ' : '') + letter.toUpperCase()
+      )
+  ])
+)
+export function getStatusMessage(code: number): string {
+  return descriptions.get(code) ?? 'Error'
+}
+export function isSuccessOutputKey(name: string): name is SuccessOutputKey {
+  return (
+    Object.hasOwn(Output, name) &&
+    Output[name as keyof OutputType].kind === 'success'
   )
-
-  if (!matchingKey) {
-    return 'Error'
-  }
-
-  return matchingKey
-    .split('_')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ')
 }

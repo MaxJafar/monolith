@@ -1,15 +1,11 @@
-import {
-  type ReactNode,
-  createContext,
-  useContext,
-  useEffect,
-  useState
-} from 'react'
+// SPDX-License-Identifier: 0BSD
+import { type ReactNode, createContext, useContext, useMemo } from 'react'
 
-import { hasServerPublicKey, initializeEncryption } from '../crypto/encryption'
+import { initializeEncryption } from '../crypto/encryption'
+import { useConnectionProbe } from './useConnectionProbe'
 
-type Status = { ready: boolean; error: string | null }
-const EncryptionStatus = createContext<Status | null>(null)
+type EncryptionState = { ready: boolean; error: string | null }
+const EncryptionContext = createContext<EncryptionState | undefined>(undefined)
 
 export function EncryptionProvider({
   apiHost,
@@ -18,38 +14,23 @@ export function EncryptionProvider({
   apiHost: string
   children: ReactNode
 }) {
-  const [status, setStatus] = useState<Status>(() => ({
-    ready: hasServerPublicKey(),
-    error: null
-  }))
-  useEffect(() => {
-    let active = true
-    setStatus({ ready: false, error: null })
-    Promise.resolve()
-      .then(() => initializeEncryption(apiHost))
-      .then(() => {
-        if (active) setStatus({ ready: true, error: null })
-      })
-      .catch(error => {
-        if (active)
-          setStatus({
-            ready: false,
-            error:
-              error instanceof Error
-                ? error.message
-                : 'Encryption initialization failed'
-          })
-      })
-    return () => {
-      active = false
-    }
-  }, [apiHost])
-  return <EncryptionStatus value={status}>{children}</EncryptionStatus>
+  const result = useConnectionProbe(apiHost, initializeEncryption)
+  const state = useMemo<EncryptionState>(
+    () => ({
+      ready: result.state === 'ready',
+      error:
+        result.state === 'failed'
+          ? result.error instanceof Error
+            ? result.error.message
+            : 'Encryption initialization failed'
+          : null
+    }),
+    [result]
+  )
+  return <EncryptionContext value={state}>{children}</EncryptionContext>
 }
-
-export function useEncryption(): Status {
-  const state = useContext(EncryptionStatus)
-  if (state === null)
-    throw new Error('useEncryption requires EncryptionProvider')
+export function useEncryption(): EncryptionState {
+  const state = useContext(EncryptionContext)
+  if (!state) throw new Error('useEncryption requires EncryptionProvider')
   return state
 }

@@ -1,14 +1,14 @@
+// SPDX-License-Identifier: 0BSD
+/** An intentional HTTP failure safe for the route adapter to report. */
 export default class ClientError extends Error {
-  code: number
-
-  constructor(message: string, code: number = 400) {
+  readonly name = 'ClientError'
+  constructor(
+    message: string,
+    public code = 400
+  ) {
     super(message)
-    this.name = 'ClientError'
-    this.code = code
-    Object.setPrototypeOf(this, ClientError.prototype)
   }
-
-  static isClientError(error: unknown): error is ClientError {
-    return error instanceof ClientError
+  static isClientError(value: unknown): value is ClientError {
+    return value instanceof this
   }
 }

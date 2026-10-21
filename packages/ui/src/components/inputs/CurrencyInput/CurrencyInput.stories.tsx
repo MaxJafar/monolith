@@ -1,112 +1,34 @@
+// SPDX-License-Identifier: 0BSD
 import type { Meta, StoryObj } from '@storybook/react-vite'
+import { useState } from 'react'
 
 import { CurrencyInput } from './index'
 
 const meta = {
+  title: 'Inputs/CurrencyInput',
   component: CurrencyInput,
-  title: 'Inputs/CurrencyInput'
+  args: {
+    value: 1500,
+    onChange: () => {},
+    label: 'Monthly budget',
+    placeholder: 'Amount',
+    icon: 'tabler:calculator',
+    namespace: false
+  }
 } satisfies Meta<typeof CurrencyInput>
-
 export default meta
-
 type Story = StoryObj<typeof meta>
-
-export const Default: Story = {
-  args: {
-    icon: 'tabler:currency-dollar',
-    label: 'Price',
-    onChange: () => {},
-
-    prefix: '',
-    value: 0,
-    variant: 'classic'
-  },
-  render: args => <CurrencyInput {...args} />
+export const Editable: Story = {
+  render: function Editable(args) {
+    const [value, setValue] = useState(args.value)
+    return <CurrencyInput {...args} value={value} onChange={setValue} />
+  }
 }
-
-export const WithCurrencyPrefix: Story = {
-  args: {
-    icon: 'tabler:currency-dollar',
-    label: 'Price',
-    onChange: () => {},
-
-    prefix: 'MYR',
-    value: 87.69,
-    variant: 'classic'
-  },
-  render: args => <CurrencyInput {...args} />
+export const Compact: Story = { ...Editable, args: { variant: 'plain' } }
+export const Validation: Story = {
+  ...Editable,
+  args: { required: true, errorMsg: 'Review this value before saving.' }
 }
+export const Disabled: Story = { args: { disabled: true } }
 
-export const Required: Story = {
-  args: {
-    icon: 'tabler:currency-dollar',
-    label: 'Price',
-    onChange: () => {},
-
-    required: true,
-    value: 0
-  },
-  render: args => <CurrencyInput {...args} />
-}
-
-export const Disabled: Story = {
-  args: {
-    disabled: true,
-    icon: 'tabler:currency-dollar',
-    label: 'Price',
-    onChange: () => {},
-
-    value: 42.5
-  },
-  render: args => <CurrencyInput {...args} />
-}
-
-export const WithErrorMessage: Story = {
-  args: {
-    errorMsg: 'Invalid price value.',
-    icon: 'tabler:currency-dollar',
-    label: 'Price',
-    onChange: () => {},
-
-    value: 0
-  },
-  render: args => <CurrencyInput {...args} />
-}
-
-export const DisabledWithErrorMessage: Story = {
-  args: {
-    disabled: true,
-    errorMsg: 'Invalid price value.',
-    icon: 'tabler:currency-dollar',
-    label: 'Price',
-    onChange: () => {},
-
-    value: 42.5
-  },
-  render: args => <CurrencyInput {...args} />
-}
-
-export const PlainVariant: Story = {
-  args: {
-    icon: 'tabler:currency-dollar',
-    label: 'Price',
-    onChange: () => {},
-    prefix: 'MYR',
-    value: 87.69,
-    variant: 'plain'
-  },
-  render: args => <CurrencyInput {...args} />
-}
-
-export const PlainVariantWithErrorMessage: Story = {
-  args: {
-    errorMsg: "The amount you've entered is ridiculous lol",
-    icon: 'tabler:currency-dollar',
-    label: 'Price',
-    onChange: () => {},
-    prefix: 'MYR',
-    value: 87.69,
-    variant: 'plain'
-  },
-  render: args => <CurrencyInput {...args} />
-}
+export const Currency: Story = { ...Editable, args: { prefix: '$' } }

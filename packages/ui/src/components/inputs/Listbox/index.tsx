@@ -1,85 +1,86 @@
-import { Listbox as HeadlessListbox, ListboxButton } from '@headlessui/react'
+// SPDX-License-Identifier: 0BSD
+import { ListboxButton, Listbox as Selection } from '@headlessui/react'
+import type { ReactNode } from 'react'
 
-import { Icon } from '@/components/primitives'
-import { Flex, type FlexProps, Text, Transition } from '@/components/primitives'
-import { surface } from '@/system'
+import { Flex, type FlexProps, Icon, Text } from '@/components/primitives'
+import { surface } from '@/system/colors/surfaces'
 
 import { ListboxOptions } from '../ListboxInput/components/ListboxOptions'
+import { ListboxMultipleContext } from '../ListboxInput/contexts/ListboxMultipleContext'
+import './listbox.css'
 
-type ListboxWithMultiple<T> = {
-  value: T[]
-  onChange: (value: T[]) => void
-  renderContent?: (value: T[]) => React.ReactNode
-  children: React.ReactNode
-  multiple: true
+type SelectionProps<Value> = {
+  value: Value
+  onChange: (next: Value) => void
+  renderContent?: (value: Value) => ReactNode
+}
+export type ListboxProps<T> = Omit<FlexProps, 'onChange' | 'value'> & {
+  disabled?: boolean
+  compact?: boolean
+} & (
+    | (SelectionProps<T[]> & { multiple: true })
+    | (SelectionProps<T> & { multiple?: never })
+  )
+
+function readable(value: unknown): string {
+  if (Array.isArray(value))
+    return value.map(readable).filter(Boolean).join(', ')
+  return typeof value === 'string' || typeof value === 'number'
+    ? String(value)
+    : ''
 }
 
-type ListboxWithoutMultiple<T> = {
-  value: T
-  onChange: (value: T) => void
-  renderContent?: (value: T) => React.ReactNode
-  children: React.ReactNode
-  multiple?: never
-}
-
-type ListboxProps<T> = { disabled?: boolean; compact?: boolean } & (
-  ListboxWithMultiple<T> | ListboxWithoutMultiple<T>
-) &
-  Omit<FlexProps, 'onChange' | 'value'>
-
-/**
- * A listbox component for selecting from a list of options. Similar to ListboxInput but without the input box styling.
- */
-export function Listbox<T>({
-  value,
-  onChange,
-  renderContent,
-  children,
-  multiple,
-  disabled = false,
-  compact = false,
-  ...rest
-}: ListboxProps<T>) {
+export function Listbox<T>(props: ListboxProps<T>) {
+  const {
+    multiple,
+    value,
+    onChange,
+    renderContent,
+    children,
+    compact,
+    disabled,
+    className,
+    ...button
+  } = props
+  function choose(next: T | T[]) {
+    if (multiple) onChange(next as T[])
+    else onChange(next as T)
+  }
   return (
-    <HeadlessListbox
-      disabled={disabled}
-      multiple={multiple}
-      value={value}
-      onChange={(selected: T | T[]) => {
-        // Headless UI's callback value follows the discriminated multiple prop.
-        if (multiple) onChange(selected as T[])
-        else onChange(selected as T)
-      }}
-    >
-      <Transition property="all">
+    <ListboxMultipleContext value={!!multiple}>
+      <Selection
+        multiple={multiple}
+        value={value}
+        onChange={choose}
+        disabled={disabled}
+      >
         <Flex
           asChild
-          shadow
           align="center"
-          bg={rest.bg ?? surface.lightInteractive}
-          gap="lg"
           justify="between"
+          gap="sm"
           minWidth="0"
-          p="md"
-          r="lg"
-          style={disabled ? { opacity: 0.5 } : undefined}
-          {...rest}
+          p="sm"
+          r="md"
+          bg={surface.lightInteractive}
+          {...button}
+          className={['monolith-listbox-trigger', className]
+            .filter(Boolean)
+            .join(' ')}
         >
-          <ListboxButton
-            style={disabled ? { cursor: 'not-allowed' } : undefined}
-          >
+          <ListboxButton>
             {renderContent ? (
               renderContent(value as never)
             ) : (
-              <Text truncate align="left" whiteSpace="nowrap">
-                {value as unknown as string}
+              <Text truncate align="left">
+                {readable(value)}
               </Text>
             )}
-            <Icon color="muted" icon="tabler:chevron-down" />
+            <Icon icon="tabler:chevron-down" color="muted" aria-hidden />
           </ListboxButton>
         </Flex>
-      </Transition>
-      <ListboxOptions compact={compact}>{children}</ListboxOptions>
-    </HeadlessListbox>
+        <ListboxOptions compact={compact}>{children}</ListboxOptions>
+      </Selection>
+    </ListboxMultipleContext>
   )
 }

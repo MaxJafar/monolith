@@ -1,118 +1,30 @@
+// SPDX-License-Identifier: 0BSD
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { useState } from 'react'
 
 import { ColorInput } from './index'
 
 const meta = {
+  title: 'Inputs/ColorInput',
   component: ColorInput,
-  title: 'Inputs/ColorInput'
+  args: {
+    value: '#6993C3',
+    onChange: () => {},
+    label: 'Project color',
+    namespace: false
+  }
 } satisfies Meta<typeof ColorInput>
-
 export default meta
-
 type Story = StoryObj<typeof meta>
-
-export const Default: Story = {
-  args: {
-    label: 'Cube Color',
-    onChange: () => {},
-    value: ''
-  },
-  render: args => {
-    const [color, setColor] = useState<string>('')
-
-    return <ColorInput {...args} value={color} onChange={setColor} />
+export const Editable: Story = {
+  render: function Editable(args) {
+    const [value, setValue] = useState(args.value)
+    return <ColorInput {...args} value={value} onChange={setValue} />
   }
 }
-
-export const Required: Story = {
-  args: {
-    label: 'Cube Color',
-    onChange: () => {},
-    required: true,
-    value: ''
-  },
-
-  render: args => {
-    const [color, setColor] = useState<string>('')
-
-    return <ColorInput {...args} value={color} onChange={setColor} />
-  }
-}
-
-export const Disabled: Story = {
-  args: {
-    disabled: true,
-    label: 'Cube Color',
-    onChange: () => {},
-    value: ''
-  },
-
-  render: args => {
-    const [color, setColor] = useState<string>('')
-
-    return <ColorInput {...args} value={color} onChange={setColor} />
-  }
-}
-
-export const WithErrorMessage: Story = {
-  args: {
-    errorMsg: 'Invalid color hex provided',
-    label: 'Cube Color',
-    onChange: () => {},
-    value: ''
-  },
-
-  render: args => {
-    const [color, setColor] = useState<string>('')
-
-    return <ColorInput {...args} value={color} onChange={setColor} />
-  }
-}
-
-export const DisabledWithErrorMessage: Story = {
-  args: {
-    disabled: true,
-    errorMsg: 'Invalid color hex provided',
-    label: 'Cube Color',
-    onChange: () => {},
-    value: ''
-  },
-
-  render: args => {
-    const [color, setColor] = useState<string>('')
-
-    return <ColorInput {...args} value={color} onChange={setColor} />
-  }
-}
-
-export const PlainVariant: Story = {
-  args: {
-    label: 'Cube Color',
-    onChange: () => {},
-    value: '',
-    variant: 'plain'
-  },
-
-  render: args => {
-    const [color, setColor] = useState<string>('')
-
-    return <ColorInput {...args} value={color} onChange={setColor} />
-  }
-}
-
-export const PlainVariantWithErrorMessage: Story = {
-  args: {
-    errorMsg: 'Invalid color hex provided',
-    label: 'Cube Color',
-    onChange: () => {},
-    value: '',
-    variant: 'plain'
-  },
-
-  render: args => {
-    const [color, setColor] = useState<string>('')
-
-    return <ColorInput {...args} value={color} onChange={setColor} />
-  }
+export const Compact: Story = { ...Editable, args: { variant: 'plain' } }
+export const Disabled: Story = { args: { disabled: true } }
+export const Invalid: Story = {
+  ...Editable,
+  args: { value: '#12', errorMsg: 'Choose a six-digit hex color.' }
 }

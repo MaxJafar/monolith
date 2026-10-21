@@ -100,46 +100,26 @@ expose(
   { delete: 'removeView' },
   'delete'
 )
-for (const [group, route] of Object.entries({
-  projects: 'entries',
-  tasks: 'tasks',
-  columns: 'columns'
-})) {
-  const prefix = `${addon('projects')}/${route}`
-  expose(group, prefix, { list: 'list' }, 'read')
-  expose(group, prefix, { create: 'create', update: 'update' }, 'write')
-  expose(group, prefix, { delete: 'remove' }, 'delete')
-}
-for (const group of ['categories', 'statuses', 'technologies', 'visibilities'])
-  expose(
-    `project_${group}`,
-    `${addon('projects')}/${group}`,
-    { list: 'list' },
-    'read'
-  )
+// Projects and Actions are workspace records. The record/field/link tools above
+// operate on them without requiring a separate addon or a second data model.
+expose('events', `${databases}/calendar`, { list: 'list' }, 'read')
 expose(
   'events',
-  `${addon('calendar')}/events`,
-  { list: 'getByDateRange', get: 'getById', today: 'getToday' },
-  'read'
-)
-expose(
-  'events',
-  `${addon('calendar')}/events`,
-  { create: 'create', update: 'update' },
+  `${databases}/calendar`,
+  { save: 'save', edit: 'edit', move: 'move', respond: 'respond' },
   'write'
 )
-expose('events', `${addon('calendar')}/events`, { delete: 'remove' }, 'delete')
+// Occurrence mutations can cancel an event, so require destructive permission.
 expose(
-  'calendars',
-  `${addon('calendar')}/calendars`,
-  { list: 'list', get: 'getById' },
-  'read'
+  'events',
+  `${databases}/calendar`,
+  { occurrence: 'occurrence' },
+  'delete'
 )
 expose(
-  'calendar_categories',
-  `${addon('calendar')}/categories`,
-  { list: 'list' },
+  'calendar_notifications',
+  `${databases}/calendar`,
+  { list: 'notifications' },
   'read'
 )
 expose(

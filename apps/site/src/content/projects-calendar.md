@@ -31,7 +31,7 @@ Open a dated task or event and use **Schedule & guests** to choose daily, weekly
 
 Invite existing workspace members and track Accepted, Tentative or Declined responses. Viewers can answer their own invitation; owners and editors can change events. The app-bar bell shows invitations, changes and reminders. Email reminders and changes are opt-in and require server configuration; in-app delivery works without it.
 
-See the [calendar and email setup guide](https://github.com/MaxJafar/monolith/blob/main/docs/CALENDAR.md) for provider configuration, delivery behavior and deployment requirements. External email-only invitations, Google/Apple account sync and operating-system push are not included. ICS subscriptions remain available through **Calendars & integrations**.
+See the [calendar and email setup guide](https://github.com/MaxJafar/monolith/blob/main/docs/CALENDAR.md) for provider configuration, delivery behavior and deployment requirements. External email-only invitations, Google/Apple account sync and operating-system push are not included.
 
 Calendar widgets bring compact views into a dashboard or sidebar. Choose the available view and filters in the widget’s configuration overlay. Permissions remain attached to the underlying data.
 

@@ -1,25 +1,39 @@
-import { Box } from '@/components/primitives'
+// SPDX-License-Identifier: 0BSD
+import { Stack } from '@/components/primitives'
 
 import { ModalHeader } from '../ModalHeader'
 
 export function ViewImageModal({
-  data: { src },
+  data,
   onClose
 }: {
-  data: { src: string }
+  data: { src: string; alt?: string }
   onClose: () => void
 }) {
   return (
-    <Box>
+    <Stack gap="md" maxWidth="100%">
       <ModalHeader
-        icon="tabler:photo"
         namespace="common.modals"
         title="viewImage"
+        icon="tabler:photo"
         onClose={onClose}
       />
-      <Box asChild r="md">
-        {src !== '' && <img key={src} alt="" src={src} />}
-      </Box>
-    </Box>
+      {data.src && (
+        <figure style={{ margin: 0, display: 'grid', placeItems: 'center' }}>
+          <img
+            src={data.src}
+            alt={data.alt ?? ''}
+            decoding="async"
+            style={{
+              display: 'block',
+              maxWidth: '100%',
+              maxHeight: '75dvh',
+              objectFit: 'contain',
+              borderRadius: 'var(--radius-md)'
+            }}
+          />
+        </figure>
+      )}
+    </Stack>
   )
 }

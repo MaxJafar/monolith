@@ -1,37 +1,31 @@
-.w-color-editable-input {
-  padding-left: 0 !important;
-  padding-right: 0 !important;
+/* SPDX-License-Identifier: 0BSD */
+.monolith-color-editor .w-color-colorful {
+  width: 100%;
 }
-
-.w-color-colorful {
-  width: 100% !important;
+.monolith-color-preview-dot {
+  width: 18px;
+  height: 18px;
+  display: block;
+  border-radius: 50%;
+  border: 1px solid currentColor;
 }
-
-.w-color-editable-input input {
-  font-size: 1rem !important;
-  font-weight: 500 !important;
-  letter-spacing: 0.1rem !important;
-  background-color: var(--color-bg-50) !important;
-  box-shadow: var(--custom-shadow) !important;
-  color: var(--color-bg-800) !important;
-  margin-bottom: 0.5rem !important;
-  border-radius: var(--radius-md) !important;
-  padding-top: 0.5rem !important;
-  padding-bottom: 0.5rem !important;
-  text-align: center;
-  outline: none;
+.monolith-color-swatches {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 6px;
 }
-
-.dark .w-color-editable-input input {
-  background-color: var(--color-bg-800) !important;
-  color: var(--color-bg-100) !important;
+.monolith-color-swatches button {
+  aspect-ratio: 1;
+  border: 1px solid var(--border-color, #8884);
+  border-radius: 6px;
+  cursor: pointer;
 }
-
-.w-color-editable-input.hex input {
-  color: var(--editable-input-color) !important;
-  background-color: var(--editable-input-bg) !important;
+.monolith-color-swatches button:focus-visible {
+  outline: 2px solid var(--selection-color);
+  outline-offset: 2px;
 }
-
-.w-color-editable-input span {
-  font-size: 0.9rem !important;
+.monolith-color-swatches button[aria-pressed='true'] {
+  box-shadow:
+    inset 0 0 0 2px #fff,
+    inset 0 0 0 3px #000;
 }

@@ -1,34 +1,24 @@
-export const i18nConfig = {
+// SPDX-License-Identifier: 0BSD
+import type { InitOptions } from 'i18next'
+
+import common from '../../../locales/lang-en/common.json'
+
+export const i18nConfig: InitOptions = {
   lng: 'en',
-  cache: {
-    enabled: true
-  },
-  initImmediate: true,
-  maxRetries: 1,
-  react: {
-    useSuspense: false,
-    bindI18n: 'languageChanged loaded'
-  },
-  cleanCode: true,
-  debug: false,
-  interpolation: {
-    escapeValue: false
-  },
+  fallbackLng: 'en',
+  defaultNS: 'common',
   ns: ['common'],
-  returnedObjectHandler: (key: string, value: string, options: any) => {
-    return JSON.stringify({ key, value, options })
-  },
-  backend: {
-    loadPath: (langs: string[], namespaces: string[]) => {
-      const namespace = namespaces[0]?.split('.')[0]
-
-      if (!namespace) return
-
-      const lang = langs.find(l => l !== 'dev')
-
-      if (!lang) return
-
-      return `https://raw.githubusercontent.com/MaxJafar/monolith/main/locales/lang-${lang}/${namespace}.json`
+  resources: {
+    en: {
+      common,
+      ...Object.fromEntries(
+        Object.entries(common).map(([name, content]) => [
+          'common.' + name,
+          content
+        ])
+      )
     }
-  }
+  },
+  interpolation: { escapeValue: false },
+  react: { useSuspense: false }
 }

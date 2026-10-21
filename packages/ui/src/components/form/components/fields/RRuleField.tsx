@@ -1,35 +1,11 @@
-import {
-  type Control,
-  type FieldPathByValue,
-  type FieldValues,
-  useController
-} from 'react-hook-form'
+// SPDX-License-Identifier: 0BSD
+import type { ComponentProps } from 'react'
 
 import { RRuleInput } from '@/components/inputs'
 
-type RRuleFieldProps<TFieldValues extends FieldValues> = {
-  control: Control<TFieldValues>
-  name: FieldPathByValue<TFieldValues, string | null | undefined>
-  hasDuration?: boolean
-}
+import { bindField } from './binding'
 
-export function RRuleField<TFieldValues extends FieldValues>({
-  control,
-  name,
-  hasDuration = false,
-  ...rest
-}: RRuleFieldProps<TFieldValues>) {
-  const { field } = useController({
-    control,
-    name
-  })
-
-  return (
-    <RRuleInput
-      hasDuration={hasDuration}
-      value={field.value ?? ''}
-      onChange={field.onChange}
-      {...rest}
-    />
-  )
-}
+export const RRuleField = bindField<string, ComponentProps<typeof RRuleInput>>(
+  RRuleInput,
+  value => value ?? ''
+)

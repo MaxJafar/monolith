@@ -1,9 +1,11 @@
-import { eq, sql } from 'drizzle-orm'
-import z from 'zod'
+// SPDX-License-Identifier: 0BSD
+import { sql } from 'drizzle-orm'
+import { z } from 'zod'
 
 import { APPEARANCE_LAYOUT_KEY } from '@monolith/blocks'
 import { fileReferenceSchema } from '@monolith/file-storage'
 
+import { accountFor, changeAccountImage, updateAccount } from '../account'
 import endpoints from '../endpoints'
 import { users } from '../schema.drizzle'
 
@@ -11,92 +13,45 @@ export { getAppearance, saveAppearance, uploadCover } from './appearance'
 
 export const updateBgImage = endpoints
   .mutation({
-    description: 'Upload new background image',
+    description: 'Replace the current account background',
     input: {},
-    media: {
-      file: {
-        optional: false
-      }
-    },
-    output: {
-      OK: fileReferenceSchema
-    }
+    media: { file: { optional: false } },
+    output: { OK: fileReferenceSchema }
   })
-  .callback(async ({ res, db, media: { file }, core, response }) => {
-    if (typeof file === 'string') {
-      return response.badRequest('A valid background image must be uploaded')
-    }
-
-    const user = await db.query.users.findFirst({
-      where: { id: res.locals.userId as string }
+  .callback(async ({ db, res, core, media, response }) => {
+    if (!media.file || typeof media.file === 'string')
+      return response.badRequest('Choose a background image')
+    const saved = await changeAccountImage({
+      db,
+      userId: res.locals.userId as string,
+      storage: core.storage,
+      field: 'bgImage',
+      file: media.file
     })
-
-    if (!user) {
-      return response.unauthorized()
-    }
-
-    const bgImageRef = await core.storage.save({
-      file,
-      currentKey: user.bgImage || undefined
-    })
-
-    if (!bgImageRef) {
-      return response.badRequest('Failed to save background image')
-    }
-
-    await db
-      .update(users)
-      .set({
-        bgImage: bgImageRef.key,
-        backdropFilters: {
-          brightness: 100,
-          blur: 'none',
-          contrast: 100,
-          saturation: 100,
-          overlayOpacity: 50
-        },
-        updated: new Date()
-      })
-      .where(eq(users.id, user.id))
-
-    return response.ok(bgImageRef)
+    return saved
+      ? response.ok(saved)
+      : response.badRequest('Image could not be saved')
   })
-
 export const deleteBgImage = endpoints
   .mutation({
-    description: 'Remove background image',
+    description: 'Clear the current account background',
     input: {},
-    output: {
-      NO_CONTENT: true
-    }
+    output: { NO_CONTENT: true }
   })
-  .callback(async ({ res, db, core, response }) => {
-    const user = await db.query.users.findFirst({
-      where: { id: res.locals.userId as string }
+  .callback(async ({ db, res, core, response }) => {
+    await changeAccountImage({
+      db,
+      userId: res.locals.userId as string,
+      storage: core.storage,
+      field: 'bgImage',
+      remove: true
     })
-
-    if (!user) {
-      return response.unauthorized()
-    }
-
-    if (user.bgImage) {
-      await core.storage.delete(user.bgImage)
-    }
-
-    await db
-      .update(users)
-      .set({
-        bgImage: null,
-        updated: new Date()
-      })
-      .where(eq(users.id, user.id))
-
     return response.noContent()
   })
 
 export const updatePersonalization = endpoints
   .mutation({
-    description: 'Update user personalization preferences',
+    description: 'Save account display preferences',
     input: {
       body: z.object({
         data: z.object({
@@ -113,52 +68,21 @@ export const updatePersonalization = endpoints
         })
       })
     },
-    output: {
-      NO_CONTENT: true
-    }
+    output: { NO_CONTENT: true }
   })
-  .callback(async ({ res, db, body: { data }, response }) => {
-    const user = await db.query.users.findFirst({
-      where: { id: res.locals.userId as string }
-    })
-
-    if (!user) {
-      return response.unauthorized()
-    }
-
-    const toBeUpdated: Record<string, unknown> = {}
-
-    for (const item of [
-      'fontFamily',
-      'theme',
-      'color',
-      'bgTemp',
-      'language',
-      'fontScale',
-      'borderRadiusMultiplier',
-      'bordered',
-      'dashboardLayout',
-      'backdropFilters'
-    ]) {
-      if (data[item as keyof typeof data] !== undefined) {
-        toBeUpdated[item] = data[item as keyof typeof data]
-      }
-    }
-
-    if (!Object.keys(toBeUpdated).length) {
+  .callback(async ({ db, res, body, response }) => {
+    const account = await accountFor(db, res.locals.userId as string)
+    const values = Object.fromEntries(
+      Object.entries(body.data).filter(([, value]) => value !== undefined)
+    )
+    if (!Object.keys(values).length)
       return response.badRequest('No data to update')
+    if (body.data.dashboardLayout !== undefined) {
+      const layout = { ...body.data.dashboardLayout }
+      delete layout[APPEARANCE_LAYOUT_KEY]
+      // The appearance builder owns this field; preserve its latest value in the database.
+      values.dashboardLayout = sql`${JSON.stringify(layout)}::jsonb || jsonb_build_object(${APPEARANCE_LAYOUT_KEY}::text, ${users.dashboardLayout}::jsonb -> ${APPEARANCE_LAYOUT_KEY}::text)`
     }
-
-    toBeUpdated.updated = new Date()
-
-    // The builder owns this reserved setting; dashboard layout saves preserve it atomically.
-    if (data.dashboardLayout !== undefined) {
-      const { [APPEARANCE_LAYOUT_KEY]: _appearance, ...layout } =
-        data.dashboardLayout
-      toBeUpdated.dashboardLayout = sql`${JSON.stringify(layout)}::jsonb || jsonb_build_object(${APPEARANCE_LAYOUT_KEY}::text, ${users.dashboardLayout}::jsonb -> ${APPEARANCE_LAYOUT_KEY}::text)`
-    }
-
-    await db.update(users).set(toBeUpdated).where(eq(users.id, user.id))
-
+    await updateAccount(db, account.id, values)
     return response.noContent()
   })

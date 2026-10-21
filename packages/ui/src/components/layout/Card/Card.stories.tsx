@@ -1,204 +1,62 @@
+// SPDX-License-Identifier: 0BSD
 import type { Meta, StoryObj } from '@storybook/react-vite'
+import { useState } from 'react'
 
-import { Button } from '@/components/inputs'
-import { Box, Flex, Grid, Text } from '@/components/primitives'
+import { Grid, Stack, Text } from '@/components/primitives'
 
-import { Card } from '../Card'
+import { Card } from './index'
 
 const meta = {
-  argTypes: {
-    as: {
-      control: false,
-      table: {
-        type: {
-          summary: 'React.ElementType'
-        }
-      }
-    },
-    children: {
-      control: false,
-      table: {
-        type: {
-          summary: 'React.ReactNode'
-        }
-      }
-    }
-  },
+  title: 'Layout/Card',
   component: Card,
-  title: 'Layout/Card'
+  args: { children: 'A surface for related workspace information.' }
 } satisfies Meta<typeof Card>
-
 export default meta
-
 type Story = StoryObj<typeof meta>
-
-export const Default: Story = {
-  args: {
-    children: <Box p="md">This is a card</Box>
-  },
-  render: args => (
-    <Box p="xl" width="24rem">
-      <Card {...args} />
-    </Box>
-  )
-}
-
-export const Interactive: Story = {
-  args: {
-    children: <Box p="md">Click or hover me!</Box>,
-    isInteractive: true
-  },
-  render: args => (
-    <Box p="xl" width="24rem">
-      <Card {...args} />
-    </Box>
-  )
-}
-
-export const AsButton: Story = {
-  args: {
-    children: <Box p="md">I&apos;m a button card</Box>,
-    isInteractive: true,
-    onClick: () => alert('Button clicked!')
-  },
-  render: args => (
-    <Box p="xl" width="24rem">
-      <Card asChild {...args} width="100%">
-        <Text align="left" as="button">
-          I&apos;m a button card
-        </Text>
-      </Card>
-    </Box>
-  )
-}
-
-export const AsLink: Story = {
-  args: {
-    children: (
-      <a
-        href="https://github.com/MaxJafar/monolith/tree/main/docs"
-        rel="noopener noreferrer"
-        target="_blank"
-      >
-        I&apos;m a link card
-      </a>
-    ),
-    isInteractive: true,
-    rel: 'noopener noreferrer'
-  },
-  render: args => (
-    <Box p="xl" width="24rem">
-      <Card asChild {...args} />
-    </Box>
-  )
-}
-
-export const MultipleItems: Story = {
-  args: {
-    children: <></>
-  },
-  render: () => (
-    <Grid gap="md" p="xl" templateCols={2}>
-      <Card>
-        <Box p="md">Item 1</Box>
-      </Card>
-      <Card isInteractive>
-        <Box p="md">Item 2 (Interactive)</Box>
-      </Card>
-      <Card>
-        <Box p="md">Item 3</Box>
-      </Card>
-      <Card isInteractive>
-        <Box p="md">Item 4 (Interactive)</Box>
-      </Card>
-    </Grid>
-  )
-}
-
-export const WithTitle: Story = {
-  args: {
-    children: <></>
-  },
-  render: () => (
-    <Box p="xl" style={{ width: '20rem' }}>
-      <Card>
-        <Box p="md">
-          <Text as="h2" mb="sm" size="xl" weight="semibold">
-            Card Title
-          </Text>
-          <Text as="p" color="muted">
-            This is an example of an card styled as a card with shadow.
-          </Text>
-        </Box>
-      </Card>
-    </Box>
-  )
-}
-
-export const WithImage: Story = {
-  args: {
-    children: <></>
-  },
-  render: () => (
-    <Flex centered p="xl" style={{ width: '60vw' }}>
-      <Card style={{ padding: 0, width: '24rem' }}>
-        <img
-          alt="Card Image"
-          src="https://placehold.co/1600x900/png"
-          style={{
-            aspectRatio: '16 / 9',
-            borderRadius: 'var(--radius-lg) var(--radius-lg) 0 0',
-            objectFit: 'cover',
-            width: '100%'
-          }}
-        />
-        <Box p="md">
-          <Text as="h2" mb="sm" size="xl" weight="semibold">
-            Card with Image
-          </Text>
-          <Text as="p" color="muted">
-            This card includes an image at the top to enhance visual appeal.
-          </Text>
-        </Box>
-      </Card>
-    </Flex>
-  )
-}
-
-export const WithImageAndButton: Story = {
-  args: {
-    children: <></>
-  },
-  render: () => (
-    <Flex centered p="xl" style={{ width: '60vw' }}>
-      <Card style={{ padding: 0, width: '24rem' }}>
-        <img
-          alt="Card Image"
-          src="https://placehold.co/1600x900/png"
-          style={{
-            aspectRatio: '16 / 9',
-            borderRadius: 'var(--radius-lg) var(--radius-lg) 0 0',
-            objectFit: 'cover',
-            width: '100%'
-          }}
-        />
-        <Box p="md">
-          <Text as="h2" mb="sm" size="xl" weight="semibold">
-            Card with Image &amp; Button
-          </Text>
-          <Text as="p" color="muted" mb="md">
-            This card includes an image and a call-to-action button.
-          </Text>
-          <Button
-            icon="tabler:arrow-right"
-            iconPosition="end"
-            style={{ width: '100%' }}
-            variant="secondary"
+export const Default: Story = {}
+function ProjectLibrary() {
+  const [selected, select] = useState('')
+  return (
+    <Stack gap="md">
+      <Grid templateCols={{ base: 1, md: 2 }} gap="sm">
+        {['Launch checklist', 'Product documentation'].map(title => (
+          <Card
+            as="button"
+            type="button"
+            key={title}
+            isInteractive
+            gap="sm"
+            aria-pressed={title === selected}
+            onClick={() => select(title)}
           >
-            Learn More
-          </Button>
-        </Box>
+            <Text weight="semibold">{title}</Text>
+            <Text color="muted">Open project</Text>
+          </Card>
+        ))}
+      </Grid>
+      <Text role="status">
+        {selected ? 'Selected: ' + selected : 'Choose a project'}
+      </Text>
+    </Stack>
+  )
+}
+export const Interactive: Story = { render: () => <ProjectLibrary /> }
+export const Link: Story = {
+  render: () => (
+    <Card as="a" href="#workspace" isInteractive>
+      Open workspace
+    </Card>
+  )
+}
+export const Nested: Story = {
+  render: () => (
+    <Card gap="sm" p="md">
+      <Text as="h2" weight="semibold">
+        Weekly review
+      </Text>
+      <Card bg="surface-container" r="sm" p="sm">
+        Three actions completed
       </Card>
-    </Flex>
+    </Card>
   )
 }

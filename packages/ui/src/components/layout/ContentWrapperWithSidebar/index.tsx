@@ -1,20 +1,12 @@
-import { Flex } from '@/components/primitives'
+// SPDX-License-Identifier: 0BSD
+import type { ReactNode } from 'react'
+
+import '../sidebar-layout.css'
 
 export function ContentWrapperWithSidebar({
   children
 }: {
-  children: React.ReactNode
+  children: ReactNode
 }) {
-  return (
-    <Flex
-      direction="column"
-      flex="1"
-      height="100%"
-      minWidth="0"
-      position="relative"
-      zIndex="0"
-    >
-      {children}
-    </Flex>
-  )
+  return <div className="monolith-sidebar-content">{children}</div>
 }

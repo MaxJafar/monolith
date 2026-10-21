@@ -1,85 +1,53 @@
-import z from 'zod'
+// SPDX-License-Identifier: 0BSD
+import { z } from 'zod'
 
-import { getCookieOptions, setRefreshCookie } from '../constants/cookie'
 import endpoints from '../endpoints'
 import {
   findToken,
   revokeFamily,
   rotateToken
 } from '../utils/refreshTokenStore'
+import { requestAddress, writeSessionCookies } from '../utils/signInSession'
 import { generateRefreshToken, signAccessToken } from '../utils/tokens'
 
 export const refresh = endpoints
   .mutation({
-    description: 'Refresh access token using refresh token cookie',
+    description: 'Exchange a valid refresh credential for the next session',
     noAuth: true,
     encrypted: false,
     input: {},
-    output: {
-      OK: z.object({
-        accessToken: z.string()
-      })
-    }
+    output: { OK: z.object({ accessToken: z.string() }) }
   })
-  .callback(async ({ db, req, res, response }) => {
-    const refreshToken = req.cookies?.refresh_token as string | undefined
-
-    if (!refreshToken) {
+  .callback(async ({ req, res, db, response }) => {
+    const credential: unknown = req.cookies?.refresh_token
+    const stored =
+      typeof credential === 'string' && credential
+        ? await findToken(credential)
+        : null
+    if (!stored) return response.unauthorized()
+    const ip = requestAddress(req)
+    if (stored.revoked || stored.bound_ip !== ip) {
+      await revokeFamily(stored.family)
       return response.unauthorized()
     }
-
-    const record = await findToken(refreshToken)
-
-    if (!record) {
+    if (stored.expires_at.getTime() <= Date.now())
       return response.unauthorized()
-    }
-
-    if (record.revoked) {
-      await revokeFamily(record.family)
-
-      return response.unauthorized()
-    }
-
-    const ip = req.ip || req.socket.remoteAddress || '127.0.0.1'
-
-    if (record.bound_ip !== ip) {
-      await revokeFamily(record.family)
-
-      return response.unauthorized()
-    }
-
-    const now = Date.now()
-
-    if (new Date(record.expires_at).getTime() < now) {
-      return response.unauthorized()
-    }
-
-    const user = await db.query.users.findFirst({
-      where: { id: record.userId }
+    const account = await db.query.users.findFirst({
+      where: { id: stored.userId }
     })
-
-    if (!user) {
+    if (!account) return response.unauthorized()
+    const next = generateRefreshToken()
+    const accessToken = signAccessToken(account.id)
+    if (
+      !(await rotateToken({
+        oldTokenHash: stored.token_hash,
+        newToken: next,
+        ip,
+        family: stored.family
+      }))
+    ) {
       return response.unauthorized()
     }
-
-    const accessToken = signAccessToken(user.id)
-    const newRefreshToken = generateRefreshToken()
-
-    const rotated = await rotateToken({
-      oldTokenHash: record.token_hash,
-      newToken: newRefreshToken,
-      ip,
-      family: record.family
-    })
-
-    if (!rotated) return response.unauthorized()
-
-    setRefreshCookie(req, res, newRefreshToken)
-    res.cookie('access_token', accessToken, {
-      ...getCookieOptions(req),
-      path: '/',
-      maxAge: 15 * 60 * 1000
-    })
-
+    writeSessionCookies(req, res, accessToken, next)
     return response.ok({ accessToken })
   })

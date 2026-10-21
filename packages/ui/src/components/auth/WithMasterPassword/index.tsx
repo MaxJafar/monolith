@@ -1,52 +1,50 @@
-import React, { useState } from 'react'
+// SPDX-License-Identifier: 0BSD
+import { type ReactNode, useState } from 'react'
 
 import type { EndpointClient } from '@monolith/api'
 
 import { CreatePasswordScreen } from './components/CreatePasswordScreen'
 import { LockedScreen } from './components/LockedScreen'
 
-export function WithMasterPassword<TCreationOutput>({
-  controllers,
-  hasMasterPassword,
-  onCreate,
-  onRecoveryRequested,
-  children
-}: {
+interface PasswordGateProps<T> {
   controllers: {
-    createPassword: EndpointClient<{
-      __isEndpointContract: true
-      __output: TCreationOutput
-    }>
+    createPassword: EndpointClient<{ __isEndpointContract: true; __output: T }>
     getChallenge: EndpointClient
     verifyPassword: EndpointClient
   }
   hasMasterPassword: boolean
-  onCreate?: (data: TCreationOutput) => void
+  onCreate?: (data: T) => void
   onRecoveryRequested?: () => void
-  children: (masterPassword: string) => React.ReactNode
-}) {
-  const [masterPassword, setMasterPassword] = useState('')
+  children: (masterPassword: string) => ReactNode
+}
 
-  if (!hasMasterPassword) {
-    return (
-      <CreatePasswordScreen
-        challengeController={controllers.getChallenge}
-        controller={controllers.createPassword}
-        onCreate={onCreate}
-      />
-    )
-  }
+function UnlockGate<T>({
+  controllers,
+  onRecoveryRequested,
+  children
+}: PasswordGateProps<T>) {
+  const [password, setPassword] = useState('')
+  return password ? (
+    children(password)
+  ) : (
+    <LockedScreen
+      challengeController={controllers.getChallenge}
+      verifyController={controllers.verifyPassword}
+      setMasterPassword={setPassword}
+      onRecoveryRequested={onRecoveryRequested}
+    />
+  )
+}
 
-  if (masterPassword === '') {
-    return (
-      <LockedScreen
-        challengeController={controllers.getChallenge}
-        setMasterPassword={setMasterPassword}
-        verifyController={controllers.verifyPassword}
-        onRecoveryRequested={onRecoveryRequested}
-      />
-    )
-  }
-
-  return children(masterPassword)
+/** Unmount the unlocked subtree when the credential is removed. */
+export function WithMasterPassword<T>(props: PasswordGateProps<T>) {
+  return props.hasMasterPassword ? (
+    <UnlockGate {...props} />
+  ) : (
+    <CreatePasswordScreen
+      controller={props.controllers.createPassword}
+      challengeController={props.controllers.getChallenge}
+      onCreate={props.onCreate}
+    />
+  )
 }

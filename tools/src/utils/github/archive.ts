@@ -1,43 +1,65 @@
-import fs, { createWriteStream } from 'node:fs'
-import os from 'node:os'
-import path from 'node:path'
-import { Readable } from 'node:stream'
-import { pipeline } from 'node:stream/promises'
-import type { ReadableStream as WebReadableStream } from 'node:stream/web'
-import { extract as tarExtract } from 'tar'
+// SPDX-License-Identifier: 0BSD
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { extract } from 'tar'
 
-/**
- * Downloads a GitHub repo archive at a specific ref (commit SHA) and extracts
- * it into `destDir` (stripping the top-level `<repo>-<ref>/` directory).
- */
+import { parseRepoSlug } from './repo'
+
 export async function downloadArchive(
   repo: string,
   ref: string,
-  destDir: string
-): Promise<void> {
-  const url = `https://github.com/${repo}/archive/${ref}.tar.gz`
-
-  const response = await fetch(url)
-
-  if (!response.ok || !response.body) {
-    throw new Error(`Failed to download ${url}: ${response.status}`)
-  }
-
-  fs.mkdirSync(destDir, { recursive: true })
-
-  const tarball = path.join(
-    os.tmpdir(),
-    `endpoints-${Date.now()}-${Math.random().toString(36).slice(2)}.tar.gz`
-  )
-
-  await pipeline(
-    Readable.fromWeb(response.body as unknown as WebReadableStream),
-    createWriteStream(tarball)
-  )
-
+  destination: string
+) {
+  const slug = parseRepoSlug(repo)
+  if (!slug || !/^[a-f\d]{40}$/i.test(ref))
+    throw Error('Archives require a repository and full commit SHA')
+  const folder = await mkdtemp(join(tmpdir(), 'monolith-archive-')),
+    file = join(folder, 'source.tgz')
   try {
-    await tarExtract({ file: tarball, cwd: destDir, strip: 1 })
+    const reply = await fetch(
+      'https://codeload.github.com/' + slug + '/tar.gz/' + ref,
+      { signal: AbortSignal.timeout(120000) }
+    )
+    if (!reply.ok || !reply.body)
+      throw Error('Archive download failed: ' + reply.status)
+    const chunks: Uint8Array[] = []
+    let length = 0
+    for await (const chunk of reply.body as unknown as AsyncIterable<Uint8Array>) {
+      length += chunk.length
+      if (length > 128 * 1024 * 1024) throw Error('Archive exceeds 128 MiB')
+      chunks.push(chunk)
+    }
+    await writeFile(file, Buffer.concat(chunks))
+    await mkdir(destination, { recursive: true })
+    await extract({
+      file,
+      cwd: destination,
+      strip: 1,
+      strict: true,
+      preservePaths: false,
+      filter: (name, entry) => {
+        const segments = name.replaceAll('\\', '/').split('/')
+        if (
+          segments.includes('..') ||
+          name.startsWith('/') ||
+          /^[a-z]:/i.test(name) ||
+          ('type' in entry &&
+            ![
+              'File',
+              'Directory',
+              'OldFile',
+              'ExtendedHeader',
+              'GlobalExtendedHeader'
+            ].includes(entry.type))
+        )
+          throw Error('Unsafe archive entry')
+        return !segments.some(
+          part => part === '.git' || part === 'node_modules'
+        )
+      }
+    })
   } finally {
-    fs.rmSync(tarball, { force: true })
+    await rm(folder, { recursive: true, force: true })
   }
 }

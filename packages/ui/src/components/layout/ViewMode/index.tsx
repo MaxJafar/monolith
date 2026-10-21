@@ -1,219 +1,124 @@
-import type React from 'react'
+// SPDX-License-Identifier: 0BSD
 import {
+  type ComponentProps,
+  type ReactNode,
   createContext,
-  useEffect,
-  useMemo,
-  useContext as useReactContext
+  useContext as readContext
 } from 'react'
 
 import { useModuleMetadata } from '@monolith/federation'
 import { useModuleTranslation } from '@monolith/localization'
 
-import useNuqsOrBasicState from '@/hooks/useNuqsOrBasicState'
+import { ChoiceRoot } from '../ChoiceRoot'
+import { ViewModeContextMenuSelector as Menu } from './components/ViewModeContextMenuSelector'
+import { ViewModeSelector as Buttons } from './components/ViewModeSelector'
 
-import { ViewModeContextMenuSelector as ViewModeContextMenuSelectorComponent } from './components/ViewModeContextMenuSelector'
-import { ViewModeSelector as ViewModeSelectorComponent } from './components/ViewModeSelector'
-
-export interface ViewModeState<TMode extends string = string> {
-  currentMode: TMode
-  setCurrentMode: (mode: TMode) => void
+type Mode = { value: string; text?: string; icon?: string }
+type ButtonProps = Omit<
+  ComponentProps<typeof Buttons>,
+  'modes' | 'currentMode' | 'onModeChange'
+>
+type MenuProps = Omit<
+  ComponentProps<typeof Menu>,
+  'modes' | 'currentMode' | 'onModeChange' | 'namespace'
+>
+export interface ViewModeState<T extends string = string> {
+  currentMode: T
+  setCurrentMode: (value: T) => void
 }
-
-interface CreateViewModeConfig<
-  TViewModes extends ReadonlyArray<{
-    value: string
-    icon?: string
-    text?: string
-  }>
-> {
-  modes: TViewModes
-  defaultValue?: TViewModes[number]['value']
+export interface ViewModeRootProps<T extends readonly Mode[]> {
+  children: ReactNode
+  currentMode?: T[number]['value']
+  onModeChange?: (value: T[number]['value']) => void
+}
+type Configuration<T extends readonly Mode[]> = {
+  modes: T
+  defaultValue?: T[number]['value']
   namespace?: string | false
   useNuqs?: boolean
   persistInLocalStorage?: boolean | string
-  selectorProps?: Omit<
-    React.ComponentProps<typeof ViewModeSelectorComponent>,
-    'modes' | 'currentMode' | 'onModeChange'
-  >
-  contextMenuSelectorProps?: Omit<
-    React.ComponentProps<typeof ViewModeContextMenuSelectorComponent>,
-    'modes' | 'currentMode' | 'onModeChange'
-  >
+  selectorProps?: ButtonProps
+  contextMenuSelectorProps?: MenuProps & { namespace?: string | false }
 }
-
-export interface ViewModeRootProps<
-  TViewModes extends ReadonlyArray<{
-    value: string
-    icon?: string
-    text?: string
-  }>
-> {
-  children: React.ReactNode
-  currentMode?: TViewModes[number]['value']
-  onModeChange?: (mode: TViewModes[number]['value']) => void
-}
-
-export function createViewMode<
-  const TViewModes extends ReadonlyArray<{
-    value: string
-    icon?: string
-    text?: string
-  }>
->({
-  modes,
-  namespace,
-  persistInLocalStorage = true,
-  defaultValue,
-  useNuqs: syncWithUrl = true,
-  selectorProps: configSelectorProps,
-  contextMenuSelectorProps: configContextMenuSelectorProps
-}: CreateViewModeConfig<TViewModes>) {
-  const modeValues = modes.map(m => m.value)
-
-  const ModeContext = createContext<ViewModeState<
-    TViewModes[number]['value']
-  > | null>(null)
-
-  function useContext(): ViewModeState<TViewModes[number]['value']>
-  function useContext<T>(
-    selector: (state: ViewModeState<TViewModes[number]['value']>) => T
-  ): T
-  function useContext<T>(
-    selector?: (state: ViewModeState<TViewModes[number]['value']>) => T
-  ) {
-    const state = useReactContext(ModeContext)
-
-    if (!state) throw new Error('ViewMode.Root is required')
-
-    return selector ? selector(state) : state
+export function createViewMode<const T extends readonly Mode[]>(
+  config: Configuration<T>
+) {
+  type Value = T[number]['value']
+  const choices = config.modes.map(mode => mode.value) as Value[]
+  const Context = createContext<ViewModeState<Value> | null>(null)
+  function useContext(): ViewModeState<Value>
+  function useContext<R>(select: (state: ViewModeState<Value>) => R): R
+  function useContext<R>(select?: (state: ViewModeState<Value>) => R) {
+    const state = readContext(Context)
+    if (!state)
+      throw new Error('ViewMode.Root must wrap its controls and panels.')
+    return select ? select(state) : state
   }
-
-  function Root({
-    children,
-    currentMode: controlledMode,
-    onModeChange: controlledOnModeChange
-  }: ViewModeRootProps<TViewModes>) {
-    const { name: moduleName } = useModuleMetadata()
-
-    const storageKey = useMemo(() => {
-      if (!persistInLocalStorage) return null
-
-      const suffix =
-        persistInLocalStorage === true ? 'view-mode' : persistInLocalStorage
-
-      return `${moduleName}-${suffix}`
-    }, [moduleName])
-
-    let storedCandidate: string | null = null
-
-    try {
-      if (typeof window !== 'undefined' && storageKey)
-        storedCandidate = localStorage.getItem(storageKey)
-    } catch {
-      // Some browsers disable storage. URL and in-memory selection remain usable.
-    }
-
-    const effectiveDefault =
-      modeValues.find(value => value === storedCandidate) ?? defaultValue
-
-    const [currentMode, setCurrentMode] = useNuqsOrBasicState({
-      options: modeValues,
-      defaultValue: effectiveDefault,
-      useNuqs: syncWithUrl ? 'view' : false,
-      controlled: {
-        value: controlledMode ?? null,
-        setValue: controlledOnModeChange ?? null
-      }
-    })
-
-    useEffect(() => {
-      if (storageKey) {
-        try {
-          localStorage.setItem(storageKey, currentMode)
-        } catch {
-          // Storage is optional; selecting a view must still work.
-        }
-      }
-    }, [storageKey, currentMode])
-
+  function Root({ children, currentMode, onModeChange }: ViewModeRootProps<T>) {
+    const { name } = useModuleMetadata()
+    const persistence = config.persistInLocalStorage ?? true
+    const storageKey = persistence
+      ? (name ?? '') +
+        '-' +
+        (typeof persistence === 'string' ? persistence : 'view-mode')
+      : undefined
     return (
-      <ModeContext value={{ currentMode, setCurrentMode }}>
-        {children}
-      </ModeContext>
+      <ChoiceRoot
+        choices={choices}
+        initial={config.defaultValue}
+        value={currentMode}
+        onChange={onModeChange}
+        queryKey={config.useNuqs === false ? undefined : 'view'}
+        storageKey={storageKey}
+      >
+        {state => (
+          <Context
+            value={{ currentMode: state.value, setCurrentMode: state.change }}
+          >
+            {children}
+          </Context>
+        )}
+      </ChoiceRoot>
     )
   }
-
-  function When({
-    mode,
-    children
-  }: {
-    mode: TViewModes[number]['value']
-    children: React.ReactNode
-  }) {
-    const { currentMode } = useContext()
-
-    if (mode !== currentMode) {
-      return null
-    }
-
-    return <>{children}</>
+  function When({ mode, children }: { mode: Value; children: ReactNode }) {
+    return useContext(state => state.currentMode) === mode ? children : null
   }
-
-  function Selector(
-    props?: Omit<
-      React.ComponentProps<typeof ViewModeSelectorComponent>,
-      'modes' | 'currentMode' | 'onModeChange'
-    >
-  ) {
-    const { currentMode, setCurrentMode } = useContext()
-
+  function Selector(props: ButtonProps = {}) {
+    const state = useContext()
     const { t } = useModuleTranslation(
-      namespace === false ? [] : namespace ? [namespace] : []
+      config.namespace ? [config.namespace] : []
     )
-
-    const items = useMemo(
-      () =>
-        modes.map(mode => ({
-          ...mode,
-          text: namespace === false || !mode.text ? mode.text : t(mode.text)
-        })),
-      [t]
-    )
-
+    const modes = config.modes.map(mode => ({
+      ...mode,
+      text: config.namespace === false || !mode.text ? mode.text : t(mode.text)
+    }))
     return (
-      <ViewModeSelectorComponent
-        currentMode={currentMode}
-        modes={items as unknown as typeof modes}
-        onModeChange={setCurrentMode}
-        {...configSelectorProps}
+      <Buttons
+        {...config.selectorProps}
         {...props}
-      />
-    )
-  }
-
-  function ContextMenuSelector(
-    props?: Omit<
-      React.ComponentProps<typeof ViewModeContextMenuSelectorComponent>,
-      'modes' | 'currentMode' | 'onModeChange' | 'namespace'
-    >
-  ) {
-    const { currentMode, setCurrentMode } = useContext()
-
-    return (
-      <ViewModeContextMenuSelectorComponent
-        currentMode={currentMode}
         modes={modes}
-        namespace={namespace}
-        onModeChange={setCurrentMode}
-        {...configContextMenuSelectorProps}
-        {...props}
+        currentMode={state.currentMode}
+        onModeChange={state.setCurrentMode}
       />
     )
   }
-
+  function ContextMenuSelector(props: MenuProps = {}) {
+    const state = useContext()
+    return (
+      <Menu
+        {...config.contextMenuSelectorProps}
+        {...props}
+        namespace={
+          config.contextMenuSelectorProps?.namespace ?? config.namespace
+        }
+        modes={config.modes}
+        currentMode={state.currentMode}
+        onModeChange={state.setCurrentMode}
+      />
+    )
+  }
   return { Root, When, Selector, ContextMenuSelector, useContext }
 }
-
-export type { ViewModeContextMenuSelectorProps } from './components/ViewModeContextMenuSelector'
-
 export type { ViewModeSelectorProps } from './components/ViewModeSelector'
+export type { ViewModeContextMenuSelectorProps } from './components/ViewModeContextMenuSelector'

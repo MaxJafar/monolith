@@ -42,4 +42,6 @@ Review the [update guide](/docs/updates), test with your installed addons and ke
 
 ## Source and licenses
 
-The source repository, issues and releases are public on [GitHub](https://github.com/MaxJafar/monolith). The repository's LICENSE, third-party notices and package-specific licenses govern distribution and reuse. The Monolith mark and cover are project assets.
+Monolith’s current first-party source is open source under [0BSD](https://github.com/MaxJafar/monolith/blob/main/LICENSE), allowing use, modification and redistribution, including commercial use. The source repository, issues and releases are public on [GitHub](https://github.com/MaxJafar/monolith).
+
+Third-party dependencies and bundled assets retain their own licenses and notices. See [third-party notices](https://github.com/MaxJafar/monolith/blob/main/THIRD_PARTY_NOTICES.md) and [source provenance](https://github.com/MaxJafar/monolith/blob/main/legal/source-provenance.json). The license change applies to the replacement source on main; older release archives keep the licenses included with those archives. The Monolith mark and cover are original project assets.

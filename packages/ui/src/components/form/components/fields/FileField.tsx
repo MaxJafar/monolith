@@ -1,61 +1,34 @@
-import {
-  type Control,
-  type FieldPathByValue,
-  type FieldValues,
-  useController
-} from 'react-hook-form'
+// SPDX-License-Identifier: 0BSD
+import type { ComponentProps } from 'react'
+import type { FieldValues } from 'react-hook-form'
 
-import {
-  FileInput,
-  type FilePickerSourceConfig,
-  type FileValue
-} from '@/components/inputs'
+import { FileInput, type FileValue } from '@/components/inputs'
 
-import { useNamespace } from '../FormModal'
+import { type FieldBinding, useFieldBinding } from './binding'
 
-type FileFieldProps<TFieldValues extends FieldValues> = {
-  control: Control<TFieldValues>
-  name: FieldPathByValue<TFieldValues, FileValue | null | undefined>
-  icon: string
-  label: string
-  reminderText?: string
-  onChange?: (value: FileValue) => void
-  onFileRemove?: () => void
-  required?: boolean
-  namespace?: string | false
-  disabled?: boolean
-  sources?: FilePickerSourceConfig
-  mimeTypes?: Record<string, string[]>
-  errorMsg?: string
-}
-
-export function FileField<TFieldValues extends FieldValues>({
+export function FileField<Form extends FieldValues>({
   control,
   name,
-  namespace,
-  errorMsg,
   onChange,
-  ...rest
-}: FileFieldProps<TFieldValues>) {
-  const { field, fieldState } = useController({
-    control,
-    name
-  })
-
-  const contextNamespace = useNamespace()
-
-  const activeNamespace = namespace ?? contextNamespace
-
+  onFileRemove,
+  ...input
+}: FieldBinding<Form, FileValue> &
+  Omit<ComponentProps<typeof FileInput>, 'value' | 'onChange'> & {
+    onChange?: (value: FileValue) => void
+    onFileRemove?: () => void
+  }) {
+  const state = useFieldBinding(control, name, input.namespace)
   return (
     <FileInput
-      errorMsg={errorMsg ?? fieldState.error?.message}
-      namespace={activeNamespace}
-      value={field.value ?? { type: 'empty' }}
-      onChange={data => {
-        field.onChange(data)
-        onChange?.(data)
+      {...input}
+      namespace={state.namespace}
+      errorMsg={input.errorMsg ?? state.errorMsg}
+      value={state.value ?? { type: 'empty' }}
+      onChange={value => {
+        state.onChange(value)
+        if (value.type === 'empty') onFileRemove?.()
+        onChange?.(value)
       }}
-      {...rest}
     />
   )
 }

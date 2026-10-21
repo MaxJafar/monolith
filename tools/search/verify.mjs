@@ -212,8 +212,8 @@ try {
   )
     .png()
     .toBuffer()
-  const fileKey = 'monolith--idea-box/' + randomUUID() + '.png'
-  await fixture`insert into files(key,owner_id,original_name,mime_type,size,module_id) values(${fileKey},${actor},'Aurora visual.png','image/png',${image.length},'monolith--idea-box'),(${'monolith--idea-box/' + randomUUID() + '.png'},${other},'Private image.png','image/png',100,'monolith--idea-box')`
+  const fileKey = 'monolith--redraw/' + randomUUID() + '.png'
+  await fixture`insert into files(key,owner_id,original_name,mime_type,size,module_id) values(${fileKey},${actor},'Aurora visual.png','image/png',${image.length},'monolith--redraw'),(${'monolith--redraw/' + randomUUID() + '.png'},${other},'Private image.png','image/png',100,'monolith--redraw')`
   const { storageProvider } = await import('../../apps/api/src/core/storage.ts')
   const originalGet = storageProvider.get
   storageProvider.get = async key => {

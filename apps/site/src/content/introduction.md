@@ -31,7 +31,7 @@ Records keep their identities when they appear in another view. A database recor
 
 ## Add what fits
 
-**Addons** are optional tools with their own workspace surfaces, such as Atlas, Automations, Agents or Gym. **Widgets** are compact views you place on a dashboard or pin to the sidebar, such as Flashcards or Pomodoro.
+**Addons** are optional tools with their own workspace surfaces, such as Atlas, Automations, Agents or Gym. **Widgets** are compact views you place on a dashboard or pin to the sidebar, such as Calendar or Action agenda.
 
 The **Addons and Widgets** section separates installing a package on a host from enabling it in a workspace. The public [collection](/addons) explains each tool; installation happens inside your running Monolith app.
 

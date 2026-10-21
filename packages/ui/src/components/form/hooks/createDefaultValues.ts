@@ -1,70 +1,50 @@
-/**
- * ⚠️ WARNING
- *
- * Do not add business-specific defaults here.
- *
- * This utility only derives defaults from Zod types.
- *
- * Keep this utility dumb. Very dumb. Dumber than you think it should be.
- */
+// SPDX-License-Identifier: 0BSD
 import { z } from 'zod'
 
-export function createDefaultValues<TSchema extends z.ZodTypeAny>(
-  schema: TSchema
-): z.infer<TSchema> {
-  if (schema instanceof z.ZodOptional) {
-    return undefined as z.infer<TSchema>
-  }
-
-  if (schema instanceof z.ZodNullable) {
-    return null as z.infer<TSchema>
-  }
-
-  if (schema instanceof z.ZodDefault) {
-    return schema.def.defaultValue as z.infer<TSchema>
-  }
-
-  if (schema instanceof z.ZodPipe) {
-    return createDefaultValues(schema.in as z.ZodTypeAny) as z.infer<TSchema>
-  }
-
-  if (schema instanceof z.ZodReadonly || schema instanceof z.ZodLazy) {
-    return createDefaultValues(
-      schema.unwrap() as z.ZodTypeAny
-    ) as z.infer<TSchema>
-  }
-
-  if (schema instanceof z.ZodString) {
-    return '' as z.infer<TSchema>
-  }
-
-  if (schema instanceof z.ZodNumber) {
-    return 0 as z.infer<TSchema>
-  }
-
-  if (schema instanceof z.ZodBoolean) {
-    return false as z.infer<TSchema>
-  }
-
-  if (schema instanceof z.ZodArray) {
-    return [] as unknown as z.infer<TSchema>
-  }
-
-  if (schema instanceof z.ZodEnum) {
-    return schema.options[0] as z.infer<TSchema>
-  }
-
-  if (schema instanceof z.ZodObject) {
-    const shape = schema.shape
-
-    const objDefaults: Record<string, unknown> = {}
-
-    for (const key in shape) {
-      objDefaults[key] = createDefaultValues(shape[key])
+/** Build an editable draft without running validation or output transforms. */
+export function createDefaultValues<Schema extends z.ZodType>(
+  schema: Schema
+): z.infer<Schema> {
+  const visiting = new Set<z.ZodType>()
+  function draft(node: z.ZodType): unknown {
+    if (visiting.has(node)) return undefined
+    visiting.add(node)
+    try {
+      switch (node.def.type) {
+        case 'string':
+          return ''
+        case 'number':
+          return 0
+        case 'boolean':
+          return false
+        case 'array':
+          return []
+        case 'nullable':
+          return null
+        case 'default':
+          return (node as z.ZodDefault).def.defaultValue
+        case 'enum':
+          return (node as z.ZodEnum).options[0]
+        case 'object':
+          return Object.fromEntries(
+            Object.entries((node as z.ZodObject).shape).map(([name, child]) => [
+              name,
+              draft(child)
+            ])
+          )
+        case 'pipe':
+          return draft((node as z.ZodPipe).in as z.ZodType)
+        case 'readonly':
+        case 'lazy':
+          return draft(
+            (node as z.ZodReadonly | z.ZodLazy).unwrap() as z.ZodType
+          )
+        default:
+          return undefined
+      }
+    } finally {
+      visiting.delete(node)
     }
-
-    return objDefaults as z.infer<TSchema>
   }
-
-  return undefined as z.infer<TSchema>
+  return draft(schema) as z.infer<Schema>
 }

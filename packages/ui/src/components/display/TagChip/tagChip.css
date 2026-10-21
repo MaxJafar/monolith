@@ -1,0 +1,35 @@
+/* SPDX-License-Identifier: 0BSD */
+.monolith-tag-chip {
+  vertical-align: middle;
+  max-width: 100%;
+  transition: filter var(--motion-fast) var(--motion-ease);
+}
+button.monolith-tag-chip {
+  cursor: pointer;
+}
+button.monolith-tag-chip:hover {
+  filter: brightness(0.92);
+}
+.monolith-tag-chip:focus-visible,
+.monolith-tag-action:focus-visible {
+  outline: 2px solid var(--selection-color);
+  outline-offset: 2px;
+}
+.monolith-tag-action {
+  padding: 3px;
+  display: inline-flex;
+  color: var(--text-muted);
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.monolith-tag-action:hover {
+  background: var(--bg-lifted);
+  color: var(--text-primary);
+}
+@media (prefers-reduced-motion: reduce) {
+  .monolith-tag-chip {
+    transition: none;
+  }
+}

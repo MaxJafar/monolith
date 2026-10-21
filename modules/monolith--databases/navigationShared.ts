@@ -1,9 +1,11 @@
-import { appearanceIcon, appearanceSchema, canvasKey } from '@monolith/blocks'
 import z from 'zod'
+
+import { appearanceIcon, appearanceSchema, canvasKey } from '@monolith/blocks'
 
 export const coreAreas = [
   'calendar',
   'projects',
+  'journal',
   'actions',
   'docs',
   'dashboard',
@@ -16,6 +18,8 @@ export const coreAddonPaths = new Set([
   'todo-list',
   'actions',
   'notes',
+  'blog',
+  'journal',
   'docs',
   'databases'
 ])

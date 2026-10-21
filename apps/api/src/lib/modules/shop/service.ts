@@ -10,7 +10,8 @@ import {
   addonIdSchema,
   compareReleaseVersions,
   coreAddonIds,
-  releaseVersionSchema
+  releaseVersionSchema,
+  retiredAddonIds
 } from '@monolith/configs'
 import { ModuleRegistry } from '@monolith/module-runtime/registry'
 
@@ -84,7 +85,13 @@ export class AddonShop {
     const data = JSON.parse(saved) as State
     if (!data || typeof data !== 'object' || Array.isArray(data))
       throw Error('Invalid installed addon state')
+    let retired = false
     for (const [id, value] of Object.entries(data)) {
+      if (retiredAddonIds.has(id)) {
+        delete data[id]
+        retired = true
+        continue
+      }
       addonIdSchema.parse(id)
       if (!value || typeof value !== 'object')
         throw Error('Invalid installed addon state')
@@ -100,7 +107,7 @@ export class AddonShop {
         throw Error('Invalid installed addon state')
     }
     // An interrupted activation must never become the next boot's default.
-    let recovered = false
+    let recovered = retired
     for (const [id, value] of Object.entries(data))
       if (value.pending) {
         recovered = true
@@ -158,6 +165,9 @@ export class AddonShop {
     }
     if (bytes.length > 1024 * 1024) throw Error('Catalog is too large')
     const catalog = addonCatalogSchema.parse(JSON.parse(bytes.toString()))
+    catalog.releases = catalog.releases.filter(
+      entry => !retiredAddonIds.has(entry.id)
+    )
     if (
       catalog.releases.some(entry =>
         (coreAddonIds as readonly string[]).includes(entry.id)

@@ -1,0 +1,5 @@
+/* SPDX-License-Identifier: 0BSD */
+.monolith-otp input {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.45em;
+}

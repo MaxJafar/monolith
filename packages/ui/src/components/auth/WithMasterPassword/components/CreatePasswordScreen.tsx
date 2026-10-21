@@ -1,14 +1,19 @@
-import { useMutation } from '@tanstack/react-query'
+// SPDX-License-Identifier: 0BSD
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { encrypt } from '@monolith/api'
 import type { EndpointClient } from '@monolith/api'
 
 import { Button, TextInput } from '@/components/inputs'
-import { ConfirmationModal } from '@/components/overlays'
-import { Box, Flex, Icon, Text } from '@/components/primitives'
-import { toast, useModalStore } from '@/providers'
+import { Stack, Text } from '@/components/primitives'
+
+import { useCredentialAction } from '../../useCredentialAction'
+import {
+  generateVaultPassword,
+  passwordIssue,
+  protectPassword
+} from '../password'
+import { PasswordPanel } from './PasswordPanel'
 
 export function CreatePasswordScreen({
   controller,
@@ -19,127 +24,112 @@ export function CreatePasswordScreen({
   challengeController: EndpointClient
   onCreate?: (data: any) => void
 }) {
-  const { open } = useModalStore()
   const { t } = useTranslation('common.vault')
-  const [newPassword, setNewPassword] = useState<string>('')
-  const [confirmPassword, setConfirmPassword] = useState<string>('')
-
-  const createPasswordMutation = useMutation(
-    controller.mutationOptions({
-      onSuccess: data => {
-        onCreate?.(data)
-        window.location.reload()
-      },
-      onError: () => {
-        toast.error('Failed to create password')
-      }
-    })
-  )
-
-  function confirmAction(): void {
-    if (newPassword.trim() === '' || confirmPassword.trim() === '') {
-      toast.error(t('input.error.fieldEmpty'))
-
-      return
+  const [password, setPassword] = useState('')
+  const [confirmation, setConfirmation] = useState('')
+  const [review, setReview] = useState(false)
+  const [validation, setValidation] = useState('')
+  const action = useCredentialAction()
+  function proceed() {
+    const issue = passwordIssue(password, confirmation)
+    setValidation(issue ? t('vault.errors.' + issue) : '')
+    if (!issue) setReview(true)
+  }
+  function generate() {
+    try {
+      const value = generateVaultPassword()
+      setPassword(value)
+      setConfirmation(value)
+      setValidation('')
+    } catch {
+      setValidation(t('vault.errors.random'))
     }
-
-    if (newPassword.trim() !== confirmPassword.trim()) {
-      toast.error('Passwords do not match')
-
-      return
-    }
-
-    open(ConfirmationModal, {
-      title: t('vault.confirmSetNewPassword.title'),
-      description: t('vault.confirmSetNewPassword.desc'),
-      onConfirm: async () => {
-        const challenge = (await challengeController.query()) as string
-
-        await createPasswordMutation.mutateAsync({
-          password: encrypt(newPassword, challenge)
-        } as never)
-      }
+  }
+  async function save() {
+    if (passwordIssue(password, confirmation) || !review) return
+    await action.run(async active => {
+      const payload = await protectPassword(password, challengeController)
+      if (!active()) return
+      const result = await controller.mutate(payload as never)
+      if (!active()) return
+      setPassword('')
+      setConfirmation('')
+      onCreate?.(result)
+      window.location.reload()
     })
   }
-
-  function generateRandomPassword(): void {
-    const upperCase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-
-    const lowerCase = 'abcdefghijklmnopqrstuvwxyz'
-
-    const special = '!@#$%^&*()_+'
-
-    const numbers = '0123456789'
-
-    const all = upperCase + lowerCase + numbers + special
-
-    let password = ''
-
-    for (let i = 0; i < 12; i++) {
-      password += all[Math.floor(Math.random() * all.length)]
-    }
-    setNewPassword(password)
-    setConfirmPassword(password)
-
-    toast.success('Random password generated successfully')
-  }
-
   return (
-    <Flex
-      align="center"
-      direction="column"
-      gap="md"
-      height="100%"
-      justify="center"
-      width="100%"
+    <PasswordPanel
+      title={t('vault.createPassword.title')}
+      description={t('vault.createPassword.desc')}
+      icon="tabler:shield-lock"
     >
-      <Text asChild>
-        <Icon icon="tabler:lock-plus" size="7rem" />
-      </Text>
-      <Text size="4xl" weight="semibold">
-        {t('vault.createPassword.title')}
-      </Text>
-      <Text align="center" color="muted" mb="3xl" size="lg">
-        {t('vault.createPassword.desc')}
-      </Text>
-      <Box width={{ base: '100%', md: '50%' }}>
+      <Stack
+        as="form"
+        gap="md"
+        aria-busy={action.pending}
+        onSubmit={event => {
+          event.preventDefault()
+          if (review) void save()
+          else proceed()
+        }}
+      >
         <TextInput
-          key="newPassword"
           isPassword
-          actionButtonProps={{
-            icon: 'tabler:dice',
-            onClick: generateRandomPassword
-          }}
-          icon="tabler:lock"
+          autoComplete="new-password"
           label="vault.inputs.newPassword"
           namespace="common.vault"
-          placeholder="••••••••••••••••"
-          value={newPassword}
-          onChange={setNewPassword}
-        />
-      </Box>
-      <Box width={{ base: '100%', md: '50%' }}>
-        <TextInput
-          key="confirmPassword"
-          isPassword
-          icon="tabler:lock-check"
-          label="vault.inputs.confirmPassword"
-          namespace="common.vault"
-          placeholder="••••••••••••••••"
-          value={confirmPassword}
-          onChange={setConfirmPassword}
-          onKeyDown={e => {
-            if (e.key === 'Enter') {
-              confirmAction()
-            }
+          placeholder="••••••••"
+          value={password}
+          disabled={action.pending || review}
+          onChange={setPassword}
+          actionButtonProps={{
+            icon: 'tabler:dice',
+            'aria-label': t('vault.generate'),
+            onClick: generate
           }}
         />
-      </Box>
-      <Box mt="lg" width={{ base: '100%', md: '50%' }}>
-        <Button icon="tabler:check" width="100%" onClick={confirmAction}>
-          Submit
+        <TextInput
+          isPassword
+          autoComplete="new-password"
+          label="vault.inputs.confirmPassword"
+          namespace="common.vault"
+          placeholder="••••••••"
+          value={confirmation}
+          disabled={action.pending || review}
+          onChange={setConfirmation}
+        />
+        {validation && (
+          <Text role="alert" color="dangerous">
+            {validation}
+          </Text>
+        )}
+        {action.failed && (
+          <Text role="alert" color="dangerous">
+            {t('vault.errors.create')}
+          </Text>
+        )}
+        {review && (
+          <Text role="note">{t('vault.confirmSetNewPassword.desc')}</Text>
+        )}
+        {review && (
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={action.pending}
+            namespace="common.vault"
+            onClick={() => {
+              setReview(false)
+              action.clearError()
+            }}
+          >
+            vault.edit
+          </Button>
+        )}
+        <Button type="submit" loading={action.pending} namespace="common.vault">
+          {review ? 'vault.confirmCreate' : 'vault.review'}
         </Button>
-      </Box>
-    </Flex>
+      </Stack>
+    </PasswordPanel>
   )
 }

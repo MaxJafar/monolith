@@ -1,49 +1,47 @@
-import { type RelationsBuilder } from 'drizzle-orm'
-import {
-  boolean,
-  json,
-  jsonb,
-  pgTable,
-  real,
-  timestamp,
-  uuid,
-  varchar
-} from 'drizzle-orm/pg-core'
+// SPDX-License-Identifier: 0BSD
+import type { RelationsBuilder } from 'drizzle-orm'
+import { json, jsonb, pgTable, real } from 'drizzle-orm/pg-core'
 
 import type { CanvasPage } from '@monolith/blocks'
 
+import { flag, recordIdentity, storedText } from '../../core/schema/columns'
+
+const credentials = {
+  email: storedText('email').notNull().unique(),
+  username: storedText('username', 150).notNull().unique(),
+  auth_password_hash: storedText('auth_password_hash'),
+  twoFASecret: storedText('two_fa_secret'),
+  APIKeysMasterPasswordHash: storedText('api_keys_master_password_hash'),
+  verified: flag('verified')
+}
+const profile = {
+  name: storedText('name'),
+  avatar: storedText('avatar'),
+  dateOfBirth: storedText('date_of_birth', 50),
+  emailVisibility: flag('email_visibility')
+}
+const appearance = {
+  language: storedText('language', 50).default('en').notNull(),
+  theme: storedText('theme', 50).default('system').notNull(),
+  color: storedText('color', 50),
+  fontFamily: storedText('font_family'),
+  fontScale: real('font_scale').default(1).notNull(),
+  borderRadiusMultiplier: real('border_radius_multiplier').default(1).notNull(),
+  bordered: flag('bordered'),
+  bgImage: storedText('bg_image'),
+  bgTemp: storedText('bg_temp'),
+  backdropFilters: json('backdrop_filters').$type<Record<string, unknown>>()
+}
 export const users = pgTable('users', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  email: varchar('email', { length: 255 }).notNull().unique(),
-  emailVisibility: boolean('email_visibility').default(false).notNull(),
-  verified: boolean('verified').default(false).notNull(),
-  username: varchar('username', { length: 150 }).notNull().unique(),
-  name: varchar('name', { length: 255 }),
-  avatar: varchar('avatar', { length: 255 }),
-  dateOfBirth: varchar('date_of_birth', { length: 50 }),
-  theme: varchar('theme', { length: 50 }).default('system').notNull(),
-  color: varchar('color', { length: 50 }),
-  bgTemp: varchar('bg_temp', { length: 255 }),
-  bgImage: varchar('bg_image', { length: 255 }),
-  backdropFilters: json('backdrop_filters').$type<Record<string, unknown>>(),
-  fontFamily: varchar('font_family', { length: 255 }),
+  ...recordIdentity(),
+  ...credentials,
+  ...profile,
+  ...appearance,
   dashboardLayout: json('dashboard_layout').$type<Record<string, unknown>>(),
-  workspacePages: jsonb('workspace_pages').$type<Record<string,CanvasPage>>().notNull().default({}),
-  APIKeysMasterPasswordHash: varchar('api_keys_master_password_hash', {
-    length: 255
-  }),
-  twoFASecret: varchar('two_fa_secret', { length: 255 }),
-  fontScale: real('font_scale').default(1.0).notNull(),
-  borderRadiusMultiplier: real('border_radius_multiplier')
-    .default(1.0)
-    .notNull(),
-  bordered: boolean('bordered').default(false).notNull(),
-  language: varchar('language', { length: 50 }).default('en').notNull(),
-  auth_password_hash: varchar('auth_password_hash', { length: 255 }),
-  created: timestamp('created', { mode: 'date' }).defaultNow().notNull(),
-  updated: timestamp('updated', { mode: 'date' }).defaultNow().notNull()
+  workspacePages: jsonb('workspace_pages')
+    .$type<Record<string, CanvasPage>>()
+    .notNull()
+    .default({})
 })
-
 export const tables = { users }
-
-export const relations = (_r: RelationsBuilder<typeof tables>) => ({})
+export const relations = (_builder: RelationsBuilder<typeof tables>) => ({})

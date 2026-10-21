@@ -1,6 +1,7 @@
+import { sql } from 'drizzle-orm'
+
 import { contentText } from '@monolith/blocks'
 import { ClientError, canonicalBodies } from '@monolith/server-utils'
-import { sql } from 'drizzle-orm'
 
 import type { db as database } from '../../core/drizzle'
 import { type Source, digest, limits } from './retrieval'
@@ -22,154 +23,16 @@ type Adapter = {
 // credentials, settings, agent snapshots, push endpoints, or arbitrary tables.
 export const adapters: Adapter[] = [
   {
-    table: 'notes__entries',
-    module: 'notes',
-    title: 'name',
-    fields: ['content']
-  },
-  {
-    table: 'todo_list__entries',
-    module: 'todo-list',
-    title: 'summary',
-    fields: ['notes', 'done', 'due_date']
-  },
-  {
     table: 'projects__entries',
-    module: 'projects',
+    module: 'agents',
     title: 'name',
     fields: ['description']
   },
   {
     table: 'projects__tasks',
-    module: 'projects',
+    module: 'agents',
     title: 'title',
-    fields: ['content', 'done']
-  },
-  {
-    table: 'calendar__events',
-    module: 'calendar',
-    title: 'title',
-    fields: ['description']
-  },
-  {
-    table: 'blog__entries',
-    module: 'blog',
-    title: 'title',
-    fields: ['content']
-  },
-  {
-    table: 'achievements__entries',
-    module: 'achievements',
-    title: 'title',
-    fields: ['thoughts', 'achieved_on']
-  },
-  {
-    table: 'achievements__categories',
-    module: 'achievements',
-    title: 'name',
-    fields: []
-  },
-  {
-    table: 'flashcards__decks',
-    module: 'flashcards',
-    title: 'name',
-    fields: ['description']
-  },
-  {
-    table: 'flashcards__cards',
-    module: 'flashcards',
-    title: 'question',
-    fields: ['answer']
-  },
-  {
-    table: 'wishlist__lists',
-    module: 'wishlist',
-    title: 'name',
-    fields: ['description']
-  },
-  {
-    table: 'wishlist__entries',
-    module: 'wishlist',
-    title: 'name',
-    fields: ['url', 'price', 'notes']
-  },
-  {
-    table: 'idea_box__containers',
-    module: 'idea-box',
-    title: 'name',
-    fields: []
-  },
-  { table: 'idea_box__folders', module: 'idea-box', title: 'name', fields: [] },
-  {
-    table: 'idea_box__entries_text',
-    module: 'idea-box',
-    title: 'content',
-    fields: [],
-    key: 'base_entry'
-  },
-  {
-    table: 'idea_box__entries_link',
-    module: 'idea-box',
-    title: 'link',
-    fields: [],
-    key: 'base_entry'
-  },
-  {
-    table: 'pomodoro_timer__sessions',
-    module: 'pomodoro-timer',
-    title: 'name',
-    fields: ['duration', 'created']
-  },
-  {
-    table: 'code_time__daily_entries',
-    module: 'code-time',
-    title: 'date',
-    fields: ['projects', 'languages', 'relative_files', 'total_minutes']
-  },
-  {
-    table: 'wallet__assets',
-    module: 'wallet',
-    title: 'name',
-    fields: ['starting_balance', 'is_liability']
-  },
-  { table: 'wallet__ledgers', module: 'wallet', title: 'name', fields: [] },
-  {
-    table: 'wallet__categories',
-    module: 'wallet',
-    title: 'name',
-    fields: ['type']
-  },
-  { table: 'wallet__platforms', module: 'wallet', title: 'name', fields: [] },
-  {
-    table: 'wallet__budgets',
-    module: 'wallet',
-    title: 'month',
-    fields: ['year', 'amount', 'rollover_enabled']
-  },
-  {
-    table: 'wallet__transactions_income_expenses',
-    module: 'wallet',
-    title: 'particulars',
-    fields: ['type', 'location_name'],
-    key: 'base_transaction'
-  },
-  {
-    table: 'wallet__transactions',
-    module: 'wallet',
-    title: 'type',
-    fields: ['amount', 'date']
-  },
-  {
-    table: 'wallet__savings_goals',
-    module: 'wallet',
-    title: 'name',
-    fields: ['target_amount', 'current_amount', 'target_date']
-  },
-  {
-    table: 'wallet__transaction_templates',
-    module: 'wallet',
-    title: 'name',
-    fields: ['particulars', 'amount']
+    fields: ['content', 'completed']
   },
   {
     table: 'zillion_agents__playbooks',
@@ -363,20 +226,12 @@ export async function collectSources(
           left join zillion_databases__record_sources s on s.record_id=r.id and s.owner_id=r.owner_id
           where b.workspace_id=${w.id} and b.owner_id=${w.owner_id} and r.owner_id=${w.owner_id} limit ${limits.sources + 1}`)
         const nativeModules: Record<string, string> = {
-          todo: 'todo-list',
-          'project-task': 'projects',
-          project: 'projects',
-          note: 'notes',
-          event: 'calendar',
-          post: 'blog'
+          project: 'agents',
+          'project-task': 'agents'
         }
         const nativeTables: Record<string, string> = {
-          todo: 'todo_list__entries',
-          'project-task': 'projects__tasks',
           project: 'projects__entries',
-          note: 'notes__entries',
-          event: 'calendar__events',
-          post: 'blog__entries'
+          'project-task': 'projects__tasks'
         }
 
         for (const r of rows) {
@@ -483,9 +338,6 @@ export async function collectSources(
 
       for (const r of rows) {
         if (bridged.has(`${adapter.table}:${r.id}`)) continue
-
-        if (adapter.table === 'notes__entries' && canonical.has(`note:${r.id}`))
-          r.content = canonical.get(`note:${r.id}`)!.content
 
         const title = plain(r[adapter.title])
         add({

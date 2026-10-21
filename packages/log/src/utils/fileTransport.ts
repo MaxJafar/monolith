@@ -1,42 +1,68 @@
+// SPDX-License-Identifier: 0BSD
 import { mkdirSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { type RotatingFileStream, createStream } from 'rotating-file-stream'
 
-import { type FileOptions, getConfig } from './config'
+import { type FileOptions, getConfig, positiveInteger } from './config'
 
-const destinations = new Map<string, RotatingFileStream>()
+type Destination = {
+  path: string
+  size: string
+  maxFiles: number
+}
+type OpenFile = { settings: Destination; stream: RotatingFileStream }
+const openFiles = new Set<OpenFile>()
 
-export function getFileStream(options: FileOptions = {}): RotatingFileStream {
+function settingsFor(options: FileOptions): Destination {
   const defaults = getConfig()
-  const directory = resolve(options.directory || defaults.directory)
-  const retention = options.retention ?? defaults.retention
-  const size = options.maxSize || '10M'
-  const key = JSON.stringify([directory, retention, size])
-  const existing = destinations.get(key)
-  if (existing && !existing.destroyed) return existing
-  mkdirSync(directory, { recursive: true })
-  const stream = createStream(
-    (time, index) => {
-      if (!time) return 'monolith.log'
-      const date = new Date(time).toISOString().slice(0, 10)
-      return `monolith-${date}${index ? '-' + index : ''}.log`
-    },
-    {
-      path: directory,
-      size,
-      interval: '1d',
-      maxFiles: retention,
-      compress: 'gzip'
+  return {
+    path: resolve(options.directory || defaults.directory),
+    size: options.maxSize || '10M',
+    maxFiles: positiveInteger(options.retention, defaults.retention)
+  }
+}
+function archiveName(date: Date | number, sequence?: number): string {
+  if (!date) return 'monolith.log'
+  const day = new Date(date).toISOString().substring(0, 10)
+  return ['monolith', day, ...(sequence ? [sequence] : [])].join('-') + '.log'
+}
+function usable(file: OpenFile) {
+  return !file.stream.destroyed && !file.stream.writableEnded
+}
+export function getFileStream(options: FileOptions = {}): RotatingFileStream {
+  const settings = settingsFor(options)
+  for (const candidate of openFiles) {
+    if (!usable(candidate)) {
+      openFiles.delete(candidate)
+      continue
     }
-  )
-  destinations.set(key, stream)
-  stream.once('close', () => {
-    if (destinations.get(key) === stream) destinations.delete(key)
+    if (
+      Object.keys(settings).every(key => {
+        const field = key as keyof Destination
+        return candidate.settings[field] === settings[field]
+      })
+    )
+      return candidate.stream
+  }
+  mkdirSync(settings.path, { recursive: true })
+  const stream = createStream(archiveName, {
+    ...settings,
+    interval: '1d',
+    compress: 'gzip'
   })
+  const opened = { settings, stream }
+  openFiles.add(opened)
+  const release = () => {
+    openFiles.delete(opened)
+  }
+  stream.once('finish', release)
+  stream.once('close', release)
   return stream
 }
-
 export function closeFileStream(): void {
-  for (const stream of destinations.values()) stream.end()
-  destinations.clear()
+  const closing = Array.from(openFiles)
+  openFiles.clear()
+  for (const { stream } of closing) {
+    if (!stream.destroyed && !stream.writableEnded) stream.end()
+  }
 }

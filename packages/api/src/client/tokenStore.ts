@@ -1,22 +1,20 @@
-let accessToken: string | null = null
-const listeners = new Set<() => void>()
-export function subscribeAccessToken(listener: () => void) {
-  listeners.add(listener)
+// SPDX-License-Identifier: 0BSD
+const session = { token: null as string | null, revision: 0 }
+const subscribers = new Set<() => void>()
+
+function publish(token: string | null): void {
+  session.token = token
+  session.revision += 1
+  for (const notify of [...subscribers]) notify()
+}
+
+export const getAccessToken = (): string | null => session.token
+export const getAccessTokenRevision = (): number => session.revision
+export const setAccessToken = (token: string): void => publish(token)
+export const clearAccessToken = (): void => publish(null)
+export function subscribeAccessToken(notify: () => void): () => void {
+  subscribers.add(notify)
   return () => {
-    listeners.delete(listener)
+    subscribers.delete(notify)
   }
-}
-
-export function setAccessToken(token: string): void {
-  accessToken = token
-  for (const listener of listeners) listener()
-}
-
-export function getAccessToken(): string | null {
-  return accessToken
-}
-
-export function clearAccessToken(): void {
-  accessToken = null
-  for (const listener of listeners) listener()
 }

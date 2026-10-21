@@ -1,41 +1,24 @@
-name: ✨ Feature Request
-description: Suggest an idea for this project
-title: '[Feature]: '
-labels: ['enhancement']
-type: feature
+name: Propose a Monolith improvement
+description: Explain a workflow the product could support better.
+title: "[Idea] "
+labels: [enhancement]
 body:
-  - type: markdown
-    attributes:
-      value: |
-        Thanks for suggesting a new feature!
-
   - type: textarea
-    id: problem
+    id: workflow
     attributes:
-      label: Is your feature request related to a problem?
-      description: A clear and concise description of what the problem is.
-      placeholder: I'm always frustrated when [...]
-    validations:
-      required: false
-
-  - type: textarea
-    id: solution
-    attributes:
-      label: Describe the solution you'd like
-      description: A clear and concise description of what you want to happen.
+      label: Your workflow
+      description: What are you trying to accomplish, and where do you get stuck?
     validations:
       required: true
-
   - type: textarea
-    id: alternatives
+    id: outcome
     attributes:
-      label: Describe alternatives you've considered
-      description: A clear and concise description of any alternative solutions or features you've considered.
+      label: Desired behavior
+      description: Describe a concrete example of the experience you want.
     validations:
-      required: false
-
+      required: true
   - type: textarea
     id: context
     attributes:
-      label: Additional context
-      description: Add any other context or screenshots about the feature request here.
+      label: Related features or constraints
+      description: Mention affected clients, addon interactions, or other details that would help evaluate the proposal.

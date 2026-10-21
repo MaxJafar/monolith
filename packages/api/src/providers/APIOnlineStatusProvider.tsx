@@ -1,84 +1,60 @@
+// SPDX-License-Identifier: 0BSD
 import {
+  type ReactNode,
   createContext,
   useCallback,
   useContext,
-  useEffect,
+  useMemo,
   useState
 } from 'react'
 
 import { useAPIEndpoint } from './APIEndpointProvider'
-import { checkAPIStatus } from './apiStatus'
+import { type ServerEnvironment, checkAPIStatus } from './apiStatus'
+import { useConnectionProbe } from './useConnectionProbe'
 
-interface IAPIOnlineStatus {
+interface OnlineState {
   isOnline: boolean | 'loading'
   environment: {
-    server: 'production' | 'development' | null
-    client: 'production' | 'development' | null
+    server: ServerEnvironment | null
+    client: ServerEnvironment | null
   }
-  retry: () => void
+  retry(): void
 }
-
-const APIOnlineStatusContext = createContext<IAPIOnlineStatus | undefined>(
-  undefined
-)
+const OnlineContext = createContext<OnlineState | undefined>(undefined)
 
 export function APIOnlineStatusProvider({
-  clientEnvironment,
-  children
+  children,
+  clientEnvironment
 }: {
-  clientEnvironment: 'production' | 'development' | null
-  children: React.ReactNode
+  children: ReactNode
+  clientEnvironment: ServerEnvironment | null
 }) {
-  const apiEndpoint = useAPIEndpoint()
-  const [isOnline, setIsOnline] = useState<boolean | 'loading'>('loading')
-
-  const [environment, setEnvironment] = useState<
-    'production' | 'development' | null
-  >(null)
-
+  const endpoint = useAPIEndpoint()
   const [attempt, setAttempt] = useState(0)
-
-  const handleRetry = useCallback(() => {
-    setAttempt(current => current + 1)
-  }, [])
-  useEffect(() => {
-    let active = true
-    setIsOnline('loading')
-    void checkAPIStatus(apiEndpoint).then(status => {
-      if (!active) return
-      setEnvironment(status === false ? null : status)
-      setIsOnline(status !== false)
-    })
-
-    return () => {
-      active = false
-    }
-  }, [apiEndpoint, attempt])
-
-  return (
-    <APIOnlineStatusContext
-      value={{
-        isOnline,
-        environment: {
-          server: environment,
-          client: clientEnvironment
-        },
-        retry: handleRetry
-      }}
-    >
-      {children}
-    </APIOnlineStatusContext>
+  const result = useConnectionProbe(endpoint, checkAPIStatus, attempt)
+  const retry = useCallback(() => setAttempt(value => value + 1), [])
+  const value = useMemo<OnlineState>(
+    () => ({
+      isOnline:
+        result.state === 'pending'
+          ? 'loading'
+          : result.state === 'ready' && result.value !== false,
+      environment: {
+        server:
+          result.state === 'ready' && result.value !== false
+            ? result.value
+            : null,
+        client: clientEnvironment
+      },
+      retry
+    }),
+    [result, clientEnvironment, retry]
   )
+  return <OnlineContext value={value}>{children}</OnlineContext>
 }
-
-export function useAPIOnlineStatus(): IAPIOnlineStatus {
-  const context = useContext(APIOnlineStatusContext)
-
-  if (context === undefined) {
-    throw new Error(
-      'useAPIOnlineStatus must be used within a APIOnlineStatusProvider'
-    )
-  }
-
-  return context
+export function useAPIOnlineStatus(): OnlineState {
+  const state = useContext(OnlineContext)
+  if (!state)
+    throw new Error('useAPIOnlineStatus requires an APIOnlineStatusProvider')
+  return state
 }

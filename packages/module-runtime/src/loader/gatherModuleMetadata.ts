@@ -1,168 +1,96 @@
-import { execSync } from 'child_process'
-import fs from 'fs'
-import path from 'path'
+// SPDX-License-Identifier: 0BSD
+import { execFileSync } from 'node:child_process'
+import { readFile, readdir, stat } from 'node:fs/promises'
+import { basename, join } from 'node:path'
 
 import {
   type ModuleBundledMetadata,
   type ModuleEntry,
-  type ModuleWidget,
   moduleBundledMetadataSchema
 } from '@monolith/configs'
 import { resolveAddonIdentity } from '@monolith/configs/node'
 
 import { loaderLogger } from './logger'
 
-/**
- * Resolves a module's complete metadata from its bundle. In production this is
- * read from the build artifact (`client/dist/monolith-manifest.json`); otherwise
- * it is extracted live from source using the shared extractor.
- *
- * Returns `null` when the metadata cannot be resolved (a module is rejected).
- */
-async function resolveBundledMetadata(
-  moduleDir: string,
-  displayName: string,
-  isProduction: boolean
-): Promise<ModuleBundledMetadata | null> {
-  if (!isProduction) {
+async function metadataAt(
+  root: string,
+  production: boolean
+): Promise<ModuleBundledMetadata> {
+  if (!production) {
     const { extractModuleMetadata } = await import('@monolith/configs/metadata')
-
-    return extractModuleMetadata(moduleDir)
+    return extractModuleMetadata(root)
   }
-
-  const bundledPath = path.join(
-    moduleDir,
-    'client',
-    'dist',
-    'monolith-manifest.json'
+  const manifest = await readFile(
+    join(root, 'client/dist/monolith-manifest.json'),
+    'utf8'
   )
+  const metadata = moduleBundledMetadataSchema.parse(JSON.parse(manifest))
+  const entry = join(root, 'client/dist/remoteEntry.js')
+  if (!(await stat(entry)).size) throw new Error('The client entry is empty')
+  // Argument-array execution keeps module paths out of shell interpretation.
+  execFileSync(process.execPath, ['--check', entry], {
+    stdio: 'pipe',
+    timeout: 15000
+  })
+  return metadata
+}
 
-  if (!fs.existsSync(bundledPath)) {
-    loaderLogger.error(
-      `Skipping module ${displayName}: missing client/dist/monolith-manifest.json. Rebuild or reinstall the module.`
-    )
-
-    return null
-  }
-
+async function languagesAt(root: string) {
   try {
-    return moduleBundledMetadataSchema.parse(
-      JSON.parse(fs.readFileSync(bundledPath, 'utf-8'))
-    )
+    const files = await readdir(join(root, 'locales'), { withFileTypes: true })
+    return files
+      .filter(
+        file =>
+          file.isFile() && /^[a-z]{2,3}(?:-[A-Z]{2,3})?\.json$/.test(file.name)
+      )
+      .map(file => file.name.slice(0, -5))
+      .sort()
   } catch (error) {
-    loaderLogger.error(
-      `Skipping module ${displayName}: invalid monolith-manifest.json - ${error}`
-    )
-
-    return null
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return []
+    throw error
   }
 }
 
-/**
- * Reads a module's bundle metadata and file structure to gather its entry
- * (module id, supported languages, widgets, provider info, etc.).
- *
- * @param moduleDir - Absolute path to the module directory.
- * @param isProduction - Whether the server is running in production.
- * @returns Module entry with server route flag, or `null` if the module is invalid.
- */
 export default async function gatherModuleMetadata(
   moduleDir: string,
   isProduction: boolean
 ): Promise<(ModuleEntry & { hasServerRoutes: boolean }) | null> {
-  const modDir = path.basename(moduleDir)
-
   try {
-    const bundledMetadata = await resolveBundledMetadata(
-      moduleDir,
-      modDir,
-      isProduction
-    )
-
-    if (!bundledMetadata) {
-      return null
-    }
-
-    const { package: packageJSON } = bundledMetadata
-
-    const { id, remoteId } = resolveAddonIdentity(packageJSON)
-
-    const localesPath = path.join(moduleDir, 'locales')
-    const supportedLangs =
-      fs.existsSync(localesPath) && fs.statSync(localesPath).isDirectory()
-        ? fs
-            .readdirSync(localesPath)
-            .filter(file => /^[a-z]{2,3}(-[A-Z]{2,3})?\.json$/.test(file))
-            .map(file => file.substring(0, file.length - 5))
-        : []
-
-    // In production the client federation bundle must be present and valid.
-    // (In development, modules are served from source instead.)
-    if (isProduction) {
-      const clientDistPath = path.join(
-        moduleDir,
-        'client',
-        'dist',
-        'remoteEntry.js'
-      )
-
-      let isValidDist = false
-
-      if (
-        fs.existsSync(clientDistPath) &&
-        fs.statSync(clientDistPath).size > 0
-      ) {
-        try {
-          execSync(`node --check "${clientDistPath}"`, { stdio: 'ignore' })
-          isValidDist = true
-        } catch {
-          // syntax/check error
-        }
-      }
-
-      if (!isValidDist) {
-        loaderLogger.error(
-          `Skipping module ${packageJSON.displayName}: client/dist/remoteEntry.js is missing or invalid. Rebuild the module.`
-        )
-
-        return null
-      }
-    }
-
-    const widgets: ModuleWidget[] = bundledMetadata.widgets.map(widget => ({
-      id: widget.id,
-      icon: widget.icon,
-      minW: widget.minW,
-      minH: widget.minH,
-      maxW: widget.maxW,
-      maxH: widget.maxH,
-      moduleName: packageJSON.name,
-      componentName: widget.componentName
-    }))
-
+    const metadata = await metadataAt(moduleDir, isProduction)
+    const pkg = metadata.package
+    const identity = resolveAddonIdentity(pkg)
+    const info = pkg.monolith
     return {
-      id,
-      remoteId,
-      name: packageJSON.name,
-      displayName: packageJSON.displayName,
-      version: packageJSON.version,
-      description: packageJSON.description,
-      author: packageJSON.author,
-      icon: packageJSON.monolith.icon,
-      category: packageJSON.monolith.category,
-      experience: packageJSON.monolith.experience,
-      supportedLangs,
-      remoteEntryUrl: `/modules/${id}/remoteEntry.js?v=${packageJSON.version}`,
-      APIKeyAccess: packageJSON.monolith.APIKeyAccess,
-      subsection: bundledMetadata.subsection,
-      hasProvider: bundledMetadata.hasProvider,
-      hidden: bundledMetadata.hidden,
-      widgets,
-      hasServerRoutes: bundledMetadata.hasServer
+      ...identity,
+      name: pkg.name,
+      displayName: pkg.displayName,
+      version: pkg.version,
+      description: pkg.description,
+      author: pkg.author,
+      icon: info.icon,
+      category: info.category,
+      experience: info.experience,
+      APIKeyAccess: info.APIKeyAccess,
+      supportedLangs: await languagesAt(moduleDir),
+      remoteEntryUrl:
+        '/modules/' +
+        identity.id +
+        '/remoteEntry.js?v=' +
+        encodeURIComponent(pkg.version),
+      subsection: metadata.subsection,
+      hasProvider: metadata.hasProvider,
+      hidden: metadata.hidden,
+      widgets: metadata.widgets.map(widget => ({
+        ...widget,
+        moduleName: pkg.name
+      })),
+      hasServerRoutes: metadata.hasServer
     }
   } catch (error) {
-    loaderLogger.error(`Failed to process module ${modDir}: ${error}`)
-
+    loaderLogger.error(
+      'Cannot load add-on metadata for ' + basename(moduleDir),
+      { error: String(error) }
+    )
     return null
   }
 }

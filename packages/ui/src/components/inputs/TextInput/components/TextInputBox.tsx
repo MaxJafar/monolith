@@ -1,4 +1,5 @@
-import clsx from 'clsx'
+// SPDX-License-Identifier: 0BSD
+import { type InputHTMLAttributes, type RefObject, useMemo } from 'react'
 
 import { Placeholder } from '@/components/inputs/shared/components/Placeholder'
 import { autoFocusableRef } from '@/components/inputs/shared/utils/autoFocusableRef'
@@ -6,93 +7,76 @@ import { autoFocusableRef } from '@/components/inputs/shared/utils/autoFocusable
 import type { InputSize, InputVariant } from '../../shared/types'
 import { textInputBoxRecipe } from './TextInputBox.css'
 
+type NativeAttributes = Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  'value' | 'onChange' | 'size'
+>
 export function TextInputBox({
   value,
   onChange,
   onRawChange,
-  isPassword = false,
-  inputMode,
-  showPassword,
-  placeholder,
   inputRef,
-  disabled = false,
-  className = '',
-  autoFocus = false,
+  isPassword,
+  showPassword,
   variant = 'classic',
   size = 'default',
+  autoFocus = false,
   onEnter,
   onKeyDown,
-  ...inputProps
-}: {
+  className,
+  style,
+  ...attributes
+}: NativeAttributes & {
   value: string
   onChange: (value: string) => void
-  onRawChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
+  onRawChange?: InputHTMLAttributes<HTMLInputElement>['onChange']
+  inputRef?: RefObject<HTMLInputElement | null>
   isPassword?: boolean
-  inputMode?:
-    | 'none'
-    | 'text'
-    | 'tel'
-    | 'url'
-    | 'email'
-    | 'numeric'
-    | 'decimal'
-    | 'search'
-    | undefined
   showPassword?: boolean
-  placeholder: string
-  inputRef?: React.RefObject<HTMLInputElement | null>
-  autoFocus?: boolean
-  disabled?: boolean
-  className?: string
   variant?: InputVariant
   size?: InputSize
   onEnter?: () => void
-} & Omit<React.HTMLAttributes<HTMLInputElement>, 'value' | 'onChange'>) {
-  const inputClassName = textInputBoxRecipe({
-    variant,
-    size: variant === 'plain' ? size : undefined
-  })
-
+}) {
+  const focusRef = useMemo(
+    () => autoFocusableRef(autoFocus, inputRef),
+    [autoFocus, inputRef]
+  )
+  const classes = [textInputBoxRecipe({ variant, size }), className]
+    .filter(Boolean)
+    .join(' ')
   return (
-    <>
-      {isPassword && (
-        <input hidden type="password" value="" onChange={() => {}} />
-      )}
-      <Placeholder
-        color={variant === 'classic' ? 'transparent' : 'default'}
-        focusColor="default"
-      >
-        <input
-          ref={autoFocusableRef(autoFocus, inputRef)}
-          aria-label={placeholder}
-          autoComplete="off"
-          className={clsx(inputClassName, className)}
-          disabled={disabled}
-          inputMode={inputMode}
-          placeholder={placeholder}
-          style={
-            isPassword && showPassword !== true ? { fontFamily: 'Arial' } : {}
-          }
-          type={isPassword && showPassword !== true ? 'password' : 'text'}
-          value={value}
-          onChange={e => {
-            if (onRawChange) {
-              onRawChange(e)
-            }
-            onChange(e.target.value)
-          }}
-          onKeyDown={e => {
-            if (e.key === 'Enter' && onEnter) {
-              onEnter()
-            }
-
-            if (onKeyDown) {
-              onKeyDown(e)
-            }
-          }}
-          {...inputProps}
-        />
-      </Placeholder>
-    </>
+    <Placeholder
+      color={variant === 'classic' ? 'transparent' : 'default'}
+      focusColor="default"
+    >
+      <input
+        autoComplete="off"
+        {...attributes}
+        className={classes}
+        style={style}
+        ref={focusRef}
+        value={value}
+        type={
+          isPassword
+            ? showPassword
+              ? 'text'
+              : 'password'
+            : (attributes.type ?? 'text')
+        }
+        onChange={event => {
+          onRawChange?.(event)
+          onChange(event.currentTarget.value)
+        }}
+        onKeyDown={event => {
+          onKeyDown?.(event)
+          if (
+            event.key === 'Enter' &&
+            !event.defaultPrevented &&
+            !event.nativeEvent.isComposing
+          )
+            onEnter?.()
+        }}
+      />
+    </Placeholder>
   )
 }

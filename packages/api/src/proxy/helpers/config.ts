@@ -1,79 +1,56 @@
-import z from 'zod'
+// SPDX-License-Identifier: 0BSD
+import { z } from 'zod'
 
 import { GetGoogleFontResponseSchema } from '../../types/fonts'
 import type { UntypedEndpointType } from '../../types/proxy'
 import type { EndpointClient } from '../endpointClient'
 
-/**
- * Configuration map for core server helper methods.
- *
- * These helpers provide convenient access to frequently-used core server endpoints
- * (like API key checking, CORS proxy, Google Fonts) without needing the full route path.
- *
- * Available on all workspaceAPI client instances regardless of the current path.
- */
+function helper<Input extends z.ZodType, Output extends z.ZodType>(
+  path: string,
+  input: Input,
+  output: Output
+) {
+  return { path, schema: { input, output } }
+}
+
 export const CORE_HELPERS = {
-  checkAPIKeys: {
-    path: 'apiKeys/entries/checkKeys',
-    schema: {
-      input: z.object({ keys: z.string() }),
-      output: z.boolean()
-    }
-  },
-  getAPIKeys: {
-    path: 'apiKeys/entries/get',
-    schema: {
-      input: z.object({ keyId: z.string() }),
-      output: z.string()
-    }
-  },
-  checkModuleAvailability: {
-    path: 'modules/checkModuleAvailability',
-    schema: {
-      input: z.object({ id: z.string() }),
-      output: z.boolean()
-    }
-  },
-  corsAnywhere: {
-    path: 'corsAnywhere',
-    schema: {
-      input: z.object({ url: z.string() }),
-      output: z.string()
-    }
-  },
-  getGoogleFont: {
-    path: 'fonts/google/get',
-    schema: {
-      input: z.object({ family: z.string() }),
-      output: GetGoogleFontResponseSchema
-    }
-  }
-} as const
-
-/** Union type of all available core helper names */
+  checkAPIKeys: helper(
+    'apiKeys/entries/checkKeys',
+    z.object({ keys: z.string() }),
+    z.boolean()
+  ),
+  getAPIKeys: helper(
+    'apiKeys/entries/get',
+    z.object({ keyId: z.string() }),
+    z.string()
+  ),
+  checkModuleAvailability: helper(
+    'modules/checkModuleAvailability',
+    z.object({ id: z.string() }),
+    z.boolean()
+  ),
+  corsAnywhere: helper(
+    'corsAnywhere',
+    z.object({ url: z.string() }),
+    z.string()
+  ),
+  getGoogleFont: helper(
+    'fonts/google/get',
+    z.object({ family: z.string() }),
+    GetGoogleFontResponseSchema
+  )
+}
 export type CoreHelperName = keyof typeof CORE_HELPERS
-
-/**
- * Mapped type that generates the correct function signature for each core helper.
- *
- * Each helper is a function that takes the schema input and returns a EndpointClient
- * configured for that specific core server route.
- *
- * @example
- * ```typescript
- * workspaceAPI.checkAPIKeys({ keys: 'smtp-user,smtp-pass' }).queryOptions()
- * workspaceAPI.corsAnywhere({ url: 'https://external-api.com' }).query()
- * workspaceAPI.getGoogleFont({ family: 'Roboto' }).query()
- * ```
- */
+type HelperInput<Name extends CoreHelperName> = z.infer<
+  (typeof CORE_HELPERS)[Name]['schema']['input']
+>
+type HelperOutput<Name extends CoreHelperName> = z.infer<
+  (typeof CORE_HELPERS)[Name]['schema']['output']
+>
 export type CoreHelperReturnTypes = {
-  [K in CoreHelperName]: (
-    input: z.infer<(typeof CORE_HELPERS)[K]['schema']['input']>
+  [Name in CoreHelperName]: (
+    input: HelperInput<Name>
   ) => EndpointClient<
-    UntypedEndpointType<
-      z.infer<(typeof CORE_HELPERS)[K]['schema']['output']>,
-      never,
-      z.infer<(typeof CORE_HELPERS)[K]['schema']['input']>
-    >
+    UntypedEndpointType<HelperOutput<Name>, never, HelperInput<Name>>
   >
 }

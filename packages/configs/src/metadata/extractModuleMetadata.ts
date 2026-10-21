@@ -1,45 +1,33 @@
-import fs from 'fs'
-import path from 'path'
+// SPDX-License-Identifier: 0BSD
+import { readFileSync, statSync } from 'node:fs'
+import { basename, extname, join } from 'node:path'
 
-import { type ModuleBundledMetadata } from '../interfaces/bundledMetadata.types'
+import type { ModuleBundledMetadata } from '../interfaces/bundledMetadata.types'
 import { modulePackageJSONSchema } from '../interfaces/module.types'
 import parseManifest from './parseManifest'
 
-/**
- * Extracts the complete serializable metadata of a module from its source:
- * the client manifest (`manifest.ts`), its `package.json`, and the presence
- * of a server directory.
- *
- * This is the single extractor used both at build time (to emit
- * `monolith-manifest.json`) and in development (invoked live by the server).
- *
- * @param moduleDir - Absolute path to the module directory.
- * @returns The bundled module metadata.
- */
 export default function extractModuleMetadata(
   moduleDir: string
 ): ModuleBundledMetadata {
-  const manifestPath = path.join(moduleDir, 'client', 'manifest.ts')
-
-  const packageJSON = modulePackageJSONSchema.parse(
-    JSON.parse(fs.readFileSync(path.join(moduleDir, 'package.json'), 'utf-8'))
+  const pkg = modulePackageJSONSchema.parse(
+    JSON.parse(readFileSync(join(moduleDir, 'package.json'), 'utf8'))
   )
-
-  const { hasProvider, hidden, subsection, widgets } =
-    parseManifest(manifestPath)
-
+  const { widgets, ...client } = parseManifest(
+    join(moduleDir, 'client', 'manifest.ts')
+  )
+  let hasServer = false
+  try {
+    hasServer = statSync(join(moduleDir, 'server')).isDirectory()
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error
+  }
   return {
-    hasProvider,
-    hidden,
-    subsection,
-    widgets: widgets.map(widget => ({
-      ...widget.config,
-      componentName: path.basename(
-        widget.filePath,
-        path.extname(widget.filePath)
-      )
-    })),
-    package: packageJSON,
-    hasServer: fs.existsSync(path.join(moduleDir, 'server'))
+    ...client,
+    package: pkg,
+    hasServer,
+    widgets: widgets.map(({ filePath, config }) => ({
+      ...config,
+      componentName: basename(filePath, extname(filePath))
+    }))
   }
 }

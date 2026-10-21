@@ -1,170 +1,93 @@
-/* eslint-disable padding-line-between-statements */
-import type { PgTable } from 'drizzle-orm/pg-core'
+// SPDX-License-Identifier: 0BSD
 import type { z } from 'zod'
 
 import { EXISTS_IN, type ExistenceCheck } from './existsIn'
 
-/**
- * A single resolved existence requirement found while walking a parsed payload.
- */
-export interface CollectedExistenceCheck {
+export type CollectedExistenceCheck = ExistenceCheck & {
   path: string
-  table: PgTable
-  column?: string
   values: unknown[]
 }
-
-function walk(
-  schema: z.ZodTypeAny,
-  value: unknown,
-  path: string,
-  results: CollectedExistenceCheck[]
-): void {
-  const check = (
-    schema as unknown as Record<symbol, ExistenceCheck | undefined>
-  )[EXISTS_IN]
-
-  if (check) {
-    const values =
-      value === undefined || value === null
-        ? []
-        : Array.isArray(value)
-          ? value.filter(item => item !== undefined && item !== null)
-          : [value]
-
-    if (values.length > 0) {
-      results.push({
-        path: path || 'value',
-        table: check.table,
-        column: check.column,
-        values
-      })
-    }
-
-    return
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const def = (schema as any)?._zod?.def
-
-  if (!def) {
-    return
-  }
-
-  switch (def.type) {
-    case 'object': {
-      const shape = typeof def.shape === 'function' ? def.shape() : def.shape
-
-      if (!shape || typeof value !== 'object' || value === null) {
-        return
-      }
-
-      for (const key of Object.keys(shape)) {
-        walk(
-          shape[key],
-          (value as Record<string, unknown>)[key],
-          path ? `${path}.${key}` : key,
-          results
-        )
-      }
-
-      return
-    }
-
-    case 'array': {
-      if (!Array.isArray(value)) {
-        return
-      }
-
-      value.forEach((item, index) =>
-        walk(def.element, item, `${path}[${index}]`, results)
-      )
-
-      return
-    }
-
-    case 'record': {
-      if (typeof value !== 'object' || value === null) {
-        return
-      }
-
-      for (const [key, item] of Object.entries(value)) {
-        walk(def.valueType, item, path ? `${path}.${key}` : key, results)
-      }
-
-      return
-    }
-
-    case 'intersection': {
-      walk(def.left, value, path, results)
-      walk(def.right, value, path, results)
-
-      return
-    }
-
-    case 'union': {
-      for (const option of def.options) {
-        // Only the selected branch owns its references. Empty sentinel values
-        // and fields belonging to other discriminated branches are not IDs.
-        if (option.safeParse(value).success) {
-          walk(option, value, path, results)
-        }
-      }
-
-      return
-    }
-
-    case 'optional':
-    case 'nullable':
-    case 'default':
-    case 'prefault':
-    case 'nonoptional':
-    case 'catch':
-    case 'readonly': {
-      if (def.innerType) {
-        walk(def.innerType, value, path, results)
-      }
-
-      return
-    }
-
-    case 'pipe': {
-      walk(def.in, value, path, results)
-
-      return
-    }
-
-    case 'lazy': {
-      const resolved = def.getter?.()
-
-      if (resolved) {
-        walk(resolved, value, path, results)
-      }
-
-      return
-    }
-
-    default:
-      return
-  }
+type Frame = { schema: z.ZodType; value: unknown; path: string; parent?: Frame }
+type Definition = Record<string, any>
+const childPath = (parent: string, child: string) =>
+  parent ? parent + '.' + child : child
+function repeated(frame: Frame) {
+  for (let prior = frame.parent; prior; prior = prior.parent)
+    if (prior.schema === frame.schema && prior.value === frame.value)
+      return true
+  return false
 }
-
-/**
- * Walks a zod schema paired with its parsed value and collects every
- * `existsIn` requirement it contains.
- */
+function children(frame: Frame): Array<[z.ZodType, unknown, string]> {
+  const { schema, value, path } = frame
+  const def = schema._zod?.def as Definition | undefined
+  if (!def) return []
+  const sameValue = (child: z.ZodType): [z.ZodType, unknown, string] => [
+    child,
+    value,
+    path
+  ]
+  const fields =
+    value !== null && typeof value === 'object'
+      ? (value as Record<string, unknown>)
+      : null
+  if (def.innerType) return [sameValue(def.innerType)]
+  if (def.type === 'lazy') return [sameValue(def.getter())]
+  if (def.type === 'pipe') return [sameValue(def.in)]
+  if (def.type === 'intersection')
+    return [sameValue(def.left), sameValue(def.right)]
+  if (def.type === 'union')
+    return def.options
+      .filter((option: z.ZodType) => option.safeParse(value).success)
+      .map(sameValue)
+  if (def.type === 'array' && Array.isArray(value))
+    return value.map((item, index) => [
+      def.element,
+      item,
+      path + '[' + index + ']'
+    ])
+  if (def.type === 'record' && fields)
+    return Object.entries(fields).map(([key, item]) => [
+      def.valueType,
+      item,
+      childPath(path, key)
+    ])
+  if (def.type === 'object' && fields) {
+    const shape = typeof def.shape === 'function' ? def.shape() : def.shape
+    return Object.entries(shape).map(([key, child]) => [
+      child as z.ZodType,
+      fields[key],
+      childPath(path, key)
+    ])
+  }
+  return []
+}
 export function collectExistenceChecks(
-  schema: z.ZodTypeAny | undefined,
+  schema: z.ZodType | undefined,
   value: unknown,
   path = ''
 ): CollectedExistenceCheck[] {
-  if (!schema) {
-    return []
+  const result: CollectedExistenceCheck[] = []
+  const pending: Frame[] = schema ? [{ schema, value, path }] : []
+  while (pending.length) {
+    const frame = pending.pop()!
+    if (frame.value === null || frame.value === undefined || repeated(frame))
+      continue
+    const annotation = (
+      frame.schema as unknown as Record<symbol, ExistenceCheck>
+    )[EXISTS_IN]
+    if (annotation) {
+      const values = (
+        Array.isArray(frame.value) ? frame.value : [frame.value]
+      ).filter(item => item !== null && item !== undefined)
+      if (values.length)
+        result.push({ ...annotation, path: frame.path || 'value', values })
+      continue
+    }
+    const nested = children(frame)
+    for (let index = nested.length - 1; index >= 0; index--) {
+      const [schema, value, path] = nested[index]!
+      pending.push({ schema, value, path, parent: frame })
+    }
   }
-
-  const results: CollectedExistenceCheck[] = []
-
-  walk(schema, value, path, results)
-
-  return results
+  return result
 }

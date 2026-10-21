@@ -1,102 +1,95 @@
+{/* SPDX-License-Identifier: 0BSD */}
 import { Meta, Canvas } from '@storybook/addon-docs/blocks'
-import { APIEndpointProvider } from "@monolith/api"
-import { QCProvider } from "../../storybook/QCProvider"
-import { ModalProvider } from "../../providers"
-
-import * as TextInputStories from './TextInput/TextInput.stories'
-import * as TextAreaInputStories from './TextAreaInput/TextAreaInput.stories'
-import * as NumberInputStories from './NumberInput/NumberInput.stories'
-import * as CurrencyInputStories from './CurrencyInput/CurrencyInput.stories'
-import * as DateInputStories from './DateInput/DateInput.stories'
-import * as ColorInputStories from './ColorInput/ColorInput.stories'
-import * as IconInputStories from './IconInput/IconInput.stories'
-import * as TagsInputStories from './TagsInput/TagsInput.stories'
-import * as ComboboxInputStories from './ComboboxInput/ComboboxInput.stories'
-import * as ListboxInputStories from './ListboxInput/ListboxInput.stories'
-import * as LocationInputStories from './LocationInput/LocationInput.stories'
-import * as SliderInputStories from './SliderInput/SliderInput.stories'
-import * as SearchInputStories from './SearchInput/SearchInput.stories'
-import * as FileInputStories from './FileInput/FileInput.stories'
-import * as SwitchStories from './Switch/Switch.stories'
-import * as CheckboxStories from './Checkbox/Checkbox.stories'
-import * as FABStories from './FAB/FAB.stories'
-import { Box } from "../primitives"
+import * as TextInputExamples from './TextInput/TextInput.stories'
+import * as TextAreaInputExamples from './TextAreaInput/TextAreaInput.stories'
+import * as NumberInputExamples from './NumberInput/NumberInput.stories'
+import * as CurrencyInputExamples from './CurrencyInput/CurrencyInput.stories'
+import * as ListboxInputExamples from './ListboxInput/ListboxInput.stories'
+import * as ComboboxInputExamples from './ComboboxInput/ComboboxInput.stories'
+import * as DateInputExamples from './DateInput/DateInput.stories'
+import * as RRuleInputExamples from './RRuleInput/RRuleInput.stories'
+import * as FileInputExamples from './FileInput/FileInput.stories'
+import * as ColorInputExamples from './ColorInput/ColorInput.stories'
+import * as IconInputExamples from './IconInput/IconInput.stories'
+import * as TagsInputExamples from './TagsInput/TagsInput.stories'
+import * as CheckboxExamples from './Checkbox/Checkbox.stories'
+import * as SwitchExamples from './Switch/Switch.stories'
+import * as SliderInputExamples from './SliderInput/SliderInput.stories'
+import * as SearchInputExamples from './SearchInput/SearchInput.stories'
+import * as LocationInputExamples from './LocationInput/LocationInput.stories'
 
 <Meta title="Inputs/All Inputs" />
 
-# Input Components
+# Working with Monolith inputs
 
-<QCProvider>
-  <APIEndpointProvider>
-    <ModalProvider>
-      <Box height="3rem" />
-      ## TextInput
-      <Canvas of={TextInputStories.Default} />
+Use the labeled field components for forms and their compact variants inside dense property editors. Each example below keeps its own draft. Keyboard focus, validation and disabled states are available in the component's individual stories.
 
-      ## TextAreaInput
+## Text and passwords
 
-      <Canvas of={TextAreaInputStories.Default} />
+<Canvas of={TextInputExamples.Editable} />
 
-      ## NumberInput
+## Longer notes
 
-      <Canvas of={NumberInputStories.Default} />
+<Canvas of={TextAreaInputExamples.Editable} />
 
-      ## CurrencyInput
+## Numeric limits
 
-      <Canvas of={CurrencyInputStories.Default} />
+<Canvas of={NumberInputExamples.Bounded} />
 
-      ## DateInput
+## Currency
 
-      <Canvas of={DateInputStories.Default} />
+<Canvas of={CurrencyInputExamples.Currency} />
 
-      ## ColorInput
+## Choosing a value
 
-      <Canvas of={ColorInputStories.Default} />
+<Canvas of={ListboxInputExamples.ProjectStatus} />
 
-      ## IconInput
+## Searching choices
 
-      <Canvas of={IconInputStories.Default} />
+<Canvas of={ComboboxInputExamples.SearchProjects} />
 
-      ## TagsInput
+## Dates and times
 
-      <Canvas of={TagsInputStories.Default} />
+<Canvas of={DateInputExamples.WithTime} />
 
-      ## ComboboxInput
+## Repeating schedules
 
-      <Canvas of={ComboboxInputStories.Default} />
+<Canvas of={RRuleInputExamples.WeeklyReview} />
 
-      ## ListboxInput
+## Files
 
-      <Canvas of={ListboxInputStories.Default} />
+<Canvas of={FileInputExamples.Editable} />
 
-      ## LocationInput
+## Accent colors
 
-      <Canvas of={LocationInputStories.Default} />
+<Canvas of={ColorInputExamples.Editable} />
 
-      ## SliderInput
+## Identity icons
 
-      <Canvas of={SliderInputStories.Default} />
+<Canvas of={IconInputExamples.Editable} />
 
-      ## SearchInput
+## Labels
 
-      <Canvas of={SearchInputStories.Default} />
+<Canvas of={TagsInputExamples.ProjectLabels} />
 
-      ## FileInput
+## Checklist items
 
-      <Canvas of={FileInputStories.Default} />
+<Canvas of={CheckboxExamples.Checklist} />
 
-      ## Switch
+## Settings
 
-      <Canvas of={SwitchStories.Default} />
+<Canvas of={SwitchExamples.Notifications} />
 
-      ## Checkbox
+## Adjustable ranges
 
-      <Canvas of={CheckboxStories.Default} />
+<Canvas of={SliderInputExamples.WorkspaceWidth} />
 
-      ## FAB
+## Filtering
 
-      <Canvas of={FABStories.Default} />
+<Canvas of={SearchInputExamples.FilterProjects} />
 
-    </ModalProvider>
-  </APIEndpointProvider>
-</QCProvider>
+## Locations
+
+<Canvas of={LocationInputExamples.PreservedSelection} />
+
+File, icon and date pickers use the shared modal stack. Location lookup needs a configured host; its preserved-selection example remains readable while the service is unavailable.

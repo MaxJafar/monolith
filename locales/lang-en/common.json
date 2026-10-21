@@ -146,21 +146,29 @@
   },
   "modals": {
     "deleteConfirmation": {
-      "title": "Are you sure you want to delete {{itemName}}?",
-      "desc": "This will delete {{itemName}} and all its related content. This action is irreversible!",
+      "title": "Delete {{itemName}} permanently?",
+      "desc": "{{itemName}} and its associated content will be removed. This cannot be undone.",
       "inputs": {
         "confirmation": {
-          "placeholder": "Please type \"{{text}}\" to confirm deletion",
+          "placeholder": "Enter {{text}} to authorize removal",
           "label": "Confirm Deletion"
         }
       },
-      "error": "Error deleting the item. Please try again."
+      "error": "Nothing was deleted. Retry when the connection is available."
     },
     "searchFilters": "Search Filters",
     "datePicker": {
       "title": "Select Date",
       "titleWithTime": "Select Date Time",
-      "yearMonth": "Select Year & Month"
+      "yearMonth": "Select Year & Month",
+      "month": "Month",
+      "year": "Year",
+      "time": "Time (24-hour)",
+      "clear": "Clear date",
+      "today": "Today",
+      "previousMonth": "Previous month",
+      "nextMonth": "Next month",
+      "invalidSelection": "Choose a valid local date and time within the allowed range."
     },
     "iconPicker": {
       "title": "Select Icon",
@@ -171,9 +179,12 @@
       "empty": {
         "icon": {
           "title": "No icons",
-          "description": "No icons found, please try other keywords."
+          "description": "Try a shorter name or another icon keyword."
         }
-      }
+      },
+      "allCollections": "All icon sets",
+      "loadError": "The icon catalog is unavailable. Try again.",
+      "more": "Load more icons"
     },
     "imagePicker": {
       "title": "Select File",
@@ -201,22 +212,33 @@
       "empty": {
         "result": {
           "title": "No results",
-          "description": "No images found, please try other keywords."
+          "description": "No matching pictures. Change your search to see more results."
         },
         "pixabay": {
           "title": "Provided by Pixabay",
-          "description": "Search over 13 million high-quality free images."
+          "description": "Find stock imagery in the Pixabay collection."
         },
         "noAPIKey": {
           "title": "Pixabay API Key not configured",
-          "description": "Please set up your Pixabay API key in the API Key vault to use this feature."
+          "description": "Save a Pixabay credential in API Keys before searching its image library."
         },
         "noOpenAIKey": {
           "title": "OpenAI API Key not configured",
-          "description": "Please set up your OpenAI API key in the API Key vault to use this feature."
+          "description": "Save an OpenAI credential in API Keys to generate images."
         }
       },
-      "ai": "AI Image Generation"
+      "ai": "AI Image Generation",
+      "choose": "Choose file",
+      "unsupported": "This file type is not supported.",
+      "readError": "The file could not be read. Choose it again.",
+      "reading": "Reading file…",
+      "drop": "Drop a file here or browse your device",
+      "paste": "Paste an image",
+      "clipboardError": "No supported image could be read from the clipboard.",
+      "saveError": "The file could not be saved. Your selection is kept; try again.",
+      "serviceError": "The image service is unavailable. Try again.",
+      "result": "Image {{id}}",
+      "promptHint": "Describe the image you want to create."
     },
     "colorPicker": {
       "title": "Choose Color",
@@ -234,7 +256,13 @@
     "imagePreview": "Image Preview",
     "qrCodeScanner": "QR Code Scanner",
     "viewImage": "View Image",
-    "confirmationFailed": "Unable to complete this action. Please try again."
+    "confirmationFailed": "Unable to complete this action. Please try again.",
+    "scanner": {
+      "permission": "Camera permission is needed to scan. Allow access in your browser and retry.",
+      "camera": "The camera could not be opened. Check that it is connected and available.",
+      "scan": "The code could not be processed. Retry the scan.",
+      "processing": "Processing the scanned code…"
+    }
   },
   "misc": {
     "alert": {
@@ -246,8 +274,8 @@
     },
     "search": "Search {{item}}...",
     "notFound": {
-      "title": "Oops! There's nothing here",
-      "description": "The page you are looking for cannot be found. Please check the URL and try again."
+      "title": "Page unavailable",
+      "description": "This address has no available page. Check the link or return to your workspace."
     },
     "tipsAndTricks": "Tips and Tricks",
     "loadingModule": "Loading addon...",
@@ -276,17 +304,17 @@
       "empty": {
         "result": {
           "title": "No results",
-          "description": "No images found. Please try a different search term."
+          "description": "No matching pictures. Change the search and try again."
         },
         "pixabay": {
           "title": "Provided by Pixabay",
-          "description": "Search over 13 million high-quality free images."
+          "description": "Browse image results supplied by Pixabay."
         }
       }
     },
     "dnd": {
       "dropHere": "Drop items here",
-      "dragAndDropToUpload": "Drag and drop or click to upload",
+      "dragAndDropToUpload": "Drop files here, or choose files",
       "or": "or",
       "buttons": {
         "pasteFromClipboard": "Paste from Clipboard"
@@ -310,7 +338,7 @@
     "empty": {
       "apiStatus": {
         "title": "Cannot connect to API",
-        "description": "Please check your network connection and try again. If you are a developer, please check if the server is running properly."
+        "description": "Monolith cannot reach this server. Check the connection and server address, then retry."
       }
     },
     "iconPicker": {
@@ -321,12 +349,12 @@
       "empty": {
         "icon": {
           "title": "No icons",
-          "description": "No icons found. Please try a different search term."
+          "description": "Try another name to find an icon."
         }
       }
     },
     "locationDisabled": {
-      "description": "Location input is currently disabled. Please add a properly configured Google Cloud API key to enable this feature. For further information, refer to",
+      "description": "Location search needs a Google Cloud credential with Places access. Configure it in API Keys. Setup details:",
       "title": "N/A"
     },
     "dates": {
@@ -356,10 +384,10 @@
     },
     "fieldRequired": "This field is required.",
     "invalidField": "Invalid field.",
-    "invalidColor": "Invalid color. Please enter a valid hex value in the format #RRGGBB.",
-    "invalidIcon": "Invalid icon. It must be a valid icon identifier from Iconify in the format of <icon-set>:<icon-name>.",
+    "invalidColor": "Use six hexadecimal digits after #, such as #336699.",
+    "invalidIcon": "Choose an icon identifier with a collection and name, such as tabler:calendar.",
     "loadingUserData": "Loading user data...",
-    "invalidSelection": "Invalid selection. Please choose a valid option from the list.",
+    "invalidSelection": "Select one of the available options.",
     "fileInputSupportedFormat": "Supported format: {{format}}",
     "viewMode": "View as"
   },
@@ -378,12 +406,15 @@
       }
     },
     "openNavigation": "Open navigation",
-    "collapseNavigation": "Collapse navigation"
+    "collapseNavigation": "Collapse navigation",
+    "itemAction": "Actions for {{name}}",
+    "clearSelection": "Clear selection",
+    "toggleSection": "Expand or collapse section"
   },
   "fetch": {
-    "error": "Failed to fetch data from server",
-    "success": "Yay! Successfully {{action}} item!",
-    "failure": "Oh no... Failed to get the item {{action}}. Please try again.",
+    "error": "The server did not return the requested data.",
+    "success": "Completed: {{action}}",
+    "failure": "Could not complete {{action}}. Please retry.",
     "action": {
       "create": "created",
       "update": "updated",
@@ -437,24 +468,24 @@
     },
     "validation": {
       "emailRequired": "Email is required",
-      "emailInvalid": "Please enter a valid email address",
+      "emailInvalid": "Use an email address with a name and domain.",
       "usernameRequired": "Username is required",
-      "usernameTooShort": "Username must be at least 3 characters",
-      "usernameInvalid": "Username can only contain letters, numbers, and underscores",
+      "usernameTooShort": "Choose a username with 3 or more characters.",
+      "usernameInvalid": "Use letters, digits, or _ in your username.",
       "nameRequired": "Name is required",
       "passwordRequired": "Password is required",
-      "passwordTooShort": "Password must be at least 8 characters",
+      "passwordTooShort": "Choose a password with 8 or more characters.",
       "passwordMismatch": "Passwords do not match"
     },
     "modals": {
       "twoFA": {
         "title": "Two-Factor Authentication",
-        "description": "Please enter the OTP provided by your authenticator app that you registered earlier.",
+        "description": "Use the current sign-in code from your connected authenticator.",
         "buttons": {
           "useEmailOtp": "Use Email OTP",
           "useAuthApp": "Use Authenticator App"
         },
-        "emailDescription": "Please enter the email address associated with your account.",
+        "emailDescription": "Enter the email you use for this Monolith account.",
         "inputs": {
           "email": "Email Address"
         }
@@ -462,26 +493,26 @@
     },
     "orAuthenticateWith": "Or authenticate with",
     "messages": {
-      "otpSent": "A one-time password has been sent to your email address, if it is associated with any accounts.",
+      "otpSent": "If this address belongs to an account, a sign-in code will arrive by email.",
       "welcomeBack": "Welcome back, {{name}}!",
       "userCreated": "Account created successfully! Welcome to monolith.",
-      "invalidCredentials": "Invalid email or password. Please try again.",
-      "invalidFields": "Invalid fields. Please fill in a valid email address and password.",
-      "quotaExceeded": "Maximum amount of tries reached. Please try again later.",
-      "unknownError": "Unknown error. Please try again later.",
-      "invalidLoginAttempt": "Invalid login attempt. Please try again.",
+      "invalidCredentials": "Those sign-in details were not accepted.",
+      "invalidFields": "Review the email and password before submitting.",
+      "quotaExceeded": "Sign-in is temporarily limited. Wait before trying again.",
+      "unknownError": "Sign-in could not finish. Try again in a moment.",
+      "invalidLoginAttempt": "This sign-in request is no longer valid. Start again.",
       "otpLength": "Enter the six-digit code from your authenticator.",
       "invalidOTP": "That code could not be verified. Try again."
     },
     "qrLogin": {
       "title": "Scan to Login",
-      "description": "Login to your account using your other device.",
+      "description": "Approve this device from another signed-in Monolith client.",
       "expired": "QR code expired",
       "clickToRefresh": "Click to refresh",
       "approved": "Login approved! Redirecting...",
       "waiting": "Waiting for approval...",
       "approvalTitle": "Approve Login",
-      "approvalDescription": "A device is requesting to log in to your account",
+      "approvalDescription": "Review this device before allowing account access.",
       "browserInfo": "Device Info",
       "approve": "Approve Login",
       "deny": "Deny",
@@ -498,7 +529,7 @@
   "vault": {
     "vault": {
       "lockedMessage": "Your vault is locked",
-      "passwordRequired": "Master password is required to decrypt your vault.",
+      "passwordRequired": "Enter the vault password to read its encrypted contents.",
       "unlocked": "Vault is unlocked",
       "failedToUnlock": "Failed to unlock vault",
       "buttons": {
@@ -507,7 +538,7 @@
       },
       "createPassword": {
         "title": "Set Master Password",
-        "desc": "Please set a master password to protect your vault."
+        "desc": "Choose the password that will encrypt your vault data."
       },
       "inputs": {
         "newPassword": "New Password",
@@ -515,8 +546,18 @@
         "masterPassword": "Master Password"
       },
       "confirmSetNewPassword": {
-        "title": "Make sure you remember your master password!",
-        "desc": "This master password is unchangeable (for now)! If you accidentally forget the password, you lose everything. This password is hashed and stored in your user profile, and it is not decryptable. It will be used to encrypt and decrypt the data you store in your vault."
+        "title": "Keep a safe copy of your vault password",
+        "desc": "The vault password cannot currently be changed or recovered. Monolith stores a hash, not a readable password. Losing it means losing access to the encrypted data."
+      },
+      "generate": "Generate a password",
+      "edit": "Edit password",
+      "review": "Review password",
+      "confirmCreate": "Set vault password",
+      "errors": {
+        "empty": "Enter and confirm your password.",
+        "mismatch": "The passwords must match exactly, including spaces.",
+        "random": "Secure password generation is unavailable in this browser.",
+        "create": "Your password could not be saved. Try again."
       }
     },
     "otp": {
@@ -527,10 +568,10 @@
         "authByQR": "Authenticate by QR Code"
       },
       "messages": {
-        "success": "OTP sent! Please check your email.",
+        "success": "Check your email for the requested code.",
         "failed": "Failed to request OTP",
         "invalid": "OTP must be a 6-digit number",
-        "cooldown": "Request too frequent, please try again later",
+        "cooldown": "Wait a little before requesting another code.",
         "required": {
           "title": "OTP Required to Unlock",
           "desc": "For added security, an OTP is required to unlock this addon. Please click the button below to request an OTP."
@@ -539,7 +580,8 @@
           "success": "OTP verification successful",
           "failed": "OTP verification failed"
         }
-      }
+      },
+      "codeLabel": "Verification code"
     }
   },
   "recurring": {
@@ -638,6 +680,21 @@
       "week": "Weeks",
       "month": "Months",
       "year": "Years"
+    },
+    "editor": {
+      "rawDescription": "This schedule has advanced recurrence settings. Edit its text to preserve every rule.",
+      "raw": "Recurrence rule",
+      "structured": "Use schedule controls",
+      "start": "Starts",
+      "interval": "Repeat every",
+      "weekdays": "Days of the week",
+      "pattern": "Repeat pattern",
+      "monthDay": "Day of month (negative counts from the end)",
+      "position": "Position in month",
+      "dayGroup": "Day or group of days",
+      "count": "Number of occurrences",
+      "until": "Repeat through",
+      "incomplete": "Complete the schedule with whole-number intervals, selected days and a valid ending."
     }
   },
   "blocks": {
@@ -857,7 +914,16 @@
     "clearIndex": "Clear my search index"
   },
   "inputs": {
-    "rangeValue": "Value"
+    "rangeValue": "Value",
+    "locationSearch": {
+      "searching": "Finding places…",
+      "failed": "Location search failed. Try another search.",
+      "empty": "No matching places.",
+      "checking": "Checking location search…",
+      "unconfigured": "Location search needs an outgoing maps provider configured by your administrator.",
+      "serviceFailed": "Could not check the location service."
+    },
+    "formSaveFailed": "The changes could not be saved. Your entries are kept for another attempt."
   },
   "desktop": {
     "welcome": "Your workspace, connected.",
@@ -2033,5 +2099,26 @@
     "editSeries": "Title and description apply to the series",
     "saveEvent": "Save event",
     "unscheduled": "Unscheduled"
+  },
+  "journal": {
+    "title": "Journal",
+    "description": "A little space to reflect, remember and write.",
+    "newEntry": "New entry",
+    "entryTitle": "Entry title",
+    "date": "Date",
+    "close": "Close",
+    "startWriting": "Start writing",
+    "saveFailed": "Could not create the entry. Your draft is still here; try again.",
+    "back": "Back to Journal",
+    "loading": "Loading journal…",
+    "stale": "The journal could not refresh. Retry before making changes.",
+    "retry": "Retry",
+    "search": "Search journal",
+    "month": "Month",
+    "allDates": "All dates",
+    "entries_one": "{{count}} entry",
+    "entries_other": "{{count}} entries",
+    "empty": "Room for a new page",
+    "emptyHint": "Write a new entry or adjust your search."
   }
 }

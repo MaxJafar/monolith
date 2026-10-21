@@ -21,5 +21,6 @@
   "author": "Monolith contributors",
   "monolithBuilds": {
     "build": "vite build --config vite.config.ts"
-  }
+  },
+  "license": "0BSD"
 }

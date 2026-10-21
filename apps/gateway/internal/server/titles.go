@@ -24,7 +24,7 @@ func syncSourceTitle(ctx context.Context, tx pgx.Tx, scope workspace, source edi
 	case "record":
 		_, err = tx.Exec(ctx, "update zillion_databases__records set title=$3,updated=now() where id=$1 and base_id in(select id from zillion_databases__bases where workspace_id=$2)", source.ID, scope.ID, title)
 	case "note":
-		_, err = tx.Exec(ctx, "update notes__entries set name=$3 where id=$1 and owner_id=$2", source.ID, scope.Owner, title)
+		_, err = tx.Exec(ctx, "update zillion_databases__records set title=$3,updated=now() where id in(select s.record_id from zillion_databases__record_sources s join zillion_databases__bases b on b.workspace_id=$2 join zillion_databases__records r on r.base_id=b.id and r.id=s.record_id where s.kind='note' and s.native_id=$1)", source.ID, scope.ID, title)
 	}
 	if err != nil {
 		return err

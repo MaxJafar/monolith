@@ -1,146 +1,85 @@
+// SPDX-License-Identifier: 0BSD
 import { hash } from 'argon2'
 import dayjs from 'dayjs'
-import { eq } from 'drizzle-orm'
-import z from 'zod'
+import { z } from 'zod'
 
 import { fileReferenceSchema } from '@monolith/file-storage'
 
 import { verifyPassword } from '../../auth/utils/password'
+import { accountFor, changeAccountImage, updateAccount } from '../account'
 import endpoints from '../endpoints'
-import { users } from '../schema.drizzle'
 
 export const updateAvatar = endpoints
   .mutation({
-    description: 'Upload new user avatar',
+    description: 'Replace the current account image',
     input: {},
-    media: {
-      file: {
-        optional: false
-      }
-    },
-    output: {
-      OK: fileReferenceSchema
-    }
+    media: { file: { optional: false } },
+    output: { OK: fileReferenceSchema }
   })
-  .callback(async ({ res, media: { file: rawFile }, db, core, response }) => {
-    if (!rawFile || typeof rawFile === 'string') {
-      return response.badRequest('A valid avatar image must be uploaded')
-    }
-
-    const user = await db.query.users.findFirst({
-      where: { id: res.locals.userId as string }
+  .callback(async ({ db, res, core, media, response }) => {
+    if (!media.file || typeof media.file === 'string')
+      return response.badRequest('Choose an avatar image')
+    const saved = await changeAccountImage({
+      db,
+      userId: res.locals.userId as string,
+      storage: core.storage,
+      field: 'avatar',
+      file: media.file
     })
-
-    if (!user) {
-      return response.unauthorized()
-    }
-
-    const avatarRef = await core.storage.save({
-      file: rawFile,
-      currentKey: user.avatar || undefined,
-      thumbs: ['256x0']
-    })
-
-    if (!avatarRef) {
-      return response.badRequest('Failed to save avatar')
-    }
-
-    await db
-      .update(users)
-      .set({ avatar: avatarRef.key, updated: new Date() })
-      .where(eq(users.id, user.id))
-
-    return response.ok(avatarRef)
+    return saved
+      ? response.ok(saved)
+      : response.badRequest('Image could not be saved')
   })
-
 export const deleteAvatar = endpoints
   .mutation({
-    description: 'Remove user avatar',
+    description: 'Clear the current account image',
     input: {},
-    output: {
-      NO_CONTENT: true
-    }
+    output: { NO_CONTENT: true }
   })
-  .callback(async ({ res, db, core, response }) => {
-    const user = await db.query.users.findFirst({
-      where: { id: res.locals.userId as string }
+  .callback(async ({ db, res, core, response }) => {
+    await changeAccountImage({
+      db,
+      userId: res.locals.userId as string,
+      storage: core.storage,
+      field: 'avatar',
+      remove: true
     })
-
-    if (!user) {
-      return response.unauthorized()
-    }
-
-    if (user.avatar) {
-      await core.storage.delete(user.avatar)
-    }
-
-    await db
-      .update(users)
-      .set({
-        avatar: null,
-        updated: new Date()
-      })
-      .where(eq(users.id, user.id))
-
     return response.noContent()
   })
 
+const profileChanges = z.object({
+  username: z
+    .string()
+    .regex(/^[a-zA-Z0-9]+$/)
+    .optional(),
+  email: z.email().optional(),
+  name: z.string().optional(),
+  dateOfBirth: z.string().optional()
+})
 export const updateProfile = endpoints
   .mutation({
-    description: 'Update user profile information',
-    input: {
-      body: z.object({
-        data: z.object({
-          username: z
-            .string()
-            .regex(/^[a-zA-Z0-9]+$/)
-            .optional(),
-          email: z.string().email().optional(),
-          name: z.string().optional(),
-          dateOfBirth: z.string().optional()
-        })
-      })
-    },
-    output: {
-      NO_CONTENT: true
-    }
+    description: 'Save selected account profile fields',
+    input: { body: z.object({ data: profileChanges }) },
+    output: { NO_CONTENT: true }
   })
-  .callback(async ({ res, body: { data }, db, response }) => {
-    const user = await db.query.users.findFirst({
-      where: { id: res.locals.userId as string }
-    })
-
-    if (!user) {
-      return response.unauthorized()
+  .callback(async ({ db, res, body, response }) => {
+    const account = await accountFor(db, res.locals.userId as string)
+    const values = Object.fromEntries(
+      Object.entries(body.data).filter(([, value]) => !!value)
+    ) as z.infer<typeof profileChanges>
+    if (values.dateOfBirth) {
+      const birthday = dayjs(values.dateOfBirth)
+      if (!birthday.isValid())
+        return response.badRequest('Invalid date of birth')
+      values.dateOfBirth = birthday.format('YYYY-MM-DD')
     }
-
-    const updateData: {
-      email?: string
-      username?: string
-      name?: string
-      dateOfBirth?: string
-      updated?: Date
-    } = {}
-
-    if (data.email) updateData.email = data.email
-    if (data.username) updateData.username = data.username
-    if (data.name) updateData.name = data.name
-
-    if (data.dateOfBirth) {
-      updateData.dateOfBirth = dayjs(data.dateOfBirth).format('YYYY-MM-DD')
-    }
-
-    if (Object.keys(updateData).length > 0) {
-      updateData.updated = new Date()
-      await db.update(users).set(updateData).where(eq(users.id, user.id))
-    }
-
+    if (Object.keys(values).length) await updateAccount(db, account.id, values)
     return response.noContent()
   })
 
 export const updatePassword = endpoints
   .mutation({
-    description: 'Update user password directly',
+    description: 'Change a password after verifying the current password',
     input: {
       body: z
         .object({
@@ -148,47 +87,25 @@ export const updatePassword = endpoints
           password: z.string().min(8),
           passwordConfirm: z.string().min(8)
         })
-        .refine(data => data.password === data.passwordConfirm, {
-          message: "Passwords don't match",
-          path: ['passwordConfirm']
+        .refine(value => value.password === value.passwordConfirm, {
+          path: ['passwordConfirm'],
+          message: "Passwords don't match"
         })
     },
-    output: {
-      NO_CONTENT: true
-    }
+    output: { NO_CONTENT: true }
   })
-  .callback(async ({ res, body: { oldPassword, password }, db, response }) => {
-    const user = await db.query.users.findFirst({
-      where: { id: res.locals.userId as string }
-    })
-
-    if (!user) {
-      return response.unauthorized()
-    }
-
-    const passwordHash = user.auth_password_hash
-
-    if (!passwordHash) {
+  .callback(async ({ db, res, body, response }) => {
+    const account = await accountFor(db, res.locals.userId as string)
+    if (!account.auth_password_hash)
       return response.badRequest('User has no password set')
-    }
-
-    const { valid } = await verifyPassword(passwordHash, oldPassword)
-
-    if (!valid) {
+    if (
+      !(await verifyPassword(account.auth_password_hash, body.oldPassword))
+        .valid
+    ) {
       return response.badRequest('Incorrect old password')
     }
-
-    const newPasswordHash = await hash(password, {
-      type: 2 // argon2id
+    await updateAccount(db, account.id, {
+      auth_password_hash: await hash(body.password, { type: 2 })
     })
-
-    await db
-      .update(users)
-      .set({
-        auth_password_hash: newPasswordHash,
-        updated: new Date()
-      })
-      .where(eq(users.id, user.id))
-
     return response.noContent()
   })

@@ -180,6 +180,17 @@ export const products = [
         'Keep backups of data and files. The update supervisor retains the previous compatible runtime and checks the new one before accepting it.'
       ]
     ]
+  } ,
+  {
+    slug: 'journal', name: 'Journal', icon: 'book', label: 'A space to reflect',
+    title: 'Make room for your own story.',
+    description: 'Dated entries, writing activity and connected pages in the native Monolith workspace.',
+    image: 'documents', alt: 'Monolith native page editor', guide: 'journal',
+    features: [
+      ['Write in context', 'Create a dated entry and continue in the native page editor.'],
+      ['Find a past thought', 'Search titles and tags, filter by month and browse newest entries first.'],
+      ['Keep one source', 'Entries remain workspace records, available in Docs and dated calendar views.']
+    ]
   }
 ] as const
 
@@ -249,54 +260,6 @@ export const addons = [
     guide: 'addons'
   },
   {
-    slug: 'journal',
-    name: 'Journal',
-    icon: 'book',
-    type: 'Addon',
-    category: 'Personal',
-    summary: 'Make a little room to reflect.',
-    detail:
-      'Keep dated writing connected to Docs. Journal brings entries and writing activity into one place while preserving their original pages.',
-    features: [
-      'Dated journal entries',
-      'Connected Docs records',
-      'Writing activity overview'
-    ],
-    guide: 'addons'
-  },
-  {
-    slug: 'wallet',
-    name: 'Wallet',
-    icon: 'wallet',
-    type: 'Addon',
-    category: 'Personal',
-    summary: 'Keep your finances in view.',
-    detail:
-      'Organize accounts, balances and transactions in your configured workspace service, with compact balance widgets for the dashboard.',
-    features: [
-      'Accounts and balances',
-      'Transaction organization',
-      'Dashboard balance widgets'
-    ],
-    guide: 'addons'
-  },
-  {
-    slug: 'wishlist',
-    name: 'Wishlist',
-    icon: 'heart',
-    type: 'Addon',
-    category: 'Personal',
-    summary: 'Collect the things you want to come back to.',
-    detail:
-      'Keep a personal collection of things you want, with the details and organization needed to remember why you saved them.',
-    features: [
-      'Personal item collections',
-      'Item details and organization',
-      'Workspace-specific enablement'
-    ],
-    guide: 'addons'
-  },
-  {
     slug: 'gym',
     name: 'Gym',
     icon: 'gym',
@@ -327,85 +290,5 @@ export const addons = [
       'Homelab dashboard widgets'
     ],
     guide: 'addons'
-  },
-  {
-    slug: 'achievements',
-    name: 'Achievements',
-    icon: 'trophy',
-    type: 'Widget',
-    category: 'Personal',
-    summary: 'Celebrate the progress that matters.',
-    detail:
-      'Keep milestones and personal wins in your dashboard or sidebar. Compact controls let you add and edit achievements without opening another workspace.',
-    features: [
-      'Personal milestones',
-      'Compact editing controls',
-      'Dashboard and sidebar placement'
-    ],
-    guide: 'widgets'
-  },
-  {
-    slug: 'code-time',
-    name: 'Code Time',
-    icon: 'code',
-    type: 'Widget',
-    category: 'Productivity',
-    summary: 'A small window into your coding rhythm.',
-    detail:
-      'See coding activity totals and history with a 7-, 30- or 90-day window. Data comes from an authenticated editor integration configured for your host.',
-    features: [
-      'Activity totals and history',
-      'Adjustable chart windows',
-      'Compact settings overlay'
-    ],
-    guide: 'widgets'
-  },
-  {
-    slug: 'flashcards',
-    name: 'Flashcards',
-    icon: 'cards',
-    type: 'Widget',
-    category: 'Knowledge',
-    summary: 'Turn a spare moment into something learned.',
-    detail:
-      'Choose a deck and study cards directly from a connected widget. Manage decks and cards in a compact overlay; workspace roles control editing and reviews.',
-    features: [
-      'Selected-deck study sessions',
-      'Compact deck and card management',
-      'Role-aware review controls'
-    ],
-    guide: 'widgets'
-  },
-  {
-    slug: 'pomodoro',
-    name: 'Pomodoro',
-    icon: 'clock',
-    type: 'Widget',
-    category: 'Productivity',
-    summary: 'Find your focus, one session at a time.',
-    detail:
-      'Keep focus sessions and breaks close to your work. Session controls and preferences live in the widget experience.',
-    features: [
-      'Focus and break timers',
-      'Quick session controls',
-      'Dashboard and sidebar placement'
-    ],
-    guide: 'widgets'
-  },
-  {
-    slug: 'idea-box',
-    name: 'Idea Box',
-    icon: 'light',
-    type: 'Widget',
-    category: 'Creativity',
-    summary: 'Catch the thought before it disappears.',
-    detail:
-      'Capture an idea quickly, then return when you have time to organize it. Keep a small entry point within reach on your dashboard.',
-    features: [
-      'Quick idea capture',
-      'A place for later organization',
-      'Compact dashboard experience'
-    ],
-    guide: 'widgets'
   }
 ] as const

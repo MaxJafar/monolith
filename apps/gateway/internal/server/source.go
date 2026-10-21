@@ -46,9 +46,7 @@ func legacyInWorkspace(ctx context.Context, tx pgx.Tx, scope workspace, source e
 		} else if !errors.Is(aliasErr, pgx.ErrNoRows) {
 			err = aliasErr
 		} else {
-			err = tx.QueryRow(ctx, `select name,content,created at time zone 'UTC' from notes__entries n where n.id=$1 and n.owner_id=$2 and n.type='note'
-    and not exists(select 1 from zillion_databases__record_sources s where s.kind='note' and s.native_id=n.id)
-    and exists(select 1 from zillion_databases__workspaces w where w.id=$3 and w.is_default)`+suffix, source.ID, scope.Owner, scope.ID).Scan(&result.title, &body, &result.created)
+			err = pgx.ErrNoRows
 		}
 	default:
 		err = pgx.ErrNoRows

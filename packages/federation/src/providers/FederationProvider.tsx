@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: 0BSD
 import {
   type Dispatch,
   type FC,
@@ -26,77 +27,63 @@ export const SYSTEM_CATEGORIES = [
   'SSO',
   '<END>'
 ]
-
-type State = {
+type Provider = FC<{ children: ReactNode }>
+interface State {
   moduleGroups: FederatedModuleGroup[]
-  globalProviders: FC<{ children: ReactNode }>[]
+  globalProviders: Provider[]
   categoryTranslations: Record<string, Record<string, string>>
-  loading: boolean
   error: Error | null
+  loading: boolean
 }
 type ContextValue = State & {
   [K in keyof State as `set${Capitalize<K>}`]: Dispatch<
     SetStateAction<State[K]>
   >
 } & { refetch: RefObject<() => Promise<void>> }
-
-const fallback: ContextValue = {
+const ignore = () => {}
+const FederationContext = createContext<ContextValue>({
   moduleGroups: [],
   globalProviders: [],
   categoryTranslations: {},
-  loading: true,
   error: null,
-  setModuleGroups() {},
-  setGlobalProviders() {},
-  setCategoryTranslations() {},
-  setLoading() {},
-  setError() {},
+  loading: true,
+  setModuleGroups: ignore,
+  setGlobalProviders: ignore,
+  setCategoryTranslations: ignore,
+  setError: ignore,
+  setLoading: ignore,
   refetch: { current: async () => {} }
-}
-const Context = createContext<ContextValue>(fallback)
-export function useFederation(): ContextValue {
-  return useContext(Context)
-}
+})
+export const useFederation = () => useContext(FederationContext)
 
 export default function FederationProvider({
   children
 }: {
   children: ReactNode
 }) {
-  const [state, update] = useState<State>({
-    moduleGroups: [],
-    globalProviders: [],
-    categoryTranslations: {},
-    loading: true,
-    error: null
-  })
-  const refetch = useRef<() => Promise<void>>(async () => {})
-  const actions = useMemo(() => {
-    function field<K extends keyof State>(
-      name: K
-    ): Dispatch<SetStateAction<State[K]>> {
-      return value =>
-        update(current => {
-          const next =
-            typeof value === 'function'
-              ? (value as (old: State[K]) => State[K])(current[name])
-              : value
-          return Object.is(next, current[name])
-            ? current
-            : { ...current, [name]: next }
-        })
-    }
-    return {
-      setModuleGroups: field('moduleGroups'),
-      setGlobalProviders: field('globalProviders'),
-      setCategoryTranslations: field('categoryTranslations'),
-      setLoading: field('loading'),
-      setError: field('error')
-    }
-  }, [])
+  const [moduleGroups, setModuleGroups] = useState<FederatedModuleGroup[]>([])
+  const [globalProviders, setGlobalProviders] = useState<Provider[]>([])
+  const [categoryTranslations, setCategoryTranslations] = useState<
+    State['categoryTranslations']
+  >({})
+  const [error, setError] = useState<Error | null>(null)
+  const [loading, setLoading] = useState(true)
+  const refetch = useRef(async () => {})
   const value = useMemo(
-    () => ({ ...state, ...actions, refetch }),
-    [state, actions]
+    () => ({
+      moduleGroups,
+      globalProviders,
+      categoryTranslations,
+      error,
+      loading,
+      setModuleGroups,
+      setGlobalProviders,
+      setCategoryTranslations,
+      setError,
+      setLoading,
+      refetch
+    }),
+    [moduleGroups, globalProviders, categoryTranslations, error, loading]
   )
-  return <Context value={value}>{children}</Context>
+  return <FederationContext value={value}>{children}</FederationContext>
 }

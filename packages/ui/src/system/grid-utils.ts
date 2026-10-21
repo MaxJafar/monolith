@@ -1,15 +1,14 @@
-export function normalizeGridTrack(value: number | string): string {
-  if (typeof value === 'number') {
-    return `repeat(${value}, 1fr)`
-  }
-
-  return value
+// SPDX-License-Identifier: 0BSD
+function positiveInteger(value: number): string {
+  if (!Number.isSafeInteger(value) || value < 1)
+    throw new RangeError('Grid counts must be positive integers')
+  return value.toString(10)
 }
 
-export function normalizeGridSpan(value: number | string): string {
-  if (typeof value === 'number') {
-    return `span ${value}`
-  }
+export const normalizeGridTrack = (value: number | string): string =>
+  typeof value === 'string'
+    ? value
+    : ['repeat(', positiveInteger(value), ', minmax(0, 1fr))'].join('')
 
-  return value
-}
+export const normalizeGridSpan = (value: number | string): string =>
+  typeof value === 'string' ? value : 'span ' + positiveInteger(value)

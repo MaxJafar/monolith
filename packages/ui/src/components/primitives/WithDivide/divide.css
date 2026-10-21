@@ -1,0 +1,9 @@
+/* SPDX-License-Identifier: 0BSD */
+.monolith-divider:not(:first-child)[data-divide-axis='y'] {
+  border-block-start: 1px solid
+    var(--monolith-divide-color-resolved, var(--color-bg-200));
+}
+.monolith-divider:not(:first-child)[data-divide-axis='x'] {
+  border-inline-start: 1px solid
+    var(--monolith-divide-color-resolved, var(--color-bg-200));
+}

@@ -1,59 +1,63 @@
+// SPDX-License-Identifier: 0BSD
 import type { UseQueryResult } from '@tanstack/react-query'
-import { useEffect } from 'react'
-import type React from 'react'
+import { type ReactNode, useEffect } from 'react'
 
 import { APIError } from '@monolith/api'
 
-import { ErrorScreen, LoadingScreen } from '@/components/feedback'
+import { LoadingScreen } from '@/components/feedback'
+import { StateMessage } from '@/components/feedback/StateMessage'
+import { Button } from '@/components/inputs/Button'
 
-export function WithQuery<T>({
-  query,
-  children,
-  showLoading = true,
-  showRetryButton = true,
-  loaderSize,
-  notFoundFallback,
-  onNotFound
-}: {
+export interface WithQueryProps<T> {
   query: UseQueryResult<T>
-  children: (data: T) => React.ReactNode
+  children: (result: T) => ReactNode
+  loaderSize?: string
   showLoading?: boolean
   showRetryButton?: boolean
-  loaderSize?: string
-  notFoundFallback?: React.ReactNode
+  notFoundFallback?: ReactNode
   onNotFound?: () => void
-}) {
-  const is404 =
+}
+
+export function WithQuery<T>(props: WithQueryProps<T>) {
+  const { query } = props
+  const missing =
     query.isError &&
     query.error instanceof APIError &&
     query.error.status === 404
-
   useEffect(() => {
-    if (is404) {
-      onNotFound?.()
-    }
-  }, [is404, onNotFound])
+    if (missing) props.onNotFound?.()
+  }, [missing, props.onNotFound])
 
-  if (query.isPending) {
-    return showLoading ? <LoadingScreen loaderSize={loaderSize} /> : null
+  switch (query.status) {
+    case 'pending':
+      return props.showLoading === false ? null : (
+        <LoadingScreen loaderSize={props.loaderSize} />
+      )
+    case 'error':
+      if (missing && props.notFoundFallback !== undefined)
+        return props.notFoundFallback
+      return (
+        <StateMessage
+          error
+          icon="tabler:alert-triangle"
+          title={query.error.message}
+          action={
+            props.showRetryButton === false ? undefined : (
+              <Button
+                variant="secondary"
+                icon="tabler:refresh"
+                loading={query.isFetching}
+                onClick={async () => {
+                  await query.refetch()
+                }}
+              >
+                Retry
+              </Button>
+            )
+          }
+        />
+      )
+    case 'success':
+      return query.data == null ? null : props.children(query.data)
   }
-
-  if (query.isError) {
-    if (is404 && notFoundFallback !== undefined) {
-      return <>{notFoundFallback}</>
-    }
-
-    return (
-      <ErrorScreen
-        message={query.error.message}
-        showRetryButton={showRetryButton}
-      />
-    )
-  }
-
-  if (query.data == null) {
-    return null
-  }
-
-  return <>{children(query.data)}</>
 }

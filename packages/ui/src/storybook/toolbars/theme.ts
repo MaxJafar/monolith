@@ -1,22 +1,12 @@
-export const THEME_TOOLBAR_CONFIG = {
-  name: 'Theme',
-  description: 'Light / Dark mode',
-  defaultValue: 'light',
-  toolbar: {
-    icon: 'circlehollow' as const,
-    items: [
-      {
-        value: 'light',
-        title: 'Light Mode',
-        icon: 'sun' as const
-      },
-      {
-        value: 'dark',
-        title: 'Dark Mode',
-        icon: 'moon' as const
-      }
-    ],
-    showName: true,
-    dynamicTitle: true
-  }
-}
+// SPDX-License-Identifier: 0BSD
+import { toolbar } from './options'
+
+export const THEME_TOOLBAR_CONFIG = toolbar(
+  'Appearance',
+  'Preview the same component in light or dark mode',
+  'contrast',
+  [
+    { value: 'light', title: 'Light' },
+    { value: 'dark', title: 'Dark' }
+  ]
+)

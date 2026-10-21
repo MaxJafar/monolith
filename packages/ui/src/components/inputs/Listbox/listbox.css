@@ -1,0 +1,28 @@
+/* SPDX-License-Identifier: 0BSD */
+.monolith-listbox-trigger {
+  border: 1px solid var(--border-subtle);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  min-height: 34px;
+  transition: background-color var(--motion-fast, 140ms) ease;
+}
+.monolith-listbox-trigger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.monolith-listbox-trigger:focus-visible {
+  outline: 2px solid var(--selection-color);
+  outline-offset: 2px;
+}
+@media (pointer: coarse) {
+  .monolith-listbox-trigger {
+    min-height: 44px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .monolith-listbox-trigger {
+    transition: none;
+  }
+}

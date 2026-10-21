@@ -1,78 +1,71 @@
+// SPDX-License-Identifier: 0BSD
 import { PGlite } from '@electric-sql/pglite'
 import { drizzle } from 'drizzle-orm/pglite'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, expect, it } from 'vitest'
 
-import type { StoredFileReference } from '../../core/types'
 import { createFileMetadataStore } from './store'
 
-const REF: StoredFileReference = {
-  key: 'user/a.png',
-  originalName: 'a.png',
-  mimeType: 'image/png',
-  size: 3,
-  thumbs: [
-    { size: '256x0', key: 'user/a-thumb-256x0.png', width: 256, height: 128 }
-  ],
-  moduleId: 'user'
-}
-
-const OTHER: StoredFileReference = {
-  key: 'user/b.png',
-  originalName: 'b.png',
-  mimeType: 'image/png',
-  size: 5,
-  thumbs: [],
-  moduleId: 'user'
-}
-
-describe('createFileMetadataStore', () => {
-  let client: PGlite
-  let store: ReturnType<typeof createFileMetadataStore>
-
-  beforeAll(async () => {
-    client = new PGlite()
-
-    await client.exec(`
-      CREATE TABLE files (
-        key varchar(512) PRIMARY KEY,
-        original_name varchar(512) NOT NULL,
-        mime_type varchar(255) NOT NULL,
-        size integer NOT NULL,
-        thumbs jsonb NOT NULL DEFAULT '[]'::jsonb,
-        module_id varchar(255) NOT NULL,
-        created timestamp NOT NULL DEFAULT now()
-      );
-    `)
-
-    store = createFileMetadataStore(drizzle({ client }) as never)
+let database: PGlite, store: ReturnType<typeof createFileMetadataStore>
+beforeAll(async () => {
+  database = new PGlite()
+  await database.exec(`
+    create table files(
+      key varchar(512) primary key, original_name varchar(512) not null,
+      mime_type varchar(255) not null, size integer not null, thumbs jsonb not null default '[]',
+      module_id varchar(255) not null, created timestamp not null default now()
+    );
+    insert into files(key, original_name, mime_type, size, module_id)
+    values('notes/existing.txt','existing.txt','text/plain',4,'notes');
+  `)
+  store = createFileMetadataStore(drizzle({ client: database }) as never)
+})
+afterAll(async () => {
+  await database.close()
+})
+it('reads the installed table shape without exposing internal timestamps', async () => {
+  expect(await store.get('notes/existing.txt')).toEqual({
+    key: 'notes/existing.txt',
+    originalName: 'existing.txt',
+    mimeType: 'text/plain',
+    size: 4,
+    moduleId: 'notes',
+    thumbs: []
   })
-
-  afterAll(async () => {
-    await client.close()
+})
+it('updates preview metadata without changing the original creation time', async () => {
+  const before = await database.query(
+    'select created from files where key=$1',
+    ['notes/existing.txt']
+  )
+  const existing = (await store.get('notes/existing.txt'))!
+  const updated = {
+    ...existing,
+    size: 32,
+    thumbs: [
+      { key: 'notes/existing-thumb-8x8.png', size: '8x8', width: 8, height: 8 }
+    ]
+  }
+  await store.upsert(updated)
+  expect(await store.get(existing.key)).toEqual(updated)
+  expect(
+    (
+      await database.query('select created from files where key=$1', [
+        existing.key
+      ])
+    ).rows
+  ).toEqual(before.rows)
+})
+it('deletes only the requested metadata and safely handles absent objects', async () => {
+  await store.upsert({
+    key: 'wallet/other.txt',
+    moduleId: 'wallet',
+    originalName: 'other.txt',
+    mimeType: 'text/plain',
+    size: 1,
+    thumbs: []
   })
-
-  it('upserts and reads a reference back', async () => {
-    await store.upsert(REF)
-
-    expect(await store.get(REF.key)).toEqual(REF)
-  })
-
-  it('updates an existing row on conflict', async () => {
-    await store.upsert({ ...REF, size: 99 })
-
-    expect((await store.get(REF.key))?.size).toBe(99)
-  })
-
-  it('returns null for an unknown key', async () => {
-    expect(await store.get('user/missing.png')).toBeNull()
-  })
-
-  it('deletes only the given key', async () => {
-    await store.upsert(OTHER)
-
-    await store.delete(OTHER.key)
-
-    expect(await store.get(OTHER.key)).toBeNull()
-    expect(await store.get(REF.key)).not.toBeNull()
-  })
+  await store.delete('wallet/other.txt')
+  expect(await store.get('wallet/other.txt')).toBeNull()
+  expect(await store.get('notes/existing.txt')).not.toBeNull()
+  await store.delete('notes/missing.txt')
 })

@@ -1,63 +1,57 @@
-import { type AnyRelations } from 'drizzle-orm'
-import { type PostgresJsDatabase } from 'drizzle-orm/postgres-js'
+// SPDX-License-Identifier: 0BSD
+import type { AnyRelations } from 'drizzle-orm'
+import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import type { Request, RequestHandler, Response } from 'express'
 import type { Server } from 'socket.io'
 import type { z } from 'zod'
 
-import { OutputDefinition, OutputHelpers } from '../../response'
-import { ConvertMedia, MediaConfig } from '../standalone/media.types'
-import { CoreContext } from './core_context.types'
+import type { OutputDefinition, OutputHelpers } from '../../response'
+import type { ConvertMedia, MediaConfig } from '../standalone/media.types'
+import type { CoreContext } from './core_context.types'
 
-export interface RequestContext<TSchema extends AnyRelations = any> {
+type Schema = z.ZodType | undefined
+type Parsed<S> = S extends z.ZodType ? z.infer<S> : undefined
+export interface RequestContext<R extends AnyRelations = any> {
   req: Request
   res: Response
   io: Server
-  db: PostgresJsDatabase<TSchema>
+  db: PostgresJsDatabase<R>
+  core: CoreContext
   body: unknown
   query: unknown
   media: unknown
-  core: CoreContext
 }
-
+export type EndpointContext<
+  Q extends Schema,
+  B extends Schema,
+  O extends OutputDefinition | 'custom',
+  M extends MediaConfig | null,
+  R extends AnyRelations = any
+> = Omit<RequestContext<R>, 'query' | 'body' | 'media'> & {
+  query: Parsed<Q>
+  body: Parsed<B>
+  media: ConvertMedia<M>
+  response: OutputHelpers<O>
+}
+type EndpointMetadata = {
+  method: 'get' | 'post'
+  description: string
+  schema: { query: Schema; body: Schema }
+  output: OutputDefinition | 'custom'
+  middlewares: RequestHandler[]
+  media: MediaConfig | null
+  callerModule?: { source: string; id: string }
+  noDefaultResponse: boolean
+  noAuth: boolean
+  encrypted: boolean
+  rateLimit: boolean
+  isDownloadable: boolean
+  callback(
+    context: RequestContext
+  ): Promise<{ $status: number; payload?: unknown }>
+}
 export interface EndpointContract {
   readonly __isEndpointContract: true
   readonly modulePathAlias?: string
-  getValue(): {
-    method: 'get' | 'post'
-    middlewares: RequestHandler[]
-    schema: {
-      query: z.ZodTypeAny | undefined
-      body: z.ZodTypeAny | undefined
-    }
-    output: OutputDefinition | 'custom'
-    noDefaultResponse: boolean
-    description: string
-    isDownloadable: boolean
-    media: MediaConfig | null
-    noAuth: boolean
-    encrypted: boolean
-    rateLimit: boolean
-    callback: (
-      context: RequestContext
-    ) => Promise<{ $status: number; payload?: unknown }>
-    callerModule?: { source: string; id: string }
-  }
-}
-
-export type EndpointContext<
-  TQuery extends z.ZodTypeAny | undefined,
-  TBody extends z.ZodTypeAny | undefined,
-  TOutput extends OutputDefinition | 'custom',
-  TMedia extends MediaConfig | null,
-  TSchema extends AnyRelations = any
-> = {
-  response: OutputHelpers<TOutput>
-  body: TBody extends z.ZodTypeAny ? z.infer<TBody> : undefined
-  query: TQuery extends z.ZodTypeAny ? z.infer<TQuery> : undefined
-  media: ConvertMedia<TMedia>
-  req: Request
-  res: Response
-  io: Server
-  db: PostgresJsDatabase<TSchema>
-  core: CoreContext
+  getValue(): EndpointMetadata
 }

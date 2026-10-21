@@ -1,172 +1,154 @@
+// SPDX-License-Identifier: 0BSD
+import {
+  DeleteObjectCommand,
+  DeleteObjectsCommand,
+  GetObjectCommand,
+  ListObjectsV2Command
+} from '@aws-sdk/client-s3'
 import { Readable } from 'node:stream'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, expect, it, vi } from 'vitest'
 
+import { readStream } from '../../testing'
 import { S3StorageProvider } from './s3'
 
-const { sendMock, uploadCtorMock, uploadDoneMock } = vi.hoisted(() => ({
-  sendMock: vi.fn(),
-  uploadCtorMock: vi.fn(),
-  uploadDoneMock: vi.fn()
+const mock = vi.hoisted(() => ({
+  send: vi.fn(),
+  uploaded: vi.fn(),
+  done: vi.fn()
 }))
-
-vi.mock('@aws-sdk/client-s3', () => ({
+vi.mock('@aws-sdk/client-s3', async original => ({
+  ...(await original<typeof import('@aws-sdk/client-s3')>()),
   S3Client: class {
-    send = sendMock
-  },
-  GetObjectCommand: class {
-    constructor(public input: unknown) {}
-  },
-  DeleteObjectCommand: class {
-    constructor(public input: unknown) {}
-  },
-  ListObjectsV2Command: class {
-    constructor(public input: unknown) {}
-  },
-  DeleteObjectsCommand: class {
-    constructor(public input: unknown) {}
+    send = mock.send
   }
 }))
-
 vi.mock('@aws-sdk/lib-storage', () => ({
   Upload: class {
-    done = uploadDoneMock
-
-    constructor(public config: unknown) {
-      uploadCtorMock(config)
+    constructor(options: unknown) {
+      mock.uploaded(options)
     }
+    done = mock.done
   }
 }))
+beforeEach(() => {
+  mock.send.mockReset()
+  mock.uploaded.mockReset()
+  mock.done.mockReset().mockResolvedValue(undefined)
+})
+const provider = () => new S3StorageProvider({ bucket: 'monolith-test' })
 
-describe('S3StorageProvider', () => {
-  let provider: S3StorageProvider
-
-  beforeEach(() => {
-    vi.clearAllMocks()
-    provider = new S3StorageProvider({ bucket: 'my-bucket' })
-  })
-
-  it('uploads through lib-storage with the content type', async () => {
-    const data = Readable.from(Buffer.from('hi'))
-
-    await provider.save('mod/a.txt', data, { mimeType: 'text/plain' })
-
-    const config = uploadCtorMock.mock.calls[0][0] as {
-      params: Record<string, unknown>
-    }
-
-    expect(config.params.Bucket).toBe('my-bucket')
-    expect(config.params.Key).toBe('mod/a.txt')
-    expect(config.params.Body).toBe(data)
-    expect(config.params.ContentType).toBe('text/plain')
-    expect(uploadDoneMock).toHaveBeenCalledOnce()
-  })
-
-  it('infers the content type from the key when not provided', async () => {
-    await provider.save('mod/a.png', Readable.from(Buffer.from('x')))
-
-    const config = uploadCtorMock.mock.calls[0][0] as {
-      params: Record<string, unknown>
-    }
-
-    expect(config.params.ContentType).toBe('image/png')
-  })
-
-  it('maps a get response to a file stream', async () => {
-    sendMock.mockResolvedValueOnce({
-      Body: Readable.from(Buffer.from('abc')),
-      ContentType: 'text/plain',
-      ContentLength: 3
+it('streams uploads with metadata and lets the SDK abort unfinished multipart uploads', async () => {
+  const source = Readable.from('content')
+  await provider().save('notes/file.txt', source, { mimeType: 'text/plain' })
+  expect(mock.uploaded).toHaveBeenCalledWith(
+    expect.objectContaining({
+      leavePartsOnError: false,
+      params: {
+        Bucket: 'monolith-test',
+        Key: 'notes/file.txt',
+        Body: source,
+        ContentType: 'text/plain'
+      }
     })
-
-    const file = await provider.get('mod/a.txt')
-
-    expect(file).not.toBeNull()
-    expect(file!.mimeType).toBe('text/plain')
-    expect(file!.size).toBe(3)
-  })
-
-  it('returns null when the object has no body', async () => {
-    sendMock.mockResolvedValueOnce({ Body: undefined })
-
-    expect(await provider.get('mod/a.txt')).toBeNull()
-  })
-
-  it('returns null only for a missing object', async () => {
-    sendMock.mockRejectedValueOnce({
-      name: 'NoSuchKey',
-      $metadata: { httpStatusCode: 404 }
+  )
+  expect(mock.done).toHaveBeenCalledOnce()
+  mock.done.mockRejectedValueOnce(new Error('upload offline'))
+  await expect(
+    provider().save('notes/file.bin', Readable.from('x'))
+  ).rejects.toThrow('upload offline')
+})
+it('accepts Node and SDK web streams and retains response metadata', async () => {
+  mock.send
+    .mockResolvedValueOnce({
+      Body: Readable.from('node'),
+      ContentLength: 4,
+      ContentType: 'text/plain'
     })
-
-    expect(await provider.get('mod/a.txt')).toBeNull()
-  })
-
-  it('falls back to the key mime and a zero size when headers are absent', async () => {
-    sendMock.mockResolvedValueOnce({
-      Body: Readable.from(Buffer.from('abc'))
+    .mockResolvedValueOnce({
+      Body: {
+        transformToWebStream: () =>
+          new ReadableStream({
+            start(controller) {
+              controller.enqueue(new TextEncoder().encode('web'))
+              controller.close()
+            }
+          })
+      }
     })
-
-    const file = await provider.get('mod/a.png')
-
-    expect(file?.mimeType).toBe('image/png')
-    expect(file?.size).toBe(0)
-  })
-
-  it('deletes the object and its thumbnail siblings', async () => {
-    sendMock
-      .mockResolvedValueOnce({})
-      .mockResolvedValueOnce({
-        Contents: [{ Key: 'mod/a-thumb-256x0.png' }],
-        NextContinuationToken: undefined
-      })
-      .mockResolvedValueOnce({})
-
-    await provider.delete('mod/a.png')
-
-    const inputs = sendMock.mock.calls.map(call => call[0].input)
-
-    expect(inputs[0]).toMatchObject({ Key: 'mod/a.png' })
-    expect(inputs[1]).toMatchObject({ Prefix: 'mod/a-thumb-' })
-    expect(inputs[2]).toMatchObject({
-      Delete: { Objects: [{ Key: 'mod/a-thumb-256x0.png' }] }
+  const first = (await provider().get('notes/a.txt'))!
+  expect(first).toMatchObject({ size: 4, mimeType: 'text/plain' })
+  expect((await readStream(first.stream)).toString()).toBe('node')
+  const second = (await provider().get('notes/b.png'))!
+  expect(second).toMatchObject({ size: 0, mimeType: 'image/png' })
+  expect((await readStream(second.stream)).toString()).toBe('web')
+  expect(mock.send.mock.calls[0][0]).toBeInstanceOf(GetObjectCommand)
+})
+it('distinguishes missing content from authorization and network failures', async () => {
+  mock.send
+    .mockResolvedValueOnce({})
+    .mockRejectedValueOnce({ name: 'NoSuchKey' })
+    .mockRejectedValueOnce({ $metadata: { httpStatusCode: 404 } })
+    .mockRejectedValueOnce(new Error('access denied'))
+  const storage = provider()
+  expect(await storage.get('notes/empty')).toBeNull()
+  expect(await storage.get('notes/missing')).toBeNull()
+  expect(await storage.get('notes/missing')).toBeNull()
+  await expect(storage.get('notes/private')).rejects.toThrow('access denied')
+})
+it('deletes all pages of thumbnails and excludes unrelated objects from the listing', async () => {
+  mock.send
+    .mockResolvedValueOnce({})
+    .mockResolvedValueOnce({
+      Contents: [
+        { Key: 'v2.notes/cover-thumb-16x0.png' },
+        { Key: 'other/file' }
+      ],
+      NextContinuationToken: 'page2',
+      IsTruncated: true
     })
-  })
-
-  it('reports delete failures', async () => {
-    sendMock.mockRejectedValueOnce(new Error('boom'))
-
-    await expect(provider.delete('mod/a.png')).rejects.toThrow('boom')
-  })
-  it('does not disguise an authorization failure as a missing file', async () => {
-    sendMock.mockRejectedValueOnce(
-      Object.assign(new Error('denied'), { $metadata: { httpStatusCode: 403 } })
-    )
-    await expect(provider.get('mod/a.txt')).rejects.toThrow('denied')
-  })
-
-  it('reports partial batch deletion failures', async () => {
-    sendMock
-      .mockResolvedValueOnce({})
-      .mockResolvedValueOnce({ Contents: [{ Key: 'mod/a-thumb-32.png' }] })
-      .mockResolvedValueOnce({
-        Errors: [{ Key: 'mod/a-thumb-32.png', Code: 'AccessDenied' }]
-      })
-    await expect(provider.delete('mod/a.png')).rejects.toThrow('1 thumbnail')
-  })
-
-  it('uses only the file extension when locating thumbnails and checks pagination', async () => {
-    sendMock
-      .mockResolvedValueOnce({})
-      .mockResolvedValueOnce({
-        Contents: [],
-        IsTruncated: true,
-        NextContinuationToken: 'next'
-      })
-      .mockResolvedValueOnce({
-        Contents: [],
-        IsTruncated: true,
-        NextContinuationToken: 'next'
-      })
-    await expect(provider.delete('mod.v2/image')).rejects.toThrow('repeated')
-    expect(sendMock.mock.calls[1][0].input.Prefix).toBe('mod.v2/image-thumb-')
-  })
+    .mockResolvedValueOnce({})
+    .mockResolvedValueOnce({
+      Contents: [{ Key: 'v2.notes/cover-thumb-32x0.png' }]
+    })
+    .mockResolvedValueOnce({})
+  await provider().delete('v2.notes/cover.png')
+  const commands = mock.send.mock.calls.map(([command]) => command)
+  expect(commands[0]).toBeInstanceOf(DeleteObjectCommand)
+  expect(
+    commands
+      .filter(command => command instanceof ListObjectsV2Command)
+      .map(command => command.input.ContinuationToken)
+  ).toEqual([undefined, 'page2'])
+  expect(
+    commands
+      .filter(command => command instanceof DeleteObjectsCommand)
+      .flatMap(command => command.input.Delete?.Objects ?? [])
+  ).toEqual([
+    { Key: 'v2.notes/cover-thumb-16x0.png' },
+    { Key: 'v2.notes/cover-thumb-32x0.png' }
+  ])
+})
+it('reports partial deletion and invalid pagination so callers keep their metadata', async () => {
+  mock.send
+    .mockResolvedValueOnce({})
+    .mockResolvedValueOnce({ Contents: [{ Key: 'notes/a-thumb-8x8.png' }] })
+    .mockResolvedValueOnce({ Errors: [{ Code: 'AccessDenied' }] })
+  await expect(provider().delete('notes/a.png')).rejects.toThrow('1 thumbnail')
+  mock.send
+    .mockReset()
+    .mockResolvedValueOnce({})
+    .mockResolvedValueOnce({ Contents: [], IsTruncated: true })
+  await expect(provider().delete('notes/a.png')).rejects.toThrow('incomplete')
+  mock.send
+    .mockReset()
+    .mockResolvedValueOnce({})
+    .mockResolvedValue({ Contents: [], NextContinuationToken: 'same' })
+  await expect(provider().delete('notes/a.png')).rejects.toThrow('repeated')
+})
+it('rejects invalid connection settings before making an SDK request', () => {
+  expect(() => new S3StorageProvider({ bucket: ' ' })).toThrow('bucket')
+  expect(
+    () => new S3StorageProvider({ bucket: 'fixture', accessKeyId: 'test-only' })
+  ).toThrow('both key and secret')
+  expect(mock.send).not.toHaveBeenCalled()
 })

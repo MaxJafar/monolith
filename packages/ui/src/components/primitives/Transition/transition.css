@@ -1,0 +1,9 @@
+/* SPDX-License-Identifier: 0BSD */
+.monolith-transition {
+  transition: var(--monolith-transition);
+}
+@media (prefers-reduced-motion: reduce) {
+  .monolith-transition {
+    transition: none !important;
+  }
+}

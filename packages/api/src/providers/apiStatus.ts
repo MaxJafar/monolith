@@ -1,38 +1,29 @@
+// SPDX-License-Identifier: 0BSD
 import { applicationFetch } from '../desktop/runtime'
 
+export type ServerEnvironment = 'production' | 'development'
+
 export async function checkAPIStatus(
-  apiEndpoint: string
-): Promise<'production' | 'development' | false> {
-  const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 5000)
-
+  endpoint: string,
+  signal?: AbortSignal
+): Promise<ServerEnvironment | false> {
   try {
-    const response = await applicationFetch(`${apiEndpoint}/status`, {
-      signal: controller.signal
-    })
-
-    if (!response.ok) return false
-
-    const envelope: unknown = await response.json()
-
-    if (
-      !envelope ||
-      typeof envelope !== 'object' ||
-      !('data' in envelope) ||
-      !envelope.data ||
-      typeof envelope.data !== 'object' ||
-      !('environment' in envelope.data)
+    const deadline = AbortSignal.timeout(5_000)
+    const response = await applicationFetch(
+      endpoint.replace(/\/+$/, '') + '/status',
+      {
+        signal: signal ? AbortSignal.any([signal, deadline]) : deadline
+      }
     )
-      return false
-
-    const environment = envelope.data.environment
-
+    if (!response.ok) return false
+    const result = (await response.json()) as {
+      data?: { environment?: unknown }
+    } | null
+    const environment = result?.data?.environment
     return environment === 'production' || environment === 'development'
       ? environment
       : false
   } catch {
     return false
-  } finally {
-    clearTimeout(timeout)
   }
 }

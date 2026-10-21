@@ -1,6 +1,6 @@
 {
   "title": "Tetapan Akaun",
-  "description": "Tempat untuk mengurus semua butiran akaun anda",
+  "description": "Identiti dan pilihan log masuk anda.",
   "settings": {
     "title": {
       "profilePicture": "Gambar Profil",
@@ -13,14 +13,14 @@
       "oauth": "Pembekal OAuth"
     },
     "desc": {
-      "profilePicture": "Muat naik gambar profil untuk memperibadikan akaun anda.",
-      "username": "Nama yang mengenal pasti anda di platform.",
-      "displayName": "Nama yang dipaparkan kepada pengguna lain.",
-      "email": "Alamat emel yang anda gunakan untuk log masuk ke akaun anda.",
-      "password": "Tetapkan kata laluan yang kuat untuk melindungi akaun anda.",
-      "dateOfBirth": "Tetapkan tarikh lahir anda, dan kami akan memberi anda kejutan!",
-      "twoFA": "Aktifkan pengesahan dua faktor semasa masuk ke dalam sistem.",
-      "oauth": "Konfigurasikan penyedia OAuth untuk membolehkan log masuk pihak ketiga."
+      "profilePicture": "Pilih imej yang dipaparkan pada profil anda.",
+      "username": "Pengenal unik akaun anda.",
+      "displayName": "Pilih nama yang dipaparkan dalam ruang kerja.",
+      "email": "Urus alamat untuk log masuk.",
+      "password": "Kemas kini kata laluan akaun anda.",
+      "dateOfBirth": "Tambah tarikh lahir untuk ucapan peribadi.",
+      "twoFA": "Wajibkan kod pengesah semasa log masuk.",
+      "oauth": "Sambungkan penyedia identiti luaran."
     },
     "empty": "Tidak Ditentukan"
   },
@@ -39,13 +39,13 @@
       "update": "Kemas Kini Tarikh Lahir"
     },
     "enable2FA": {
-      "title": "Laa Pengesahan Dua Faktor",
-      "description": "Sila imbas kod QR di bawah dengan aplikasi pengesahan yang anda pilih, seperti Google Authenticator, dan tekan lanjut.",
-      "confirmationDescription": "Sila masukkan OTP yang ditunjukkan dalam aplikasi pengesah anda untuk mengesahkan pengaktifan 2FA."
+      "title": "Sediakan pengesah",
+      "description": "Tambah kod QR ini ke aplikasi pengesah, kemudian teruskan untuk mengesahkan kod.",
+      "confirmationDescription": "Masukkan kod semasa daripada pengesah yang baru disambungkan."
     },
     "disable2FA": {
-      "title": "Nyahaktifkan Pengesahan Dua Faktor",
-      "description": "Adakah anda pasti mahu menyahaktifkan pengesahan dua faktor?"
+      "title": "Hentikan keperluan pengesah",
+      "description": "Log masuk selepas ini tidak memerlukan kod pengesah. Teruskan?"
     },
     "changePassword": {
       "title": "Tukar Kata Laluan"
@@ -84,15 +84,15 @@
   },
   "messages": {
     "twoFA": {
-      "enableSuccess": "Pengesahan dua faktor berjaya diaktifkan.",
-      "disableSuccess": "Pengesahan dua faktor berjaya dilumpuhkan.",
+      "enableSuccess": "Perlindungan pengesah dihidupkan.",
+      "disableSuccess": "Perlindungan pengesah dimatikan.",
       "disableFailed": "Pengesahan dua faktor tidak dapat dilumpuhkan.",
       "setupFailed": "Kod persediaan tidak dapat dimuatkan.",
       "verifyFailed": "Kod tidak diterima. Cuba kod semasa daripada aplikasi pengesah."
     },
     "oauth": {
-      "changeConfirm": "Adakah anda pasti mahu menukar kelayakan OAuth?",
-      "changeAlert": "Mengemas kini ID dan rahsia pelanggan akan menggantikan yang sedia ada. Tindakan ini tidak boleh diterbalikkan.",
+      "changeConfirm": "Ganti kelayakan penyedia yang disimpan?",
+      "changeAlert": "ID klien dan rahsia baharu menggantikan nilai tersimpan. Simpan salinan sendiri jika kelayakan lama masih diperlukan.",
       "keepBlank": "Biarkan medan kosong untuk mengekalkan nilai yang disimpan. Nilai baharu akan menggantikannya dan penyimpanan akan mengaktifkan penyedia ini.",
       "saved": "Penyedia log masuk disimpan.",
       "loadFailed": "Status penyedia tidak tersedia.",
@@ -109,7 +109,7 @@
   "misc": {
     "enabled": "Diaktifkan",
     "disabled": "Dinonaktifkan",
-    "oauthStatus": "{{confCount}} dikonfigurasi, {{enabledCount}} diaktifkan",
+    "oauthStatus": "Disediakan: {{confCount}} · Aktif: {{enabledCount}}",
     "lastUpdated": "Kemas kini terakhir:"
   },
   "tabs": {

@@ -1,32 +1,25 @@
+// SPDX-License-Identifier: 0BSD
+import { style } from '@vanilla-extract/css'
 import { recipe } from '@vanilla-extract/recipes'
 
-import { colorWithOpacity } from '@/system'
+const base = style({ overscrollBehavior: 'contain' })
+const dimmed = style({
+  backgroundColor: 'rgb(0 0 0 / .1)',
+  backdropFilter: 'blur(2px)',
+  selectors: {
+    '.dark &': {
+      backgroundColor:
+        'color-mix(in srgb, var(--color-bg-950) 40%, transparent)'
+    }
+  }
+})
+const invisible = style({ opacity: 0 })
+const visible = style({ opacity: 1 })
 
 export const overlay = recipe({
-  base: {
-    overscrollBehavior: 'contain'
-  },
+  base,
   variants: {
-    open: {
-      true: { opacity: 1 },
-      false: {
-        opacity: 0
-      }
-    },
-    topmost: {
-      true: {
-        backdropFilter: 'blur(2px)',
-        backgroundColor: 'rgba(0, 0, 0, 0.1)',
-        willChange: 'opacity, backdrop-filter',
-        selectors: {
-          '.dark &': {
-            backgroundColor: colorWithOpacity('bg-950', '40%').toString()
-          }
-        }
-      },
-      false: {
-        backgroundColor: 'transparent'
-      }
-    }
+    topmost: { true: dimmed, false: { backgroundColor: 'transparent' } },
+    open: { true: visible, false: invisible }
   }
 })

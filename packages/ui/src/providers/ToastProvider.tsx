@@ -1,25 +1,24 @@
-import { ToastContainer, toast } from 'react-toastify'
+// SPDX-License-Identifier: 0BSD
+import type { ReactNode } from 'react'
+import { ToastContainer } from 'react-toastify'
 
-import { usePersonalization } from './PersonalizationProvider/index'
+import { usePersonalization } from './PersonalizationProvider'
 
-export { toast }
-
-export function ToastProvider({ children }: { children: React.ReactNode }) {
-  const { theme } = usePersonalization()
-
+export { toast } from 'react-toastify'
+export function ToastProvider({ children }: { children: ReactNode }) {
+  const { derivedTheme } = usePersonalization()
   return (
     <>
       {children}
       <ToastContainer
+        theme={derivedTheme}
+        position="bottom-center"
+        autoClose={3000}
         closeOnClick
-        draggable
         pauseOnFocusLoss
         pauseOnHover
-        autoClose={3000}
-        newestOnTop={false}
-        position="bottom-center"
-        rtl={false}
-        theme={theme}
+        draggable
+        limit={4}
       />
     </>
   )

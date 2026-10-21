@@ -25,34 +25,31 @@ Installing a package makes its code available on the host. Enabling it chooses w
 | [Automations](/addons/automations) | Visual workflows, branching, HTTP steps and run history.         |
 | [Agents](/addons/agents)           | Agent profiles, assignments, execution review and usage.         |
 | [Redraw](/addons/redraw)           | Designs, whiteboards and connected visual ideas.                 |
-| [Journal](/addons/journal)         | Dated entries connected to Docs and writing activity.            |
-| [Wallet](/addons/wallet)           | Accounts, balances, transactions and balance widgets.            |
-| [Wishlist](/addons/wishlist)       | Personal collections of things you want to return to.            |
 | [Gym](/addons/gym)                 | Training plans, workout sessions and exercise history.           |
 | [Tech Lab](/addons/tech-lab)       | Devices, hosted services and observed health.                    |
 
-Achievements, Code Time, Flashcards, Pomodoro and Idea Box are [widget packages](/docs/widgets). The optional uRPG experience is currently included in the main client and does not have an independent downloadable package.
+Calendar, Journal and Projects are native workspace features. They are included with Monolith and never require addon installation. See the [widget guide](/docs/widgets) for native and custom-addon dashboard views.
 
 ## Downloading and updating
 
 Hosts can use a signed GitHub Releases catalog. The shop reports download progress, checks integrity and compatibility, then activates a verified package. The previous package is retained for recovery.
 
-The [0.1.9 release](https://github.com/MaxJafar/monolith/releases/tag/v0.1.9) contains 14 addon and widget packages. A host administrator connects the signed catalog once; users then browse and download packages inside Monolith. Use the catalog matching your host version.
+Use the signed addon catalog published alongside your host version. Current packages are Atlas, Automations, Agents, Redraw, Gym and Tech Lab; retired packages in older catalogs are ignored.
 
 ## Connect the release catalog
 
-For a **0.1.9** host, set these values in its private environment configuration. In the server setup kit this is `env/.env.docker`. Replace the administrator placeholder with the UUID of the account authorized to install code.
+For your installed host version, set these values in its private environment configuration. In the server setup kit this is `env/.env.docker`. Replace HOST_VERSION with the installed version, use its published catalog public key, and replace the administrator placeholder with the UUID of the account authorized to install code.
 
 ```dotenv
 MONOLITH_CORE_ONLY=1
-MONOLITH_ADDON_CATALOG_URL=https://github.com/MaxJafar/monolith/releases/download/v0.1.9/addon-catalog.signed.json
-MONOLITH_ADDON_CATALOG_PUBLIC_KEY='-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAM6pM3OFz+fZRtGw2o+C9T7uWYuAg4pZsYjVvn64HZCM=\n-----END PUBLIC KEY-----'
+MONOLITH_ADDON_CATALOG_URL=https://github.com/MaxJafar/monolith/releases/download/vHOST_VERSION/addon-catalog.signed.json
+MONOLITH_ADDON_CATALOG_PUBLIC_KEY='PUBLIC_KEY_FROM_THE_MATCHING_RELEASE'
 MONOLITH_ADDON_ADMIN_IDS=YOUR_ACCOUNT_UUID
 ```
 
-The key is also distributed as [addon-catalog-public.pem](https://github.com/MaxJafar/monolith/releases/download/v0.1.9/addon-catalog-public.pem). Keep the backslash-n separators in the single-line environment value. Workspace ownership alone does not grant host installation rights. Existing hosts should keep their current core/addon selection until migration is complete.
+The matching public key is distributed as addon-catalog-public.pem in the same release. Keep the backslash-n separators in the single-line environment value. Workspace ownership alone does not grant host installation rights. Existing hosts should keep their current core/addon selection until migration is complete.
 
-For schema-bearing addons, first apply and verify the matching host migration. Then place this release's [addon-schemas.json](https://github.com/MaxJafar/monolith/releases/download/v0.1.9/addon-schemas.json) in persistent host storage and set `MONOLITH_ADDON_SCHEMA_FILE` to its absolute path. With the server kit, a file placed in the files volume is available at `/monolith/storage/addon-schemas.json`. Approve the file only after migration succeeds. Atlas needs no additional schema.
+For schema-bearing addons, first apply and verify the matching host migration. Then place the matching release's addon-schemas.json in persistent host storage and set `MONOLITH_ADDON_SCHEMA_FILE` to its absolute path. With the server kit, a file placed in the files volume is available at `/monolith/storage/addon-schemas.json`. Approve the file only after migration succeeds. Atlas needs no additional schema.
 
 Restart the API with the updated environment, open Addons and Widgets, and check for updates. A disabled action can indicate missing administrator permissions, catalog configuration, host compatibility or migration approval. The [release guide](https://github.com/MaxJafar/monolith/blob/main/docs/RELEASING.md) explains host storage and activation in detail.
 

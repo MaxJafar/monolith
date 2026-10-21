@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: 0BSD
 import {
   type CSSProperties,
   Children,
@@ -8,76 +9,73 @@ import {
   useMemo
 } from 'react'
 
-type Props = {
+interface SlotProps {
   children: ReactNode
   className?: string
   style?: CSSProperties
   ref?: Ref<unknown>
-  [name: string]: unknown
+  [attribute: string]: unknown
 }
-
-function attach(
-  ref: Ref<unknown> | undefined,
-  value: unknown
-): (() => void) | undefined {
-  if (typeof ref === 'function') {
-    const cleanup = ref(value)
-    return typeof cleanup === 'function'
-      ? cleanup
-      : () => {
-          ref(null)
-        }
-  }
-  if (ref) {
-    ref.current = value
-    return () => {
-      ref.current = null
-    }
-  }
-}
-
-export function Slot({ children, ref, ...props }: Props) {
-  const child = Children.only(children)
-  const childProps = isValidElement<Record<string, unknown>>(child)
-    ? child.props
-    : {}
-  const childRef = childProps.ref as Ref<unknown> | undefined
-  const mergedRef = useMemo(() => {
-    if (!ref || ref === childRef) return childRef ?? ref
-    if (!childRef) return ref
-    return (node: unknown) => {
-      const cleanups = [attach(childRef, node), attach(ref, node)]
+function connectRefs(references: Array<Ref<unknown> | undefined>) {
+  const unique = [...new Set(references.filter(Boolean))] as NonNullable<
+    Ref<unknown>
+  >[]
+  if (unique.length < 2) return unique[0]
+  return (node: unknown) => {
+    const release = unique.map(reference => {
+      if (typeof reference === 'function') {
+        const cleanup = reference(node)
+        return typeof cleanup === 'function'
+          ? cleanup
+          : () => {
+              reference(null)
+            }
+      }
+      reference.current = node
       return () => {
-        for (const cleanup of cleanups) cleanup?.()
+        reference.current = null
+      }
+    })
+    return () => {
+      for (const cleanup of release) cleanup()
+    }
+  }
+}
+function compose(
+  inner: Record<string, unknown>,
+  outer: Record<string, unknown>
+) {
+  const output = { ...inner, ...outer }
+  for (const key of Object.keys(outer)) {
+    const childHandler = inner[key],
+      parentHandler = outer[key]
+    if (
+      /^on[A-Z]/.test(key) &&
+      typeof childHandler === 'function' &&
+      typeof parentHandler === 'function'
+    ) {
+      output[key] = (...args: unknown[]) => {
+        childHandler(...args)
+        const event = args[0] as { defaultPrevented?: boolean } | undefined
+        if (!event?.defaultPrevented) return parentHandler(...args)
       }
     }
-  }, [ref, childRef])
-  if (!isValidElement<Record<string, unknown>>(child)) return null
-
-  const merged: Record<string, unknown> = {
-    ...childProps,
-    ...props,
-    ref: mergedRef
   }
-  for (const [name, outer] of Object.entries(props)) {
-    const inner = childProps[name]
-    if (
-      /^on[A-Z]/.test(name) &&
-      typeof inner === 'function' &&
-      typeof outer === 'function'
-    )
-      merged[name] = (...args: unknown[]) => {
-        inner(...args)
-        if (
-          !(args[0] as { defaultPrevented?: boolean } | undefined)
-            ?.defaultPrevented
-        )
-          outer(...args)
-      }
-  }
-  merged.className = [childProps.className, props.className]
+  output.style = Object.assign({}, inner.style, outer.style)
+  output.className = [inner.className, outer.className]
     .filter(Boolean)
     .join(' ')
-  merged.style = { ...(childProps.style as CSSProperties), ...props.style }
-  return cloneElement(child, merged)
+  return output
+}
+export function Slot({ children, ref, ...attributes }: SlotProps) {
+  const only = Children.only(children)
+  const element = isValidElement<Record<string, unknown>>(only) ? only : null
+  const ownRef = element?.props.ref as Ref<unknown> | undefined
+  const combined = useMemo(() => connectRefs([ownRef, ref]), [ownRef, ref])
+  return element
+    ? cloneElement(element, {
+        ...compose(element.props, attributes),
+        ref: combined
+      })
+    : null
 }

@@ -1,0 +1,15 @@
+/* SPDX-License-Identifier: 0BSD */
+.monolith-modal-surface {
+  box-shadow: 0 24px 48px -12px rgb(0 0 0 / 0.25);
+}
+[data-modal-overlay][data-open='false'] > .monolith-modal-surface {
+  transform: scale(0.97, 0.95);
+}
+[data-modal-overlay][data-open='true'][data-modal-topmost='false']
+  > .monolith-modal-surface {
+  transform: scale(0.97);
+}
+[data-modal-overlay][data-open='true'][data-modal-topmost='true']
+  > .monolith-modal-surface {
+  transform: none;
+}

@@ -1,4 +1,5 @@
-import { Express } from 'express'
+// SPDX-License-Identifier: 0BSD
+import type { Express } from 'express'
 import { createServer } from 'node:http'
 import { Server } from 'socket.io'
 
@@ -8,22 +9,15 @@ import { setupSocket } from './setupSocket'
 export default function createSocketServer(
   app: Express
 ): ReturnType<typeof createServer> {
-  const server = createServer(app)
-
-  const io = new Server(server, {
+  const http = createServer(app)
+  app.request.io = new Server(http, {
     cors: {
-      origin(requestOrigin, callback) {
-        if (CORS_ALLOWED_ORIGINS.includes(requestOrigin || '')) {
-          callback(null, true)
-        } else {
-          callback(new Error('Not allowed by CORS'))
-        }
-      }
+      origin: (origin, accept) =>
+        CORS_ALLOWED_ORIGINS.includes(origin ?? '')
+          ? accept(null, true)
+          : accept(new Error('Not allowed by CORS'))
     }
   })
-
-  setupSocket(io)
-  app.request.io = io
-
-  return server
+  setupSocket(app.request.io)
+  return http
 }

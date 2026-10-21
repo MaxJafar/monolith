@@ -1,23 +1,10 @@
-import { number, object, string } from 'zod'
+// SPDX-License-Identifier: 0BSD
+import { z } from 'zod'
 
-const LocationSchema = object({
-  name: string(),
-  formattedAddress: string(),
-  location: object({
-    latitude: number(),
-    longitude: number()
-  })
+const point = z.object({ latitude: z.number(), longitude: z.number() })
+export const LocationSchema = z.object({
+  name: z.string(),
+  formattedAddress: z.string(),
+  location: point
 })
-
-type Location = {
-  name: string
-  formattedAddress: string
-  location: {
-    latitude: number
-    longitude: number
-  }
-}
-
-export type { Location }
-
-export { LocationSchema }
+export type Location = z.infer<typeof LocationSchema>

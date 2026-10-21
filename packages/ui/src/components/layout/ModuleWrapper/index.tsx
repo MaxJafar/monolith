@@ -1,5 +1,6 @@
+// SPDX-License-Identifier: 0BSD
 import { useQueryClient } from '@tanstack/react-query'
-import { useEffect } from 'react'
+import { type ReactNode, useEffect, useMemo } from 'react'
 
 import { useAuth } from '@monolith/api'
 import { ModuleMetadataProvider } from '@monolith/federation'
@@ -12,21 +13,8 @@ import { AppearanceCover } from '../AppearanceCover'
 import { Scrollbar } from '../Scrollbar'
 import { WorkspaceCanvas, useCanvasWidgets } from '../WorkspaceCanvas'
 
-/**
- * The wrapper component for all modules in the app. It provides the layout and context for the module header and sidebar, as well as handling query cleanup on unmount if specified. If being used within Monolith instance, it will be automatically wrapped around the module content. Therefore, no explicit usage is needed in most cases.
- */
-export function ModuleWrapper({
-  children,
-  config: {
-    name,
-    title,
-    icon,
-    translationNamespace,
-    canvas = true,
-    clearQueryOnUnmount = true
-  }
-}: {
-  children: React.ReactNode
+export interface ModuleWrapperProps {
+  children: ReactNode
   config: {
     name: string
     title: string
@@ -36,57 +24,65 @@ export function ModuleWrapper({
     canvas?: boolean
     clearQueryOnUnmount: boolean
   }
-}) {
+}
+
+export function ModuleWrapper({ children, config }: ModuleWrapperProps) {
   const queryClient = useQueryClient()
   const { userData } = useAuth()
   const { pageStorage } = useCanvasWidgets()
-
-  const pathname = window.location.pathname
-  const storage = pageStorage?.(pathname)
+  const route = typeof location === 'undefined' ? '/' : location.pathname
+  const account = userData?.id
+  const shouldClear = config.clearQueryOnUnmount ?? true
+  const storage = pageStorage?.(route)
+  const metadata = useMemo(
+    () => ({
+      name: config.name,
+      title: config.title,
+      icon: config.icon
+    }),
+    [config.name, config.title, config.icon]
+  )
 
   useEffect(() => {
+    if (!shouldClear) return
+    const page = workspaceAPI.user.pages.get.input({ key: route })
+    const queryKey = [...page.queryOptions().queryKey, account]
     return () => {
-      if (!clearQueryOnUnmount) return
-
-      queryClient.removeQueries({
-        queryKey: [
-          ...workspaceAPI.user.pages.get.input({ key: pathname }).queryOptions()
-            .queryKey,
-          userData?.id
-        ]
-      })
+      queryClient.removeQueries({ queryKey })
     }
-  }, [queryClient, clearQueryOnUnmount, pathname, userData?.id])
+  }, [queryClient, route, account, shouldClear])
 
+  const view =
+    config.canvas === false ? (
+      <>
+        <AppearanceCover />
+        {children}
+      </>
+    ) : (
+      <WorkspaceCanvas
+        key={storage ? JSON.stringify(storage.queryKey) : route}
+        native={children}
+        title={config.title}
+        translationNamespace={config.translationNamespace}
+        storage={storage}
+        widgetScope={config.name}
+      />
+    )
   return (
-    <ModuleMetadataProvider value={{ name, title, icon }}>
+    <ModuleMetadataProvider value={metadata}>
       <ModuleSidebarStateProvider>
         <Flex asChild direction="column" minHeight="0">
-          <Scrollbar className="no-overflow-x" usePaddingRight={false}>
+          <Scrollbar hideHorizontal usePaddingRight={false}>
             <Flex
               className="monolith-module-content"
               direction="column"
               flex="1"
               overflowX="hidden"
+              width="100%"
               pt="xl"
               px={{ base: 'md', sm: '2xl' }}
-              width="100%"
             >
-              {canvas ? (
-                <WorkspaceCanvas
-                  key={storage ? JSON.stringify(storage.queryKey) : pathname}
-                  native={children}
-                  title={title}
-                  translationNamespace={translationNamespace}
-                  storage={storage}
-                  widgetScope={name}
-                />
-              ) : (
-                <>
-                  <AppearanceCover />
-                  {children}
-                </>
-              )}
+              {view}
             </Flex>
           </Scrollbar>
         </Flex>

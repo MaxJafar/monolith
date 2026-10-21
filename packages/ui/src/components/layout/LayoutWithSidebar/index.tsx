@@ -1,9 +1,8 @@
-import { Flex } from '@/components/primitives'
+// SPDX-License-Identifier: 0BSD
+import type { ReactNode } from 'react'
 
-export function LayoutWithSidebar({ children }: { children: React.ReactNode }) {
-  return (
-    <Flex flex="1" gap={{ base: 'none', lg: 'lg' }} minHeight="0" width="100%">
-      {children}
-    </Flex>
-  )
+import '../sidebar-layout.css'
+
+export function LayoutWithSidebar({ children }: { children: ReactNode }) {
+  return <div className="monolith-sidebar-layout">{children}</div>
 }

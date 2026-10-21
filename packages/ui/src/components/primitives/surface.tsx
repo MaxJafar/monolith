@@ -1,9 +1,11 @@
-import type {
-  CSSProperties,
-  ComponentPropsWithRef,
-  ElementType,
-  ReactNode,
-  Ref
+// SPDX-License-Identifier: 0BSD
+import {
+  type CSSProperties,
+  type ComponentPropsWithRef,
+  type ElementType,
+  type ReactNode,
+  type Ref,
+  createElement
 } from 'react'
 
 import {
@@ -19,70 +21,64 @@ import {
   resolveStyles,
   shadowClass
 } from '@/system'
+import { LAYOUT_PROPERTIES } from '@/system/responsive/constant'
+import {
+  layoutValues,
+  roundingAliases,
+  spacingAliases
+} from '@/system/tokens/registry'
 
-import { boxBase, boxSprinkles } from './Box/Box.css'
-import { flexBase, flexSprinkles } from './Flex/Flex.css'
-import { gridBase, gridSprinkles } from './Grid/Grid.css'
 import { Slot } from './Slot'
+import { layoutBase, layoutSprinkles } from './layout.css'
 
 export interface SurfaceOwnProps<T extends ElementType, Display extends string>
   extends TokenizedCommonProps, ArbitraryProps {
   as?: T
   asChild?: boolean
   ref?: Ref<HTMLElement>
+  children?: ReactNode
+  className?: string
+  style?: CSSProperties
   display?: ResponsiveProp<Display>
   bg?: ThemeConditionProp<ColorValue>
   shadow?: boolean
-  className?: string
-  style?: CSSProperties
-  children?: ReactNode
 }
-
 export type SurfaceProps<T extends ElementType, Own> = Own &
   Omit<ComponentPropsWithRef<T>, keyof Own>
-
-const spacing = 'p px py pt pr pb pl m mx my mt mr mb ml'.split(' ')
-const layout = ['position', 'overflow', 'overflowX', 'overflowY']
-const rounding = ['r', 'rtl', 'rtr', 'rbl', 'rbr']
-const dimensions =
-  'width minWidth maxWidth height minHeight maxHeight aspectRatio zIndex inset top right bottom left flex flexBasis flexGrow flexShrink gridArea gridColumnSpan gridRowSpan'.split(
-    ' '
-  )
-const special = new Set([
-  ...spacing,
-  ...layout,
-  ...rounding,
-  ...dimensions,
+const common = { ...spacingAliases, ...roundingAliases, ...layoutValues }
+const controls = new Set([
   'as',
   'asChild',
   'ref',
   'children',
   'className',
   'style',
-  'shadow',
-  'bg',
   'display',
+  'bg',
+  'shadow',
+  'sus',
+  ...Object.keys(common),
+  ...Object.keys(LAYOUT_PROPERTIES),
   'centered',
   'direction',
   'align',
   'justify',
   'wrap',
+  'flow',
   'gap',
   'gapX',
   'gapY',
-  'flow',
   'templateCols',
-  'templateRows',
-  'sus'
+  'templateRows'
 ])
-const variants = {
-  box: { base: boxBase, sprinkles: boxSprinkles },
-  flex: { base: flexBase, sprinkles: flexSprinkles },
-  grid: { base: gridBase, sprinkles: gridSprinkles }
-}
-const alignment: Record<string, string> = {
-  start: 'flex-start',
-  end: 'flex-end'
+const flexNames = { direction: 'flexDirection', wrap: 'flexWrap' }
+const gridNames = { flow: 'gridAutoFlow' }
+const containerNames = {
+  align: 'alignItems',
+  justify: 'justifyContent',
+  gap: 'gap',
+  gapX: 'columnGap',
+  gapY: 'rowGap'
 }
 const distribution: Record<string, string> = {
   between: 'space-between',
@@ -90,88 +86,76 @@ const distribution: Record<string, string> = {
   evenly: 'space-evenly'
 }
 
-function select(source: Record<string, unknown>, keys: string[]) {
+function pick(input: Record<string, unknown>, group: object) {
   return Object.fromEntries(
-    keys.filter(key => source[key] !== undefined).map(key => [key, source[key]])
+    Object.keys(group)
+      .filter(key => input[key] !== undefined)
+      .map(key => [key, input[key]])
   )
 }
-
-/** One prop partition and style pass for every layout surface. Native props stay native. */
-export function renderSurface(properties: object, kind: keyof typeof variants) {
-  const props = properties as Record<string, unknown>
-  const variant = variants[kind]
-  const tokenProps: Record<string, unknown> = resolveCommonSprinkleProps(
-    select(props, spacing),
-    select(props, layout),
-    select(props, rounding)
+export function renderSurface(
+  properties: object,
+  kind: 'box' | 'flex' | 'grid'
+) {
+  const input = properties as Record<string, unknown>
+  const tokens: Record<string, unknown> = resolveCommonSprinkleProps(
+    pick(input, spacingAliases),
+    pick(input, layoutValues),
+    pick(input, roundingAliases)
   )
-  const normalize = (value: unknown, transform?: (value: string) => string) =>
-    normalizeResponsiveProp(value as never, transform)
-  tokenProps.display = normalize(
-    props.display ?? (kind === 'box' ? undefined : kind)
+  tokens.display = normalizeResponsiveProp(
+    input.display ?? (kind === 'box' ? undefined : kind)
   )
-  const arbitrary: Record<string, unknown> = select(props, dimensions)
-  for (const name of ['gridColumnSpan', 'gridRowSpan'])
-    arbitrary[name] = normalizeResponsiveProp(
-      props[name] as never,
-      normalizeGridSpan
-    )
-  const extra: Record<
-    string,
-    ResponsiveProp<string | number, string, 'output'> | undefined
-  > = {}
+  const native = Object.fromEntries(
+    Object.entries(input).filter(([key]) => !controls.has(key))
+  )
+  const dimensions = pick(input, LAYOUT_PROPERTIES)
+  const map = (value: unknown, transform?: (item: any) => any) =>
+    normalizeResponsiveProp(value, transform)
+  for (const field of ['gridColumnSpan', 'gridRowSpan'])
+    dimensions[field] = map(input[field], normalizeGridSpan)
   if (kind !== 'box') {
-    for (const [input, output] of [
-      ['gap', 'gap'],
-      ['gapX', 'columnGap'],
-      ['gapY', 'rowGap']
-    ])
-      tokenProps[output!] = normalize(props[input!])
-    const centered = kind === 'flex' && props.centered
-    tokenProps.alignItems = normalize(
-      centered ? 'center' : props.align,
-      value => (kind === 'flex' ? (alignment[value] ?? value) : value)
-    )
-    tokenProps.justifyContent = normalize(
-      centered ? 'center' : props.justify,
-      value =>
-        distribution[value] ??
-        (kind === 'flex' ? (alignment[value] ?? value) : value)
-    )
-  }
-  if (kind === 'flex') {
-    tokenProps.flexDirection = normalize(props.direction)
-    tokenProps.flexWrap = normalize(props.wrap)
+    const mappings = {
+      ...containerNames,
+      ...(kind === 'flex' ? flexNames : gridNames)
+    }
+    for (const [field, css] of Object.entries(mappings)) {
+      const raw =
+        kind === 'flex' &&
+        input.centered &&
+        (field === 'align' || field === 'justify')
+          ? 'center'
+          : input[field]
+      tokens[css] = map(raw, value => {
+        if (field === 'justify' && distribution[value])
+          return distribution[value]
+        if (
+          kind === 'flex' &&
+          (field === 'align' || field === 'justify') &&
+          (value === 'start' || value === 'end')
+        )
+          return 'flex-' + value
+        return value
+      })
+    }
   }
   if (kind === 'grid') {
-    tokenProps.gridAutoFlow = normalize(props.flow)
-    extra.gridTemplateColumns = normalizeResponsiveProp(
-      props.templateCols as never,
-      normalizeGridTrack
-    )
-    extra.gridTemplateRows = normalizeResponsiveProp(
-      props.templateRows as never,
-      normalizeGridTrack
-    )
+    dimensions.gridTemplateColumns = map(input.templateCols, normalizeGridTrack)
+    dimensions.gridTemplateRows = map(input.templateRows, normalizeGridTrack)
   }
-  const resolved = resolveStyles({
-    sprinkles: variant.sprinkles,
-    sprinkleProps: tokenProps as never,
-    arbitraryProps: arbitrary,
-    componentArbitraryProps: extra,
-    colorProps: { bg: props.bg as ThemeConditionProp<ColorValue> },
-    className: [variant.base(), props.shadow && shadowClass, props.className]
+  const computed = resolveStyles({
+    sprinkles: layoutSprinkles,
+    sprinkleProps: tokens,
+    arbitraryProps: dimensions,
+    colorProps: { bg: input.bg as ThemeConditionProp<ColorValue> },
+    className: [layoutBase(), input.shadow && shadowClass, input.className]
       .filter(Boolean)
       .join(' '),
-    style: props.style as CSSProperties | undefined
+    style: input.style as CSSProperties | undefined
   })
-  const native = Object.fromEntries(
-    Object.entries(props).filter(([name]) => !special.has(name))
-  )
-  const Element = props.asChild ? Slot : (props.as as ElementType) || 'div'
-  return (
-    <Element {...native} {...resolved} ref={props.ref as Ref<HTMLElement>}>
-      {props.children as ReactNode}
-    </Element>
+  return createElement(
+    input.asChild ? Slot : ((input.as as ElementType) ?? 'div'),
+    { ...native, ...computed, ref: input.ref },
+    input.children as ReactNode
   )
 }

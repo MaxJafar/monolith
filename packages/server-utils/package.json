@@ -49,5 +49,6 @@
   "author": "Monolith contributors",
   "monolithBuilds": {
     "build": "rimraf dist && vite build && tsc --emitDeclarationOnly"
-  }
+  },
+  "license": "0BSD"
 }

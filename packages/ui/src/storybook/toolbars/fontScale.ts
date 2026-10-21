@@ -1,16 +1,12 @@
-export const FONT_SCALE_TOOLBAR_CONFIG = {
-  name: 'Font Scale',
-  description: 'Font scale',
-  defaultValue: '1',
-  toolbar: {
-    icon: 'grow' as const,
-    items: [
-      { value: '0.8', title: '🤏 Small' },
-      { value: '1', title: '👥 Medium' },
-      { value: '2', title: '👥👥 Large' },
-      { value: '3', title: '👥👥👥 Extra Large' }
-    ],
-    showName: true,
-    dynamicTitle: true
-  }
-}
+// SPDX-License-Identifier: 0BSD
+import { toolbar } from './options'
+
+export const FONT_SCALE_TOOLBAR_CONFIG = toolbar(
+  'Text size',
+  'Check layout at different text scales',
+  'grow',
+  [1, 0.8, 1.25, 1.5, 2, 3].map(value => ({
+    value,
+    title: Math.round(value * 100) + '%'
+  }))
+)

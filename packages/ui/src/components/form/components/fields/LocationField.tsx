@@ -1,9 +1,5 @@
-import {
-  type Control,
-  type FieldPathByValue,
-  type FieldValues,
-  useController
-} from 'react-hook-form'
+// SPDX-License-Identifier: 0BSD
+import type { FieldValues } from 'react-hook-form'
 
 import {
   type Location,
@@ -11,46 +7,30 @@ import {
   type LocationInputProps
 } from '@/components/inputs'
 
-import { useNamespace } from '../FormModal'
+import { type FieldBinding, useFieldBinding } from './binding'
 
-type LocationFieldProps<TFieldValues extends FieldValues> = {
-  control: Control<TFieldValues>
-  name: FieldPathByValue<TFieldValues, Location | null | undefined>
-} & Omit<LocationInputProps, 'value' | 'onChange'>
-
-export function LocationField<TFieldValues extends FieldValues>({
+export function LocationField<Form extends FieldValues>({
   control,
   name,
-  namespace,
-  ...rest
-}: LocationFieldProps<TFieldValues>) {
-  const { field, fieldState } = useController({
-    control,
-    name
-  })
-
-  const contextNamespace = useNamespace()
-
-  const activeNamespace = namespace ?? contextNamespace
-
+  ...input
+}: FieldBinding<Form, Location> &
+  Omit<LocationInputProps, 'value' | 'onChange'>) {
+  const state = useFieldBinding(control, name, input.namespace)
   return (
     <LocationInput
-      errorMsg={fieldState.error?.message}
-      namespace={activeNamespace}
-      value={field.value}
-      onChange={val =>
-        field.onChange(
-          val ?? {
+      {...input}
+      namespace={state.namespace}
+      errorMsg={input.errorMsg ?? state.errorMsg}
+      value={state.value ?? null}
+      onChange={value =>
+        state.onChange(
+          value ?? {
             name: '',
             formattedAddress: '',
-            location: {
-              latitude: 0,
-              longitude: 0
-            }
+            location: { latitude: 0, longitude: 0 }
           }
         )
       }
-      {...rest}
     />
   )
 }

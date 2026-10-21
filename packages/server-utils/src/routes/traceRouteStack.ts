@@ -1,4 +1,5 @@
-import z from 'zod'
+// SPDX-License-Identifier: 0BSD
+import { z } from 'zod'
 
 export type Route = {
   method: string
@@ -18,7 +19,6 @@ export type Route = {
   output?: unknown
   callerModule?: { source: string; id: string }
 }
-
 export interface RouteStackLayer {
   regexp?: { toString(): string; source?: string; fast_slash?: boolean }
   monolithMountPath?: string
@@ -29,10 +29,15 @@ export interface RouteStackLayer {
   }
   handle?: unknown
 }
-
 type Handler = { stack?: RouteStackLayer[]; meta?: Partial<Route> }
-
-function mountPath(layer: RouteStackLayer): string {
+function join(left: string, right: string) {
+  return (left + '/' + right)
+    .split('/')
+    .filter(Boolean)
+    .join('/')
+    .replace(/^/, '/')
+}
+function mount(layer: RouteStackLayer) {
   if (layer.monolithMountPath !== undefined) return layer.monolithMountPath
   if (!layer.regexp || layer.regexp.fast_slash) return ''
   const expression =
@@ -41,67 +46,57 @@ function mountPath(layer: RouteStackLayer): string {
       .toString()
       .replace(/^\//, '')
       .replace(/\/[a-z]*$/, '')
-  const literal = expression
-    .split('(?=')[0]!
+  return expression
     .replace(/^\^/, '')
+    .split('(?=')[0]!
     .replace(/\\\/\?$/, '')
-  return literal.replace(/\\\//g, '/').replace(/^\/|\/$/g, '')
+    .replace(/\\\//g, '/')
 }
-
-function location(prefix: string, path: string): string {
-  return (prefix + '/' + path).replace(/\/{2,}/g, '/')
-}
-
-/** Walk router layers without recursing into middleware or mistaking handler functions for routes. */
 export default function traceRouteStack(
   stack: RouteStackLayer[],
   prefix = '',
   routes: Route[] = []
 ): Route[] {
-  type Frame = {
-    layer: RouteStackLayer
-    prefix: string
-    ancestors: Set<RouteStackLayer[]>
-  }
-  const pending: Frame[] = []
-  const schedule = (
-    layers: RouteStackLayer[],
-    path: string,
-    ancestors: Set<RouteStackLayer[]>
-  ) => {
-    if (ancestors.has(layers)) return
-    const next = new Set(ancestors).add(layers)
-    for (let index = layers.length - 1; index >= 0; index--)
-      pending.push({ layer: layers[index]!, prefix: path, ancestors: next })
-  }
-  schedule(stack, prefix, new Set())
-  while (pending.length) {
-    const frame = pending.pop()!
-    const route = frame.layer.route
-    const handler = frame.layer.handle as Handler | undefined
-    if (!route) {
-      if (Array.isArray(handler?.stack))
-        schedule(
-          handler.stack,
-          location(frame.prefix, mountPath(frame.layer)),
-          frame.ancestors
-        )
+  const active = new Set<RouteStackLayer[]>([stack])
+  const frames = [{ layers: stack, index: 0, path: prefix }]
+  while (frames.length) {
+    const current = frames[frames.length - 1]!
+    if (current.index === current.layers.length) {
+      active.delete(current.layers)
+      frames.pop()
       continue
     }
-    const meta = [...(route.stack ?? [])]
-      .reverse()
-      .map(item => (item.handle as Handler | undefined)?.meta)
-      .find(Boolean)
-    const methods = Object.entries(route.methods ?? {})
-      .filter(([, enabled]) => enabled)
-      .map(([method]) => method.toUpperCase())
-    for (const path of [route.path ?? ''].flat()) {
+    const layer = current.layers[current.index++]!
+    const handler = layer.handle as Handler | undefined
+    if (!layer.route) {
+      const child = handler?.stack
+      if (Array.isArray(child) && !active.has(child)) {
+        active.add(child)
+        frames.push({
+          layers: child,
+          index: 0,
+          path: join(current.path, mount(layer))
+        })
+      }
+      continue
+    }
+    const route = layer.route
+    let meta: Partial<Route> | undefined
+    for (const item of route.stack ?? []) {
+      const candidate = (item.handle as Handler | undefined)?.meta
+      if (candidate) meta = candidate
+    }
+    const methods = Object.keys(route.methods ?? {}).filter(
+      key => route.methods![key]
+    )
+    const paths = Array.isArray(route.path) ? route.path : [route.path ?? '']
+    for (const path of paths) {
       if (path === '*') continue
-      for (const method of methods.length ? methods : ['GET'])
+      for (const method of methods.length ? methods : ['get'])
         routes.push({
           ...meta,
-          method,
-          path: location(frame.prefix, path),
+          method: method.toUpperCase(),
+          path: join(current.path, path),
           description: meta?.description ?? '',
           schema: meta?.schema ?? { response: z.null() }
         })

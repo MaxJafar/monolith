@@ -1,6 +1,6 @@
 {
   "title": "帐户设定",
-  "description": "管理您所有帐户详细信息的地方",
+  "description": "管理身份信息和登录设置。",
   "settings": {
     "title": {
       "profilePicture": "个人资料图片",
@@ -13,14 +13,14 @@
       "oauth": "OAuth提供商"
     },
     "desc": {
-      "profilePicture": "上传个人资料图片以个性化您的帐户。",
-      "username": "在平台上识别您的名称。",
-      "displayName": "显示给其他用户的名称。",
-      "email": "您用来登录帐户的电子邮件地址。",
-      "password": "设置一个强密码以保护您的帐户。",
-      "dateOfBirth": "设置您的出生日期，我们会给您一个惊喜！",
-      "twoFA": "在登录系统时启用双重身份验证。",
-      "oauth": "配置OAuth提供商以启用第三方登录。"
+      "profilePicture": "选择个人资料显示的图片。",
+      "username": "账户的唯一用户名。",
+      "displayName": "设置工作区中显示的姓名。",
+      "email": "管理用于登录的邮箱地址。",
+      "password": "更新账户密码。",
+      "dateOfBirth": "添加生日以接收生日问候。",
+      "twoFA": "登录时要求输入身份验证器代码。",
+      "oauth": "连接外部身份提供商。"
     },
     "empty": "未设置"
   },
@@ -39,13 +39,13 @@
       "update": "更新出生日期"
     },
     "enable2FA": {
-      "title": "启用双重身份验证",
-      "description": "请使用您选择的身份验证器应用程序（例如 Google Authenticator）扫描下面的二维码，然后点击继续。",
-      "confirmationDescription": "请在验证器应用程序中输入显示的OTP以确认启用2FA。"
+      "title": "设置身份验证器",
+      "description": "用身份验证器扫描此二维码，然后继续验证生成的代码。",
+      "confirmationDescription": "输入刚连接的身份验证器当前显示的代码。"
     },
     "disable2FA": {
-      "title": "禁用双重认证",
-      "description": "您确定要禁用两步验证吗？"
+      "title": "取消身份验证器要求",
+      "description": "之后登录将不再需要身份验证器代码。是否继续？"
     },
     "changePassword": {
       "title": "更改密码"
@@ -84,15 +84,15 @@
   },
   "messages": {
     "twoFA": {
-      "enableSuccess": "双重身份验证成功启用。",
-      "disableSuccess": "双重身份验证已成功禁用。",
+      "enableSuccess": "已启用身份验证器保护。",
+      "disableSuccess": "已关闭身份验证器保护。",
       "disableFailed": "无法禁用双重身份验证。",
       "setupFailed": "无法加载设置二维码。",
       "verifyFailed": "验证码未被接受。请尝试身份验证器中当前显示的验证码。"
     },
     "oauth": {
-      "changeConfirm": "您确定要更改OAuth凭据吗？",
-      "changeAlert": "更新客户端ID和密钥将取代现有内容。此操作不可逆。",
+      "changeConfirm": "替换已保存的提供商凭据？",
+      "changeAlert": "新的客户端 ID 和密钥将替换现有值。如需保留旧凭据，请自行备份。",
       "keepBlank": "留空即可保留已保存的值。输入新值将替换原值，保存后将启用此登录方式。",
       "saved": "登录方式已保存。",
       "loadFailed": "无法获取登录方式状态。",
@@ -109,7 +109,7 @@
   "misc": {
     "enabled": "已启用",
     "disabled": "已禁用",
-    "oauthStatus": "{{confCount}}个已配置，{{enabledCount}}个已启用",
+    "oauthStatus": "已配置：{{confCount}} · 已启用：{{enabledCount}}",
     "lastUpdated": "最后更新："
   },
   "tabs": {

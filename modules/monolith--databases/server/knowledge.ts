@@ -1,3 +1,5 @@
+import { and, eq, inArray, sql } from 'drizzle-orm'
+
 import {
   type GraphEdge,
   type GraphNode,
@@ -11,9 +13,7 @@ import {
   stabilizeReferences
 } from '@monolith/blocks'
 import { ClientError, canonicalBodies } from '@monolith/server-utils'
-import { and, eq, inArray, sql } from 'drizzle-orm'
 
-import { entries, subjects } from '../../monolith--notes/server/schema.drizzle'
 import { redrawReferences } from './redrawReferences'
 import {
   bases,
@@ -111,15 +111,10 @@ export async function pageCatalog(
     ]
   }
 
-  const [docs, pages, notes, databases, folders] = await Promise.all([
+  const [docs, pages, databases] = await Promise.all([
     db.select().from(documents).where(eq(documents.owner_id, owner)),
     db.select().from(records).where(eq(records.owner_id, owner)),
-    db
-      .select()
-      .from(entries)
-      .where(and(eq(entries.owner_id, owner), eq(entries.type, 'note'))),
-    db.select().from(bases).where(eq(bases.owner_id, owner)),
-    db.select().from(subjects).where(eq(subjects.owner_id, owner))
+    db.select().from(bases).where(eq(bases.owner_id, owner))
   ])
   const nodes: (GraphNode & { content: string })[] = [
     ...docs.map(doc => ({
@@ -138,15 +133,6 @@ export async function pageCatalog(
       title: page.title,
       context: databases.find(base => base.id === page.base_id)?.name ?? '',
       content: page.content
-    })),
-    ...notes.map(note => ({
-      id: note.id,
-      key: `note:${note.id}`,
-      kind: 'note' as const,
-      title: note.name,
-      context:
-        folders.find(subject => subject.id === note.subject_id)?.title ?? '',
-      content: note.content
     }))
   ]
 
@@ -322,22 +308,12 @@ export async function lockPage(
     return
   }
 
-  const target =
-    page.kind === 'document'
-      ? documents
-      : page.kind === 'record'
-        ? records
-        : entries
+  if (page.kind === 'note') throw new ClientError('Page not found', 404)
+  const target = page.kind === 'document' ? documents : records
   const [row] = await db
     .select({ id: target.id })
     .from(target)
-    .where(
-      and(
-        eq(target.owner_id, owner),
-        eq(target.id, page.id),
-        ...(page.kind === 'note' ? [eq(entries.type, 'note')] : [])
-      )
-    )
+    .where(and(eq(target.owner_id, owner), eq(target.id, page.id)))
     .for('key share')
 
   if (!row) throw new ClientError('Page not found', 404)

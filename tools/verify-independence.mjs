@@ -15,6 +15,7 @@ for (const base of ['apps', 'packages', 'modules', 'locales'])
   }
 for (const file of paths) {
   const pkg = json(file)
+  assert.equal(pkg.license, '0BSD', `${file}: first-party license must be 0BSD`)
   assert.ok(
     pkg.name === 'monolith' || pkg.name.startsWith('@monolith/'),
     `${file}: Monolith package namespace required`
@@ -55,6 +56,27 @@ assert.ok(
   existsSync(resolve(root, 'LICENSE')) &&
     existsSync(resolve(root, 'THIRD_PARTY_NOTICES.md'))
 )
+const licenseText = file =>
+  readFileSync(resolve(root, file), 'utf8').replaceAll('\r\n', '\n')
+assert.equal(licenseText('LICENSE'), licenseText('LICENSES/0BSD.txt'))
+assert.equal(
+  licenseText('packages/ui/LICENSE'),
+  licenseText('LICENSES/0BSD.txt')
+)
+for (const notice of [
+  'apps/api/src/core/models/LICENSE',
+  'apps/api/src/core/models/NOTICE.md',
+  'apps/site/public/fonts/Inter-OFL.txt',
+  'apps/site/public/fonts/JetBrainsMono-OFL.txt',
+  'packages/ui/src/assets/icons/icon-notices.json',
+  'modules/monolith--gym/NOTICE.md',
+  'modules/monolith--redraw/THIRD_PARTY_LICENSES.txt',
+  'modules/monolith--redraw/client/ICONS-LICENSE.txt'
+])
+  assert.ok(
+    existsSync(resolve(root, notice)),
+    `Missing third-party notice: ${notice}`
+  )
 console.info(
   `Monolith package metadata verified: ${paths.length} packages, ${identities.length} preserved addon identities, license notices present. This checks product identity, not source authorship.`
 )

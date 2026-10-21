@@ -1,92 +1,51 @@
-import _ from 'lodash'
-
-import { useModuleTranslation } from '@monolith/localization'
+// SPDX-License-Identifier: 0BSD
+import { type ReactElement, isValidElement } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/inputs'
-import { Flex, Text, Transition } from '@/components/primitives'
+import { Flex, Text } from '@/components/primitives'
 
-type SidebarTitleProps = {
-  /** Label string or React element to display for the sidebar title. */
-  label: string
-  /** Additional CSS classes to apply to the sidebar title. */
-  className?: string
-  /** Action button to display on the right side of the sidebar title. */
-  actionButton?:
-    | React.ReactElement
-    | {
-        icon: string
-        onClick: () => void
-      }
-  /** The i18n namespace for internationalization. See the [main documentation](https://github.com/MaxJafar/monolith/tree/main/docs) for more details. */
-  namespace?: string | false
-}
+import { useSidebarLabel } from '../shared'
 
-/** A title for a section in the sidebar navigation. */
 export function SidebarTitle({
   label,
+  namespace,
   className,
-  actionButton,
-  namespace
-}: SidebarTitleProps) {
-  const { t } = useModuleTranslation(
-    namespace === false
-      ? []
-      : namespace
-        ? [namespace, 'common.sidebar']
-        : ['common.sidebar']
-  )
-
+  actionButton
+}: {
+  label: string
+  namespace?: string | false
+  className?: string
+  actionButton?: ReactElement | { icon: string; onClick: () => void }
+}) {
+  const translate = useSidebarLabel(namespace)
+  const { t } = useTranslation('common.sidebar')
+  const title = translate(label, 'title')
   return (
-    <Transition>
-      <Flex
-        align="center"
-        as="li"
-        justify="between"
-        pb={actionButton !== undefined ? 'sm' : 'md'}
-        pl="xl"
-        pt="sm"
-        style={{ gap: '0.75rem', paddingRight: '1.25rem' }}
+    <Flex as="li" align="center" justify="between" gap="sm" px="md" py="sm">
+      <Text
+        as="h3"
+        className={className}
+        size="sm"
+        weight="medium"
+        color="muted"
       >
-        <Text
-          as="h3"
-          className={className}
-          color="muted"
-          size="base"
-          tracking="normal"
-          weight="semibold"
-          whiteSpace="nowrap"
-        >
-          {namespace === false
-            ? label
-            : t([
-                `sidebar.${_.camelCase(label)}`,
-                `common.sidebar:categories.${_.camelCase(label)}`,
-                label
-              ])}
-        </Text>
-        {actionButton && 'icon' in actionButton ? (
-          <Text
-            asChild
-            color={{
-              base: 'bg-400',
-              hover: 'bg-800',
-              dark: 'bg-500',
-              darkHover: 'bg-100'
-            }}
-          >
-            <Button
-              icon={actionButton.icon}
-              style={{
-                padding: '0.5em'
-              }}
-              variant="plain"
-              onClick={actionButton.onClick}
-            />
-          </Text>
-        ) : (
+        {title}
+      </Text>
+      {actionButton &&
+        (isValidElement(actionButton) ? (
           actionButton
-        )}
-      </Flex>
-    </Transition>
+        ) : (
+          <Button
+            variant="plain"
+            p="xs"
+            icon={actionButton.icon}
+            onClick={actionButton.onClick}
+            aria-label={t('itemAction', {
+              name: typeof title === 'string' ? title : label
+            })}
+          />
+        ))}
+    </Flex>
   )
 }

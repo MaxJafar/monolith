@@ -1,0 +1,36 @@
+/* SPDX-License-Identifier: 0BSD */
+.monolith-switch {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  position: relative;
+  width: 2.8em;
+  height: 1.55em;
+  padding: 0.2em;
+  border-radius: 2em;
+  background: var(--border-medium, #858582);
+  border: 0;
+  transition: background var(--motion-normal) var(--motion-ease);
+}
+.monolith-switch[aria-checked='true'] {
+  background: var(--interactive-primary, #252525);
+}
+.monolith-switch-thumb {
+  width: 1.15em;
+  height: 1.15em;
+  border-radius: 50%;
+  background: var(--bg-surface, white);
+  box-shadow: 0 1px 3px #0003;
+  translate: 0;
+  transition:
+    translate var(--motion-normal) var(--motion-ease),
+    background var(--motion-normal);
+}
+.monolith-switch[aria-checked='true'] .monolith-switch-thumb {
+  translate: 1.25em;
+  background: var(--interactive-on-primary, white);
+}
+.monolith-switch:disabled {
+  opacity: 0.45;
+  cursor: default;
+}

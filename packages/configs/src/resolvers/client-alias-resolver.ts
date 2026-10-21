@@ -1,73 +1,45 @@
+// SPDX-License-Identifier: 0BSD
 import fs from 'node:fs'
 import path from 'node:path'
 
-/**
- * Custom resolver for Vite to resolve '@/' imports within a monorepo setup.
- * Supports resolving from the client src directory, client root for manifest files,
- * and falls back to package src directories.
- */
+function sourceRoot(importer: string, manifest: boolean): string | undefined {
+  const clean = importer.replace(/^\/@fs\//, '').split(/[?#]/)[0]!
+  const absolute = path.resolve(clean).replaceAll('\\', '/')
+  const parts = absolute.split('/')
+  const client = parts.findIndex(
+    (part, index) =>
+      (part === 'client' && index > 0 && parts[index - 2] === 'modules') ||
+      (part === 'web' && parts[index - 1] === 'apps')
+  )
+  if (client >= 0) {
+    const directory = parts.slice(0, client + 1).join('/')
+    return manifest ? directory : directory + '/src'
+  }
+  const source = parts.lastIndexOf('src')
+  return source >= 0 ? parts.slice(0, source + 1).join('/') : undefined
+}
+
 export function clientAliasResolver(
   id: string,
   importer: string | undefined
 ): string | null {
-  if (!importer) {
-    return null
-  }
-
-  let normalizedImporter = importer
-
-  // Strip Vite's /@fs/ prefix, which denotes an absolute filesystem path
-  normalizedImporter = normalizedImporter.replace(/^\/@fs\/?/, '')
-
-  if (!path.isAbsolute(normalizedImporter)) {
-    normalizedImporter = path.resolve(process.cwd(), normalizedImporter)
-  }
-
-  // Normalize backslashes to forward slashes so the regexes below work on Windows
-  normalizedImporter = normalizedImporter.replace(/\\/g, '/')
-
-  let rootDir: string
-
-  const clientMatch = normalizedImporter.match(/(.+\/(?:client|web))/)
-
-  if (clientMatch && clientMatch[1]) {
-    const clientDir = clientMatch[1]
-
-    rootDir =
-      id === '@/manifest' || id === '@/manifest.ts'
-        ? clientDir
-        : `${clientDir}/src`
-  } else {
-    const srcMatch = normalizedImporter.match(/(.+\/src)/)
-
-    if (!(srcMatch && srcMatch[1])) {
-      return null
-    }
-
-    rootDir = srcMatch[1]
-  }
-
-  const subPath = id === '@' ? '' : id.slice(2)
-  const basePath = path.resolve(rootDir, subPath)
-
-  const candidates = [
-    `${basePath}.tsx`,
-    `${basePath}.ts`,
-    `${basePath}.json`,
-    path.resolve(basePath, 'index.tsx'),
-    path.resolve(basePath, 'index.ts'),
-    basePath
-  ]
-
-  for (const candidate of candidates) {
-    if (fs.existsSync(candidate)) {
-      // Vite identifies modules by slash-normalized IDs. Mixing a Windows
-      // alias path with a relative import otherwise creates two React contexts.
-      return candidate.replace(/\\/g, '/')
-    }
-  }
-
-  console.error(`[vite] failed to resolve import "${id}" from "${importer}"`)
-
+  if (!importer || (id !== '@' && !id.startsWith('@/'))) return null
+  const root = sourceRoot(
+    importer,
+    id === '@/manifest' || id === '@/manifest.ts'
+  )
+  if (!root) return null
+  const target = path.resolve(root, id === '@' ? '' : id.slice(2))
+  const relative = path.relative(root, target)
+  if (relative === '..' || relative.startsWith('..' + path.sep)) return null
+  const options = ['.tsx', '.ts', '.json'].map(extension => target + extension)
+  options.push(
+    path.join(target, 'index.tsx'),
+    path.join(target, 'index.ts'),
+    target
+  )
+  const found = options.find(filename => fs.existsSync(filename))
+  if (found) return found.replaceAll('\\', '/')
+  console.error('Cannot resolve a workspace source alias', { id, importer })
   return null
 }

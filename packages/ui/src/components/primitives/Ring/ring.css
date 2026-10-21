@@ -1,0 +1,6 @@
+/* SPDX-License-Identifier: 0BSD */
+.monolith-ring {
+  outline: var(--monolith-ring-width, 3px) solid
+    var(--monolith-ring-color-resolved, var(--color-custom-500));
+  outline-offset: var(--monolith-ring-offset-width, 0px);
+}

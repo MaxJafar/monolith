@@ -1,14 +1,19 @@
-import { Scrollbar } from '@/components/layout'
-import { Box, Flex } from '@/components/primitives'
+// SPDX-License-Identifier: 0BSD
+import type { ReactNode } from 'react'
 
-export function ScrollableStory({ children }: { children: React.ReactNode }) {
+import { Stack } from '@/components/primitives'
+
+export function ScrollableStory({ children }: { children: ReactNode }) {
   return (
-    <Box asChild height="100%" minHeight="24rem" width="100%">
-      <Scrollbar>
-        <Flex direction="column" gap="md" py="3xl">
-          {children}
-        </Flex>
-      </Scrollbar>
-    </Box>
+    <Stack
+      as="section"
+      className="monolith-story-scroll"
+      gap="lg"
+      py="md"
+      overflowY="auto"
+      maxHeight="85vh"
+    >
+      {children}
+    </Stack>
   )
 }

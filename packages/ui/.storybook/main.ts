@@ -1,82 +1,85 @@
-// This file has been automatically migrated to valid ESM format by Storybook.
+// SPDX-License-Identifier: 0BSD
 import type { StorybookConfig } from '@storybook/react-vite'
 import { createRequire } from 'node:module'
-import { dirname, join } from 'node:path'
+import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import type { Plugin } from 'vite'
 import tsconfigPaths from 'vite-tsconfig-paths'
 
+import { blocksuiteRuntime, blocksuiteSyntax } from '@monolith/configs/vite'
+
 const require = createRequire(import.meta.url)
-
-const federationStubPlugin = {
-  name: 'storybook-federation-stub',
-  resolveId(id: string) {
-    if (id === 'virtual:__federation__') {
-      return '\0virtual:__federation__'
-    }
-
-    return null
-  },
-  load(id: string) {
-    if (id === '\0virtual:__federation__') {
-      return `
-        export const __federation_method_setRemote = () => {}
-        export const __federation_method_getRemote = () => Promise.resolve(null)
-        export const __federation_method_unwrapDefault = (m) => m?.default ?? m
-      `
-    }
-
-    return null
-  }
+const packageRoot = (name: string) =>
+  dirname(require.resolve(name + '/package.json'))
+const remoteModule = 'virtual:__federation__'
+const fixture: Plugin = {
+  name: 'monolith-preview-remotes',
+  resolveId: id => (id === remoteModule ? '\0' + remoteModule : null),
+  load: id =>
+    id === '\0' + remoteModule
+      ? [
+          'export function __federation_method_setRemote() {}',
+          'export async function __federation_method_getRemote() { throw new Error("Remote addons require a Monolith host"); }',
+          'export function __federation_method_unwrapDefault(value) { return value?.default ?? value; }'
+        ].join('\n')
+      : null
 }
-
 const config: StorybookConfig = {
+  framework: { name: packageRoot('@storybook/react-vite'), options: {} },
+  stories: ['../src/**/*.stories.@(ts|tsx)', '../src/**/*.mdx'],
   staticDirs: [{ from: '../../../apps/web/public/fonts', to: '/fonts' }],
-  stories: ['../src/**/*.mdx', '../src/**/*.stories.@(js|jsx|mjs|ts|tsx)'],
   addons: [
-    getAbsolutePath('@chromatic-com/storybook'),
-    getAbsolutePath('@storybook/addon-docs'),
-    getAbsolutePath('storybook-addon-deep-controls')
-  ],
-  framework: {
-    name: getAbsolutePath('@storybook/react-vite'),
-    options: {}
-  },
+    '@chromatic-com/storybook',
+    '@storybook/addon-docs',
+    'storybook-addon-deep-controls'
+  ].map(packageRoot),
   typescript: {
-    reactDocgen:
-      process.env.NODE_ENV === 'production'
-        ? 'react-docgen-typescript'
-        : 'react-docgen',
+    reactDocgen: 'react-docgen',
     reactDocgenTypescriptOptions: {
-      shouldExtractLiteralValuesFromEnum: true,
       tsconfigPath: './tsconfig.json',
+      shouldExtractLiteralValuesFromEnum: true,
       include: ['./src/**/*.tsx']
     },
-    check: false,
-    skipCompiler: true
+    check: false
   },
-  viteFinal: async config => {
-    config.plugins = [
-      ...(config.plugins ?? []).filter(p => {
-        if (p && typeof p === 'object' && 'name' in p) {
-          return p.name !== 'vite:dts'
-        }
-
-        return true
-      }),
-      federationStubPlugin,
-      tsconfigPaths()
-    ]
-    config.build = {
-      ...config.build
-    }
-
+  viteFinal(config) {
+    const editor = blocksuiteRuntime(
+      fileURLToPath(new URL('../../..', import.meta.url))
+    )
+    const aliases = config.resolve?.alias ?? {}
     return {
-      ...config
+      ...config,
+      resolve: {
+        ...config.resolve,
+        alias: [
+          ...editor.aliases,
+          ...(Array.isArray(aliases)
+            ? aliases
+            : Object.entries(aliases).map(([find, replacement]) => ({
+                find,
+                replacement
+              })))
+        ]
+      },
+      optimizeDeps: {
+        ...config.optimizeDeps,
+        exclude: [...(config.optimizeDeps?.exclude ?? []), ...editor.exclude]
+      },
+      plugins: [
+        blocksuiteSyntax(),
+        ...(config.plugins ?? []).filter(
+          plugin =>
+            !(
+              plugin &&
+              typeof plugin === 'object' &&
+              'name' in plugin &&
+              ['vite:dts', 'unplugin-dts'].includes(plugin.name)
+            )
+        ),
+        fixture,
+        tsconfigPaths()
+      ]
     }
   }
 }
-
 export default config
-
-function getAbsolutePath(value: string): any {
-  return dirname(require.resolve(join(value, 'package.json')))
-}

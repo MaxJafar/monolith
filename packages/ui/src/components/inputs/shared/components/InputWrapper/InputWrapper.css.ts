@@ -1,82 +1,55 @@
+// SPDX-License-Identifier: 0BSD
 import { style } from '@vanilla-extract/css'
 import { recipe } from '@vanilla-extract/recipes'
 
-import { COLORS, vars } from '@/system'
-
 export const inputWrapperRecipe = recipe({
+  base: {
+    border: '1px solid var(--border-subtle)',
+    transition: 'border-color 120ms ease, background-color 120ms ease',
+    selectors: {
+      '&:focus-within': {
+        borderColor: 'var(--selection-color, var(--color-custom-500))'
+      }
+    },
+    '@media': { '(prefers-reduced-motion: reduce)': { transition: 'none' } }
+  },
   variants: {
     variant: {
       classic: {
-        borderRadius: vars.radii.md,
-        minHeight: '56px'
+        borderRadius: 'var(--radius-md)',
+        minHeight: '3.5rem',
+        paddingLeft: 'calc(var(--spacing) * 3)',
+        paddingRight: 'calc(var(--spacing) * 2)'
       },
-      plain: {
-        borderRadius: vars.radii.lg
-      }
+      plain: { borderRadius: 'var(--radius-md)' }
     },
-    size: {
-      default: {},
-      small: {}
-    },
+    size: { default: {}, small: {} },
+    disabled: { true: { opacity: 0.5, cursor: 'not-allowed' }, false: {} },
     hasError: {
       true: {
-        borderColor: COLORS['dangerous'],
-        outlineColor: COLORS['dangerous'],
+        borderColor: 'var(--color-dangerous)',
         selectors: {
-          '&:focus-within': {
-            borderColor: COLORS['dangerous']
-          }
+          '&:focus-within': { borderColor: 'var(--color-dangerous)' }
         }
       },
-      false: {
-        borderColor: 'var(--border-subtle)',
-        selectors: {
-          '&:focus-within': {
-            borderColor:
-              'color-mix(in srgb, var(--text-primary) 40%, transparent)',
-            outline:
-              '1px solid color-mix(in srgb, var(--text-primary) 40%, transparent)',
-            outlineOffset: '-1px'
-          },
-          '&:focus-within:hover': {
-            outlineColor:
-              'color-mix(in srgb, var(--text-primary) 55%, transparent)'
-          }
-        }
-      }
-    },
-    disabled: {
-      true: {
-        opacity: 0.5,
-        pointerEvents: 'none'
-      },
-      false: {
-        cursor: 'text'
-      }
+      false: {}
     }
   },
   compoundVariants: [
     {
       variants: { variant: 'plain', size: 'default' },
-      style: {
-        padding: vars.space.md
-      }
+      style: { padding: 'calc(var(--spacing) * 4)' }
     },
     {
       variants: { variant: 'plain', size: 'small' },
-      style: {
-        padding: vars.space.sm
-      }
+      style: { padding: 'calc(var(--spacing) * 2)' }
     }
   ],
   defaultVariants: {
     variant: 'classic',
     size: 'default',
-    hasError: false,
-    disabled: false
+    disabled: false,
+    hasError: false
   }
 })
-
-export const inputWrapperErrorTextStyle = style({
-  color: COLORS['dangerous']
-})
+export const inputWrapperErrorTextStyle = style({ overflowWrap: 'anywhere' })

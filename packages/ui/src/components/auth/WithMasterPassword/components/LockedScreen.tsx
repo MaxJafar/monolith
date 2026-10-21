@@ -1,12 +1,15 @@
-import React, { useState } from 'react'
+// SPDX-License-Identifier: 0BSD
+import { type Dispatch, type SetStateAction, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { encrypt, usePromiseLoading } from '@monolith/api'
 import type { EndpointClient } from '@monolith/api'
 
 import { Button, TextInput } from '@/components/inputs'
-import { Box, Flex, Icon, Text } from '@/components/primitives'
-import { toast } from '@/providers'
+import { Stack, Text } from '@/components/primitives'
+
+import { useCredentialAction } from '../../useCredentialAction'
+import { protectPassword } from '../password'
+import { PasswordPanel } from './PasswordPanel'
 
 export function LockedScreen({
   challengeController,
@@ -17,112 +20,81 @@ export function LockedScreen({
   challengeController: EndpointClient
   verifyController: EndpointClient
   onRecoveryRequested?: () => void
-  setMasterPassword: React.Dispatch<React.SetStateAction<string>>
+  setMasterPassword: Dispatch<SetStateAction<string>>
 }) {
-  const [masterPassWordInputContent, setMasterPassWordInputContent] =
-    useState<string>('')
-
-  const { t } = useTranslation(['common.vault', 'common.fetch'])
-
-  async function handleSubmit(): Promise<void> {
-    if (masterPassWordInputContent.trim() === '') {
-      toast.error('Please fill in all the field')
-
-      return
-    }
-
-    try {
-      const challenge = (await challengeController.query()) as string
-
-      const data = await verifyController.mutate({
-        password: encrypt(masterPassWordInputContent, challenge)
-      } as never)
-
-      if (data === true) {
-        toast.success(
-          t('common.fetch:success', {
-            action: t('common.fetch:unlock')
-          })
-        )
-        setMasterPassword(masterPassWordInputContent)
-        setMasterPassWordInputContent('')
-      } else {
-        toast.error(
-          t('common.fetch:failure', {
-            action: t('common.fetch:unlock')
-          })
-        )
-      }
-    } catch {
-      toast.error(
-        t('common.fetch:failure', {
-          action: t('common.fetch:unlock')
-        })
-      )
-    }
+  const { t } = useTranslation('common.vault')
+  const [password, setPassword] = useState('')
+  const action = useCredentialAction()
+  async function unlock() {
+    if (!password.trim()) return
+    const submitted = password
+    await action.run(async active => {
+      const payload = await protectPassword(submitted, challengeController)
+      if (!active()) return
+      if ((await verifyController.mutate(payload as never)) !== true)
+        throw new Error('Unlock rejected')
+      if (!active()) return
+      setPassword('')
+      setMasterPassword(submitted)
+    })
   }
-
-  const [loading, onSubmit] = usePromiseLoading(handleSubmit)
-
   return (
-    <Flex
-      align="center"
-      direction="column"
-      gap="md"
-      height="100%"
-      justify="center"
-      width="100%"
+    <PasswordPanel
+      title={t('vault.lockedMessage')}
+      description={t('vault.passwordRequired')}
+      icon="tabler:lock"
     >
-      <Text asChild>
-        <Icon icon="tabler:lock-access" size="7rem" />
-      </Text>
-      <Text align="center" size="4xl" weight="semibold">
-        {t('vault.lockedMessage')}
-      </Text>
-      <Text align="center" color="muted" mb="3xl" size="lg">
-        {t('vault.passwordRequired')}
-      </Text>
-      <Box width={{ base: '100%', md: '75%', xl: '50%' }}>
+      <Stack
+        as="form"
+        gap="md"
+        aria-busy={action.pending}
+        onSubmit={event => {
+          event.preventDefault()
+          void unlock()
+        }}
+      >
         <TextInput
           isPassword
-          icon="tabler:lock"
+          autoComplete="current-password"
           label="vault.inputs.masterPassword"
           namespace="common.vault"
-          placeholder="••••••••••••••••"
-          value={masterPassWordInputContent}
-          onChange={setMasterPassWordInputContent}
-          onKeyDown={e => {
-            if (e.key === 'Enter') {
-              onSubmit().catch(console.error)
-            }
+          placeholder="••••••••"
+          value={password}
+          disabled={action.pending}
+          onChange={value => {
+            setPassword(value)
+            action.clearError()
           }}
         />
-      </Box>
-      <Box mt="lg" width={{ base: '100%', md: '75%', xl: '50%' }}>
+        {action.failed && (
+          <Text role="alert" color="dangerous">
+            {t('vault.failedToUnlock')}
+          </Text>
+        )}
         <Button
-          icon="tabler:lock"
-          loading={loading}
+          type="submit"
+          icon="tabler:lock-open"
+          loading={action.pending}
+          disabled={!password.trim()}
           namespace="common.vault"
-          width="100%"
-          onClick={() => {
-            onSubmit().catch(console.error)
-          }}
         >
           vault.buttons.unlock
         </Button>
         {onRecoveryRequested && (
           <Button
-            icon="tabler:lock-open"
-            mt="sm"
-            namespace="common.vault"
+            type="button"
             variant="plain"
-            width="100%"
-            onClick={onRecoveryRequested}
+            namespace="common.vault"
+            disabled={action.pending}
+            onClick={() => {
+              setPassword('')
+              onRecoveryRequested()
+            }}
           >
             vault.buttons.recoverAccount
           </Button>
         )}
-      </Box>
-    </Flex>
+      </Stack>
+    </PasswordPanel>
   )
 }

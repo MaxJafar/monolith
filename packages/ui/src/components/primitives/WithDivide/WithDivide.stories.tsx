@@ -1,157 +1,54 @@
+// SPDX-License-Identifier: 0BSD
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
-import { Card } from '@/components/layout'
-import { Box, Flex, Text } from '@/components/primitives'
-
-import { WithDivide } from './index'
+import { Flex, Stack, Text, WithDivide } from '@/components/primitives'
 
 const meta = {
-  argTypes: {
-    axis: {
-      control: { type: 'select' },
-      options: ['x', 'y']
-    },
-    children: { control: false },
-    color: { control: 'color' }
-  },
+  title: 'Primitives/WithDivide',
   component: WithDivide,
-  title: 'Primitives/WithDivide'
+  args: { axis: 'y', children: null }
 } satisfies Meta<typeof WithDivide>
-
 export default meta
-
 type Story = StoryObj<typeof meta>
-
-const items = [
-  { id: 1, subtitle: 'Last updated 2 days ago', title: 'Project Alpha' },
-  { id: 2, subtitle: 'Last updated 5 hours ago', title: 'Project Beta' },
-  { id: 3, subtitle: 'Last updated yesterday', title: 'Project Gamma' },
-  { id: 4, subtitle: 'Last updated 1 week ago', title: 'Project Delta' },
-  { id: 5, subtitle: 'Last updated 3 days ago', title: 'Project Epsilon' }
-]
-
+const stages = ['Inbox', 'In progress', 'Completed']
 export const Default: Story = {
-  args: {
-    children: null
-  },
-  render: () => (
-    <Card width="100%">
-      {items.map(item => (
-        <WithDivide key={item.id}>
-          <Flex justify="between" p="md">
-            <Text color={{ base: 'bg-800', dark: 'bg-50' }} weight="semibold">
-              {item.title}
-            </Text>
-            <Text color="muted">{item.subtitle}</Text>
+  render: args => (
+    <Stack gap="none">
+      {stages.map(stage => (
+        <WithDivide {...args} key={stage}>
+          <Flex p="md" justify="between">
+            <Text>{stage}</Text>
+            <Text color="muted">3 actions</Text>
           </Flex>
         </WithDivide>
       ))}
-    </Card>
+    </Stack>
   )
 }
-
-export const Vertical: Story = {
-  args: {
-    axis: 'y',
-    children: null
-  },
+export const Horizontal: Story = {
   render: () => (
     <Flex>
-      {items.slice(0, 3).map(item => (
-        <WithDivide key={item.id} axis="y">
-          <Box p="md">
-            <Text weight="semibold">{item.title}</Text>
-          </Box>
+      {stages.map(stage => (
+        <WithDivide axis="x" key={stage}>
+          <Flex p="md">
+            <Text>{stage}</Text>
+          </Flex>
         </WithDivide>
       ))}
     </Flex>
   )
 }
-
-export const CustomColor: Story = {
-  args: {
-    children: null,
-    color: 'custom-500'
-  },
-  render: args => (
-    <Card width="100%">
-      {items.map(item => (
-        <WithDivide key={item.id} {...args}>
-          <Flex justify="between" p="md">
-            <Text color={{ base: 'bg-800', dark: 'bg-50' }} weight="semibold">
-              {item.title}
-            </Text>
-            <Text color="muted">{item.subtitle}</Text>
-          </Flex>
+export const Themed: Story = {
+  render: () => (
+    <Stack gap="none">
+      {stages.map(stage => (
+        <WithDivide
+          key={stage}
+          color={{ base: 'custom-200', dark: 'custom-700' }}
+        >
+          <Flex p="lg">{stage}</Flex>
         </WithDivide>
       ))}
-    </Card>
-  )
-}
-
-export const Nested: Story = {
-  args: {
-    children: null
-  },
-  render: () => (
-    <Card width="100%">
-      <WithDivide>
-        <Box p="md">
-          <Text
-            color={{ base: 'custom-500' }}
-            display="block"
-            p="sm"
-            transform="uppercase"
-            weight="semibold"
-          >
-            Active
-          </Text>
-          {[
-            { id: 1, label: 'Task A' },
-            { id: 2, label: 'Task B' }
-          ].map(item => (
-            <WithDivide key={item.id}>
-              <Box p="sm">
-                <Text
-                  color={{ base: 'bg-800', dark: 'bg-50' }}
-                  weight="semibold"
-                >
-                  {item.label}
-                </Text>
-              </Box>
-            </WithDivide>
-          ))}
-        </Box>
-      </WithDivide>
-      <WithDivide>
-        <Box p="md">
-          <Text
-            color={{ base: 'custom-500' }}
-            display="block"
-            p="sm"
-            transform="uppercase"
-            weight="semibold"
-          >
-            Completed
-          </Text>
-          {[
-            { id: 3, label: 'Task C' },
-            { id: 4, label: 'Task D' },
-            { id: 5, label: 'Task E' }
-          ].map(item => (
-            <WithDivide key={item.id}>
-              <Box p="sm">
-                <Text
-                  color={{ base: 'bg-800', dark: 'bg-50' }}
-                  weight="semibold"
-                >
-                  {item.label}
-                </Text>
-              </Box>
-            </WithDivide>
-          ))}
-        </Box>
-      </WithDivide>
-    </Card>
+    </Stack>
   )
 }

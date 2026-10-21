@@ -1,57 +1,67 @@
-import type { HTMLAttributes, Ref } from 'react'
+// SPDX-License-Identifier: 0BSD
+import type { CSSProperties, HTMLAttributes, Ref } from 'react'
 
 import { Slot } from '../Slot'
+import './transition.css'
 
-type Entry = {
-  property: string
+type Timing = {
   duration?: number | string
   easing?: string
   delay?: number | string
 }
-type Props = Omit<HTMLAttributes<HTMLElement>, 'property'> & {
-  ref?: Ref<HTMLElement>
-  duration?: number | string
-  easing?: string
-  delay?: number | string
-  property?: string | Entry | Array<string | Entry>
-}
-const time = (value: number | string) =>
+type Entry = Timing & { property: string }
+export type TransitionProps = Omit<HTMLAttributes<HTMLElement>, 'property'> &
+  Timing & {
+    ref?: Ref<HTMLElement>
+    property?: string | Entry | Array<string | Entry>
+  }
+const durationText = (value: string | number) =>
   typeof value === 'number' ? value + 'ms' : value
-
 export function buildEntry(
-  input: string | Entry,
+  entry: string | Entry,
   defaults: { duration: string; easing: string; delay?: string }
 ): string {
-  const entry = typeof input === 'string' ? { property: input } : input
-  const duration = time(entry.duration ?? defaults.duration)
-  const delay = entry.delay === undefined ? defaults.delay : time(entry.delay)
-  return [entry.property, duration, entry.easing ?? defaults.easing, delay]
+  const values = {
+    ...defaults,
+    ...(typeof entry === 'string' ? { property: entry } : entry)
+  }
+  return [
+    values.property,
+    durationText(values.duration),
+    values.easing,
+    values.delay == null ? undefined : durationText(values.delay)
+  ]
     .filter(value => value !== undefined)
     .join(' ')
 }
-
 export function Transition({
+  property = 'all',
   duration = 100,
   easing = 'ease-in-out',
   delay,
-  property = 'all',
-  children,
+  className,
   style,
-  ...native
-}: Props) {
+  children,
+  ...element
+}: TransitionProps) {
   const defaults = {
-    duration: time(duration),
+    duration: durationText(duration),
     easing,
-    delay: delay === undefined ? undefined : time(delay)
+    delay: delay == null ? undefined : durationText(delay)
   }
-  const values = Array.isArray(property) ? property : [property]
+  const transitions = (Array.isArray(property) ? property : [property]).map(
+    entry => buildEntry(entry, defaults)
+  )
   return (
     <Slot
-      {...native}
-      style={{
-        transition: values.map(value => buildEntry(value, defaults)).join(', '),
-        ...style
-      }}
+      {...element}
+      className={['monolith-transition', className].filter(Boolean).join(' ')}
+      style={
+        {
+          '--monolith-transition': transitions.join(', '),
+          ...style
+        } as CSSProperties
+      }
     >
       {children}
     </Slot>

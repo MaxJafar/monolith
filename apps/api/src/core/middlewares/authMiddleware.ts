@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: 0BSD
 import type { NextFunction, Request, Response } from 'express'
 
 import {
@@ -7,107 +8,79 @@ import {
 import type { Database } from '../../../../../modules/monolith--agents/server/store'
 import { verifyApplicationToken } from '../functions/deviceSession'
 
-async function isAuthTokenValid(
-  req: Request<unknown, unknown, unknown, unknown>,
-  res: Response,
-  noAuth: boolean
-): Promise<boolean> {
-  if (noAuth) {
-    return true
-  }
-
-  const bearerToken =
-    req.headers.authorization?.split(' ')[1] ||
-    (req.method === 'GET' && req.originalUrl.startsWith('/files/get')
-      ? typeof req.cookies === 'object'
-        ? req.cookies.access_token
-        : undefined
-      : undefined)
-
-  if (!bearerToken) {
-    res.status(401).send({
-      state: 'error',
-      message: 'Authorization token is required'
-    })
-
-    return false
-  }
-
-  try {
-    const payload = await verifyApplicationToken(bearerToken)
-
-    if (
-      typeof payload === 'string' ||
-      typeof payload.sub !== 'string' ||
-      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-        payload.sub
-      )
-    ) {
-      throw new Error('Invalid token subject')
-    }
-    res.locals.userId = payload.sub
-  } catch {
-    res.status(401).send({
-      state: 'error',
-      message: 'Invalid authorization credentials'
-    })
-
-    return false
-  }
-
-  return true
+function bearer(request: Request): string | undefined {
+  return /^Bearer\s+(\S+)$/i.exec(request.headers.authorization ?? '')?.[1]
+}
+function fileCookie(request: Request): string | undefined {
+  if (request.method !== 'GET' || !request.originalUrl.startsWith('/files/get'))
+    return
+  const value: unknown = request.cookies?.access_token
+  return typeof value === 'string' ? value : undefined
+}
+function reject(response: Response, status: number, message: string): void {
+  response.status(status).send({ state: 'error', message })
 }
 
-/**
- * Runs authentication before the upload middleware so nothing is staged for
- * unauthenticated requests.
- */
 export default function authMiddleware(noAuth: boolean) {
   return async (
-    req: Request,
-    res: Response,
+    request: Request,
+    response: Response,
     next: NextFunction
   ): Promise<void> => {
-    const token = req.headers.authorization?.split(' ')[1]
-
+    const token = bearer(request)
     if (token?.startsWith('za1.')) {
-      if (!agentRuntimeEndpoint(req.method, req.originalUrl)) {
-        res.status(403).send({
-          state: 'error',
-          message: 'Agent credentials can only access the agent runtime API'
-        })
-
+      if (!agentRuntimeEndpoint(request.method, request.originalUrl)) {
+        reject(
+          response,
+          403,
+          'Agent credentials can only access the agent runtime API'
+        )
         return
       }
-
       try {
-        const identity = await authenticateAgent(
-          req.db as unknown as Database,
+        const principal = await authenticateAgent(
+          request.db as unknown as Database,
           token
         )
-
-        if (!identity) {
-          res.status(401).send({
-            state: 'error',
-            message: 'Invalid or unavailable agent credentials'
-          })
-
+        if (!principal) {
+          reject(response, 401, 'Invalid or unavailable agent credentials')
           return
         }
-        res.locals.userId = identity.owner
-        res.locals.actorType = 'agent'
-        res.locals.principalId = identity.principalId
-        res.locals.credentialId = identity.credentialId
+        Object.assign(response.locals, {
+          userId: principal.owner,
+          actorType: 'agent',
+          principalId: principal.principalId,
+          credentialId: principal.credentialId
+        })
         next()
       } catch (error) {
         next(error)
       }
-
       return
     }
-
-    if (await isAuthTokenValid(req, res, noAuth)) {
+    if (noAuth) {
       next()
+      return
     }
+    const credential = token ?? fileCookie(request)
+    if (!credential) {
+      reject(response, 401, 'Authorization token is required')
+      return
+    }
+    try {
+      const identity = await verifyApplicationToken(credential)
+      if (
+        !/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(
+          identity.sub ?? ''
+        )
+      ) {
+        throw new Error('Invalid account identifier')
+      }
+      response.locals.userId = identity.sub
+    } catch {
+      reject(response, 401, 'Invalid authorization credentials')
+      return
+    }
+    next()
   }
 }

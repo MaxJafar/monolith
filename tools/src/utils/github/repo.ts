@@ -1,53 +1,54 @@
-import fs from 'node:fs'
-import path from 'node:path'
+// SPDX-License-Identifier: 0BSD
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 
-import { run } from './cli'
+import { ghApi } from './cli'
 
-/** Reads the `repository` URL from a module/locale package.json, if any. */
-export function readRepoUrl(packageDir: string): string | undefined {
+export function readRepoUrl(directory: string): string | undefined {
   try {
-    const pkg = JSON.parse(
-      fs.readFileSync(path.join(packageDir, 'package.json'), 'utf-8')
-    ) as { repository?: string | { url?: string } }
-
-    return typeof pkg.repository === 'string'
-      ? pkg.repository
-      : pkg.repository?.url
+    const value = JSON.parse(
+      readFileSync(join(directory, 'package.json'), 'utf8')
+    ).repository
+    return typeof value === 'string' ? value : value?.url
   } catch {
     return undefined
   }
 }
-
-/** Parses a GitHub URL (or `owner/repo` slug) into `owner/repo`. */
-export function parseRepoSlug(urlOrSlug: string): string | undefined {
-  const match = urlOrSlug.match(/github\.com[/:]([^/]+)\/([^/.]+)/)
-
-  if (match) {
-    return `${match[1]}/${match[2]}`
+export function parseRepoSlug(input: string): string | undefined {
+  let value = input
+    .trim()
+    .replace(/^git\+/, '')
+    .replace(/\.git$/, '')
+  if (value.startsWith('git@github.com:')) value = value.slice(15)
+  else if (value.includes('://')) {
+    try {
+      const url = new URL(value)
+      if (url.hostname !== 'github.com') return
+      value = url.pathname.slice(1)
+    } catch {
+      return
+    }
   }
-
-  return /^[^/]+\/[^/]+$/.test(urlOrSlug) ? urlOrSlug : undefined
+  return /^[A-Za-z0-9][A-Za-z0-9-]*\/[A-Za-z0-9][A-Za-z0-9_.-]*$/.test(value)
+    ? value
+    : undefined
 }
-
-/** Resolves a module/locale's `owner/repo` GitHub slug from its package.json. */
-export function readRepoSlug(packageDir: string): string | undefined {
-  const url = readRepoUrl(packageDir)
-
+export function readRepoSlug(directory: string) {
+  const url = readRepoUrl(directory)
   return url ? parseRepoSlug(url) : undefined
 }
-
-/** Reads the `owner/repo` GitHub slug from a module/locale package.json. */
-export function getRepoSlug(packageDir: string): string {
-  const slug = readRepoSlug(packageDir)
-
-  if (!slug) {
-    throw new Error(`Cannot determine the GitHub repo for ${packageDir}`)
-  }
-
+export function getRepoSlug(directory: string) {
+  const slug = readRepoSlug(directory)
+  if (!slug)
+    throw Error(
+      'A GitHub repository is required in ' + directory + '/package.json'
+    )
   return slug
 }
-
-/** Resolves a git tag/ref to its commit SHA. */
-export function getTagCommit(repo: string, tag: string): string {
-  return run(`gh api repos/${repo}/commits/${tag} --jq .sha`)
+export function getTagCommit(repo: string, ref: string) {
+  const slug = parseRepoSlug(repo)
+  if (!slug) throw Error('Invalid repository')
+  return ghApi<{ sha: string }>(
+    'repos/' + slug + '/commits/' + encodeURIComponent(ref)
+  ).sha
 }

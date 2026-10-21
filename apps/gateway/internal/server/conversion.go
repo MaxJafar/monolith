@@ -58,9 +58,6 @@ func (s *Server) ConvertWorkspace(ctx context.Context, actor, wid string, dryRun
 	sources := []legacySource{}
 	rows, err := tx.Query(ctx, `select 'page',id::text,title,body::text,created,true from zillion_databases__workspace_pages where workspace_id=$1
  union all select 'record',r.id::text,r.title,r.content,r.created,false from zillion_databases__records r join zillion_databases__bases b on b.id=r.base_id where b.workspace_id=$1
- union all select 'note',n.id::text,n.name,n.content,n.created at time zone 'UTC',false from notes__entries n where n.owner_id=$2 and n.type='note'
-  and not exists(select 1 from zillion_databases__record_sources s where s.kind='note' and s.native_id=n.id)
-  and exists(select 1 from zillion_databases__workspaces w where w.id=$1 and w.is_default)
  union all select 'page',d.id::text,d.title,d.content,d.created,false from zillion_databases__documents d where d.owner_id=$2
   and not exists(select 1 from zillion_databases__workspace_pages p where p.id=d.id)
   and exists(select 1 from zillion_databases__workspaces w where w.id=$1 and w.is_default)

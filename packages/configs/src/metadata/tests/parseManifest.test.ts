@@ -1,246 +1,144 @@
-import fs from 'fs'
-import path from 'path'
-import { afterEach, describe, expect, it } from 'vitest'
+// SPDX-License-Identifier: 0BSD
+import assert from 'node:assert/strict'
+import fs from 'node:fs'
+import { tmpdir } from 'node:os'
+import path from 'node:path'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import extractModuleMetadata from '../extractModuleMetadata'
 import parseManifest from '../parseManifest'
 
-const tempDir = path.join(import.meta.dirname, 'temp-module')
-const tempFilePath = path.join(tempDir, 'manifest.ts')
-const widgetDir = path.join(tempDir, 'src', 'widgets')
-const widgetFilePath = path.join(widgetDir, 'ISS.tsx')
-
-function cleanup(): void {
-  if (fs.existsSync(widgetFilePath)) {
-    fs.unlinkSync(widgetFilePath)
-  }
-
-  if (fs.existsSync(widgetDir)) {
-    fs.rmdirSync(widgetDir)
-  }
-
-  const srcDir = path.join(tempDir, 'src')
-
-  if (fs.existsSync(srcDir)) {
-    fs.rmdirSync(srcDir)
-  }
-
-  if (fs.existsSync(tempFilePath)) {
-    fs.unlinkSync(tempFilePath)
-  }
-
-  if (fs.existsSync(tempDir)) {
-    fs.rmdirSync(tempDir)
-  }
+let root: string
+const write = (name: string, value: string) => {
+  const file = path.join(root, name)
+  fs.mkdirSync(path.dirname(file), { recursive: true })
+  fs.writeFileSync(file, value)
+  return file
 }
+beforeEach(() => {
+  root = fs.mkdtempSync(path.join(tmpdir(), 'monolith-manifest-probe-'))
+})
+afterEach(() => {
+  const resolved = path.resolve(root)
+  assert.equal(path.dirname(resolved), path.resolve(tmpdir()))
+  assert.ok(path.basename(resolved).startsWith('monolith-manifest-probe-'))
+  fs.rmSync(resolved, { recursive: true, force: true })
+})
 
-describe('parseManifest AST parser', () => {
-  afterEach(cleanup)
-
-  it('returns empty result for non-existent file', () => {
-    expect(parseManifest('non-existent-file.ts')).toEqual({
-      hasProvider: false,
-      widgets: []
-    })
-  })
-
-  it('returns empty result if defineAddon is not found', () => {
-    if (!fs.existsSync(tempDir)) {
-      fs.mkdirSync(tempDir, { recursive: true })
-    }
-    fs.writeFileSync(
-      tempFilePath,
+describe('static manifest discovery', () => {
+  it('follows the exported destructured manifest and reads widget metadata without executing source', () => {
+    const widget = write(
+      'client/src/widgets/Progress.tsx',
       `
-      export default {
-        routes: {}
-      }
+      throw Error('Widget code must not run');
+      export const config = ({id:'progress', icon:'lucide:chart', minW:3, maxH:4} as const) satisfies WidgetConfig;
     `
     )
-
-    expect(parseManifest(tempFilePath)).toEqual({
-      hasProvider: false,
-      widgets: []
-    })
-  })
-
-  it('returns empty result if the argument is not an object', () => {
-    if (!fs.existsSync(tempDir)) {
-      fs.mkdirSync(tempDir, { recursive: true })
-    }
-    fs.writeFileSync(
-      tempFilePath,
+    const file = write(
+      'client/manifest.ts',
       `
-      import { defineAddon } from '@monolith/federation'
-      const manifest = defineAddon('invalid')
-      export default manifest
+      function unrelated() { return defineAddon({hidden: false}) }
+      throw Error('Manifest code must not run');
+      const configuration = {
+        routes: {}, hidden: true, provider: lazy(() => import('./provider')),
+        widgets: [() => import('@/widgets/Progress')],
+        subsection: [{label:'Overview', icon:'lucide:chart', path:'overview'}]
+      } as const;
+      const {workspaceAPI, ...manifest} = defineAddon(configuration);
+      export default manifest;
     `
     )
-
-    expect(parseManifest(tempFilePath)).toEqual({
-      hasProvider: false,
-      widgets: []
-    })
-  })
-
-  it('parses provider, hidden, and subsections successfully', () => {
-    if (!fs.existsSync(tempDir)) {
-      fs.mkdirSync(tempDir, { recursive: true })
-    }
-    fs.writeFileSync(
-      tempFilePath,
-      `
-      import { defineAddon } from '@monolith/federation'
-      const manifest = defineAddon({
-        provider: () => import('@/providers/ModuleProvider'),
-        hidden: true,
-        subsection: [
-          { label: 'Dashboard', icon: 'tabler:dashboard', path: '' },
-          { label: 'Transactions', icon: 'tabler:arrows-exchange', path: 'transactions' }
-        ],
-        routes: {}
-      })
-      export default manifest
-    `
-    )
-
-    expect(parseManifest(tempFilePath)).toEqual({
+    expect(parseManifest(file)).toEqual({
       hasProvider: true,
       hidden: true,
       subsection: [
-        { label: 'Dashboard', icon: 'tabler:dashboard', path: '' },
-        {
-          label: 'Transactions',
-          icon: 'tabler:arrows-exchange',
-          path: 'transactions'
-        }
+        { label: 'Overview', icon: 'lucide:chart', path: 'overview' }
       ],
+      widgets: [
+        {
+          filePath: widget,
+          config: { id: 'progress', icon: 'lucide:chart', minW: 3, maxH: 4 }
+        }
+      ]
+    })
+  })
+
+  it('ignores nonliteral values, invalid widgets and widget paths outside the client', () => {
+    write(
+      'outside.tsx',
+      "export const config = {id:'outside', icon:'lucide:box'}"
+    )
+    write(
+      'client/src/Invalid.tsx',
+      "export const config = {id:'invalid', icon:'lucide:box', minW:0}"
+    )
+    const file = write(
+      'client/manifest.ts',
+      `
+      export default defineAddon({
+        routes:{}, hidden: (()=>true)(),
+        widgets: [()=>import('../outside'), ()=>import('@/Invalid'), ()=>import(variable)],
+        subsection:[{label:'Missing fields'}, {label:'Valid',icon:'lucide:box',path:''}]
+      })
+    `
+    )
+    expect(parseManifest(file)).toEqual({
+      hasProvider: false,
+      hidden: undefined,
+      widgets: [],
+      subsection: [{ label: 'Valid', icon: 'lucide:box', path: '' }]
+    })
+  })
+
+  it.each([
+    'export default {}',
+    'const cycle = other; const other = cycle; export default cycle',
+    "export default defineAddon('invalid')",
+    'function example(){return defineAddon({hidden:true})}; export default example'
+  ])(
+    'does not treat an unrelated or unresolved expression as the manifest: %s',
+    source => {
+      expect(parseManifest(write('client/manifest.ts', source))).toEqual({
+        hasProvider: false,
+        widgets: []
+      })
+    }
+  )
+
+  it('returns an empty discovery result for a missing file', () => {
+    expect(parseManifest(path.join(root, 'missing.ts'))).toEqual({
+      hasProvider: false,
       widgets: []
     })
   })
 
-  it('parses valid manifest and resolves widgets successfully', () => {
-    if (!fs.existsSync(widgetDir)) {
-      fs.mkdirSync(widgetDir, { recursive: true })
+  it('emits validated, serializable package metadata and an actual server-directory flag', () => {
+    const pkg = {
+      name: '@monolith/probe',
+      displayName: 'Probe',
+      version: '1.0.0',
+      description: 'Fixture',
+      author: 'Monolith',
+      monolith: { icon: 'lucide:box', category: 'Tools' }
     }
-    fs.writeFileSync(
-      tempFilePath,
-      `
-      import { defineAddon } from '@monolith/federation'
-      const manifest = defineAddon({
-        widgets: [
-          () => import('@/widgets/ISS')
-        ],
-        routes: {}
-      })
-      export default manifest
-    `
+    write('package.json', JSON.stringify(pkg))
+    write(
+      'client/manifest.ts',
+      "export default defineAddon({routes:{}, widgets:[()=>import('./src/Widget')]})"
     )
-    fs.writeFileSync(
-      widgetFilePath,
-      `
-      export const config = {
-        id: 'iss-tracker',
-        icon: 'tabler:satellite',
-        minW: 2,
-        minH: 2
-      }
-    `
+    write(
+      'client/src/Widget.tsx',
+      "export const config = {id:'one', icon:'lucide:clock'}"
     )
-
-    const result = parseManifest(tempFilePath)
-
-    expect(result.hasProvider).toBe(false)
-    expect(result.hidden).toBeUndefined()
-    expect(result.subsection).toBeUndefined()
-    expect(result.widgets).toHaveLength(1)
-
-    const widget = result.widgets[0]
-
-    if (!widget) {
-      throw new Error('Expected a parsed widget')
-    }
-
-    expect(widget.filePath).toBe(widgetFilePath)
-    expect(widget.config).toEqual({
-      id: 'iss-tracker',
-      icon: 'tabler:satellite',
-      minW: 2,
-      minH: 2
-    })
-  })
-})
-
-describe('extractModuleMetadata', () => {
-  const moduleDir = path.join(import.meta.dirname, 'temp-extract-module')
-  const clientDir = path.join(moduleDir, 'client')
-  const manifestPath = path.join(clientDir, 'manifest.ts')
-  const widgetDir = path.join(clientDir, 'src', 'widgets')
-  const widgetPath = path.join(widgetDir, 'ISS.tsx')
-  const packageJSONPath = path.join(moduleDir, 'package.json')
-
-  const packageJSON = {
-    name: '@monolith/monolith--iss',
-    displayName: 'ISS Tracker',
-    version: '1.2.3',
-    description: 'Track the ISS',
-    author: 'monolith',
-    monolith: {
-      icon: 'tabler:satellite',
-      category: 'Fun'
-    }
-  }
-
-  afterEach(() => {
-    if (fs.existsSync(moduleDir)) {
-      fs.rmSync(moduleDir, { recursive: true, force: true })
-    }
-  })
-
-  it('produces serializable bundled metadata with package + hasServer', () => {
-    fs.mkdirSync(widgetDir, { recursive: true })
-    fs.writeFileSync(
-      manifestPath,
-      `
-      import { defineAddon } from '@monolith/federation'
-      const manifest = defineAddon({
-        hidden: true,
-        subsection: [{ label: 'Dashboard', icon: 'tabler:dashboard', path: '' }],
-        widgets: [() => import('@/widgets/ISS')],
-        routes: {}
-      })
-      export default manifest
-    `
-    )
-    fs.writeFileSync(
-      widgetPath,
-      `
-      export const config = {
-        id: 'iss-tracker',
-        icon: 'tabler:satellite',
-        minW: 2,
-        minH: 2
-      }
-    `
-    )
-    fs.writeFileSync(packageJSONPath, JSON.stringify(packageJSON))
-
-    const metadata = extractModuleMetadata(moduleDir)
-
-    expect(metadata).toEqual({
-      hasProvider: false,
-      hidden: true,
-      subsection: [{ label: 'Dashboard', icon: 'tabler:dashboard', path: '' }],
-      widgets: [
-        {
-          id: 'iss-tracker',
-          icon: 'tabler:satellite',
-          minW: 2,
-          minH: 2,
-          componentName: 'ISS'
-        }
-      ],
-      package: packageJSON,
-      hasServer: false
-    })
+    write('server', 'not a directory')
+    const result = extractModuleMetadata(root)
+    expect(result.hasServer).toBe(false)
+    expect(result.widgets).toEqual([
+      { id: 'one', icon: 'lucide:clock', componentName: 'Widget' }
+    ])
+    expect(JSON.parse(JSON.stringify(result)).package).toEqual(pkg)
+    fs.unlinkSync(path.join(root, 'server'))
+    fs.mkdirSync(path.join(root, 'server'))
+    expect(extractModuleMetadata(root).hasServer).toBe(true)
   })
 })

@@ -1,94 +1,100 @@
+// SPDX-License-Identifier: 0BSD
 import * as ts from '@typescript/typescript6'
 
-/** Metadata is read as syntax. Nothing from an addon is evaluated during discovery. */
 export function unwrapExpression(expression: ts.Expression): ts.Expression {
-  let value = expression
-  while (
-    ts.isParenthesizedExpression(value) ||
-    ts.isAsExpression(value) ||
-    ts.isSatisfiesExpression(value) ||
-    ts.isTypeAssertionExpression(value)
-  )
-    value = value.expression
-  return value
+  switch (expression.kind) {
+    case ts.SyntaxKind.ParenthesizedExpression:
+    case ts.SyntaxKind.AsExpression:
+    case ts.SyntaxKind.TypeAssertionExpression:
+    case ts.SyntaxKind.SatisfiesExpression:
+    case ts.SyntaxKind.NonNullExpression:
+      return unwrapExpression(
+        (expression as ts.ParenthesizedExpression).expression
+      )
+    default:
+      return expression
+  }
 }
 
 export function findNode(
   root: ts.Node,
   predicate: (node: ts.Node) => boolean
 ): ts.Node | null {
-  const pending: ts.Node[] = [root]
-  while (pending.length) {
-    const node = pending.pop()!
-    if (predicate(node)) return node
-    const children: ts.Node[] = []
-    ts.forEachChild(node, child => {
-      children.push(child)
-    })
-    for (let index = children.length - 1; index >= 0; index--)
-      pending.push(children[index]!)
-  }
-  return null
+  const visit = (node: ts.Node): ts.Node | undefined =>
+    predicate(node) ? node : ts.forEachChild(node, visit)
+  return visit(root) ?? null
 }
 
 export function parseObjectLiteral(
   node: ts.ObjectLiteralExpression
 ): Record<string, ts.Expression> {
-  const properties: Record<string, ts.Expression> = Object.create(null)
-  for (const property of node.properties) {
-    if (!ts.isPropertyAssignment(property)) continue
-    const name = property.name
+  const fields = Object.create(null) as Record<string, ts.Expression>
+  for (const field of node.properties) {
     if (
-      ts.isIdentifier(name) ||
-      ts.isStringLiteral(name) ||
-      ts.isNumericLiteral(name)
+      !ts.isPropertyAssignment(field) ||
+      ts.isComputedPropertyName(field.name)
     )
-      properties[name.text] = unwrapExpression(property.initializer)
+      continue
+    fields[field.name.text] = unwrapExpression(field.initializer)
   }
-  return properties
+  return fields
 }
 
 export function findVariableDeclaration(
   root: ts.Node,
   name: string
 ): Record<string, ts.Expression> | null {
-  const match = findNode(
+  const declaration = findNode(
     root,
     node =>
       ts.isVariableDeclaration(node) &&
       ts.isIdentifier(node.name) &&
       node.name.text === name
-  ) as ts.VariableDeclaration | null
-  const initializer = match?.initializer && unwrapExpression(match.initializer)
-  return initializer && ts.isObjectLiteralExpression(initializer)
-    ? parseObjectLiteral(initializer)
+  )
+  if (
+    !declaration ||
+    !ts.isVariableDeclaration(declaration) ||
+    !declaration.initializer
+  )
+    return null
+  const expression = unwrapExpression(declaration.initializer)
+  return ts.isObjectLiteralExpression(expression)
+    ? parseObjectLiteral(expression)
     : null
 }
 
-function literal(
-  expression: ts.Expression
-): string | number | boolean | undefined {
-  const value = unwrapExpression(expression)
-  if (ts.isStringLiteralLike(value)) return value.text
-  if (ts.isNumericLiteral(value)) return Number(value.text)
-  if (value.kind === ts.SyntaxKind.TrueKeyword) return true
-  if (value.kind === ts.SyntaxKind.FalseKeyword) return false
-  if (ts.isPrefixUnaryExpression(value) && ts.isNumericLiteral(value.operand)) {
-    if (value.operator === ts.SyntaxKind.MinusToken)
-      return -Number(value.operand.text)
-    if (value.operator === ts.SyntaxKind.PlusToken)
-      return Number(value.operand.text)
+type Scalar = string | number | boolean
+function readScalar(source: ts.Expression): Scalar | undefined {
+  const expression = unwrapExpression(source)
+  if (ts.isStringLiteralLike(expression)) return expression.text
+  if (ts.isNumericLiteral(expression)) return Number(expression.text)
+  switch (expression.kind) {
+    case ts.SyntaxKind.TrueKeyword:
+      return true
+    case ts.SyntaxKind.FalseKeyword:
+      return false
   }
-  return undefined
+  if (
+    ts.isPrefixUnaryExpression(expression) &&
+    ts.isNumericLiteral(expression.operand)
+  ) {
+    const sign =
+      expression.operator === ts.SyntaxKind.MinusToken
+        ? -1
+        : expression.operator === ts.SyntaxKind.PlusToken
+          ? 1
+          : undefined
+    if (sign !== undefined) return sign * Number(expression.operand.text)
+  }
 }
 
 export default function resolveExpressionMap(
   expressions: Record<string, ts.Expression>
-) {
-  const values: Record<string, string | number | boolean> = Object.create(null)
-  for (const name of Object.keys(expressions)) {
-    const value = literal(expressions[name]!)
-    if (value !== undefined) values[name] = value
+): Record<string, Scalar> {
+  const output: Record<string, Scalar> = Object.create(null)
+  for (const [name, expression] of Object.entries(expressions)) {
+    const value = readScalar(expression)
+    if (value !== undefined) output[name] = value
   }
-  return values
+  return output
 }

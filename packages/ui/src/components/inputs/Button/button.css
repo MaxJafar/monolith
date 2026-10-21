@@ -1,0 +1,79 @@
+/* SPDX-License-Identifier: 0BSD */
+.monolith-button {
+  appearance: none;
+  border: 1px solid transparent;
+  font: inherit;
+  font-size: var(--text-sm, 0.875rem);
+  line-height: 1.35;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--motion-fast, 120ms) ease,
+    border-color var(--motion-fast, 120ms) ease,
+    opacity var(--motion-fast, 120ms) ease;
+}
+.monolith-button[data-variant='primary'] {
+  background-color: var(--interactive-primary);
+  color: var(--interactive-on-primary);
+}
+.monolith-button[data-variant='primary']:hover {
+  background-color: var(--interactive-primary-hover);
+}
+.monolith-button[data-variant='secondary'] {
+  background-color: color-mix(
+    in srgb,
+    var(--text-primary) 5%,
+    var(--bg-surface)
+  );
+  border-color: var(--border-subtle);
+  color: var(--text-primary);
+}
+.monolith-button[data-variant='secondary']:hover {
+  background-color: color-mix(
+    in srgb,
+    var(--text-primary) 9%,
+    var(--bg-surface)
+  );
+  border-color: var(--border-medium);
+}
+.monolith-button[data-variant='tertiary'],
+.monolith-button[data-variant='plain'] {
+  background-color: transparent;
+  color: var(--text-primary);
+}
+.monolith-button[data-variant='tertiary'] {
+  color: var(--color-custom-500);
+}
+.monolith-button[data-variant='tertiary']:hover,
+.monolith-button[data-variant='plain']:hover {
+  background-color: color-mix(in srgb, currentColor 8%, transparent);
+}
+.monolith-button[data-dangerous='true'] {
+  color: var(--color-dangerous);
+}
+.monolith-button[data-dangerous='true'][data-variant='primary'] {
+  background-color: var(--color-dangerous);
+  color: #fff;
+}
+.monolith-button[data-dangerous='true'][data-variant='primary']:hover {
+  background-color: color-mix(in srgb, var(--color-dangerous) 85%, #000);
+}
+.monolith-button:focus-visible {
+  outline: 2px solid var(--color-custom-500);
+  outline-offset: 2px;
+}
+.monolith-button:is(:disabled, [aria-disabled='true']) {
+  opacity: 0.48;
+  cursor: default;
+}
+.monolith-button[data-loading-without-icon='true']
+  > :not([data-loading-indicator]) {
+  visibility: hidden;
+}
+@media (prefers-reduced-motion: reduce) {
+  .monolith-button {
+    transition: none;
+  }
+}

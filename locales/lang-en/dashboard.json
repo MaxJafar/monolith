@@ -12,8 +12,8 @@
     "lockLayout": "Lock Layout"
   },
   "messages": {
-    "editingLayout": "You are editing dashboard layout",
-    "editingLayoutHint": "Adjust the widget arrangement by dragging the widgets around or adjust the widget size by dragging the small triangle at the bottom right corner of each widget"
+    "editingLayout": "Layout editing is active",
+    "editingLayoutHint": "Move widgets with their handles. Resize a widget from its edge, or use its keyboard controls."
   },
   "empty": {
     "welcome": {

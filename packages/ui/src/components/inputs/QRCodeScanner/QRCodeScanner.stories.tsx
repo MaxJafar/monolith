@@ -1,122 +1,35 @@
+// SPDX-License-Identifier: 0BSD
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { useState } from 'react'
 
-import { TextInput } from '@/components/inputs'
 import { useModalStore } from '@/providers'
 
-import { QRCodeScanner as QrCodeScanner } from './index'
+import { Button } from '../Button'
+import { QRCodeScanner } from './index'
 
 const meta = {
-  component: QrCodeScanner,
-  title: 'Inputs/QRCodeScanner'
-} satisfies Meta<typeof QrCodeScanner>
-
+  component: QRCodeScanner,
+  title: 'Inputs/QRCodeScanner',
+  args: { data: { onScanned: () => {} }, onClose: () => {} }
+} satisfies Meta<typeof QRCodeScanner>
 export default meta
-
 type Story = StoryObj<typeof meta>
-
-export const Default: Story = {
-  args: {
-    data: {
-      formats: ['qr_code'],
-      onScanned: (data: string) => {
-        alert(`Scanned data: ${data}`)
-      }
-    },
-    onClose: () => {}
-  },
-  render: args => {
-    const { open } = useModalStore()
-
-    const handleOpenScanner = () => {
-      open(QrCodeScanner, args.data)
-    }
-
-    return (
-      <TextInput
-        actionButtonProps={{
-          icon: 'tabler:scan',
-          onClick: handleOpenScanner
-        }}
+function ScanExample() {
+  const [value, setValue] = useState('')
+  const { open } = useModalStore()
+  return (
+    <>
+      <Button
+        namespace={false}
         icon="tabler:qrcode"
-        label="QR Code Scanner"
-        namespace=""
-        placeholder="Click the scan button to open"
-        value=""
-        onChange={() => {}}
-      />
-    )
-  }
+        onClick={() =>
+          open(QRCodeScanner, { formats: ['qr_code'], onScanned: setValue })
+        }
+      >
+        Scan a QR code
+      </Button>
+      <output>{value}</output>
+    </>
+  )
 }
-
-export const BarcodeScanner: Story = {
-  args: {
-    data: {
-      formats: ['linear_codes'],
-      onScanned: (data: string) => {
-        alert(`Scanned barcode data: ${data}`)
-      }
-    },
-    onClose: () => {}
-  },
-
-  render: args => {
-    const { open } = useModalStore()
-
-    const handleOpenScanner = () => {
-      open(QrCodeScanner, args.data)
-    }
-
-    return (
-      <TextInput
-        actionButtonProps={{
-          icon: 'tabler:scan',
-          onClick: handleOpenScanner
-        }}
-        icon="tabler:barcode"
-        label="Barcode Scanner"
-        namespace=""
-        placeholder="Click the scan button to open"
-        value=""
-        onChange={() => {}}
-      />
-    )
-  }
-}
-
-export const QRCodeScanner: Story = {
-  args: {
-    data: {
-      formats: ['qr_code'],
-      onScanned: () => {}
-    },
-    onClose: () => {}
-  },
-  render: args => {
-    const { open } = useModalStore()
-    const [value, setValue] = useState('')
-
-    return (
-      <TextInput
-        actionButtonProps={{
-          icon: 'tabler:qrcode',
-          onClick: () => {
-            open(QrCodeScanner, {
-              ...args.data,
-              onScanned: (data: string) => {
-                setValue(data)
-                args.data.onScanned(data)
-              }
-            })
-          }
-        }}
-        icon="tabler:file-text"
-        label="Scanned QR Code Content"
-        namespace=""
-        placeholder="Scan a QR code..."
-        value={value}
-        onChange={setValue}
-      />
-    )
-  }
-}
+export const Camera: Story = { render: () => <ScanExample /> }

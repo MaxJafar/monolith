@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-empty-object-type */
+// SPDX-License-Identifier: 0BSD
 import type {
   ZodIntersection,
   ZodObject,
@@ -9,96 +9,46 @@ import type {
 
 import type { EndpointClient } from '../proxy/endpointClient'
 
-type ZodObjectOrIntersection =
+type ObjectSchema =
   ZodObject<ZodRawShape> | ZodIntersection<ZodTypeAny, ZodTypeAny>
+type InputValue<Value> = Value extends ObjectSchema ? z.input<Value> : Value
+type Upload<Rule> = Rule extends { multiple: true }
+  ? Rule extends { optional: true }
+    ? File[] | undefined
+    : File[]
+  : Rule extends { optional: true }
+    ? File | string | undefined
+    : File | string
+type UploadFields<Media> = { [Field in keyof Media]: Upload<Media[Field]> }
+type WithUploads<Body, Media> = Media extends null
+  ? InputValue<Body>
+  : (Body extends undefined ? {} : InputValue<Body>) & UploadFields<Media>
 
-/**
- * Infers the input TypeScript type from a Monolith endpoint config object.
- * Uses embedded Zod schema definitions to produce a plain object type.
- */
-export type InferRawInput<T> = T extends {
-  __isEndpointContract: true
-  __input: infer I
-  __media: infer M
+type RequestValues<Input, Media> = Input extends {
+  body?: infer Body
+  query?: infer Query
 }
-  ? I extends {
-      body?: infer B
-      query?: infer Q
-    }
-    ? {
-        body: M extends null
-          ? B extends ZodObjectOrIntersection
-            ? z.input<B>
-            : B
-          : (B extends ZodObjectOrIntersection
-              ? z.input<B>
-              : B extends undefined
-                ? {}
-                : B) & {
-              [K in keyof M]: M[K] extends { multiple: true }
-                ? M[K] extends { optional: true }
-                  ? File[] | undefined
-                  : File[]
-                : M[K] extends { optional: true }
-                  ? File | string | undefined
-                  : File | string
-            }
-        query: Q extends ZodObjectOrIntersection ? z.input<Q> : Q
-      }
-    : never
+  ? { body: WithUploads<Body, Media>; query: InputValue<Query> }
   : never
 
-/**
- * Infers the output (response) TypeScript type from a Monolith endpoint config object.
- */
-export type InferRawOutput<T> = T extends {
+export type InferRawInput<Contract> = Contract extends {
   __isEndpointContract: true
-  __output: infer O
+  __input: infer Input
+  __media: infer Media
 }
-  ? O
+  ? RequestValues<Input, Media>
   : never
 
-/**
- * Extracts the input schema type from a `EndpointClient` instance.
- */
-export type InferInput<T extends EndpointClient> = T['__type'] extends {
+export type InferRawOutput<Contract> = Contract extends {
   __isEndpointContract: true
-  __input: infer I
-  __media: infer M
+  __output: infer Output
 }
-  ? I extends {
-      body?: infer B
-      query?: infer Q
-    }
-    ? {
-        body: M extends null
-          ? B extends ZodObjectOrIntersection
-            ? z.input<B>
-            : B
-          : (B extends ZodObjectOrIntersection
-              ? z.input<B>
-              : B extends undefined
-                ? {}
-                : B) & {
-              [K in keyof M]: M[K] extends { multiple: true }
-                ? M[K] extends { optional: true }
-                  ? File[] | undefined
-                  : File[]
-                : M[K] extends { optional: true }
-                  ? File | string | undefined
-                  : File | string
-            }
-        query: Q extends ZodObjectOrIntersection ? z.input<Q> : Q
-      }
-    : never
+  ? Output
   : never
 
-/**
- * Extracts the output (response) type from a `EndpointClient` instance.
- */
-export type InferOutput<T extends EndpointClient> = T['__type'] extends {
-  __isEndpointContract: true
-  __output: infer O
-}
-  ? O
-  : never
+export type InferInput<Client extends EndpointClient> = InferRawInput<
+  Client['__type']
+>
+export type InferOutput<Client extends EndpointClient> = InferRawOutput<
+  Client['__type']
+>

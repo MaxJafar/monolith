@@ -1,10 +1,14 @@
-import { memo } from 'react'
-import OtpInput from 'react-otp-input'
+// SPDX-License-Identifier: 0BSD
+import { useId } from 'react'
+import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/inputs'
-import { Box, Flex, Text } from '@/components/primitives'
+import { Button, TextInput } from '@/components/inputs'
+import { Stack, Text } from '@/components/primitives'
 
-function _OTPInputBox({
+import { useCredentialAction } from '../useCredentialAction'
+import './otp.css'
+
+export function OTPInputBox({
   otp,
   setOtp,
   verifyOTP,
@@ -12,77 +16,69 @@ function _OTPInputBox({
   lighter
 }: {
   otp: string
-  setOtp: (otp: string) => void
-  verifyOTP: (otp: string) => Promise<void>
+  setOtp: (value: string) => void
+  verifyOTP: (value: string) => Promise<void>
   verifyOtpLoading: boolean
   lighter?: boolean
 }) {
+  const { t } = useTranslation('common.vault')
+  const action = useCredentialAction()
+  const errorId = useId()
+  const busy = action.pending || verifyOtpLoading
+  function submit() {
+    if (busy || !/^\d{6}$/.test(otp)) return
+    return action.run(async active => {
+      if (active()) await verifyOTP(otp)
+    })
+  }
   return (
-    <Flex centered direction="column" gap="md">
-      <OtpInput
-        shouldAutoFocus
-        numInputs={6}
-        renderInput={props => (
-          <Box
-            asChild
-            shadow
-            bg={
-              lighter
-                ? { base: 'bg-100', dark: 'bg-800' }
-                : { base: 'bg-50', dark: 'bg-900' }
-            }
-            height="100%"
-            maxHeight={{ base: '3rem', md: '4rem' }}
-            maxWidth={{ base: '3rem', md: '4rem' }}
-            mx="xs"
-            r="md"
-            style={{
-              aspectRatio: '1/1'
-            }}
-            width="100%"
-          >
-            <Text
-              asChild
-              align="center"
-              size={{ base: 'lg', md: '2xl' }}
-              weight="medium"
-            >
-              <input
-                {...props}
-                inputMode="numeric"
-                style={undefined}
-                onKeyDown={e => {
-                  if (e.key === 'Enter') {
-                    verifyOTP(otp).catch(err => {
-                      console.error(err)
-                    })
-                  }
-                }}
-              />
-            </Text>
-          </Box>
-        )}
+    <Stack
+      gap="md"
+      aria-busy={busy}
+      data-tone={lighter ? 'raised' : 'default'}
+      className="monolith-otp"
+    >
+      <TextInput
+        wrapperProps={
+          lighter ? { bg: { base: 'bg-100', dark: 'bg-800' } } : undefined
+        }
+        autoFocus
+        autoComplete="one-time-code"
+        inputMode="numeric"
+        pattern="[0-9]{6}"
+        maxLength={6}
+        label="otp.codeLabel"
+        namespace="common.vault"
+        placeholder="000000"
+        disabled={busy}
         value={otp}
-        onChange={setOtp}
+        aria-describedby={action.failed ? errorId : undefined}
+        onChange={value => {
+          action.clearError()
+          setOtp(value.replace(/\D/g, '').slice(0, 6))
+        }}
+        onKeyDown={event => {
+          if (event.key === 'Enter') {
+            event.preventDefault()
+            void submit()
+          }
+        }}
       />
-      <Box width="100%">
-        <Button
-          icon="tabler:arrow-right"
-          iconPosition="end"
-          loading={verifyOtpLoading}
-          namespace="common.vault"
-          width="100%"
-          onClick={() => {
-            verifyOTP(otp).catch(err => {
-              console.error(err)
-            })
-          }}
-        >
-          otp.buttons.verify
-        </Button>
-      </Box>
-    </Flex>
+      {action.failed && (
+        <Text id={errorId} role="alert" color="dangerous">
+          {t('otp.messages.verify.failed')}
+        </Text>
+      )}
+      <Button
+        icon="tabler:arrow-right"
+        iconPosition="end"
+        namespace="common.vault"
+        loading={busy}
+        disabled={busy || !/^\d{6}$/.test(otp)}
+        onClick={submit}
+      >
+        otp.buttons.verify
+      </Button>
+    </Stack>
   )
 }
-
-export const OTPInputBox = memo(_OTPInputBox)

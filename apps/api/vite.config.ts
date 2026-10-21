@@ -1,28 +1,32 @@
-import path from 'path'
+// SPDX-License-Identifier: 0BSD
+import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 
+export const serverAliases = Object.fromEntries(
+  [
+    ['@', 'src'],
+    ['@constants', 'src/core/constants'],
+    ['@functions', 'src/core/functions'],
+    ['@schema', 'src/core/schema'],
+    ['@lib', 'src/lib'],
+    ['@modules', '../../modules']
+  ].map(([key, target]) => [
+    key,
+    fileURLToPath(new URL(target!, import.meta.url))
+  ])
+)
+
 export default defineConfig({
-  resolve: {
-    alias: {
-      '@constants': path.resolve(__dirname, 'src/core/constants'),
-      '@functions': path.resolve(__dirname, 'src/core/functions'),
-      '@schema': path.resolve(__dirname, 'src/core/schema'),
-      '@lib': path.resolve(__dirname, 'src/lib'),
-      '@modules': path.resolve(__dirname, '../../modules'),
-      crypto: 'node:crypto'
-    }
-  },
+  resolve: { alias: { ...serverAliases, crypto: 'node:crypto' } },
+  define: { 'process.env.NODE_ENV': JSON.stringify('production') },
   build: {
-    ssr: './src/index.ts',
-    outDir: 'dist',
     target: 'node22',
+    ssr: 'src/index.ts',
+    outDir: 'dist',
     minify: true,
     rollupOptions: {
-      output: { entryFileNames: 'server.js' },
-      external: ['@monolith/drizzle', '@monolith/server-utils']
+      external: ['@monolith/drizzle', '@monolith/server-utils'],
+      output: { entryFileNames: 'server.js' }
     }
-  },
-  define: {
-    'process.env.NODE_ENV': JSON.stringify('production')
   }
 })

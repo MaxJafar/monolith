@@ -1,27 +1,18 @@
+// SPDX-License-Identifier: 0BSD
+import type { RefCallback, RefObject } from 'react'
+
 export function autoFocusableRef<T>(
-  autoFocus: boolean,
-  ref?: React.RefObject<T>,
-  onFocus?: (e: NonNullable<T>) => void
-): any {
-  return (e: T) => {
-    if (ref) {
-      ref.current = e
-    }
-
-    if (e && autoFocus) {
-      if (onFocus) {
-        onFocus(e)
-      }
-
-      if (
-        typeof e !== 'object' ||
-        !('focus' in e) ||
-        typeof e.focus !== 'function'
-      ) {
-        return
-      }
-
-      e.focus()
+  enabled: boolean,
+  target?: RefObject<T | null>,
+  onFocus?: (element: NonNullable<T>) => void
+): RefCallback<T> {
+  return element => {
+    if (target) target.current = element
+    if (!enabled || element == null) return
+    onFocus?.(element)
+    if (typeof element === 'object' && 'focus' in element) {
+      const focus = element.focus
+      if (typeof focus === 'function') focus.call(element)
     }
   }
 }

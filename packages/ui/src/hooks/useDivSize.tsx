@@ -1,35 +1,29 @@
-import React, { useEffect, useState } from 'react'
+// SPDX-License-Identifier: 0BSD
+import { type RefObject, useEffect, useState } from 'react'
 
-function useDivSize(ref: React.RefObject<HTMLDivElement | null>) {
-  const [width, setWidth] = useState(0)
-  const [height, setHeight] = useState(0)
-
-  function handleResize() {
-    if (ref.current) {
-      setWidth(ref.current.offsetWidth)
-      setHeight(ref.current.offsetHeight)
-    }
-  }
-
+export default function useDivSize(target: RefObject<HTMLDivElement | null>) {
+  const [size, setSize] = useState({ width: 0, height: 0 })
   useEffect(() => {
-    const element = ref.current
-
+    const element = target.current
     if (!element) return
-
-    const observer = new ResizeObserver(handleResize)
-
-    observer.observe(element)
-    handleResize()
-
-    window.addEventListener('resize', handleResize)
-
-    return () => {
-      window.removeEventListener('resize', handleResize)
-      observer.disconnect()
+    const measure = () => {
+      const width = element.offsetWidth
+      const height = element.offsetHeight
+      setSize(previous =>
+        previous.width === width && previous.height === height
+          ? previous
+          : { width, height }
+      )
     }
-  }, [ref])
-
-  return { width, height }
+    measure()
+    const observer =
+      typeof ResizeObserver === 'function' ? new ResizeObserver(measure) : null
+    observer?.observe(element)
+    window.addEventListener('resize', measure)
+    return () => {
+      observer?.disconnect()
+      window.removeEventListener('resize', measure)
+    }
+  }, [target])
+  return size
 }
-
-export default useDivSize

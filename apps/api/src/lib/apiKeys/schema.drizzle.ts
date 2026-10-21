@@ -1,17 +1,17 @@
-import { type RelationsBuilder } from 'drizzle-orm'
-import { boolean, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core'
+// SPDX-License-Identifier: 0BSD
+import type { RelationsBuilder } from 'drizzle-orm'
+import { pgTable } from 'drizzle-orm/pg-core'
 
+import { flag, recordIdentity, storedText } from '../../core/schema/columns'
+
+// Column names and sizes retain compatibility with installed credential stores.
 export const apiKeysEntries = pgTable('api_keys__entries', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  keyId: varchar('key_id', { length: 255 }).notNull(),
-  name: varchar('name', { length: 255 }).notNull(),
-  icon: varchar('icon', { length: 255 }).notNull(),
-  key: varchar('key', { length: 500 }).notNull(),
-  exposable: boolean('exposable').default(false).notNull(),
-  created: timestamp('created', { mode: 'date' }).defaultNow().notNull(),
-  updated: timestamp('updated', { mode: 'date' }).defaultNow().notNull()
+  ...recordIdentity(),
+  keyId: storedText('key_id').notNull(),
+  key: storedText('key', 500).notNull(),
+  exposable: flag('exposable'),
+  name: storedText('name').notNull(),
+  icon: storedText('icon').notNull()
 })
-
 export const tables = { apiKeysEntries }
-
-export const relations = (_r: RelationsBuilder<typeof tables>) => ({})
+export const relations = (_builder: RelationsBuilder<typeof tables>) => ({})

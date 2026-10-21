@@ -1,112 +1,114 @@
-import { describe, expect, it } from 'vitest'
+// SPDX-License-Identifier: 0BSD
+import { afterEach, describe, expect, it } from 'vitest'
 
 import type { ModuleEntry } from '@monolith/configs'
 
 import { ModuleRegistry } from './ModuleRegistry'
 
-const entry = (name: string): ModuleEntry =>
-  ({ name, id: name.replace(/^@monolith\//, '') }) as ModuleEntry
-
-describe('ModuleRegistry path resolution', () => {
-  it('resolves the module id only at a directory boundary', () => {
-    ModuleRegistry.register(
-      entry('@monolith/monolith--foo'),
-      '/repo/modules/foo'
-    )
-    ModuleRegistry.register(
-      entry('@monolith/monolith--foo-bar'),
-      '/repo/modules/foo-bar'
-    )
-
-    expect(
-      ModuleRegistry.getModuleIdByPath('/repo/modules/foo-bar/server/index.ts')
-    ).toBe('monolith--foo-bar')
-
-    expect(
-      ModuleRegistry.getModuleIdByPath('/repo/modules/foo/server/index.ts')
-    ).toBe('monolith--foo')
-  })
-
-  it('returns undefined for paths outside any module', () => {
-    expect(
-      ModuleRegistry.getModuleIdByPath('/repo/packages/drizzle/src/index.ts')
-    ).toBeUndefined()
-  })
-
-  it('maps a module id back to its path', () => {
-    ModuleRegistry.register(
-      entry('@monolith/monolith--bar'),
-      '/repo/modules/bar'
-    )
-
-    expect(ModuleRegistry.getPath('monolith--bar')).toBe('/repo/modules/bar')
-  })
+const names = new Set<string>()
+function entry(suffix: string): ModuleEntry {
+  const name = '@monolith/registry-probe-' + suffix
+  names.add(name)
+  return {
+    name,
+    id: 'monolith--registry-probe-' + suffix,
+    remoteId: suffix.padEnd(64, '0'),
+    displayName: suffix,
+    version: '1.0.0',
+    description: 'Fixture',
+    author: 'Monolith',
+    icon: 'lucide:box',
+    category: 'Tools',
+    supportedLangs: ['en'],
+    widgets: [],
+    hasProvider: false,
+    remoteEntryUrl: '/modules/probe/remoteEntry.js'
+  }
+}
+afterEach(() => {
+  for (const name of names) ModuleRegistry.unregister(name)
+  names.clear()
 })
 
-describe('ModuleRegistry schema parts', () => {
-  it('rejects a package trying to take an existing name with a new identity', () => {
-    const original = entry('@monolith/monolith--shop-owner')
+describe('shared registry ownership', () => {
+  it('resolves the most specific path across Windows separators and directory boundaries', () => {
+    const parent = entry('parent'),
+      nested = entry('nested'),
+      sibling = entry('sibling')
+    ModuleRegistry.register(parent, 'C:\\workspace\\modules\\probe\\')
+    ModuleRegistry.register(nested, 'C:/workspace/modules/probe/child')
+    ModuleRegistry.register(sibling, 'C:/workspace/modules/probe-two')
+    expect(
+      ModuleRegistry.getModuleIdByPath(
+        'C:\\workspace\\modules\\probe\\child\\server.ts'
+      )
+    ).toBe(nested.id)
+    expect(
+      ModuleRegistry.getModuleByPath('C:/workspace/modules/probe-two/server.ts')
+        ?.name
+    ).toBe(sibling.name)
+    expect(
+      ModuleRegistry.getModuleIdByPath(
+        'C:/workspace/modules/probe-unknown/server.ts'
+      )
+    ).toBeUndefined()
+    expect(ModuleRegistry.getPath(parent.id)).toBe('C:/workspace/modules/probe')
+  })
+
+  it.each(['name', 'id', 'remoteId'] as const)(
+    'rejects conflicting %s before modifying existing registrations',
+    field => {
+      const original = entry('installed'),
+        conflicting = entry('conflict')
+      ModuleRegistry.register(original)
+      conflicting[field] = original[field]
+      expect(() => ModuleRegistry.register(conflicting)).toThrow(
+        'identity collision'
+      )
+      expect(
+        ModuleRegistry.entries.find(item => item.name === original.name)
+      ).toEqual(original)
+      expect(
+        ModuleRegistry.entries.filter(item => names.has(item.name))
+      ).toHaveLength(1)
+    }
+  )
+
+  it('returns detached lists and only exposes declared catalog fields', () => {
+    const original = entry('catalog')
     ModuleRegistry.register(original)
-    try {
-      expect(() =>
-        ModuleRegistry.register({ ...original, id: 'monolith--impostor' })
-      ).toThrow('identity collision')
-      expect(
-        ModuleRegistry.entries.find(item => item.name === original.name)?.id
-      ).toBe(original.id)
-    } finally {
-      ModuleRegistry.unregister(original.name)
-    }
-  })
-  it('rejects duplicate storage and route identities without replacing an installed addon', () => {
-    const first = {
-      ...entry('@monolith/alex--first'),
-      remoteId: 'a'.repeat(64)
-    }
-    ModuleRegistry.register(first)
-    try {
-      expect(() =>
-        ModuleRegistry.register({ ...first, name: '@monolith/alex--second' })
-      ).toThrow('identity collision')
-      expect(() =>
-        ModuleRegistry.register({
-          ...entry('@monolith/alex--third'),
-          remoteId: first.remoteId
-        })
-      ).toThrow('identity collision')
-      expect(
-        ModuleRegistry.entries.find(item => item.name === first.name)
-      ).toEqual(first)
-    } finally {
-      ModuleRegistry.unregister(first.name)
-    }
+    ModuleRegistry.entries.length = 0
+    expect(ModuleRegistry.isRegistered(original.name)).toBe(true)
+    expect(ModuleRegistry.isAvailable(original.id)).toBe(true)
+    expect(
+      ModuleRegistry.list.find(item => item.name === original.name)
+    ).not.toHaveProperty('remoteEntryUrl')
+    expect(
+      ModuleRegistry.manifests.find(item => item.name === original.name)
+    ).not.toHaveProperty('author')
+    ModuleRegistry.register({ ...original, version: '2.0.0' })
+    expect(
+      ModuleRegistry.list.find(item => item.name === original.name)?.version
+    ).toBe('2.0.0')
   })
 
-  it('registers and resolves a schema part by the short module id', () => {
-    ModuleRegistry.registerSchemaPart('monolith--baz', {
-      tables: {},
-      relations: () => ({}),
-      keyMap: { items: 'baz__items' }
+  it('unregisters paths and schemas together without touching another add-on', () => {
+    const first = entry('remove'),
+      retained = entry('retained')
+    for (const item of [first, retained]) {
+      ModuleRegistry.register(item, '/workspace/' + item.id)
+      ModuleRegistry.registerSchemaPart(item.id, {
+        moduleId: item.id,
+        tables: {},
+        relations: () => ({}),
+        keyMap: { record: item.id + '__record' }
+      })
+    }
+    ModuleRegistry.unregister(first.name)
+    expect(ModuleRegistry.getPath(first.id)).toBeUndefined()
+    expect(ModuleRegistry.getModuleKeyMap(first.id)).toBeUndefined()
+    expect(ModuleRegistry.getModuleKeyMap(retained.id)).toEqual({
+      record: retained.id + '__record'
     })
-
-    expect(ModuleRegistry.getModuleKeyMap('monolith--baz')).toEqual({
-      items: 'baz__items'
-    })
-  })
-
-  it('removes the schema part on unregister (keyed by short id)', () => {
-    ModuleRegistry.register(
-      entry('@monolith/monolith--baz'),
-      '/repo/modules/baz'
-    )
-    ModuleRegistry.registerSchemaPart('monolith--baz', {
-      tables: {},
-      relations: () => ({}),
-      keyMap: { items: 'baz__items' }
-    })
-
-    ModuleRegistry.unregister('@monolith/monolith--baz')
-
-    expect(ModuleRegistry.getModuleKeyMap('monolith--baz')).toBeUndefined()
   })
 })

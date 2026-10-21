@@ -1,32 +1,9 @@
-import { recipe } from '@vanilla-extract/recipes'
-import { createSprinkles, defineProperties } from '@vanilla-extract/sprinkles'
+// SPDX-License-Identifier: 0BSD
+import type { layoutSprinkles } from '../layout.css'
 
-import {
-  RESPONSIVE_CONDITIONS,
-  tokenizedLayoutProperties,
-  tokenizedRoundedProperties,
-  tokenizedSpacingProperties
-} from '@/system'
+export {
+  layoutBase as boxBase,
+  layoutSprinkles as boxSprinkles
+} from '../layout.css'
 
-export const boxBase = recipe({
-  base: {
-    boxSizing: 'border-box'
-  }
-})
-
-const boxProperties = defineProperties({
-  conditions: RESPONSIVE_CONDITIONS,
-  defaultCondition: 'base',
-  properties: {
-    display: ['block', 'inline', 'inline-block', 'none', 'contents']
-  }
-})
-
-export const boxSprinkles = createSprinkles(
-  boxProperties,
-  tokenizedLayoutProperties,
-  tokenizedSpacingProperties,
-  tokenizedRoundedProperties
-)
-
-export type BoxSprinkles = Parameters<typeof boxSprinkles>[0]
+export type BoxSprinkles = Parameters<typeof layoutSprinkles>[0]

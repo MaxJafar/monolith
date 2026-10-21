@@ -1,69 +1,58 @@
-import { ColorWithOpacity } from '../color-with-opacity'
+// SPDX-License-Identifier: 0BSD
+import type { ColorWithOpacity } from '../color-with-opacity'
 import { TAILWIND_PALETTE } from './tailwind-palette'
 
-type TailwindPaletteToken = {
-  [
-    K in keyof typeof TAILWIND_PALETTE
-  ]: `${K & string}-${keyof (typeof TAILWIND_PALETTE)[K] & string}`
-}[keyof typeof TAILWIND_PALETTE]
-
-const BASE_COLORS = {
-  transparent: 'transparent',
-  white: '#ffffff',
-  black: '#000000',
-  'bg-50': 'var(--color-bg-50)',
-  'bg-100': 'var(--color-bg-100)',
-  'bg-200': 'var(--color-bg-200)',
-  'bg-300': 'var(--color-bg-300)',
-  'bg-400': 'var(--color-bg-400)',
-  'bg-500': 'var(--color-bg-500)',
-  'bg-600': 'var(--color-bg-600)',
-  'bg-700': 'var(--color-bg-700)',
-  'bg-800': 'var(--color-bg-800)',
-  'bg-900': 'var(--color-bg-900)',
-  'bg-950': 'var(--color-bg-950)',
-  'custom-50': 'var(--color-custom-50)',
-  'custom-100': 'var(--color-custom-100)',
-  'custom-200': 'var(--color-custom-200)',
-  'custom-300': 'var(--color-custom-300)',
-  'custom-400': 'var(--color-custom-400)',
-  'custom-500': 'var(--color-custom-500)',
-  'custom-600': 'var(--color-custom-600)',
-  'custom-700': 'var(--color-custom-700)',
-  'custom-800': 'var(--color-custom-800)',
-  'custom-900': 'var(--color-custom-900)',
-  canvas: 'var(--bg-primary)',
-  surface: 'var(--bg-surface)',
-  lifted: 'var(--bg-lifted)',
-  'surface-container': 'var(--md-sys-color-surface-container)',
-  'surface-container-high': 'var(--md-sys-color-surface-container-high)',
-  'primary-container': 'var(--md-sys-color-primary-container)',
-  'on-primary-container': 'var(--md-sys-color-on-primary-container)',
-  'text-primary': 'var(--text-primary)',
-  dangerous: 'var(--accent-red)',
-  muted: 'var(--md-sys-color-on-surface-variant)',
-  primary: 'var(--accent-teal)',
-  inherit: 'inherit'
+const levels = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950] as const
+function dynamicColors<const Prefix extends string>(prefix: Prefix) {
+  return Object.fromEntries(
+    levels.map(level => [
+      `${prefix}-${level}`,
+      `var(--color-${prefix}-${level})`
+    ])
+  ) as Record<`${Prefix}-${(typeof levels)[number]}`, string>
+}
+const semanticVariables = {
+  canvas: 'bg-primary',
+  surface: 'bg-surface',
+  lifted: 'bg-lifted',
+  'surface-container': 'md-sys-color-surface-container',
+  'surface-container-high': 'md-sys-color-surface-container-high',
+  'primary-container': 'md-sys-color-primary-container',
+  'on-primary-container': 'md-sys-color-on-primary-container',
+  'text-primary': 'text-primary',
+  dangerous: 'accent-red',
+  muted: 'md-sys-color-on-surface-variant',
+  primary: 'accent-teal'
 } as const
+const semanticColors = Object.fromEntries(
+  Object.entries(semanticVariables).map(([token, variable]) => [
+    token,
+    `var(--${variable})`
+  ])
+) as Record<keyof typeof semanticVariables, string>
+type PaletteToken = {
+  [
+    Family in keyof typeof TAILWIND_PALETTE
+  ]: `${Family & string}-${keyof (typeof TAILWIND_PALETTE)[Family] & string}`
+}[keyof typeof TAILWIND_PALETTE]
+const paletteColors = Object.fromEntries(
+  Object.entries(TAILWIND_PALETTE).flatMap(([family, shades]) =>
+    Object.entries(shades).map(([shade, color]) => [
+      family + '-' + shade,
+      color
+    ])
+  )
+) as Record<PaletteToken, string>
 
-function buildPaletteColors(): Record<TailwindPaletteToken, string> {
-  const result: Record<string, string> = {}
-
-  for (const [name, shades] of Object.entries(TAILWIND_PALETTE)) {
-    for (const [shade, value] of Object.entries(shades)) {
-      result[`${name}-${shade}`] = value
-    }
-  }
-
-  return result
-}
-
-export const COLORS = {
-  ...BASE_COLORS,
-  ...buildPaletteColors()
-}
-
-export type TokenizedColor = keyof typeof BASE_COLORS | TailwindPaletteToken
-
-export type ColorValue =
-  keyof typeof BASE_COLORS | TailwindPaletteToken | ColorWithOpacity
+export const COLORS = Object.freeze({
+  ...dynamicColors('bg'),
+  ...dynamicColors('custom'),
+  ...semanticColors,
+  ...paletteColors,
+  inherit: 'inherit',
+  transparent: 'transparent',
+  black: '#000000',
+  white: '#ffffff'
+})
+export type TokenizedColor = keyof typeof COLORS
+export type ColorValue = TokenizedColor | ColorWithOpacity

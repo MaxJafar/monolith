@@ -1,80 +1,41 @@
-import * as CheckboxPrimitive from '@radix-ui/react-checkbox'
-import clsx from 'clsx'
-import { useId } from 'react'
+// SPDX-License-Identifier: 0BSD
+import { type InputHTMLAttributes, type ReactNode, useId } from 'react'
 
-import { Bordered, Flex, Icon, Text, Transition } from '@/components/primitives'
-import { usePersonalization } from '@/providers'
+import './checkbox.css'
 
-import { checkboxRootRecipe } from './Checkbox.css'
-
-/**
- * A checkbox component with optional label support.
- */
+type CheckboxProps = Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  'type' | 'onChange' | 'children'
+> & {
+  label?: ReactNode
+  onCheckedChange?: (checked: boolean) => void
+}
 export function Checkbox({
   checked = false,
   onCheckedChange,
   disabled,
+  label,
   className,
-  label
-}: {
-  /** Whether the checkbox is currently checked. */
-  checked?: boolean
-  /** Callback function called when the checked state changes. */
-  onCheckedChange?: (checked: boolean) => void
-  /** Whether the checkbox is disabled and non-interactive. */
-  disabled?: boolean
-  /** Additional CSS class names to apply to the checkbox root element. */
-  className?: string
-  /** Optional text label to display next to the checkbox. */
-  label?: React.ReactNode
-}) {
-  const { getMostReadableColor } = usePersonalization()
-  const id = useId()
-
+  id,
+  ...input
+}: CheckboxProps) {
+  const generated = useId()
+  const identity = id ?? generated
   return (
-    <Flex align="center" gap="sm" style={{ opacity: disabled ? 0.5 : 1 }}>
-      <CheckboxPrimitive.Root
-        asChild
-        checked={checked}
-        className={clsx(checkboxRootRecipe(), className)}
-        disabled={disabled}
-        id={id}
-        onCheckedChange={onCheckedChange}
-      >
-        <Transition>
-          <Bordered asChild borderWidth="2px">
-            <Flex
-              align="center"
-              as="button"
-              flexShrink="0"
-              height="1.5em"
-              justify="center"
-              r="md"
-              width="1.5em"
-            >
-              <CheckboxPrimitive.Indicator asChild>
-                <Transition>
-                  <Text
-                    asChild
-                    style={{
-                      color: getMostReadableColor()
-                    }}
-                  >
-                    <Icon
-                      icon="uil:check"
-                      style={{
-                        width: '100%',
-                        height: '100%'
-                      }}
-                    />
-                  </Text>
-                </Transition>
-              </CheckboxPrimitive.Indicator>
-            </Flex>
-          </Bordered>
-        </Transition>
-      </CheckboxPrimitive.Root>
-      {label && <label htmlFor={id}>{label}</label>}
-    </Flex>
+    <span className="monolith-check" data-disabled={disabled || undefined}>
+      <span className="monolith-check-box">
+        <input
+          {...input}
+          id={identity}
+          className={className}
+          type="checkbox"
+          checked={checked}
+          disabled={disabled}
+          onChange={event => onCheckedChange?.(event.currentTarget.checked)}
+        />
+        <span className="monolith-check-mark" aria-hidden />
+      </span>
+      {label !== undefined && <label htmlFor={identity}>{label}</label>}
+    </span>
   )
 }

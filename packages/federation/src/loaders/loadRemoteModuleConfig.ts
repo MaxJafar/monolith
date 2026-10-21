@@ -1,9 +1,5 @@
-import {
-  getInstance,
-  init,
-  loadRemote,
-  registerRemotes
-} from '@module-federation/runtime'
+// SPDX-License-Identifier: 0BSD
+import { loadRemote } from '@module-federation/runtime'
 
 import { globalProxyRegistry } from '@monolith/api'
 import {
@@ -13,151 +9,86 @@ import {
   moduleConfigSchema
 } from '@monolith/configs'
 
-import { type FederatedModule } from '../utils/fetchModuleData'
-import { getBundledModules } from './bundledModules'
-import { resolveRemoteEntry } from './remoteEntry'
+import type { FederatedModule } from '../utils/fetchModuleData'
+import { type ModuleImporter, getBundledModules } from './bundledModules'
+import { registerFederatedEntry } from './remoteRegistry'
 
-/**
- * Maps module short name to import function for dev mode
- * Uses Vite's glob import for dynamic loading from apps directory
- */
-/**
- * Gets the dev mode import function for a module
- */
-function getDevModeImport(
-  moduleName: string,
-  devModeImports: Record<string, () => Promise<{ default: ModuleConfig }>>,
-  devModePkgs: Record<string, { name: string }> = {}
-): (() => Promise<{ default: ModuleConfig }>) | null {
-  for (const [importPath, importFn] of Object.entries(devModeImports)) {
-    const pkgPath = importPath.replace(
-      /\/client\/manifest\.ts$/,
-      '/package.json'
-    )
+export { registeredRemotesSet } from './remoteRegistry'
 
-    if (devModePkgs[pkgPath]?.name === addonPackageName(moduleName)) {
-      return importFn
-    }
-  }
-
-  return null
+async function remoteManifest(module: FederatedModule): Promise<unknown> {
+  const name = registerFederatedEntry(module)
+  const loaded = await loadRemote<{ default?: unknown }>(name + '/Manifest')
+  if (!loaded)
+    throw new Error('The add-on manifest could not be loaded: ' + module.name)
+  return loaded.default ?? loaded
 }
 
-/**
- * Loads a module config - either from dev source or federation bundle
- */
+function sourceImporter(
+  name: string,
+  imports: Record<string, ModuleImporter>,
+  packages: Record<string, { name: string }>
+) {
+  const wanted = addonPackageName(name)
+  return Object.entries(imports).find(([file]) => {
+    const manifest = file.replace(/\/client\/manifest\.ts$/, '/package.json')
+    return packages[manifest]?.name === wanted
+  })?.[1]
+}
+
 export async function loadRemoteModuleConfig(
-  mod: FederatedModule,
-  devModeImports: Record<string, () => Promise<{ default: ModuleConfig }>> = {},
+  module: FederatedModule,
+  devModeImports: Record<string, ModuleImporter> = {},
   devModePkgs: Record<string, { name: string }> = {}
 ): Promise<ModuleGroup['items'][number]> {
-  let unwrapped: ModuleConfig
-
-  // Dev mode: import directly from source for hot-reload
-  if (getBundledModules()?.[addonPackageName(mod.name)]) {
-    const load = getBundledModules()![addonPackageName(mod.name)]
-    if (!load)
-      throw new Error(
-        `This module is not bundled with this desktop release: ${mod.name}`
-      )
-    unwrapped = (await load()).default
-  } else if (import.meta.env.DEV && !mod.remoteEntryUrl.includes('managed=1')) {
-    const devImport = getDevModeImport(mod.name, devModeImports, devModePkgs)
-
-    if (devImport) {
-      try {
-        const devModule = await devImport()
-
-        unwrapped = devModule.default
-      } catch (error) {
-        // Source may have been removed (e.g. the module was installed and
-        // cleaned). Fall back to the built federation bundle.
-        console.warn(
-          `Dev mode import failed for ${mod.name}, falling back to federation:`,
-          error
-        )
-        unwrapped = await loadFromFederation(mod)
-      }
-    } else {
-      console.warn(
-        `Dev mode import not found for ${mod.name}, falling back to federation`
-      )
-      unwrapped = await loadFromFederation(mod)
-    }
-  } else {
-    // Normal mode: use federation
-    unwrapped = await loadFromFederation(mod)
-  }
-
-  const validation = moduleConfigSchema.safeParse(unwrapped)
-
-  if (!validation.success) {
-    throw new Error(
-      `Module configuration validation failed for ${mod.name}: ${validation.error.message}`
-    )
-  }
-
-  const moduleConfig: ModuleGroup['items'][number] = {
-    name: mod.name,
-    id: mod.id,
-    remoteId: mod.remoteId,
-    icon: mod.icon,
-    category: mod.category,
-    routes: unwrapped.routes,
-    provider: unwrapped.provider,
-    subsection: unwrapped.subsection,
-    hidden: unwrapped.hidden,
-    disabled: unwrapped.disabled,
-    clearQueryOnUnmount: unwrapped.clearQueryOnUnmount,
-    canvas: unwrapped.canvas,
-    APIKeyAccess: mod.APIKeyAccess,
-    widgets: unwrapped.widgets,
-    contract: unwrapped.contract
-  }
-
-  if (unwrapped.contract) {
-    globalProxyRegistry.set(unwrapped.contract, {
-      remoteId: mod.remoteId
-    })
-  }
-
-  return moduleConfig
-}
-
-export const registeredRemotesSet = new Set<string>()
-
-/**
- * Loads module config via federation (from remoteEntry.js)
- */
-async function loadFromFederation(mod: FederatedModule): Promise<ModuleConfig> {
-  const remoteName = `m_${mod.remoteId}`
-
-  if (!registeredRemotesSet.has(remoteName)) {
-    const remoteConfig = {
-      name: remoteName,
-      entry: resolveRemoteEntry(mod.remoteEntryUrl),
-      type: 'module'
-    }
-
-    if (!getInstance()) {
-      init({
-        name: 'host',
-        remotes: [remoteConfig]
+  const bundled = getBundledModules()?.[addonPackageName(module.name)]
+  const managed =
+    new URLSearchParams(module.remoteEntryUrl.split('?')[1]).get('managed') ===
+    '1'
+  const source =
+    import.meta.env.DEV && !managed
+      ? sourceImporter(module.name, devModeImports, devModePkgs)
+      : undefined
+  let definition: unknown
+  if (bundled) definition = (await bundled()).default
+  else if (source) {
+    try {
+      definition = (await source()).default
+    } catch (error) {
+      console.warn('Add-on source import failed; loading its built entry', {
+        name: module.name,
+        error
       })
-    } else {
-      registerRemotes([remoteConfig])
+      definition = await remoteManifest(module)
     }
-    registeredRemotesSet.add(remoteName)
+  } else definition = await remoteManifest(module)
+
+  const validated = moduleConfigSchema.safeParse(definition)
+  if (!validated.success)
+    throw new Error(
+      'Invalid add-on configuration for ' +
+        module.name +
+        ': ' +
+        validated.error.message
+    )
+  // Keep the original contract object: the proxy registry uses object identity.
+  const config = definition as ModuleConfig
+  if (config.contract)
+    globalProxyRegistry.set(config.contract, { remoteId: module.remoteId })
+  return {
+    name: module.name,
+    id: module.id,
+    remoteId: module.remoteId,
+    icon: module.icon,
+    category: module.category,
+    APIKeyAccess: module.APIKeyAccess,
+    routes: config.routes,
+    widgets: config.widgets,
+    contract: config.contract,
+    provider: config.provider,
+    subsection: config.subsection,
+    hidden: config.hidden,
+    disabled: config.disabled,
+    clearQueryOnUnmount: config.clearQueryOnUnmount,
+    canvas: config.canvas
   }
-
-  const remoteModule = await loadRemote<{ default: unknown }>(
-    `${remoteName}/Manifest`
-  )
-  const unwrapped = (remoteModule?.default || remoteModule) as ModuleConfig
-
-  if (!unwrapped) {
-    throw new Error(`Failed to load federated manifest: ${mod.name}`)
-  }
-
-  return unwrapped
 }

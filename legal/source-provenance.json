@@ -1,10 +1,24 @@
 {
-  "description": "Historical source references. Licenses and retained author attribution are in THIRD_PARTY_NOTICES.md and the applicable package LICENSE and NOTICE files. Product branding does not change the terms attached to retained material.",
+  "description": "Historical source records and current replacement provenance. Current first-party software uses 0BSD; third-party and historical terms remain as documented in THIRD_PARTY_NOTICES.md. Replacement review limits and checks are recorded in the ledger.",
   "coreBaseline": {
     "repository": "https://github.com/Lifeforge-app/lifeforge",
-    "commit": "4d7fc15802229c52b8d2ad5383c5a8d4f9b664e9"
+    "commit": "4d7fc15802229c52b8d2ad5383c5a8d4f9b664e9",
+    "status": "historical-reference-replaced",
+    "originalLicense": "CC-BY-NC-SA-4.0",
+    "originalProjectAuthor": {
+      "name": "Melvin Chia",
+      "url": "https://github.com/melvinchia3636"
+    }
   },
-  "sources": [
+  "sources": [],
+  "replacementProgress": {
+    "ledger": "legal/replacement-progress.json",
+    "status": "replacement-complete",
+    "targetLicense": "0BSD",
+    "rootLicenseChanged": true,
+    "completedOn": "2026-10-21"
+  },
+  "retiredAddonSources": [
     {
       "id": "lifeforge--achievements",
       "repo": "Lifeforge-app/lifeforge-module-achievements",
@@ -12,13 +26,17 @@
       "versions": {
         "0.0.1": "fe6b91a3b848866770eb05a17b13a3d28434f425"
       },
-      "monolithPackage": "@monolith/achievements"
+      "monolithPackage": "@monolith/achievements",
+      "status": "removed",
+      "removedOn": "2026-10-21"
     },
     {
       "repo": "Lifeforge-app/lifeforge-module-blog",
       "commit": "6c41eb0182aa78eb048fb51ac2c7120ce1af5821",
       "port": "Adapted for Monolith PostgreSQL, contracts and React 19; the pinned repository and commit identify the source reference.",
-      "monolithPackage": "@monolith/blog"
+      "monolithPackage": "@monolith/blog",
+      "status": "removed",
+      "removedOn": "2026-10-21"
     },
     {
       "id": "lifeforge--calendar",
@@ -27,7 +45,9 @@
       "versions": {
         "0.0.1": "c6bc850bf15fe222cdab84e2fbd9fda4442d3c8b"
       },
-      "monolithPackage": "@monolith/calendar"
+      "monolithPackage": "@monolith/calendar",
+      "status": "removed",
+      "removedOn": "2026-10-21"
     },
     {
       "id": "lifeforge--code-time",
@@ -36,13 +56,17 @@
       "versions": {
         "0.0.1": "e2f727d6af91d2f06bd2521400d8782500bdcd59"
       },
-      "monolithPackage": "@monolith/code-time"
+      "monolithPackage": "@monolith/code-time",
+      "status": "removed",
+      "removedOn": "2026-10-21"
     },
     {
       "repo": "Lifeforge-app/lifeforge-modules",
       "commit": "ef45982f8cff053fb1add6163777ea8f4858311c",
       "port": "Adapted for Monolith PostgreSQL, contracts and React 19; the pinned repository and commit identify the source reference.",
-      "monolithPackage": "@monolith/flashcards"
+      "monolithPackage": "@monolith/flashcards",
+      "status": "removed",
+      "removedOn": "2026-10-21"
     },
     {
       "id": "lifeforge--idea-box",
@@ -51,13 +75,17 @@
       "versions": {
         "0.0.1": "69975f816156c6d0eb14d9612e0f8856942910bb"
       },
-      "monolithPackage": "@monolith/idea-box"
+      "monolithPackage": "@monolith/idea-box",
+      "status": "removed",
+      "removedOn": "2026-10-21"
     },
     {
       "repo": "Lifeforge-app/lifeforge-modules",
       "commit": "ef45982f8cff053fb1add6163777ea8f4858311c",
       "port": "Adapted for Monolith PostgreSQL, contracts and React 19; the pinned repository and commit identify the source reference.",
-      "monolithPackage": "@monolith/notes"
+      "monolithPackage": "@monolith/notes",
+      "status": "removed",
+      "removedOn": "2026-10-21"
     },
     {
       "id": "lifeforge--pomodoro-timer",
@@ -66,13 +94,17 @@
       "versions": {
         "0.0.1": "9d5182692b0d737835747b51a75bab38d14060b6"
       },
-      "monolithPackage": "@monolith/pomodoro-timer"
+      "monolithPackage": "@monolith/pomodoro-timer",
+      "status": "removed",
+      "removedOn": "2026-10-21"
     },
     {
       "repo": "Lifeforge-app/lifeforge-modules",
       "commit": "ef45982f8cff053fb1add6163777ea8f4858311c",
       "port": "Adapted for Monolith PostgreSQL, contracts and React 19; the pinned repository and commit identify the source reference.",
-      "monolithPackage": "@monolith/projects"
+      "monolithPackage": "@monolith/projects",
+      "status": "removed",
+      "removedOn": "2026-10-21"
     },
     {
       "id": "lifeforge--todo-list",
@@ -81,7 +113,9 @@
       "versions": {
         "0.0.1": "bb844614098783b0cba69fa0ff8c3c6c0932c6ee"
       },
-      "monolithPackage": "@monolith/todo-list"
+      "monolithPackage": "@monolith/todo-list",
+      "status": "removed",
+      "removedOn": "2026-10-21"
     },
     {
       "id": "lifeforge--wallet",
@@ -90,13 +124,41 @@
       "versions": {
         "0.0.1": "98fbfa39886cc20c62e182842937ea327c3c9526"
       },
-      "monolithPackage": "@monolith/wallet"
+      "monolithPackage": "@monolith/wallet",
+      "status": "removed",
+      "removedOn": "2026-10-21"
     },
     {
       "repo": "Lifeforge-app/lifeforge-module-wishlist",
       "commit": "5dbf0ebb83cdcc7bbf7229404896a93ba2ddbb6a",
       "port": "Adapted for Monolith PostgreSQL, contracts and React 19; the pinned repository and commit identify the source reference.",
-      "monolithPackage": "@monolith/wishlist"
+      "monolithPackage": "@monolith/wishlist",
+      "status": "removed",
+      "removedOn": "2026-10-21"
     }
-  ]
+  ],
+  "nativeFeatureReplacements": [
+    {
+      "feature": "Calendar",
+      "route": "/calendar",
+      "implementation": "modules/monolith--databases/client/src/components/calendar/CalendarWorkspace.tsx",
+      "storage": "Native workspace records and calendar schedules",
+      "retiredPackage": "@monolith/calendar"
+    },
+    {
+      "feature": "Journal",
+      "route": "/journal",
+      "implementation": "modules/monolith--databases/client/src/components/journal/JournalWorkspace.tsx",
+      "storage": "Native workspace post records and the shared page editor",
+      "retiredPackage": "@monolith/blog"
+    },
+    {
+      "feature": "Projects",
+      "route": "/projects",
+      "implementation": "modules/monolith--databases/client/src/components/work/WorkHub.tsx",
+      "storage": "Native workspace project/action records and relations",
+      "retiredPackage": "@monolith/projects"
+    }
+  ],
+  "nativeFeatureReplacementsNote": "These platform features no longer load the retired addon implementations. Existing native workspace records and historical identity aliases are preserved. This entry does not certify the licensing of shared dependencies or the entire repository."
 }

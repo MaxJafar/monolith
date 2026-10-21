@@ -4,11 +4,6 @@ import { createHash, randomUUID } from 'node:crypto'
 
 import { ClientError } from '@monolith/server-utils'
 
-import {
-  columns,
-  entries as projects,
-  tasks
-} from '../../monolith--projects/server/schema.drizzle'
 import { recordUsage } from '../../monolith--agents/server/metering'
 import {
   assignments,
@@ -26,6 +21,11 @@ import {
   queue,
   reap
 } from '../../monolith--agents/server/store'
+import {
+  columns,
+  entries as projects,
+  tasks
+} from '../../monolith--agents/server/workSchema'
 import {
   type CoachConfig,
   type CoachProposal,

@@ -1,124 +1,92 @@
-import {
-  Bordered,
-  Flex,
-  type FlexProps,
-  Icon,
-  Text,
-  Transition
-} from '@/components/primitives'
+// SPDX-License-Identifier: 0BSD
+import { useRef } from 'react'
 
+import { Flex, type FlexProps, Icon, Text } from '@/components/primitives'
+
+import { tab } from './tabs.css'
+
+type TabItem = {
+  readonly id: string
+  readonly name: string
+  readonly icon?: string
+  readonly color?: string
+  readonly amount?: number | ((currentTab: string) => number)
+}
 export interface TabsProps<
   T,
-  TKey = T extends ReadonlyArray<{ readonly id: infer U }> ? U : never
+  TKey = T extends ReadonlyArray<{ readonly id: infer Id }> ? Id : never
 > extends FlexProps {
-  /** List of tab items to display. */
   items: T
-  /** List of enabled tab IDs. */
   enabled: readonly TKey[]
-  /** Currently active tab ID. */
   currentTab: TKey
-  /** Callback function to handle tab selection. */
   onTabChange: (id: TKey) => void
-  /** Additional CSS classes to apply to the tabs container. */
-  className?: string
 }
-
-/**
- * A tab component that displays a list of tabs and allows switching between them.
- */
 export function Tabs<
-  T extends ReadonlyArray<{
-    readonly id: string
-    readonly name: string
-    readonly color?: string
-    readonly icon?: string
-    readonly amount?: number | ((currentTab: string) => number)
-  }>,
-  TKey = T extends ReadonlyArray<{ readonly id: infer U }> ? U : never
->({ items, enabled, currentTab, onTabChange, ...props }: TabsProps<T, TKey>) {
+  T extends readonly TabItem[],
+  TKey = T extends ReadonlyArray<{ readonly id: infer Id }> ? Id : never
+>({ items, enabled, currentTab, onTabChange, ...layout }: TabsProps<T, TKey>) {
+  const buttons = useRef(new Map<string, HTMLButtonElement>())
+  const visible = items.filter(item => enabled.includes(item.id as TKey))
+  const focusId = visible.some(item => item.id === currentTab)
+    ? currentTab
+    : visible[0]?.id
   return (
-    <Flex align="center" gapY="sm" wrap="wrap" {...props}>
-      {items
-        .filter(({ id }) => enabled.includes(id as TKey))
-        .map(({ name, icon, id, color, amount }) => {
-          const resolvedAmount =
-            typeof amount === 'function' ? amount(currentTab as string) : amount
-
-          return (
-            <Bordered
-              key={id}
-              asChild
-              borderColor={
-                currentTab !== id
-                  ? {
-                      base: 'bg-400',
-                      hover: 'bg-800',
-                      dark: 'bg-500',
-                      darkHover: 'bg-200'
-                    }
-                  : !color
-                    ? { base: 'custom-500' }
-                    : undefined
-              }
-              borderSide="bottom"
-              borderWidth="2px"
-              style={
-                color && currentTab === id ? { borderColor: color } : undefined
-              }
-            >
-              <Transition>
-                <Text
-                  asChild
-                  color={
-                    currentTab === id
-                      ? { base: 'custom-500' }
-                      : {
-                          base: 'bg-400',
-                          hover: 'bg-800',
-                          dark: 'bg-500',
-                          darkHover: 'bg-200'
-                        }
-                  }
-                  tracking="wide"
-                  transform="uppercase"
-                  whiteSpace="nowrap"
-                >
-                  <Flex
-                    align="center"
-                    as="button"
-                    bg="transparent"
-                    flex="1 1 0%"
-                    gap="sm"
-                    justify="center"
-                    p="md"
-                    style={color && currentTab === id ? { color } : {}}
-                    onClick={() => {
-                      onTabChange(id as TKey)
-                    }}
-                  >
-                    {icon && <Icon icon={icon} />}
-                    <Text
-                      as="span"
-                      display="block"
-                      weight={currentTab === id ? 'medium' : 'normal'}
-                    >
-                      {name}
-                    </Text>
-                    {resolvedAmount !== undefined && (
-                      <Text
-                        as="span"
-                        display={{ base: 'none', sm: 'block' }}
-                        size="sm"
-                      >
-                        ({resolvedAmount})
-                      </Text>
-                    )}
-                  </Flex>
+    <Flex {...layout} role="tablist" align="center" gap="xs" overflowX="auto">
+      {visible.map((item, index) => {
+        const selected = item.id === currentTab
+        const amount =
+          typeof item.amount === 'function'
+            ? item.amount(String(currentTab))
+            : item.amount
+        return (
+          <button
+            key={item.id}
+            type="button"
+            role="tab"
+            className={tab}
+            aria-selected={selected}
+            tabIndex={item.id === focusId ? 0 : -1}
+            ref={element => {
+              if (element) buttons.current.set(item.id, element)
+              else buttons.current.delete(item.id)
+            }}
+            style={
+              selected && item.color
+                ? { color: item.color, borderBottomColor: item.color }
+                : undefined
+            }
+            onClick={() => onTabChange(item.id as TKey)}
+            onKeyDown={event => {
+              let next = index
+              const rtl =
+                getComputedStyle(event.currentTarget).direction === 'rtl'
+              if (event.key === 'Home') next = 0
+              else if (event.key === 'End') next = visible.length - 1
+              else if (event.key === 'ArrowRight')
+                next =
+                  (index + (rtl ? -1 : 1) + visible.length) % visible.length
+              else if (event.key === 'ArrowLeft')
+                next =
+                  (index + (rtl ? 1 : -1) + visible.length) % visible.length
+              else return
+              event.preventDefault()
+              const item = visible[next]
+              buttons.current.get(item.id)?.focus()
+              onTabChange(item.id as TKey)
+            }}
+          >
+            <Flex as="span" gap="sm" align="center" minWidth="0">
+              {item.icon && <Icon icon={item.icon} aria-hidden="true" />}
+              <Text whiteSpace="nowrap">{item.name}</Text>
+              {amount !== undefined && (
+                <Text color="muted" size="sm">
+                  {amount}
                 </Text>
-              </Transition>
-            </Bordered>
-          )
-        })}
+              )}
+            </Flex>
+          </button>
+        )
+      })}
     </Flex>
   )
 }

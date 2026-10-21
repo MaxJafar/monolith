@@ -1,0 +1,23 @@
+/* SPDX-License-Identifier: 0BSD */
+.monolith-sidebar-layout {
+  display: flex;
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  gap: 0;
+}
+.monolith-sidebar-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  height: 100%;
+  min-width: 0;
+  position: relative;
+  z-index: 0;
+}
+@media (min-width: 1000px) {
+  .monolith-sidebar-layout {
+    gap: calc(var(--spacing) * 6);
+  }
+}

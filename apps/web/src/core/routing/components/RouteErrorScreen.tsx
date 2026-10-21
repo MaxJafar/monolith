@@ -1,19 +1,15 @@
-import { useRouteError } from 'react-router'
+// SPDX-License-Identifier: 0BSD
+import { isRouteErrorResponse, useRouteError } from 'react-router'
 
 import { ErrorScreen } from '@monolith/ui'
 
-function RouteErrorScreen() {
-  const error = useRouteError()
-
-  return (
-    <ErrorScreen
-      message={
-        error instanceof Error
-          ? `Error: ${error.message}`
-          : 'An unknown error occurred'
-      }
-    />
-  )
+export default function RouteErrorScreen() {
+  const failure = useRouteError()
+  const message =
+    failure instanceof Error
+      ? failure.message
+      : isRouteErrorResponse(failure)
+        ? failure.status + ' ' + failure.statusText
+        : 'This page could not be loaded.'
+  return <ErrorScreen message={message} />
 }
-
-export default RouteErrorScreen

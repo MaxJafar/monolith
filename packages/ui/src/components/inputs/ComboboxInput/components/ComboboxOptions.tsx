@@ -1,40 +1,42 @@
-import { ComboboxOptions as HeadlessComboBoxOptions } from '@headlessui/react'
+// SPDX-License-Identifier: 0BSD
+import { ComboboxOptions as Options } from '@headlessui/react'
+import type { CSSProperties, ReactNode } from 'react'
 
-import { Bordered, Text } from '@/components/primitives'
+import {
+  appearanceVariables,
+  useAppearance
+} from '@/providers/AppearanceProvider'
+import { usePersonalization } from '@/providers/PersonalizationProvider'
 
-import * as styles from './ComboboxOptions.css'
+import { menu } from '../../shared/components/choice.css'
 
 export function ComboboxOptions({
   children,
   customWidth
 }: {
-  children: React.ReactNode
+  children: ReactNode
   customWidth?: string
 }) {
+  const { appearance } = useAppearance()
+  const { derivedTheme } = usePersonalization()
   return (
-    <Text asChild color="muted" size="base">
-      <Bordered
-        asChild
-        shadow
-        bg={{ base: 'bg-100', dark: 'bg-800' }}
-        className={styles.options}
-        overflowY="auto"
-        position="absolute"
-        r="md"
-        style={{
-          // @ts-expect-error - headlessui CSS variable
-          '--anchor-gap': '12px',
-          width:
-            customWidth ?? 'calc(var(--input-width) + var(--spacing) * 16)',
-          top: 'calc(var(--spacing) * 22)',
-          left: 0
-        }}
-        zIndex="9999"
-      >
-        <HeadlessComboBoxOptions portal={false}>
-          {children}
-        </HeadlessComboBoxOptions>
-      </Bordered>
-    </Text>
+    <Options
+      portal
+      anchor="bottom start"
+      transition
+      modal={false}
+      className={menu}
+      style={
+        {
+          ...appearanceVariables(appearance, derivedTheme),
+          '--anchor-gap': '4px',
+          width: customWidth ?? 'max(14rem, var(--input-width))',
+          color: 'var(--text-primary)',
+          backgroundColor: 'var(--bg-surface)'
+        } as CSSProperties
+      }
+    >
+      {children}
+    </Options>
   )
 }

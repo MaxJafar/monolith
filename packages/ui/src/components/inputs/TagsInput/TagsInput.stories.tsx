@@ -1,158 +1,38 @@
+// SPDX-License-Identifier: 0BSD
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { useState } from 'react'
 
-import { TagsInput } from './index'
+import { TagsInput } from '.'
 
 const meta = {
+  title: 'Inputs/TagsInput',
   component: TagsInput,
-  title: 'Inputs/TagsInput'
+  args: { value: [], onChange: () => {}, placeholder: 'Add a label' }
 } satisfies Meta<typeof TagsInput>
-
 export default meta
-
-type Story = StoryObj<typeof meta>
-
-/**
- * Default TagsInput component.
- */
-export const Default: Story = {
-  args: {
-    icon: 'tabler:tags',
-    label: 'Labels',
-    onChange: () => {},
-    placeholder: 'placeholder',
-    value: [],
-    variant: 'classic'
-  },
-  render: args => {
-    const [value, onChange] = useState<string[]>([])
-
-    return <TagsInput {...args} value={value} onChange={onChange} />
+export const ProjectLabels: StoryObj<typeof meta> = {
+  render: () => {
+    const [value, onChange] = useState(['Design', 'Review'])
+    return (
+      <TagsInput
+        label="Project labels"
+        icon="tabler:tags"
+        namespace={false}
+        value={value}
+        onChange={onChange}
+        placeholder="Add a label"
+        maxTags={5}
+      />
+    )
   }
 }
-
-/**
- * TagsInput component with an action button at the right hand side
- */
-export const WithActionButton: Story = {
+export const Disabled: StoryObj<typeof meta> = {
   args: {
-    actionButtonProps: {
-      icon: 'mage:stars-c',
-      onClick: () => {
-        alert('Action button clicked!')
-      }
-    },
-    icon: 'tabler:tags',
-    label: 'Labels',
-    onChange: () => {},
-    placeholder: 'placeholder',
-    value: []
-  },
-  render: args => {
-    const [value, onChange] = useState<string[]>([])
-
-    return <TagsInput {...args} value={value} onChange={onChange} />
-  }
-}
-
-export const Required: Story = {
-  args: {
-    icon: 'tabler:tags',
-    label: 'Labels',
-    onChange: () => {},
-    placeholder: 'placeholder',
-    required: true,
-    value: []
-  },
-  render: args => {
-    const [value, onChange] = useState<string[]>([])
-
-    return <TagsInput {...args} value={value} onChange={onChange} />
-  }
-}
-
-export const Disabled: Story = {
-  args: {
-    icon: 'tabler:tags',
-    label: 'Labels',
-    onChange: () => {},
-    placeholder: 'placeholder',
-    value: [],
-    variant: 'classic'
-  },
-  render: args => {
-    const [value, onChange] = useState<string[]>([])
-
-    return <TagsInput {...args} disabled value={value} onChange={onChange} />
-  }
-}
-
-export const WithErrorMessage: Story = {
-  args: {
-    errorMsg: 'Too much tags provided',
-    icon: 'tabler:tags',
-    label: 'Labels',
-    onChange: () => {},
-    placeholder: 'placeholder',
-    value: []
-  },
-
-  render: args => {
-    const [value, onChange] = useState<string[]>([])
-
-    return <TagsInput {...args} value={value} onChange={onChange} />
-  }
-}
-
-export const DisabledWithErrorMessage: Story = {
-  args: {
+    label: 'Project labels',
+    namespace: false,
     disabled: true,
-    errorMsg: 'Too much tags provided',
-    icon: 'tabler:tags',
-    label: 'Labels',
+    value: ['Pinned'],
     onChange: () => {},
-    placeholder: 'placeholder',
-    value: []
-  },
-
-  render: args => {
-    const [value, onChange] = useState<string[]>([])
-
-    return <TagsInput {...args} disabled value={value} onChange={onChange} />
-  }
-}
-
-export const PlainVariant: Story = {
-  args: {
-    icon: 'tabler:tags',
-    label: 'Labels',
-    onChange: () => {},
-    placeholder: 'placeholder',
-    value: [],
-    variant: 'plain'
-  },
-
-  render: args => {
-    const [value, onChange] = useState<string[]>([])
-
-    return <TagsInput {...args} value={value} onChange={onChange} />
-  }
-}
-
-export const PlainVariantWithErrorMessage: Story = {
-  args: {
-    errorMsg: 'Too much tags provided',
-    icon: 'tabler:tags',
-    label: 'Labels',
-    onChange: () => {},
-    placeholder: 'placeholder',
-    value: [],
-    variant: 'plain'
-  },
-
-  render: args => {
-    const [value, onChange] = useState<string[]>([])
-
-    return <TagsInput {...args} value={value} onChange={onChange} />
+    placeholder: 'Add a label'
   }
 }

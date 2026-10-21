@@ -1,40 +1,31 @@
+// SPDX-License-Identifier: 0BSD
 import { useTranslation } from 'react-i18next'
 
-import { Flex, Text } from '@monolith/ui'
+import { Flex, Stack, Text } from '@monolith/ui'
 
 import MonolithLogo from '@/core/components/MonolithLogo'
 
-function AuthHeader() {
+export default function AuthHeader() {
   const { t } = useTranslation('common.auth')
-
   return (
-    <>
-      <Flex asChild align="center" gap="sm" mb="lg">
-        <Text as="h1" size="3xl" weight="semibold" whiteSpace="nowrap">
-          <MonolithLogo size={40} />
-          <Text tracking="tight">monolith</Text>
+    <Stack gap="md" align="center" mb="lg">
+      <Flex align="center" gap="sm">
+        <MonolithLogo size={36} />
+        <Text size="xl" weight="semibold">
+          monolith
         </Text>
       </Flex>
       <Text
-        align="center"
-        as="h2"
-        size={{ base: '4xl', sm: '5xl' }}
-        tracking="tight"
+        as="h1"
+        size={{ base: '3xl', sm: '4xl' }}
         weight="semibold"
+        align="center"
       >
         {t('header')}
       </Text>
-      <Text
-        align="center"
-        as="p"
-        color="muted"
-        mt={{ base: 'sm', sm: 'md' }}
-        size={{ base: 'base', sm: 'xl' }}
-      >
+      <Text as="p" size="lg" color="muted" align="center">
         {t('desc')}
       </Text>
-    </>
+    </Stack>
   )
 }
-
-export default AuthHeader

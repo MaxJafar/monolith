@@ -1,162 +1,95 @@
-import { Suspense } from 'react'
-import { Responsive as ResponsiveGridLayout } from 'react-grid-layout'
+// SPDX-License-Identifier: 0BSD
+import { type RefObject, Suspense } from 'react'
+import { ErrorBoundary } from 'react-error-boundary'
+import { Responsive } from 'react-grid-layout'
 import { useTranslation } from 'react-i18next'
 
 import { ModuleMetadataProvider } from '@monolith/federation'
 import {
   Box,
-  Card,
-  Icon,
   LoadingScreen,
-  colorWithOpacity,
   useDivSize,
   usePersonalization
 } from '@monolith/ui'
 
 import { useUserPersonalization } from '@/core/providers/features/UserPersonalizationProvider'
 
-import useWidgetDimension from '../hooks/useWidgetDimension'
 import { useWidgets } from '../providers/WidgetProvider'
 import {
-  hasDashboardWidgets,
+  readDashboardLayout,
   shouldPersistDashboardLayout
 } from '../utils/layout'
+import NotFoundWidget from './NotFoundWidget'
 import WorkspaceOverview from './WorkspaceOverview'
 
-function DashboardGrid({
+const breakpoints = { lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }
+export default function DashboardGrid({
   wrapperRef,
   canLayoutChange
 }: {
-  wrapperRef: React.RefObject<HTMLDivElement | null>
+  wrapperRef: RefObject<HTMLDivElement | null>
   canLayoutChange: boolean
 }) {
-  const { t } = useTranslation('common.dashboard')
-  const { loading, getComponent } = useWidgets()
-  const { getDimension } = useWidgetDimension()
-  const { width } = useDivSize(wrapperRef)
-  const { dashboardLayout: enabledWidgets } = usePersonalization()
-  const { changeDashboardLayout } = useUserPersonalization()
-
-  if (!hasDashboardWidgets(enabledWidgets)) {
-    return <WorkspaceOverview />
-  }
-
-  if (width === 0) {
-    return <LoadingScreen message={t('loading')} />
-  }
-
+  const { dashboardLayout } = usePersonalization(),
+    save = useUserPersonalization(),
+    catalog = useWidgets()
+  const { width } = useDivSize(wrapperRef),
+    { t } = useTranslation('common.dashboard')
+  const layout = readDashboardLayout(dashboardLayout)
+  const ids = [
+    ...new Set(Object.values(layout).flatMap(rows => rows.map(row => row.i)))
+  ]
+  if (!ids.length) return <WorkspaceOverview />
+  if (!width) return <LoadingScreen message={t('loading')} />
+  const breakpoint =
+    Object.entries(breakpoints).find(([, minimum]) => width >= minimum)?.[0] ??
+    'xxs'
   return (
-    <Box asChild style={canLayoutChange ? { marginBottom: '16em' } : undefined}>
-      <ResponsiveGridLayout
-        autoSize
-        cols={{
-          lg: 8,
-          md: 8,
-          sm: 4,
-          xs: 4,
-          xxs: 4
-        }}
-        containerPadding={[0, 0]}
-        isDraggable={canLayoutChange}
-        isDroppable={canLayoutChange}
-        isResizable={canLayoutChange}
-        layouts={enabledWidgets}
-        margin={[10, 10]}
-        rowHeight={100}
-        width={width}
-        onLayoutChange={(_, layouts) => {
-          if (
-            shouldPersistDashboardLayout(
-              canLayoutChange,
-              enabledWidgets,
-              layouts
-            )
-          )
-            void changeDashboardLayout(layouts)
-        }}
-      >
-        {[
-          ...new Set(
-            Object.values(enabledWidgets)
-              .map(widgetArray => widgetArray.map(widget => widget.i))
-              .flat()
-          )
-        ].map(widgetId => (
-          <Box
-            key={widgetId}
-            position="relative"
-            style={{
-              cursor: canLayoutChange ? 'move' : 'default'
-            }}
-          >
-            {(() => {
-              if (loading) {
-                return (
-                  <Card centered height="100%" width="100%">
-                    <Icon
-                      color={colorWithOpacity('muted', '50%')}
-                      icon="si:widget-fill"
-                      size="3em"
-                    />
-                  </Card>
-                )
-              }
-
-              const { component: Component, name } = getComponent(widgetId)
-
-              const dimension = getDimension(widgetId, width)
-
-              return (
-                <ModuleMetadataProvider
-                  value={{
-                    icon: '',
-                    title: '',
-                    name
-                  }}
-                >
-                  <Suspense
-                    fallback={
-                      <Card centered height="100%" width="100%">
-                        <Icon
-                          color={colorWithOpacity('muted', '50%')}
-                          icon="si:widget-fill"
-                          size="3em"
-                        />
-                      </Card>
-                    }
-                  >
-                    <Component
-                      dimension={{
-                        w: dimension?.w ?? 0,
-                        h: dimension?.h ?? 0
-                      }}
-                      widgetId={widgetId}
-                    />
-                  </Suspense>
-                </ModuleMetadataProvider>
-              )
-            })()}
+    <Responsive
+      className="monolith-dashboard-grid"
+      width={width}
+      breakpoints={breakpoints}
+      cols={{ lg: 8, md: 8, sm: 4, xs: 4, xxs: 4 }}
+      layouts={layout}
+      containerPadding={[0, 0]}
+      margin={[12, 12]}
+      rowHeight={100}
+      isDraggable={canLayoutChange}
+      isResizable={canLayoutChange}
+      onLayoutChange={(_, computed) => {
+        if (shouldPersistDashboardLayout(canLayoutChange, layout, computed))
+          void save.changeDashboardLayout(computed)
+      }}
+    >
+      {ids.map(id => {
+        const { component: View, name } = catalog.getComponent(id)
+        const tile = layout[breakpoint]?.find(row => row.i === id)
+        const dimension = { w: tile?.w ?? 4, h: tile?.h ?? 4 }
+        return (
+          <Box key={id} position="relative" className="monolith-dashboard-tile">
+            <ErrorBoundary
+              resetKeys={[View]}
+              fallback={<NotFoundWidget widgetId={id} dimension={dimension} />}
+            >
+              <Suspense fallback={<LoadingScreen message={t('loading')} />}>
+                {catalog.loading ? (
+                  <LoadingScreen message={t('loading')} />
+                ) : (
+                  <ModuleMetadataProvider value={{ name, title: '', icon: '' }}>
+                    <View widgetId={id} dimension={dimension} />
+                  </ModuleMetadataProvider>
+                )}
+              </Suspense>
+            </ErrorBoundary>
             {canLayoutChange && (
-              <>
-                <Box
-                  bg={colorWithOpacity('bg-900', '30%')}
-                  height="100%"
-                  left="0"
-                  position="absolute"
-                  r="lg"
-                  top="0"
-                  width="100%"
-                />
-                <Box asChild bottom="0" position="absolute" right="0">
-                  <Icon icon="clarity:drag-handle-corner-line" size="1.5em" />
-                </Box>
-              </>
+              <div
+                className="monolith-dashboard-drag-cover"
+                aria-hidden="true"
+              />
             )}
           </Box>
-        ))}
-      </ResponsiveGridLayout>
-    </Box>
+        )
+      })}
+    </Responsive>
   )
 }
-
-export default DashboardGrid

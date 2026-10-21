@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: 0BSD
 import {
   DeleteObjectCommand,
   DeleteObjectsCommand,
@@ -10,160 +11,138 @@ import mime from 'mime-types'
 import { posix } from 'node:path'
 import { Readable } from 'node:stream'
 
-import type {
-  ProviderSaveOptions,
-  StorageGetOptions,
-  StorageProvider
-} from './types'
+import type { FileStream, ProviderSaveOptions, StorageProvider } from './types'
 
 export interface S3ProviderConfig {
   bucket: string
-  region?: string
   endpoint?: string
+  region?: string
   accessKeyId?: string
   secretAccessKey?: string
   forcePathStyle?: boolean
 }
-
-function missingObject(error: unknown) {
-  if (!error || typeof error !== 'object') return false
-
-  const failure = error as {
-    name?: string
-    $metadata?: { httpStatusCode?: number }
-  }
-
-  return (
-    failure.name === 'NoSuchKey' || failure.$metadata?.httpStatusCode === 404
-  )
-}
-
-function objectType(key: string) {
-  return mime.lookup(key) || 'application/octet-stream'
-}
-
+const contentType = (key: string) =>
+  mime.lookup(key) || 'application/octet-stream'
 export class S3StorageProvider implements StorageProvider {
-  private readonly client: S3Client
+  private readonly connection: S3Client
   private readonly bucket: string
-
-  constructor({
-    bucket,
-    accessKeyId,
-    secretAccessKey,
-    ...connection
-  }: S3ProviderConfig) {
+  constructor(options: S3ProviderConfig) {
+    const { bucket, accessKeyId, secretAccessKey, ...settings } = options
     if (!bucket.trim()) throw new Error('An object-storage bucket is required')
-
-    if (Boolean(accessKeyId) !== Boolean(secretAccessKey)) {
+    if (!!accessKeyId !== !!secretAccessKey)
       throw new Error(
         'Object-storage credentials must include both key and secret'
       )
-    }
     this.bucket = bucket
-    this.client = new S3Client({
-      ...connection,
-      credentials:
-        accessKeyId && secretAccessKey
-          ? { accessKeyId, secretAccessKey }
-          : undefined
+    this.connection = new S3Client({
+      ...settings,
+      ...(accessKeyId && secretAccessKey
+        ? { credentials: { accessKeyId, secretAccessKey } }
+        : {})
     })
   }
-
-  async save(key: string, data: Readable, options?: ProviderSaveOptions) {
-    await new Upload({
-      client: this.client,
-      leavePartsOnError: false,
-      params: {
-        Bucket: this.bucket,
-        Key: key,
-        Body: data,
-        ContentType: options?.mimeType ?? objectType(key)
-      }
-    }).done()
+  private address(key: string) {
+    return { Bucket: this.bucket, Key: key }
   }
-
-  async get(key: string, _options?: StorageGetOptions) {
+  async save(
+    key: string,
+    source: Readable,
+    options?: ProviderSaveOptions
+  ): Promise<void> {
+    const transfer = new Upload({
+      client: this.connection,
+      params: {
+        ...this.address(key),
+        Body: source,
+        ContentType: options?.mimeType ?? contentType(key)
+      },
+      leavePartsOnError: false
+    })
+    await transfer.done()
+  }
+  async get(key: string): Promise<FileStream | null> {
     try {
-      const object = await this.client.send(
-        new GetObjectCommand({ Bucket: this.bucket, Key: key })
+      const result = await this.connection.send(
+        new GetObjectCommand(this.address(key))
       )
-
-      if (!object.Body) return null
-
-      const stream =
-        object.Body instanceof Readable
-          ? object.Body
-          : Readable.fromWeb(
-              object.Body.transformToWebStream() as Parameters<
-                typeof Readable.fromWeb
-              >[0]
-            )
-
+      if (!result.Body) return null
+      const body = result.Body
       return {
-        stream,
-        mimeType: object.ContentType ?? objectType(key),
-        size: object.ContentLength ?? 0
+        stream:
+          body instanceof Readable
+            ? body
+            : Readable.fromWeb(
+                body.transformToWebStream() as Parameters<
+                  typeof Readable.fromWeb
+                >[0]
+              ),
+        size: result.ContentLength ?? 0,
+        mimeType: result.ContentType ?? contentType(key)
       }
     } catch (error) {
-      if (missingObject(error)) return null
+      const failure = error as {
+        name?: string
+        $metadata?: { httpStatusCode?: number }
+      } | null
+      if (
+        failure?.name === 'NoSuchKey' ||
+        failure?.$metadata?.httpStatusCode === 404
+      )
+        return null
       throw error
     }
   }
-
-  async delete(key: string) {
-    // S3 deletion is idempotent. Permission, network and partial-batch failures
-    // must reach the caller so metadata is not silently reported as removed.
-    await this.client.send(
-      new DeleteObjectCommand({ Bucket: this.bucket, Key: key })
-    )
+  private async *previews(key: string): AsyncGenerator<Array<{ Key: string }>> {
     const extension = posix.extname(key)
     const prefix =
-      (extension ? key.slice(0, -extension.length) : key) + '-thumb-'
-    const visited = new Set<string>()
-
-    let token: string | undefined
-
-    do {
-      const page = await this.client.send(
+      (extension ? key.substring(0, key.length - extension.length) : key) +
+      '-thumb-'
+    const seen = new Set<string>()
+    let continuation: string | undefined
+    while (true) {
+      const page = await this.connection.send(
         new ListObjectsV2Command({
           Bucket: this.bucket,
           Prefix: prefix,
-          ContinuationToken: token
+          ContinuationToken: continuation
         })
       )
-      const objects = (page.Contents ?? []).flatMap(object =>
-        object.Key?.startsWith(prefix) ? [{ Key: object.Key }] : []
-      )
-
-      if (objects.length) {
-        const result = await this.client.send(
-          new DeleteObjectsCommand({
-            Bucket: this.bucket,
-            Delete: { Objects: objects, Quiet: true }
-          })
-        )
-
-        if (result.Errors?.length) {
+      const matches = (page.Contents ?? [])
+        .filter(item => item.Key?.startsWith(prefix))
+        .map(item => ({ Key: item.Key! }))
+      for (let index = 0; index < matches.length; index += 1000)
+        yield matches.slice(index, index + 1000)
+      const next = page.NextContinuationToken
+      if (!next) {
+        if (page.IsTruncated)
           throw new Error(
-            'Object storage could not remove ' +
-              result.Errors.length +
-              ' thumbnail(s)'
+            'Object storage returned an incomplete thumbnail listing'
           )
-        }
+        return
       }
-      token = page.NextContinuationToken
-      if (page.IsTruncated && !token)
+      if (seen.has(next))
         throw new Error(
-          'Object storage returned an incomplete thumbnail listing'
+          'Object storage repeated a thumbnail continuation token'
         )
-
-      if (token) {
-        if (visited.has(token))
-          throw new Error(
-            'Object storage repeated a thumbnail continuation token'
-          )
-        visited.add(token)
-      }
-    } while (token)
+      seen.add(next)
+      continuation = next
+    }
+  }
+  async delete(key: string): Promise<void> {
+    await this.connection.send(new DeleteObjectCommand(this.address(key)))
+    for await (const Objects of this.previews(key)) {
+      const result = await this.connection.send(
+        new DeleteObjectsCommand({
+          Bucket: this.bucket,
+          Delete: { Objects, Quiet: true }
+        })
+      )
+      if (result.Errors?.length)
+        throw new Error(
+          'Object storage could not remove ' +
+            result.Errors.length +
+            ' thumbnail(s)'
+        )
+    }
   }
 }

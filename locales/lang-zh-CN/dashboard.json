@@ -12,8 +12,8 @@
     "lockLayout": "锁定布局"
   },
   "messages": {
-    "editingLayout": "您正在编辑仪表板布局",
-    "editingLayoutHint": "通过拖动小部件来调整排列，或通过拖动每个小部件右下角的小三角形来调整小部件大小"
+    "editingLayout": "正在编辑布局",
+    "editingLayoutHint": "使用拖动柄移动组件，拖动边缘调整大小，也可以使用键盘操作。"
   },
   "empty": {
     "welcome": {

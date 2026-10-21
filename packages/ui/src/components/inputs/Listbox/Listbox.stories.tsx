@@ -1,208 +1,47 @@
+// SPDX-License-Identifier: 0BSD
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { useState } from 'react'
-
-import { Flex, Icon, Text } from '@/components/primitives'
-import { COLORS, TAILWIND_PALETTE } from '@/system'
 
 import { ListboxOption } from '../ListboxInput/components/ListboxOption'
 import { Listbox } from './index'
 
-const meta = {
-  argTypes: {
-    children: {
-      control: false
-    },
-    onChange: {
-      control: false
-    },
-    renderContent: {
-      control: false
-    },
-    value: {
-      control: false
-    }
-  },
-  component: Listbox,
-  title: 'Inputs/Listbox'
-} satisfies Meta<typeof Listbox>
-
+const choices = ['Inbox', 'Scheduled', 'Done']
+const options = choices.map(value => (
+  <ListboxOption key={value} value={value} label={value} />
+))
+const meta: Meta<typeof Listbox> = {
+  title: 'Inputs/Listbox',
+  component: Listbox
+}
 export default meta
-
-type Story = StoryObj<typeof meta>
-
-const OPTIONS = [
-  {
-    color: TAILWIND_PALETTE.green[500],
-    icon: 'tabler:flag',
-    label: 'Low Priority',
-    value: 'low'
-  },
-  {
-    color: TAILWIND_PALETTE.yellow[500],
-    icon: 'tabler:flag',
-    label: 'Medium Priority',
-    value: 'medium'
-  },
-  {
-    color: TAILWIND_PALETTE.red[500],
-    icon: 'tabler:flag',
-    label: 'High Priority',
-    value: 'high'
-  }
-]
-
-/**
- * A simple listbox component for selecting from a list of options.
- */
-export const Default: Story = {
-  args: {
-    children: <></>,
-    onChange: () => {},
-    renderContent: undefined,
-    value: ''
-  },
-  render: _args => {
-    const [value, onChange] = useState('low')
-
-    const selectedOption = OPTIONS.find(o => o.value === value)
-
-    return (
-      <Listbox
-        renderContent={() => (
-          <Flex align="center" gap="sm">
-            <Icon
-              icon={selectedOption?.icon || 'tabler:cube'}
-              style={{
-                color: selectedOption?.color || COLORS['bg-500']
-              }}
-            />
-            <Text truncate>{selectedOption?.label || 'Select an option'}</Text>
-          </Flex>
-        )}
-        value={value}
-        onChange={onChange}
-      >
-        {OPTIONS.map(({ color, icon, label, value }) => (
-          <ListboxOption
-            key={value}
-            color={color}
-            icon={icon}
-            label={label}
-            value={value}
-          />
-        ))}
-      </Listbox>
-    )
-  }
+type Story = StoryObj
+function SingleChoice({ disabled = false }: { disabled?: boolean }) {
+  const [value, change] = useState(choices[0])
+  return (
+    <Listbox
+      aria-label="Action status"
+      disabled={disabled}
+      value={value}
+      onChange={change}
+    >
+      {options}
+    </Listbox>
+  )
 }
-
-/**
- * A disabled listbox - non-interactive.
- */
-export const Disabled: Story = {
-  args: {
-    children: <></>,
-    onChange: () => {},
-    renderContent: undefined,
-    value: 'low'
-  },
-  render: _args => {
-    const [value, onChange] = useState('low')
-
-    const selectedOption = OPTIONS.find(o => o.value === value)
-
-    return (
-      <Listbox
-        disabled
-        renderContent={() => (
-          <Flex align="center" gap="sm">
-            <Icon
-              icon={selectedOption?.icon || 'tabler:cube'}
-              style={{
-                color: selectedOption?.color || COLORS['bg-500']
-              }}
-            />
-            <Text truncate>{selectedOption?.label || 'Select an option'}</Text>
-          </Flex>
-        )}
-        value={value}
-        onChange={onChange}
-      >
-        {OPTIONS.map(({ color, icon, label, value }) => (
-          <ListboxOption
-            key={value}
-            color={color}
-            icon={icon}
-            label={label}
-            value={value}
-          />
-        ))}
-      </Listbox>
-    )
-  }
+function SeveralChoices() {
+  const [value, change] = useState(['Inbox'])
+  return (
+    <Listbox<string>
+      multiple
+      aria-label="Visible statuses"
+      value={value}
+      onChange={change}
+      renderContent={selected => selected.join(' · ') || 'Choose statuses'}
+    >
+      {options}
+    </Listbox>
+  )
 }
-
-/**
- * A listbox with multiple options selected.
- */
-export const MultipleOptions: Story = {
-  args: {
-    children: <></>,
-    onChange: () => {},
-    renderContent: undefined,
-    value: []
-  },
-  render: _args => {
-    const [value, onChange] = useState([OPTIONS[2].value]) // Initialize with an array of values
-
-    return (
-      <Listbox
-        multiple
-        renderContent={() => (
-          <Flex align="center" gap="sm" wrap="wrap">
-            {value.length > 0
-              ? value.map((v, index) => {
-                  const option = OPTIONS.find(o => o.value === v)
-
-                  return (
-                    <>
-                      <Flex key={index} align="center" flexShrink="0" gap="sm">
-                        <Icon
-                          icon={option?.icon || 'tabler:cube'}
-                          style={{
-                            color: option?.color || COLORS['bg-500']
-                          }}
-                        />
-                        <Text whiteSpace="nowrap">{option?.label}</Text>
-                      </Flex>
-                      {index !== value.length - 1 && (
-                        <Text
-                          asChild
-                          color={{ base: 'bg-400', dark: 'bg-600' }}
-                          style={{ height: '0.375rem', width: '0.375rem' }}
-                        >
-                          <Icon icon="tabler:circle-filled" />
-                        </Text>
-                      )}
-                    </>
-                  )
-                })
-              : 'Select options'}
-          </Flex>
-        )}
-        value={value}
-        onChange={onChange}
-      >
-        {OPTIONS.map(({ color, icon, label, value }) => (
-          <ListboxOption
-            key={value}
-            color={color}
-            icon={icon}
-            label={label}
-            value={value}
-          />
-        ))}
-      </Listbox>
-    )
-  }
-}
+export const Default: Story = { render: () => <SingleChoice /> }
+export const Disabled: Story = { render: () => <SingleChoice disabled /> }
+export const MultipleOptions: Story = { render: () => <SeveralChoices /> }

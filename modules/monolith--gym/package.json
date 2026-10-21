@@ -51,5 +51,6 @@
     "build": "pnpm run build:client && pnpm run build:server",
     "build:client": "vite build --config client/vite.config.ts",
     "build:server": "vite build --config server/vite.config.ts"
-  }
+  },
+  "license": "0BSD"
 }

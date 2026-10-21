@@ -1,34 +1,29 @@
-import { globalStyle } from '@vanilla-extract/css'
+// SPDX-License-Identifier: 0BSD
+import { type GlobalStyleRule, globalStyle } from '@vanilla-extract/css'
 
+import { conditionalName } from './conditions'
 import {
   LAYOUT_PROPERTIES,
   LAYOUT_PROP_DEFS,
   type LayoutPropDefsKey,
   RESPONSIVE_CONDITIONS
 } from './constant'
+import type { Breakpoint } from './types'
 import { escapeCssClassName } from './utils/escapeCssClassName'
 
-for (const [name, [, property]] of Object.entries(LAYOUT_PROPERTIES)) {
-  const definition = LAYOUT_PROP_DEFS[name as LayoutPropDefsKey]
-  for (const [breakpoint, condition] of Object.entries(RESPONSIVE_CONDITIONS)) {
-    const suffix = breakpoint === 'base' ? '' : '-' + breakpoint
-    const selector =
-      '.' +
-      (breakpoint === 'base' ? '' : escapeCssClassName(breakpoint) + '\\:') +
-      definition.className
-    const declaration = {
-      [property]:
-        'var(' +
-        definition.customProperties[0] +
-        suffix +
-        ')' +
-        (breakpoint === 'print' ? ' !important' : '')
-    }
+for (const key of Object.keys(LAYOUT_PROPERTIES) as LayoutPropDefsKey[]) {
+  for (const at of Object.keys(RESPONSIVE_CONDITIONS) as Breakpoint[]) {
+    const identity = conditionalName(LAYOUT_PROP_DEFS[key], at)
+    const property = LAYOUT_PROPERTIES[key][1]
+    const value =
+      'var(' + identity.variable + ')' + (at === 'print' ? ' !important' : '')
+    const declaration: GlobalStyleRule = property.startsWith('--')
+      ? { vars: { [property]: value } }
+      : { [property]: value }
+    const media = RESPONSIVE_CONDITIONS[at]['@media']
     globalStyle(
-      selector,
-      '@media' in condition
-        ? { '@media': { [condition['@media']]: declaration } }
-        : declaration
+      '.' + escapeCssClassName(identity.className),
+      media ? { '@media': { [media]: declaration } } : declaration
     )
   }
 }

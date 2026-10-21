@@ -1,36 +1,43 @@
-const RAW_DB = Symbol.for('monolith.rawDb')
+// SPDX-License-Identifier: 0BSD
+const rawDatabase = Symbol.for('monolith.rawDb')
 
 export function proxyDbQuery<T extends object>(
   database: T,
   names: Record<string, string>
 ): T {
-  const bindings = new Map<PropertyKey, unknown>()
+  const aliases = new Map(Object.entries(names))
+  const cache = new Map<PropertyKey, { source: unknown; result: unknown }>()
+  const queryFacade = (queries: object) =>
+    new Proxy(queries, {
+      get(target, name) {
+        return Reflect.get(
+          target,
+          typeof name === 'string' ? (aliases.get(name) ?? name) : name,
+          target
+        )
+      }
+    })
   return new Proxy(database, {
-    get(target, member) {
-      if (member === RAW_DB) return target
-      if (bindings.has(member)) return bindings.get(member)
-      const value = Reflect.get(target, member, target)
-      let bound: unknown = value
-      if (member === 'query' && value && typeof value === 'object') {
-        bound = new Proxy(value, {
-          get(queries, table) {
-            const mapped =
-              typeof table === 'string' && Object.hasOwn(names, table)
-                ? names[table]!
-                : table
-            return Reflect.get(queries, mapped, queries)
-          }
-        })
-      } else if (member === 'transaction' && typeof value === 'function') {
-        bound = (run: (transaction: T) => unknown, ...options: unknown[]) =>
-          value.call(
-            target,
-            (transaction: T) => run(proxyDbQuery(transaction, names)),
-            ...options
-          )
-      } else if (typeof value === 'function') bound = value.bind(target)
-      if (bound !== value || member === 'query') bindings.set(member, bound)
-      return bound
+    get(target, name) {
+      if (name === rawDatabase) return target
+      const source = Reflect.get(target, name, target)
+      const cached = cache.get(name)
+      if (cached && cached.source === source) return cached.result
+      let result: unknown = source
+      if (name === 'query' && source && typeof source === 'object')
+        result = queryFacade(source)
+      else if (typeof source === 'function') {
+        result =
+          name === 'transaction'
+            ? (callback: (tx: T) => unknown, ...args: unknown[]) =>
+                Reflect.apply(source, target, [
+                  (tx: T) => callback(proxyDbQuery(tx, names)),
+                  ...args
+                ])
+            : source.bind(target)
+      }
+      cache.set(name, { source, result })
+      return result
     }
   })
 }
@@ -39,7 +46,10 @@ export function scopeDbForModule<T extends object>(
   database: T,
   names: Record<string, string> | undefined
 ): T {
-  if (!names) return database
-  const source = Reflect.get(database, RAW_DB) as T | undefined
-  return proxyDbQuery(source ?? database, names)
+  if (names === undefined) return database
+  const underlying = Reflect.get(database, rawDatabase)
+  return proxyDbQuery(
+    underlying && typeof underlying === 'object' ? (underlying as T) : database,
+    names
+  )
 }

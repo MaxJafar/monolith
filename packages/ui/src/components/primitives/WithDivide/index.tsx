@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: 0BSD
 import type { HTMLAttributes, Ref } from 'react'
 
 import {
@@ -9,29 +10,27 @@ import {
 } from '@/system'
 
 import { Slot } from '../Slot'
-import { type DivideAxis, divideVariants } from './WithDivide.css'
+import './divide.css'
 
-interface WithDivideProps extends Omit<HTMLAttributes<HTMLElement>, 'color'> {
+export type WithDivideProps = Omit<HTMLAttributes<HTMLElement>, 'color'> & {
   ref?: Ref<HTMLElement>
-  axis?: DivideAxis
+  axis?: 'x' | 'y'
   color?: ThemeConditionProp<ColorValue>
 }
-
 export function WithDivide({
   axis = 'y',
   color = { base: 'bg-200', dark: colorWithOpacity('bg-700', '50%') },
-  className,
   style,
+  className,
   children,
-  ...element
+  ...content
 }: WithDivideProps) {
-  const decoration = mergeStyle(resolveColorProp('divideColor', color), {
-    className: [divideVariants[axis], className].filter(Boolean).join(' '),
+  const visuals = mergeStyle(resolveColorProp('divideColor', color), {
+    className: ['monolith-divider', className].filter(Boolean).join(' '),
     style: style ?? {}
   })
-
   return (
-    <Slot {...element} {...decoration}>
+    <Slot {...content} {...visuals} data-divide-axis={axis}>
       {children}
     </Slot>
   )

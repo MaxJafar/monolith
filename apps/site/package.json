@@ -6,7 +6,7 @@
   "description": "Monolith product website and public documentation",
   "homepage": "https://monolith-site-maxjafars-projects.vercel.app",
   "author": "Monolith contributors",
-  "license": "CC BY-NC-SA 4.0",
+  "license": "0BSD",
   "repository": {
     "type": "git",
     "url": "https://github.com/MaxJafar/monolith.git",

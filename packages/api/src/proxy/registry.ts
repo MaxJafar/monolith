@@ -1,20 +1,15 @@
-type Connection = { remoteId: string; apiHost?: string }
+// SPDX-License-Identifier: 0BSD
+type Registration = { remoteId: string; apiHost?: string }
+const routes = new WeakMap<object, Pick<Registration, 'remoteId'>>()
 
-class ConnectionRegistry {
-  private readonly modules = new WeakMap<object, string>()
-  apiHost = ''
-
-  set(contract: object, connection: Connection): void {
-    if (connection.apiHost !== undefined) this.apiHost = connection.apiHost
-    this.modules.set(contract, connection.remoteId)
-  }
-
+export const globalProxyRegistry = {
+  apiHost: '',
+  set(contract: object, registration: Registration): void {
+    routes.set(contract, { remoteId: registration.remoteId })
+    if (registration.apiHost !== undefined) this.apiHost = registration.apiHost
+  },
   get(contract: object): { remoteId: string; apiHost: string } | undefined {
-    const remoteId = this.modules.get(contract)
-    return remoteId === undefined
-      ? undefined
-      : { remoteId, apiHost: this.apiHost }
+    const route = routes.get(contract)
+    return route ? { ...route, apiHost: this.apiHost } : undefined
   }
 }
-
-export const globalProxyRegistry = new ConnectionRegistry()

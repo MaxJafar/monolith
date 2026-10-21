@@ -1,36 +1,38 @@
+// SPDX-License-Identifier: 0BSD
 import type { ResolvedStyle } from '../props-resolver'
 import { isColorWithOpacity } from './color-with-opacity'
+import { COLOR_PROP_DEFS, type ColorPropName } from './constants/color-props'
+import { COLORS, type ColorValue } from './constants/colors'
 import {
-  COLORS,
-  COLOR_PROP_DEFS,
-  type ColorPropName,
-  type ColorValue,
   THEME_CONDITIONS,
-  type ThemeConditionProp
-} from './constants'
+  type ThemeConditionProp,
+  type ThemeConditionPropName
+} from './constants/theme-conditions'
 
+function cssColor(value: ColorValue | undefined) {
+  if (typeof value === 'string')
+    return Object.hasOwn(COLORS, value) ? COLORS[value] : undefined
+  if (isColorWithOpacity(value))
+    return `color-mix(in srgb, ${COLORS[value.token]} ${value.opacity}, transparent)`
+}
 export function resolveColorProp(
-  name: ColorPropName,
-  input: ThemeConditionProp<ColorValue> | undefined
+  property: ColorPropName,
+  choice: ThemeConditionProp<ColorValue> | undefined
 ): ResolvedStyle {
-  const style: Record<string, string> = {}
-  const classes: string[] = []
-  const definition = COLOR_PROP_DEFS[name]
-  if (!definition || input == null) return { className: '', style }
-  const values =
-    typeof input === 'string' || isColorWithOpacity(input)
-      ? { base: input }
-      : input
-  for (const condition of Object.keys(THEME_CONDITIONS) as Array<
-    keyof typeof THEME_CONDITIONS
-  >) {
-    const value = values[condition]
-    if (value === undefined) continue
-    const resolved = isColorWithOpacity(value) ? String(value) : COLORS[value]
-    if (!resolved) continue
-    const selector = THEME_CONDITIONS[condition]
-    classes.push(definition.className + selector.suffix)
-    style[definition.varPrefix + selector.varSuffix] = resolved
+  const output: ResolvedStyle = { className: '', style: {} }
+  if (choice == null || !Object.hasOwn(COLOR_PROP_DEFS, property)) return output
+  const perCondition =
+    typeof choice === 'string' || isColorWithOpacity(choice)
+      ? { base: choice }
+      : choice
+  const names: string[] = []
+  const variables: Record<string, string> = {}
+  const target = COLOR_PROP_DEFS[property]
+  for (const [condition, rule] of Object.entries(THEME_CONDITIONS)) {
+    const color = cssColor(perCondition[condition as ThemeConditionPropName])
+    if (color === undefined) continue
+    names.push(target.className + rule.suffix)
+    variables[target.varPrefix + rule.varSuffix] = color
   }
-  return { className: classes.join(' '), style }
+  return { className: names.join(' '), style: variables }
 }

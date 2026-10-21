@@ -21,12 +21,12 @@ import {
   tables,
   usageRecords
 } from '../../../../modules/monolith--agents/server/schema.drizzle'
+import { entries as projects } from '../../../../modules/monolith--agents/server/workSchema'
 import type {
   AgentSnapshot,
   PlaybookSnapshot,
   Run
 } from '../../../../modules/monolith--agents/shared'
-import { entries as projects } from '../../../../modules/monolith--projects/server/schema.drizzle'
 
 const enabled = process.env.ZILLION_INTEGRATION === '1'
 const connection = process.env.DATABASE_URL ?? ''

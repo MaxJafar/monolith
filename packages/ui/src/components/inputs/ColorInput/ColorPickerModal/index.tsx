@@ -1,164 +1,137 @@
-/* eslint-disable no-unexpected-multiline */
-import { type ColorResult, Colorful, EditableInput } from '@uiw/react-color'
-import { useEffect } from 'react'
-import tinycolor from 'tinycolor2'
+// SPDX-License-Identifier: 0BSD
+import { Colorful } from '@uiw/react-color'
+import { useId, useState } from 'react'
 
-import { Button } from '@/components/inputs'
+import { Button } from '@/components/inputs/Button'
+import { NumberInput } from '@/components/inputs/NumberInput'
+import { TextInput } from '@/components/inputs/TextInput'
 import { ModalHeader } from '@/components/overlays'
-import { Box, Flex } from '@/components/primitives'
+import { Box, Flex, Stack } from '@/components/primitives'
 
-import { PaletteButtons } from './components/PaletteButtons'
-import { useColorPickerModalStore } from './stores/useColorPickerModalStore'
+import {
+  type HSV,
+  type RGB,
+  colorSwatches,
+  hexToRgb,
+  hsvToHex,
+  parseHex,
+  rgbToHex,
+  rgbToHsv
+} from '../color'
 
-function checkContrast(hexColor: string): string {
-  const r = parseInt(hexColor.substr(1, 2), 16)
-
-  const g = parseInt(hexColor.substr(3, 2), 16)
-
-  const b = parseInt(hexColor.substr(5, 2), 16)
-
-  const yiq = (r * 299 + g * 587 + b * 114) / 1000
-
-  return yiq >= 128 ? '#000000' : '#ffffff'
-}
-
-function ColorPickerModal({
-  data: { value, onChange },
+export function ColorPickerModal({
+  data,
   onClose
 }: {
-  data: {
-    value: string
-    onChange: (color: string) => void
-  }
+  data: { value: string; onChange: (color: string) => void }
   onClose: () => void
 }) {
-  const { innerColor, setInnerColor } = useColorPickerModalStore()
-
-  const confirmColor = () => {
-    onChange(innerColor)
+  const titleId = useId()
+  const [hex, setHex] = useState(() => parseHex(data.value) ?? '#000000')
+  const [hsv, setHsv] = useState(() => rgbToHsv(hexToRgb(hex)))
+  const canonical = parseHex(hex)
+  const rgb = hexToRgb(canonical ?? hsvToHex(hsv))
+  function selectHex(value: string) {
+    setHex(value)
+    const parsed = parseHex(value)
+    if (parsed) setHsv(rgbToHsv(hexToRgb(parsed)))
+  }
+  function selectHsv(value: HSV) {
+    const next = {
+      h: Math.max(0, Math.min(360, value.h)),
+      s: Math.max(0, Math.min(100, value.s)),
+      v: Math.max(0, Math.min(100, value.v))
+    }
+    setHsv(next)
+    setHex(hsvToHex(next))
+  }
+  function confirm() {
+    if (!canonical) return
+    data.onChange(canonical)
     onClose()
   }
-
-  const handleColorChange = (color: ColorResult) => {
-    setInnerColor(color.hex)
-  }
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInnerColor(e.target.value)
-  }
-
-  useEffect(() => {
-    setInnerColor(value.toLowerCase() || '#000000')
-  }, [value])
-
   return (
-    <Box minWidth={{ sm: '28rem' }}>
+    <Stack
+      role="dialog"
+      aria-labelledby={titleId}
+      className="monolith-form-dialog monolith-color-editor"
+      width="360px"
+      maxWidth="100%"
+      gap="md"
+    >
       <ModalHeader
-        icon="tabler:color-picker"
+        titleId={titleId}
+        icon="tabler:palette"
         title="colorPicker.title"
         onClose={onClose}
       />
-      <Colorful disableAlpha color={innerColor} onChange={handleColorChange} />
-      <Box
-        asChild
-        mt="md"
-        style={{
-          // @ts-expect-error - CSS variables
-          '--editable-input-bg': innerColor,
-          '--editable-input-color': checkContrast(innerColor)
-        }}
-      >
-        <EditableInput
-          className="hex"
-          label="Hex"
-          value={innerColor}
-          onChange={handleInputChange}
-        />
-      </Box>
-      <Flex gap="md" minWidth="0" mt="md" width="100%">
-        {['R', 'G', 'B'].map(type => (
-          <Box key={type} asChild flex="1" style={{ minWidth: 0 }} width="100%">
-            <EditableInput
-              className="rgb"
-              label={type}
-              value={tinycolor(innerColor)
-                .toRgb()
-                [type.toLowerCase() as 'r' | 'g' | 'b'].toString()}
-              onChange={e => {
-                const oldColor = tinycolor(innerColor).toRgb()
-
-                const newColor =
-                  type === 'R'
-                    ? tinycolor({
-                        r: Number(e.target.value),
-                        g: oldColor.g,
-                        b: oldColor.b
-                      })
-                    : type === 'G'
-                      ? tinycolor({
-                          r: oldColor.r,
-                          g: Number(e.target.value),
-                          b: oldColor.b
-                        })
-                      : tinycolor({
-                          r: oldColor.r,
-                          g: oldColor.g,
-                          b: Number(e.target.value)
-                        })
-
-                setInnerColor(newColor.toHexString())
-              }}
+      <Colorful
+        disableAlpha
+        color={{ ...hsv, a: 1 }}
+        onChange={result => selectHsv(result.hsva)}
+      />
+      <TextInput
+        label="HEX"
+        namespace={false}
+        value={hex}
+        placeholder="#6993C3"
+        onChange={selectHex}
+        onEnter={confirm}
+        aria-invalid={!canonical}
+      />
+      <Flex gap="sm" role="group" aria-label="RGB">
+        {(['r', 'g', 'b'] as const).map(channel => (
+          <Box key={channel} flex="1" minWidth="0">
+            <NumberInput
+              namespace={false}
+              label={channel.toUpperCase()}
+              icon=""
+              min={0}
+              max={255}
+              value={rgb[channel]}
+              onChange={value =>
+                selectHex(rgbToHex({ ...rgb, [channel]: value } as RGB))
+              }
             />
           </Box>
         ))}
       </Flex>
-      <Flex gap="md" minWidth="0" mt="md" width="100%">
-        {['H', 'S', 'V'].map(type => (
-          <Box key={type} asChild flex="1" style={{ minWidth: 0 }} width="100%">
-            <EditableInput
-              className="hsl"
-              label={type}
-              value={(
-                tinycolor(innerColor).toHsv()[
-                  type.toLowerCase() as 'h' | 's' | 'v'
-                ] * (type === 'H' ? 1 : 100)
-              ).toFixed(type === 'H' ? 0 : 2)}
-              onChange={e => {
-                const oldColor = tinycolor(innerColor).toHsv()
-
-                const newColor =
-                  type === 'H'
-                    ? tinycolor({
-                        h: Number(e.target.value),
-                        s: oldColor.s,
-                        v: oldColor.v
-                      })
-                    : type === 'S'
-                      ? tinycolor({
-                          h: oldColor.h,
-                          s: Number(e.target.value) / 100,
-                          v: oldColor.v
-                        })
-                      : tinycolor({
-                          h: oldColor.h,
-                          s: oldColor.s,
-                          v: Number(e.target.value) / 100
-                        })
-
-                setInnerColor(newColor.toHexString())
-              }}
+      <Flex gap="sm" role="group" aria-label="HSV">
+        {(['h', 's', 'v'] as const).map(channel => (
+          <Box key={channel} flex="1" minWidth="0">
+            <NumberInput
+              namespace={false}
+              label={channel.toUpperCase()}
+              icon=""
+              min={0}
+              max={channel === 'h' ? 360 : 100}
+              value={Math.round(hsv[channel] * 100) / 100}
+              onChange={value => selectHsv({ ...hsv, [channel]: value })}
             />
           </Box>
         ))}
       </Flex>
-      <PaletteButtons />
-      <Box asChild mt="lg" width="100%">
-        <Button icon="tabler:check" onClick={confirmColor}>
-          Select
+      <div className="monolith-color-swatches">
+        {colorSwatches.map(color => (
+          <button
+            type="button"
+            key={color}
+            aria-label={color}
+            aria-pressed={canonical === color}
+            title={color}
+            style={{ backgroundColor: color }}
+            onClick={() => selectHex(color)}
+          />
+        ))}
+      </div>
+      <Flex gap="sm" justify="end">
+        <Button variant="plain" onClick={onClose}>
+          cancel
         </Button>
-      </Box>
-    </Box>
+        <Button disabled={!canonical} icon="tabler:check" onClick={confirm}>
+          select
+        </Button>
+      </Flex>
+    </Stack>
   )
 }
-
-export { ColorPickerModal }

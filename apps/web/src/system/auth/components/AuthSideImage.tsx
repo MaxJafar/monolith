@@ -1,40 +1,33 @@
+// SPDX-License-Identifier: 0BSD
 import { useTranslation } from 'react-i18next'
 
-import { Flex, Text } from '@monolith/ui'
+import { Stack, Text } from '@monolith/ui'
 
 import MonolithLogo from '@/core/components/MonolithLogo'
 
-function AuthSideImage() {
+export default function AuthSideImage() {
   const { t } = useTranslation('common.auth')
-
   return (
-    <Flex
-      bg={{ base: 'bg-100', dark: 'bg-900' }}
-      direction="column"
+    <Stack
+      as="aside"
       display={{ base: 'none', lg: 'flex' }}
-      gap="xl"
-      height="100%"
-      justify="between"
-      p="3xl"
       width="50%"
+      height="100%"
+      p="3xl"
+      gap="xl"
+      justify="center"
+      bg={{ base: 'bg-100', dark: 'bg-900' }}
     >
-      <Flex align="center" gap="md">
-        <MonolithLogo size={40} />
-        <Text size="xl" tracking="tight" weight="semibold">
-          monolith
-        </Text>
-      </Flex>
-      <Flex direction="column" gap="lg" maxWidth="34em">
-        <Text as="h2" size="5xl" tracking="tight" weight="semibold">
-          {t('sideImageDesc.part2')}
-        </Text>
-        <Text as="p" color="muted" size="xl">
-          {t('sideImageDesc.part1')}
-        </Text>
-      </Flex>
-      <Text color="muted">{t('workspaceNote')}</Text>
-    </Flex>
+      <MonolithLogo size={64} />
+      <Text as="h2" size="4xl" weight="semibold">
+        {t('sideImageDesc.part2')}
+      </Text>
+      <Text as="p" size="xl" color="muted">
+        {t('sideImageDesc.part1')}
+      </Text>
+      <Text size="sm" color="muted">
+        {t('workspaceNote')}
+      </Text>
+    </Stack>
   )
 }
-
-export default AuthSideImage

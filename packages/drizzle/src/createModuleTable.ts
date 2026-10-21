@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: 0BSD
 import { pgTableCreator } from 'drizzle-orm/pg-core'
 
 import {
@@ -6,16 +7,17 @@ import {
 } from '@monolith/module-runtime/registry'
 
 export function createModuleTable(prefix?: string) {
-  let namespace: string
-  if (prefix === undefined) {
-    const owner = resolveCallerModuleId()
-    if (!owner)
-      throw new Error(
-        'createModuleTable: could not resolve the caller module id; pass a prefix explicitly'
-      )
-    namespace = deriveModuleNamespace(owner)
-  } else namespace = prefix.replaceAll('-', '_')
-  if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(namespace))
+  const owner = prefix === undefined ? resolveCallerModuleId() : undefined
+  if (prefix === undefined && !owner) {
+    throw new Error(
+      'createModuleTable requires a registered caller or an explicit prefix'
+    )
+  }
+  const namespace =
+    prefix === undefined
+      ? deriveModuleNamespace(owner!)
+      : prefix.replaceAll('-', '_')
+  if (!/^[A-Za-z_][A-Za-z\d_]*$/.test(namespace))
     throw new Error('Invalid module table namespace')
-  return pgTableCreator(table => [namespace, table].join('__'))
+  return pgTableCreator(name => namespace + '__' + name)
 }

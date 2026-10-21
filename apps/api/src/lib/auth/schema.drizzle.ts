@@ -1,32 +1,32 @@
-import { type RelationsBuilder } from 'drizzle-orm'
-import { boolean, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core'
+// SPDX-License-Identifier: 0BSD
+import type { RelationsBuilder } from 'drizzle-orm'
+import { pgTable, timestamp, uuid } from 'drizzle-orm/pg-core'
 
-export const authRefreshTokens = pgTable('auth__refresh_tokens', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  userId: uuid('user_id').notNull(),
-  token_hash: varchar('token_hash', { length: 255 }).notNull(),
-  family: varchar('family', { length: 255 }).notNull(),
-  bound_ip: varchar('bound_ip', { length: 255 }).notNull(),
-  last_ip: varchar('last_ip', { length: 255 }).notNull(),
-  expires_at: timestamp('expires_at', { mode: 'date' }).notNull(),
-  revoked: boolean('revoked').default(false).notNull(),
-  last_used_at: timestamp('last_used_at', { mode: 'date' })
-    .defaultNow()
-    .notNull(),
-  created: timestamp('created', { mode: 'date' }).defaultNow().notNull(),
-  updated: timestamp('updated', { mode: 'date' }).defaultNow().notNull()
-})
+import {
+  flag,
+  recordIdentity,
+  recordedAt,
+  storedText
+} from '../../core/schema/columns'
 
+// These identifiers describe the existing database protocol; no data migration is needed.
 export const authOAuthProviders = pgTable('auth__oauth_providers', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  provider: varchar('provider', { length: 255 }).notNull().unique(),
-  enabled: boolean('enabled').default(false).notNull(),
-  client_id: varchar('client_id', { length: 500 }),
-  client_secret: varchar('client_secret', { length: 500 }),
-  created: timestamp('created', { mode: 'date' }).defaultNow().notNull(),
-  updated: timestamp('updated', { mode: 'date' }).defaultNow().notNull()
+  ...recordIdentity(),
+  provider: storedText('provider').notNull().unique(),
+  client_id: storedText('client_id', 500),
+  client_secret: storedText('client_secret', 500),
+  enabled: flag('enabled')
 })
-
+export const authRefreshTokens = pgTable('auth__refresh_tokens', {
+  ...recordIdentity(),
+  userId: uuid('user_id').notNull(),
+  family: storedText('family').notNull(),
+  token_hash: storedText('token_hash').notNull(),
+  expires_at: timestamp('expires_at', { mode: 'date' }).notNull(),
+  revoked: flag('revoked'),
+  bound_ip: storedText('bound_ip').notNull(),
+  last_ip: storedText('last_ip').notNull(),
+  last_used_at: recordedAt('last_used_at')
+})
 export const tables = { authRefreshTokens, authOAuthProviders }
-
-export const relations = (_r: RelationsBuilder<typeof tables>) => ({})
+export const relations = (_builder: RelationsBuilder<typeof tables>) => ({})

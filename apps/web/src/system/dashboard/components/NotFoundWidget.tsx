@@ -1,8 +1,11 @@
+// SPDX-License-Identifier: 0BSD
+import { useTranslation } from 'react-i18next'
+
 import {
   Button,
   ConfirmationModal,
-  EmptyStateScreen,
-  type IDashboardLayout,
+  Stack,
+  Text,
   Widget,
   useModalStore,
   usePersonalization
@@ -10,66 +13,59 @@ import {
 
 import { useUserPersonalization } from '@/core/providers/features/UserPersonalizationProvider'
 
-function NotFoundWidget({
+import { readDashboardLayout } from '../utils/layout'
+
+export default function NotFoundWidget({
   widgetId,
-  dimension: { h, w }
+  dimension
 }: {
   widgetId: string
   dimension: { w: number; h: number }
 }) {
-  const { open } = useModalStore()
-  const { dashboardLayout: enabledWidgets } = usePersonalization()
-  const { changeDashboardLayout: setDashboardLayout } = useUserPersonalization()
-
-  async function removeWidget() {
-    const newEnabledWidgets = Object.fromEntries(
-      Object.entries(
-        JSON.parse(JSON.stringify(enabledWidgets || {})) as IDashboardLayout
-      ).map(([k, value]) => [k, value.filter(i => i.i !== widgetId)])
-    )
-
-    if (Object.values(newEnabledWidgets).every(e => e.length === 0)) {
-      setDashboardLayout({})
-    } else {
-      setDashboardLayout(newEnabledWidgets)
-    }
-  }
-
-  function handleRemoveClick() {
-    open(ConfirmationModal, {
-      title: 'Are you sure you want to remove this widget?',
-      description:
-        'This action cannot be undone. The widget will be removed from your dashboard.',
-      onConfirm: removeWidget
+  const { dashboardLayout } = usePersonalization(),
+    save = useUserPersonalization(),
+    modal = useModalStore()
+  const { t } = useTranslation('common.dashboard')
+  function remove() {
+    modal.open(ConfirmationModal, {
+      title: t('empty.notFound.title'),
+      description: t('empty.notFound.description'),
+      confirmationButton: 'delete',
+      onConfirm: () =>
+        save.changeDashboardLayout(
+          Object.fromEntries(
+            Object.entries(readDashboardLayout(dashboardLayout)).map(
+              ([name, tiles]) => [
+                name,
+                tiles.filter(tile => tile.i !== widgetId)
+              ]
+            )
+          )
+        )
     })
   }
-
   return (
     <Widget
-      actionComponent={
-        <Button
-          dangerous
-          icon="tabler:trash"
-          variant="plain"
-          onClick={handleRemoveClick}
-        />
-      }
-      icon="tabler:apps-off"
       namespace={false}
       title={widgetId}
-    >
-      {h > 1 && w > 1 && (
-        <EmptyStateScreen
-          smaller
-          icon={h > 2 ? 'tabler:apps-off' : ''}
-          message={{
-            id: 'notFound',
-            namespace: 'common.dashboard'
-          }}
+      icon="tabler:apps-off"
+      actionComponent={
+        <Button
+          icon="tabler:trash"
+          variant="plain"
+          aria-label={t('empty.notFound.title')}
+          onClick={remove}
         />
+      }
+    >
+      {dimension.w > 1 && dimension.h > 1 && (
+        <Stack gap="sm">
+          <Text weight="medium">{t('empty.notFound.title')}</Text>
+          <Text color="muted" size="sm">
+            {t('empty.notFound.description')}
+          </Text>
+        </Stack>
       )}
     </Widget>
   )
 }
-
-export default NotFoundWidget

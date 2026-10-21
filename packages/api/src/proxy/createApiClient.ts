@@ -1,58 +1,85 @@
+// SPDX-License-Identifier: 0BSD
 import type { ProxyTree, UntypedEndpointType } from '../types/proxy'
 import { EndpointClient } from './endpointClient'
-import { CORE_HELPERS } from './helpers/config'
+import { CORE_HELPERS, type CoreHelperName } from './helpers/config'
 import { createCoreHelper } from './helpers/createCoreHelper'
 import { createGetMediaHelper } from './helpers/getMediaHelper'
 import { globalProxyRegistry } from './registry'
 
-/** Route properties are resolved before methods so routes can be named query or mutate. */
-export function createApiClient<T>(contract: T): ProxyTree<T> {
+const methods = new Set([
+  'input',
+  'setHost',
+  'query',
+  'mutate',
+  'queryRaw',
+  'mutateRaw',
+  'queryOptions',
+  'rawQueryOptions',
+  'mutationOptions',
+  'rawMutationOptions',
+  'key',
+  'endpoint',
+  'schema'
+])
+const reserved = new Set([
+  'then',
+  'name',
+  'length',
+  'prototype',
+  '__proto__',
+  'constructor'
+])
+
+export function createApiClient<Routes>(contract: Routes): ProxyTree<Routes> {
+  const root = contract && typeof contract === 'object' ? contract : undefined
   const host = () =>
-    globalProxyRegistry.get(contract as object)?.apiHost ||
-    globalProxyRegistry.apiHost ||
-    ''
-  const descend = (segments: string[], node: any): any => {
-    const route = segments.join('/')
-    const client = new EndpointClient<any>(host(), route, node, contract)
-    const inspect = () => `[Monolith API: ${route || '/'}]`
-    const callable = () => {
-      throw new TypeError(`Use query() or mutate() for the /${route} endpoint`)
+    (root && globalProxyRegistry.get(root)?.apiHost) ||
+    globalProxyRegistry.apiHost
+  function branch(path: string[], schema: any): any {
+    const route = path.join('/')
+    const endpoint = new EndpointClient<any>(host(), route, schema, root)
+    const label = () => '[Monolith API: ' + (route || '/') + ']'
+    const target = () => {
+      throw new TypeError(
+        'Call query() or mutate() on the /' + route + ' endpoint'
+      )
     }
-    return new Proxy(callable, {
-      get(_target, key) {
-        if (key === Symbol.toStringTag) return 'MonolithApi'
-        if (key === Symbol.toPrimitive) return inspect
-        if (
-          typeof key !== 'string' ||
-          ['then', 'name', 'length', 'prototype'].includes(key)
-        )
+    return new Proxy(target, {
+      get(_target, property) {
+        if (property === Symbol.toPrimitive) return label
+        if (property === Symbol.toStringTag) return 'MonolithApi'
+        if (typeof property !== 'string' || reserved.has(property))
           return undefined
-        if (['toString', 'toJSON', 'valueOf'].includes(key)) return inspect
+        if (['toString', 'toJSON', 'valueOf'].includes(property)) return label
         if (
-          node &&
-          typeof node === 'object' &&
-          typeof node.method !== 'string' &&
-          Object.hasOwn(node, key)
+          schema &&
+          typeof schema === 'object' &&
+          typeof schema.method !== 'string' &&
+          Object.hasOwn(schema, property)
         )
-          return descend([...segments, key], node[key])
-        if (!segments.length && key === 'untyped')
-          return <O = any, B = any, Q = any>(path: string) =>
-            new EndpointClient<UntypedEndpointType<O, B, Q>>(
-              host(),
-              path,
-              undefined,
-              contract
-            )
-        if (key === 'getMedia') return createGetMediaHelper(host())
-        if (!segments.length && Object.hasOwn(CORE_HELPERS, key))
-          return createCoreHelper(host(), key as keyof typeof CORE_HELPERS)
-        if (key in client) {
-          const member = Reflect.get(client, key, client)
-          return typeof member === 'function' ? member.bind(client) : member
+          return branch([...path, property], schema[property])
+        if (property === 'getMedia')
+          return (
+            options: Parameters<ReturnType<typeof createGetMediaHelper>>[0]
+          ) => createGetMediaHelper(host())(options)
+        if (path.length === 0) {
+          if (property === 'untyped')
+            return <Output = any, Body = any, Query = any>(url: string) =>
+              new EndpointClient<UntypedEndpointType<Output, Body, Query>>(
+                host(),
+                url,
+                undefined,
+                root
+              )
+          if (Object.hasOwn(CORE_HELPERS, property))
+            return createCoreHelper(host(), property as CoreHelperName)
         }
-        return descend([...segments, key], undefined)
+        if (!methods.has(property))
+          return branch([...path, property], undefined)
+        const member = Reflect.get(endpoint, property)
+        return typeof member === 'function' ? member.bind(endpoint) : member
       }
     })
   }
-  return descend([], contract) as ProxyTree<T>
+  return branch([], contract)
 }

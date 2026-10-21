@@ -1,72 +1,45 @@
-import { promises as fs } from 'node:fs'
-import path from 'node:path'
+// SPDX-License-Identifier: 0BSD
 import { Readable } from 'node:stream'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { expect, it } from 'vitest'
 
+import { readStream, sandbox } from '../testing'
 import { createProvider } from './createProvider'
 import { LocalStorageProvider } from './providers/local'
 import { S3StorageProvider } from './providers/s3'
 
-const ENV_KEYS = [
-  'FILE_STORAGE_PROVIDER',
-  'FILE_STORAGE_S3_BUCKET',
-  'FILE_STORAGE_LOCAL_PATH'
-] as const
-
-const CUSTOM_DIR = path.resolve(process.cwd(), './temp_test_custom_storage')
-
-describe('createProvider', () => {
-  let saved: Record<string, string | undefined>
-
-  beforeEach(() => {
-    saved = {}
-
-    for (const key of ENV_KEYS) {
-      saved[key] = process.env[key]
-      delete process.env[key]
-    }
-  })
-
-  afterEach(async () => {
-    for (const key of ENV_KEYS) {
-      if (saved[key] === undefined) {
-        delete process.env[key]
-      } else {
-        process.env[key] = saved[key]
-      }
-    }
-
-    await fs.rm(CUSTOM_DIR, { recursive: true, force: true })
-  })
-
-  it('defaults to the local provider', () => {
-    expect(createProvider()).toBeInstanceOf(LocalStorageProvider)
-  })
-
-  it('honors FILE_STORAGE_LOCAL_PATH', async () => {
-    process.env.FILE_STORAGE_LOCAL_PATH = CUSTOM_DIR
-
-    const provider = createProvider()
-
+it('uses a supplied local directory without modifying process configuration', async () => {
+  const area = await sandbox()
+  try {
+    const provider = createProvider({ FILE_STORAGE_LOCAL_PATH: area.root })
     expect(provider).toBeInstanceOf(LocalStorageProvider)
-
-    await provider.save('mod/a.txt', Readable.from(Buffer.from('x')))
-
-    expect((await fs.stat(path.join(CUSTOM_DIR, 'mod/a.txt'))).isFile()).toBe(
-      true
-    )
-  })
-
-  it('throws when s3 is selected without a bucket', () => {
-    process.env.FILE_STORAGE_PROVIDER = 's3'
-
-    expect(() => createProvider()).toThrow('FILE_STORAGE_S3_BUCKET')
-  })
-
-  it('creates an S3 provider when configured', () => {
-    process.env.FILE_STORAGE_PROVIDER = 's3'
-    process.env.FILE_STORAGE_S3_BUCKET = 'my-bucket'
-
-    expect(createProvider()).toBeInstanceOf(S3StorageProvider)
-  })
+    await provider.save('notes/example.txt', Readable.from('content'))
+    expect(
+      (
+        await readStream((await provider.get('notes/example.txt'))!.stream)
+      ).toString()
+    ).toBe('content')
+  } finally {
+    await area.dispose()
+  }
+})
+it('rejects incomplete S3 settings and unknown providers before starting an upload', () => {
+  expect(() => createProvider({ FILE_STORAGE_PROVIDER: 's3' })).toThrow(
+    'FILE_STORAGE_S3_BUCKET'
+  )
+  expect(() =>
+    createProvider({
+      FILE_STORAGE_PROVIDER: 's3',
+      FILE_STORAGE_S3_BUCKET: 'fixture',
+      FILE_STORAGE_S3_ACCESS_KEY: 'test-only'
+    })
+  ).toThrow('both key and secret')
+  expect(() => createProvider({ FILE_STORAGE_PROVIDER: 'unexpected' })).toThrow(
+    'Unsupported'
+  )
+  expect(
+    createProvider({
+      FILE_STORAGE_PROVIDER: 's3',
+      FILE_STORAGE_S3_BUCKET: 'fixture'
+    })
+  ).toBeInstanceOf(S3StorageProvider)
 })

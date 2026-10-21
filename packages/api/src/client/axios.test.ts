@@ -10,6 +10,15 @@ afterEach(() => {
 })
 
 describe('session recovery', () => {
+  it('preserves transport failures that have no Axios request metadata', async () => {
+    const client = createAxiosInstance('https://example.invalid', false)
+    const failure = new Error('Native connection is unavailable')
+    client.defaults.adapter = async () => {
+      throw failure
+    }
+    await expect(client.get('/workspace')).rejects.toBe(failure)
+  })
+
   it('keeps the access token through a temporary refresh outage', async () => {
     setAccessToken('synthetic-existing-token')
     vi.stubGlobal(
@@ -42,18 +51,16 @@ describe('session recovery', () => {
     )
     expect(await refreshAccessToken('https://example.invalid')).toBe(false)
     expect(getAccessToken()).toBeNull()
-    const refresh = vi
-      .fn()
-      .mockImplementation(
-        async () =>
-          new Response(
-            JSON.stringify({
-              state: 'success',
-              data: { accessToken: 'synthetic-refreshed-token' }
-            }),
-            { status: 200 }
-          )
-      )
+    const refresh = vi.fn().mockImplementation(
+      async () =>
+        new Response(
+          JSON.stringify({
+            state: 'success',
+            data: { accessToken: 'synthetic-refreshed-token' }
+          }),
+          { status: 200 }
+        )
+    )
     vi.stubGlobal('fetch', refresh)
     const client = createAxiosInstance('https://example.invalid', false)
     client.defaults.adapter = async config => {

@@ -146,21 +146,29 @@
   },
   "modals": {
     "deleteConfirmation": {
-      "title": "您确定要删除{{itemName}}吗？",
-      "desc": "这将删除{{itemName}}及其所有相关内容。此操作不可逆！",
+      "title": "永久删除 {{itemName}}？",
+      "desc": "{{itemName}} 及其关联内容将被移除，且无法撤销。",
       "inputs": {
         "confirmation": {
-          "placeholder": "请键入 \"{{text}}\" 以确认删除",
+          "placeholder": "输入 {{text}} 以确认删除",
           "label": "确认删除"
         }
       },
-      "error": "删除项目时出错。请再试一次。"
+      "error": "未能完成删除。连接恢复后请重试。"
     },
     "searchFilters": "搜索过滤器",
     "datePicker": {
       "title": "选择日期",
       "titleWithTime": "选择日期时间",
-      "yearMonth": "选择年月"
+      "yearMonth": "选择年月",
+      "month": "月份",
+      "year": "年份",
+      "time": "时间（24 小时制）",
+      "clear": "清除日期",
+      "today": "今天",
+      "previousMonth": "上个月",
+      "nextMonth": "下个月",
+      "invalidSelection": "请选择允许范围内的有效本地日期和时间。"
     },
     "iconPicker": {
       "title": "选择图标",
@@ -171,9 +179,12 @@
       "empty": {
         "icon": {
           "title": "没有图标",
-          "description": "未找到图标，请尝试其他关键词。"
+          "description": "试试更短的名称或其他图标关键词。"
         }
-      }
+      },
+      "allCollections": "所有图标集",
+      "loadError": "图标目录暂时不可用，请重试。",
+      "more": "加载更多图标"
     },
     "imagePicker": {
       "title": "选择文件",
@@ -201,22 +212,33 @@
       "empty": {
         "result": {
           "title": "没有结果",
-          "description": "未找到图片，请尝试其他关键词。"
+          "description": "没有匹配图片。更换搜索内容再试试。"
         },
         "pixabay": {
           "title": "由Pixabay提供",
-          "description": "搜索超过1300万张高质量免费图片。"
+          "description": "搜索 Pixabay 图片素材库。"
         },
         "noAPIKey": {
           "title": "Pixabay API密钥未配置",
-          "description": "请在API密钥库中设置您的Pixabay API密钥以使用此功能。"
+          "description": "先在 API 密钥中保存 Pixabay 凭据，再搜索其图片库。"
         },
         "noOpenAIKey": {
           "title": "OpenAI API密钥未配置",
-          "description": "请在API密钥库中设置您的OpenAI API密钥以使用此功能。"
+          "description": "在 API 密钥中保存 OpenAI 凭据以生成图片。"
         }
       },
-      "ai": "AI图像生成"
+      "ai": "AI图像生成",
+      "choose": "选择文件",
+      "unsupported": "不支持此文件类型。",
+      "readError": "无法读取文件，请重新选择。",
+      "reading": "正在读取文件…",
+      "drop": "将文件拖到此处，或浏览设备中的文件",
+      "paste": "粘贴图片",
+      "clipboardError": "无法从剪贴板读取受支持的图片。",
+      "saveError": "无法保存文件。已保留您的选择，请重试。",
+      "serviceError": "图片服务暂时不可用，请重试。",
+      "result": "图片 {{id}}",
+      "promptHint": "描述您想生成的图片。"
     },
     "colorPicker": {
       "title": "选择颜色",
@@ -234,7 +256,13 @@
     "imagePreview": "图片预览",
     "qrCodeScanner": "二维码扫描器",
     "viewImage": "查看图片",
-    "confirmationFailed": "无法完成此操作，请重试。"
+    "confirmationFailed": "无法完成此操作，请重试。",
+    "scanner": {
+      "permission": "扫描需要相机权限。请在浏览器中允许访问后重试。",
+      "camera": "无法打开相机。请检查设备是否连接且可用。",
+      "scan": "无法处理此代码，请重新扫描。",
+      "processing": "正在处理扫描结果…"
+    }
   },
   "misc": {
     "alert": {
@@ -246,8 +274,8 @@
     },
     "search": "搜索{{item}}...",
     "notFound": {
-      "title": "糟糕！这里什么都没有",
-      "description": "找不到您正在寻找的页面。请检查网址并重试。"
+      "title": "页面不可用",
+      "description": "此地址没有可用页面。请检查链接或返回工作区。"
     },
     "tipsAndTricks": "提示与技巧",
     "loadingModule": "加载扩展中...",
@@ -276,17 +304,17 @@
       "empty": {
         "result": {
           "title": "没有结果",
-          "description": "找不到图片, 请尝试其他关键字。"
+          "description": "没有匹配图片。请更换搜索内容。"
         },
         "pixabay": {
           "title": "由 Pixabay 提供",
-          "description": "搜索超过1300万张免费高质量图片。"
+          "description": "浏览 Pixabay 提供的图片结果。"
         }
       }
     },
     "dnd": {
       "dropHere": "将项目拖放到这里",
-      "dragAndDropToUpload": "拖放或点击上传",
+      "dragAndDropToUpload": "拖入文件，或选择文件",
       "or": "或",
       "buttons": {
         "pasteFromClipboard": "从剪贴板粘贴"
@@ -310,7 +338,7 @@
     "empty": {
       "apiStatus": {
         "title": "无法连接到API",
-        "description": "请检查您的网络连接并重试。如果您是开发人员，请检查服务器是否正常运行。"
+        "description": "Monolith 无法连接此服务器。请检查网络和服务器地址后重试。"
       }
     },
     "iconPicker": {
@@ -321,12 +349,12 @@
       "empty": {
         "icon": {
           "title": "没有图标",
-          "description": "找不到图标, 请尝试其他关键字。"
+          "description": "更换名称以查找图标。"
         }
       }
     },
     "locationDisabled": {
-      "description": "位置输入当前不可用。请添加正确配置的Google Cloud API密钥以启用此功能。有关更多信息，请参阅",
+      "description": "位置搜索需要具备 Places 权限的 Google Cloud 凭据。请在 API 密钥中配置。设置说明：",
       "title": "不可用"
     },
     "dates": {
@@ -356,10 +384,10 @@
     },
     "fieldRequired": "该字段是必填的。",
     "invalidField": "无效字段。",
-    "invalidColor": "无效颜色。请输入有效的十六进制值，格式为#RRGGBB。",
-    "invalidIcon": "无效图标。必须是来自Iconify的有效图标标识符，格式为<icon-set>:<icon-name>。",
+    "invalidColor": "请在 # 后输入六位十六进制数，例如 #336699。",
+    "invalidIcon": "请输入包含图标集和名称的标识，例如 tabler:calendar。",
     "loadingUserData": "正在加载用户数据...",
-    "invalidSelection": "无效选择。请从列表中选择一个有效的值。",
+    "invalidSelection": "请选择可用选项之一。",
     "fileInputSupportedFormat": "支持的格式：{{format}}",
     "viewMode": "显示方式"
   },
@@ -379,37 +407,19 @@
       }
     },
     "openNavigation": "打开导航",
-    "collapseNavigation": "收起导航"
+    "collapseNavigation": "收起导航",
+    "itemAction": "{{name}}的操作",
+    "clearSelection": "清除选择",
+    "toggleSection": "展开或折叠分组"
   },
   "fetch": {
-    "error": "从服务器获取数据失败",
-    "success": "耶！成功{{action}}项目！",
-    "failure": "呃... {{action}}项目失败。请再试一次。",
+    "error": "服务器未返回所需数据。",
+    "success": "已完成：{{action}}",
+    "failure": "无法完成 {{action}}。请重试。",
     "action": {
       "create": "创建",
       "update": "更新",
-      "delete": "删除",
-      "rename": "重命名",
-      "pin": "置顶",
-      "unpin": "取消置顶",
-      "archive": "归档",
-      "unarchive": "取消归档",
-      "remove": "移除",
-      "add": "添加",
-      "save": "保存",
-      "public": "公开",
-      "private": "设为私人",
-      "replace": "替换",
-      "clearMedium": "清除",
-      "thumbnail": "更新缩略图",
-      "generate": "生成",
-      "cleanedup": "清理",
-      "summarized": "总结",
-      "unlock": "解锁",
-      "download": "下载",
-      "NASFilesReady": " 文件已准备好下载。前往您的NAS。",
-      "addedToFavourites": "添加到收藏夹",
-      "removedFromFavourites": "从收藏夹中移除"
+      "delete": "删除"
     },
     "redirected": "已重定向",
     "redirecting": "重定向中...",
@@ -459,24 +469,24 @@
     },
     "validation": {
       "emailRequired": "电子邮件为必填项",
-      "emailInvalid": "请输入有效的电子邮件地址",
+      "emailInvalid": "请输入包含用户名和域名的邮箱地址。",
       "usernameRequired": "用户名为必填项",
-      "usernameTooShort": "用户名至少需要3个字符",
-      "usernameInvalid": "用户名只能包含字母、数字和下划线",
+      "usernameTooShort": "用户名至少需要 3 个字符。",
+      "usernameInvalid": "用户名可使用字母、数字或下划线。",
       "nameRequired": "姓名为必填项",
       "passwordRequired": "密码为必填项",
-      "passwordTooShort": "密码至少需要8个字符",
+      "passwordTooShort": "密码至少需要 8 个字符。",
       "passwordMismatch": "两次输入的密码不一致"
     },
     "modals": {
       "twoFA": {
         "title": "双因素身份验证",
-        "description": "请在您之前注册的身份验证器应用程序中输入提供的 OTP。",
+        "description": "输入已连接身份验证器当前显示的登录代码。",
         "buttons": {
           "useEmailOtp": "使用邮件OTP",
           "useAuthApp": "使用身份验证应用"
         },
-        "emailDescription": "请输入与您的帐户关联的电子邮件地址。",
+        "emailDescription": "输入此 Monolith 账户使用的邮箱。",
         "inputs": {
           "email": "电子邮件地址"
         }
@@ -484,26 +494,26 @@
     },
     "orAuthenticateWith": "或用以下方式进行身份验证",
     "messages": {
-      "otpSent": "如果该电子邮件地址与任何账户关联，您将收到一个一次性密码。",
+      "otpSent": "如果此地址对应一个账户，您将收到包含登录代码的邮件。",
       "welcomeBack": "欢迎回来，{{name}}!",
-      "invalidCredentials": "无效的电子邮件或密码。请再试一次。",
-      "invalidFields": "无效字段。请填写有效的电子邮件地址和密码。",
-      "quotaExceeded": "最大尝试次数已达到。请稍后再试。",
-      "unknownError": "未知错误。请稍后再试。",
+      "invalidCredentials": "登录信息未被接受。",
+      "invalidFields": "请检查邮箱和密码后再提交。",
+      "quotaExceeded": "登录暂时受限。请稍后再试。",
+      "unknownError": "未能完成登录。请稍后重试。",
       "userCreated": "账户创建成功！欢迎来到 monolith。",
-      "invalidLoginAttempt": "无效的登录尝试。请再试一次。",
+      "invalidLoginAttempt": "此登录请求已失效。请重新开始。",
       "otpLength": "请输入身份验证器中的六位验证码。",
       "invalidOTP": "无法验证此验证码，请重试。"
     },
     "qrLogin": {
       "title": "扫码登录",
-      "description": "使用其他设备登录您的账户。",
+      "description": "在另一台已登录的 Monolith 客户端上批准此设备。",
       "expired": "二维码已过期",
       "clickToRefresh": "点击刷新",
       "approved": "登录已批准！正在跳转...",
       "waiting": "等待批准中...",
       "approvalTitle": "批准登录",
-      "approvalDescription": "一台设备正在请求登录您的账户",
+      "approvalDescription": "允许访问账户前，请确认此设备。",
       "browserInfo": "设备信息",
       "approve": "批准登录",
       "deny": "拒绝",
@@ -520,7 +530,7 @@
   "vault": {
     "vault": {
       "lockedMessage": "您的保险库已锁定",
-      "passwordRequired": "需要主密码来解密您的保险库。",
+      "passwordRequired": "输入保险库密码以读取加密内容。",
       "unlocked": "保险库已解锁",
       "failedToUnlock": "解锁保险库失败",
       "buttons": {
@@ -529,7 +539,7 @@
       },
       "createPassword": {
         "title": "设置主密码",
-        "desc": "请设置一个主密码来保护您的保险库。"
+        "desc": "设置用于加密保险库数据的密码。"
       },
       "inputs": {
         "newPassword": "新密码",
@@ -537,8 +547,18 @@
         "masterPassword": "主密码"
       },
       "confirmSetNewPassword": {
-        "title": "确保您记住您的主密码！",
-        "desc": "此主密码是不可更改的（目前）！如果您不小心忘记了密码，您将失去一切。此密码会被哈希并存储在您的用户资料中，且无法解密。它将用于加密和解密您存储在保险库中的数据。"
+        "title": "请妥善保管保险库密码",
+        "desc": "保险库密码目前无法更改或找回。Monolith 只保存哈希值，不保存可读取的密码。遗失密码将导致无法访问加密数据。"
+      },
+      "generate": "生成密码",
+      "edit": "修改密码",
+      "review": "检查密码",
+      "confirmCreate": "设置保险库密码",
+      "errors": {
+        "empty": "请输入并确认密码。",
+        "mismatch": "两次密码必须完全一致，包括空格。",
+        "random": "此浏览器无法安全生成密码。",
+        "create": "无法保存密码，请重试。"
       }
     },
     "otp": {
@@ -549,10 +569,10 @@
         "authByQR": "通过二维码验证"
       },
       "messages": {
-        "success": "一次性密码已发送！请检查您的电子邮件。",
+        "success": "请查收邮件中的验证码。",
         "failed": "请求一次性密码失败",
         "invalid": "一次性密码必须是6位数字",
-        "cooldown": "请求过于频繁，请稍后再试",
+        "cooldown": "请稍等后再申请验证码。",
         "required": {
           "title": "需要一次性密码来解锁",
           "desc": "为了增加安全性，需要一次性密码来解锁此扩展。请点击下面的按钮来请求一次性密码。"
@@ -561,7 +581,8 @@
           "success": "一次性密码验证成功",
           "failed": "一次性密码验证失败"
         }
-      }
+      },
+      "codeLabel": "验证码"
     }
   },
   "recurring": {
@@ -660,6 +681,21 @@
       "week": "周",
       "month": "个月",
       "year": "年"
+    },
+    "editor": {
+      "rawDescription": "此日程包含高级重复设置。编辑其文本可保留所有规则。",
+      "raw": "重复规则",
+      "structured": "使用日程控件",
+      "start": "开始时间",
+      "interval": "重复间隔",
+      "weekdays": "每周日期",
+      "pattern": "重复方式",
+      "monthDay": "每月日期（负数从月末计算）",
+      "position": "在月份中的顺序",
+      "dayGroup": "日期或日期组",
+      "count": "重复次数",
+      "until": "重复至",
+      "incomplete": "请填写整数间隔、选择日期，并设置有效的结束条件。"
     }
   },
   "blocks": {
@@ -879,7 +915,16 @@
     "clearIndex": "清除我的搜索索引"
   },
   "inputs": {
-    "rangeValue": "数值"
+    "rangeValue": "数值",
+    "locationSearch": {
+      "searching": "正在查找地点…",
+      "failed": "地点搜索失败，请重新搜索。",
+      "empty": "没有匹配的地点。",
+      "checking": "正在检查地点搜索服务…",
+      "unconfigured": "管理员需要配置地图服务才能搜索地点。",
+      "serviceFailed": "无法检查地点搜索服务。"
+    },
+    "formSaveFailed": "无法保存更改。您填写的内容已保留，请重试。"
   },
   "desktop": {
     "welcome": "连接你的工作空间。",
@@ -1459,7 +1504,9 @@
     "addons": "扩展与小组件",
     "addonsHelp": "为工作区启用专属体验。",
     "updates": "更新",
-    "updatesHelp": "管理应用和服务器版本、自动下载及恢复。"
+    "updatesHelp": "管理应用和服务器版本、自动下载及恢复。",
+    "resultCount_one": "{{count}} 个结果",
+    "resultCount_other": "{{count}} 个结果"
   },
   "urpg": {
     "addonDescription": "Your life, in progress. Turn meaningful work into quests and grow a character alongside you.",
@@ -2053,5 +2100,26 @@
     "editSeries": "标题和描述将应用于整个系列",
     "saveEvent": "保存事件",
     "unscheduled": "未安排时间"
+  },
+  "journal": {
+    "title": "日记",
+    "description": "留一点空间，思考、回忆和书写。",
+    "newEntry": "新建日记",
+    "entryTitle": "日记标题",
+    "date": "日期",
+    "close": "关闭",
+    "startWriting": "开始书写",
+    "saveFailed": "无法创建日记。草稿已保留，请重试。",
+    "back": "返回日记",
+    "loading": "正在加载日记…",
+    "stale": "无法刷新日记。请重试后再修改。",
+    "retry": "重试",
+    "search": "搜索日记",
+    "month": "月份",
+    "allDates": "全部日期",
+    "entries_one": "{{count}} 篇日记",
+    "entries_other": "{{count}} 篇日记",
+    "empty": "留给新篇章的空间",
+    "emptyHint": "新建日记或调整搜索条件。"
   }
 }

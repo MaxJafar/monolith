@@ -1,32 +1,26 @@
+// SPDX-License-Identifier: 0BSD
 import type { StagedFile } from '@monolith/file-storage'
-
-export type ReplaceFileWithMulter<T> = T extends File
-  ? StagedFile
-  : T extends (infer U)[]
-    ? ReplaceFileWithMulter<U>[]
-    : T extends ReadonlyArray<infer U>
-      ? ReadonlyArray<ReplaceFileWithMulter<U>>
-      : T extends object
-        ? T extends (...args: unknown[]) => unknown
-          ? T
-          : { [K in keyof T]: ReplaceFileWithMulter<T[K]> }
-        : T
 
 export type MediaConfig = Record<
   string,
-  {
-    optional: boolean
-    multiple?: boolean
-  }
+  { optional: boolean; multiple?: boolean }
 >
-
-export type ConvertMedia<TMedia extends MediaConfig | null> =
-  TMedia extends null
-    ? Record<string, never>
-    : {
-        [K in keyof TMedia]: TMedia[K] extends { multiple: true }
-          ? StagedFile[]
-          : TMedia[K] extends { optional: true }
-            ? StagedFile | string | undefined
-            : StagedFile | string
-      }
+type Uploaded<C> = C extends { multiple: true }
+  ? StagedFile[]
+  : C extends { optional: true }
+    ? StagedFile | string | undefined
+    : StagedFile | string
+export type ConvertMedia<C extends MediaConfig | null> = C extends null
+  ? Record<string, never>
+  : { [Key in keyof C]: Uploaded<C[Key]> }
+export type ReplaceFileWithMulter<T> = T extends File
+  ? StagedFile
+  : T extends Array<infer Item>
+    ? Array<ReplaceFileWithMulter<Item>>
+    : T extends ReadonlyArray<infer Item>
+      ? ReadonlyArray<ReplaceFileWithMulter<Item>>
+      : T extends (...args: unknown[]) => unknown
+        ? T
+        : T extends object
+          ? { [Key in keyof T]: ReplaceFileWithMulter<T[Key]> }
+          : T

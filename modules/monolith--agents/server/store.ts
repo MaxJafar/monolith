@@ -6,11 +6,6 @@ import { contentText } from '@monolith/blocks'
 import type { BuiltModuleSchema } from '@monolith/drizzle'
 import { ClientError } from '@monolith/server-utils'
 
-import {
-  columns,
-  entries as projects,
-  tasks
-} from '../../monolith--projects/server/schema.drizzle'
 import { pageCatalog } from '../../monolith--databases/server/knowledge'
 import {
   compilePlaybookInstructions,
@@ -39,6 +34,7 @@ import {
   runs,
   usageRecords
 } from './schema.drizzle'
+import { columns, entries as projects, tasks } from './workSchema'
 
 export type Database = PostgresJsDatabase<BuiltModuleSchema<typeof schema>>
 

@@ -1,90 +1,34 @@
+// SPDX-License-Identifier: 0BSD
 import type { Meta, StoryObj } from '@storybook/react-vite'
+import { useState } from 'react'
 
 import { NumberInput } from './index'
 
 const meta = {
+  title: 'Inputs/NumberInput',
   component: NumberInput,
-  title: 'Inputs/NumberInput'
+  args: {
+    value: 25,
+    onChange: () => {},
+    label: 'Focus duration',
+    placeholder: 'Minutes',
+    icon: 'tabler:calculator',
+    namespace: false
+  }
 } satisfies Meta<typeof NumberInput>
-
 export default meta
-
 type Story = StoryObj<typeof meta>
-
-export const Default: Story = {
-  args: {
-    icon: 'tabler:calendar',
-    label: 'Age',
-    onChange: () => {},
-    value: 0
-  },
-  render: args => <NumberInput {...args} />
+export const Editable: Story = {
+  render: function Editable(args) {
+    const [value, setValue] = useState(args.value)
+    return <NumberInput {...args} value={value} onChange={setValue} />
+  }
 }
-
-export const Required: Story = {
-  args: {
-    icon: 'tabler:calendar',
-    label: 'Age',
-    onChange: () => {},
-    required: true,
-    value: 0
-  },
-  render: args => <NumberInput {...args} />
+export const Compact: Story = { ...Editable, args: { variant: 'plain' } }
+export const Validation: Story = {
+  ...Editable,
+  args: { required: true, errorMsg: 'Review this value before saving.' }
 }
+export const Disabled: Story = { args: { disabled: true } }
 
-export const Disabled: Story = {
-  args: {
-    disabled: true,
-    icon: 'tabler:calendar',
-    label: 'Age',
-    onChange: () => {},
-    value: 42
-  },
-  render: args => <NumberInput {...args} />
-}
-
-export const WithErrorMessage: Story = {
-  args: {
-    errorMsg: 'Invalid age value',
-    icon: 'tabler:calendar',
-    label: 'Age',
-    onChange: () => {},
-    value: 0
-  },
-  render: args => <NumberInput {...args} />
-}
-
-export const DisabledWithErrorMessage: Story = {
-  args: {
-    disabled: true,
-    errorMsg: 'Invalid age value',
-    icon: 'tabler:calendar',
-    label: 'Age',
-    onChange: () => {},
-    value: 42
-  },
-  render: args => <NumberInput {...args} />
-}
-
-export const PlainVariant: Story = {
-  args: {
-    icon: 'tabler:calendar',
-    label: 'Age',
-    onChange: () => {},
-    value: 42,
-    variant: 'plain'
-  },
-  render: args => <NumberInput {...args} />
-}
-
-export const PlainVariantWithErrorMessage: Story = {
-  args: {
-    errorMsg: 'Invalid age value',
-    icon: 'tabler:calendar',
-    label: 'Age',
-    onChange: () => {},
-    value: 42,
-    variant: 'plain'
-  },
-  render: args => <NumberInput {...args} />
-}
+export const Bounded: Story = { ...Editable, args: { min: 5, max: 120 } }

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: 0BSD
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
 import { ContextMenu } from '..'
@@ -5,78 +6,37 @@ import { ContextMenuGroup } from './ContextMenuGroup'
 import { ContextMenuItem } from './ContextMenuItem'
 
 const meta = {
-  argTypes: {
-    children: {
-      control: false
-    }
-  },
-  component: ContextMenuGroup,
-  title: 'Overlays/ContextMenu/ContextMenuGroup'
+  title: 'Overlays/ContextMenu/ContextMenuGroup',
+  component: ContextMenuGroup
 } satisfies Meta<typeof ContextMenuGroup>
-
 export default meta
-
 type Story = StoryObj<typeof meta>
-
 export const Default: Story = {
   args: {
+    icon: 'tabler:layout',
+    label: 'View',
     children: (
       <>
         <ContextMenuItem
-          icon="tabler:category"
-          label="Item 1"
-          onClick={() => {}}
-        />
-        <ContextMenuItem
-          icon="tabler:category"
-          label="Item 2"
-          onClick={() => {}}
-        />
-        <ContextMenuItem
-          icon="tabler:category"
-          label="Item 3"
-          onClick={() => {}}
-        />
-      </>
-    ),
-    icon: 'tabler:cube',
-    label: 'Categories'
-  },
-  render: props => (
-    <ContextMenu>
-      <ContextMenuGroup {...props} />
-    </ContextMenu>
-  )
-}
-
-export const Togglable: Story = {
-  args: {
-    children: (
-      <>
-        <ContextMenuItem
-          icon="tabler:category"
-          label="Item 1"
-          onClick={() => {}}
-        />
-        <ContextMenuItem
+          namespace={false}
+          label="Gallery"
           checked
-          icon="tabler:category"
-          label="Item 2"
           onClick={() => {}}
         />
-        <ContextMenuItem
-          icon="tabler:category"
-          label="Item 3"
-          onClick={() => {}}
-        />
+        <ContextMenuItem namespace={false} label="List" onClick={() => {}} />
       </>
-    ),
-    icon: 'tabler:cube',
-    label: 'Categories'
+    )
   },
-  render: props => (
+  render: args => (
     <ContextMenu>
-      <ContextMenuGroup {...props} />
+      <ContextMenuGroup {...args} />
+      <ContextMenuGroup icon="tabler:share" label="Sharing">
+        <ContextMenuItem
+          namespace={false}
+          label="Copy link"
+          onClick={() => {}}
+        />
+      </ContextMenuGroup>
     </ContextMenu>
   )
 }

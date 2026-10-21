@@ -77,3 +77,24 @@ export function addDashboardWidget(
     )
   )
 }
+
+/** Extract widget positions without treating other account settings as grid rows. */
+export function readDashboardLayout(value: unknown): IDashboardLayout {
+  if (!value || typeof value !== 'object') return {}
+  const result: IDashboardLayout = {}
+  for (const [name, rows] of Object.entries(value)) {
+    if (!Array.isArray(rows)) continue
+    result[name] = rows
+      .filter(
+        row =>
+          row &&
+          typeof row === 'object' &&
+          typeof row.i === 'string' &&
+          ['x', 'y', 'w', 'h'].every(field => Number.isFinite(row[field])) &&
+          row.w > 0 &&
+          row.h > 0
+      )
+      .map(row => ({ ...row }))
+  }
+  return result
+}

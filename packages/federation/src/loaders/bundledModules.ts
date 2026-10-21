@@ -1,10 +1,15 @@
+// SPDX-License-Identifier: 0BSD
 import type { ModuleConfig } from '@monolith/configs'
 
-type Registry = Record<string, () => Promise<{ default: ModuleConfig }>>
-let modules: Registry | null = null
-export function configureBundledModules(registry: Registry) {
-  modules = Object.freeze({ ...registry })
+export type ModuleImporter = () => Promise<{ default: ModuleConfig }>
+type BundledModules = Readonly<Record<string, ModuleImporter>>
+let installed: BundledModules | null = null
+
+export function configureBundledModules(
+  registry: Record<string, ModuleImporter>
+): void {
+  installed = Object.freeze(Object.fromEntries(Object.entries(registry)))
 }
-export function getBundledModules() {
-  return modules
+export function getBundledModules(): BundledModules | null {
+  return installed
 }

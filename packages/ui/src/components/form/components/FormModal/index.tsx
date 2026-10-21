@@ -1,162 +1,162 @@
+// SPDX-License-Identifier: 0BSD
 import {
+  type FormEvent,
+  type ReactNode,
   createContext,
   useContext,
-  useEffect,
   useId,
-  useRef,
   useState
 } from 'react'
 import type { FieldValues, UseFormReturn } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 
+import { useCredentialAction } from '@/components/auth/useCredentialAction'
 import { LoadingScreen } from '@/components/feedback'
 import { Button } from '@/components/inputs'
 import { ModalHeader } from '@/components/overlays'
-import { Bordered, Flex, Stack } from '@/components/primitives'
-import { toast } from '@/providers'
+import { Flex, Stack, Text } from '@/components/primitives'
 
-const NamespaceContext = createContext<string | false | undefined>(undefined)
-
-export const useNamespace = () => useContext(NamespaceContext)
-
-const actions = {
-  create: { label: 'create', icon: 'tabler:plus' },
-  update: { label: 'update', icon: 'tabler:device-floppy' }
-} as const
-
-type SubmissionConfig<T extends FieldValues> = {
+const FormNamespace = createContext<string | false | undefined>(undefined)
+export function useNamespace() {
+  return useContext(FormNamespace)
+}
+type Presentation = {
+  title: ReactNode
+  icon: string
+  onClose: () => void
+  namespace?: string | false
+  loading?: boolean
+  headerActions?: ReactNode
+}
+type Submission<Values> = {
   disabled?: boolean
-  handler: (data: T) => Promise<unknown> | unknown
-} & ({ template: keyof typeof actions } | { label: string; icon: string })
-
-export function FormModal<T extends FieldValues>({
+  handler: (values: Values) => unknown | Promise<unknown>
+} & ({ template: 'create' | 'update' } | { label: string; icon: string })
+export function FormModal<Values extends FieldValues>({
   form,
   uiConfig,
   submissionConfig,
   children
 }: {
-  form: UseFormReturn<T>
-  uiConfig: {
-    title: string | React.ReactNode
-    icon: string
-    onClose: () => void
-    namespace?: string | false
-    loading?: boolean
-    headerActions?: React.ReactNode
-  }
-  submissionConfig: SubmissionConfig<T>
-  children: React.ReactNode
+  form: UseFormReturn<Values>
+  uiConfig: Presentation
+  submissionConfig: Submission<Values>
+  children: ReactNode
 }) {
-  const titleId = useId()
-  const locked = useRef(false)
-  const active = useRef(false)
-  const [pending, setPending] = useState(false)
-
+  const heading = useId()
+  const { t } = useTranslation('common.inputs')
+  const task = useCredentialAction()
+  const [failure, setFailure] = useState('')
+  const busy = task.pending || !!uiConfig.loading
   const action =
     'template' in submissionConfig
-      ? actions[submissionConfig.template]
+      ? {
+          label: submissionConfig.template,
+          icon:
+            submissionConfig.template === 'create'
+              ? 'tabler:plus'
+              : 'tabler:device-floppy'
+        }
       : submissionConfig
-  const unavailable = pending || !!uiConfig.loading
-  useEffect(() => {
-    active.current = true
-
-    return () => {
-      active.current = false
-    }
-  }, [])
-
   function close() {
-    if (!locked.current && !uiConfig.loading) uiConfig.onClose()
+    if (!busy) uiConfig.onClose()
   }
-
-  async function submit(event: React.FormEvent<HTMLFormElement>) {
+  function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     event.stopPropagation()
-    if (locked.current || uiConfig.loading || submissionConfig.disabled) return
-    locked.current = true
-    setPending(true)
-
-    try {
-      await form.handleSubmit(async values => {
-        await submissionConfig.handler(values)
-        if (active.current) uiConfig.onClose()
-      })()
-    } catch (error) {
-      if (active.current)
-        toast.error(
-          error instanceof Error ? error.message : 'Unable to save changes'
-        )
-    } finally {
-      locked.current = false
-      if (active.current) setPending(false)
-    }
+    if (uiConfig.loading || submissionConfig.disabled) return
+    void task.run(async active => {
+      setFailure('')
+      try {
+        await form.handleSubmit(async values => {
+          if (!active()) return
+          await submissionConfig.handler(values)
+          if (active()) uiConfig.onClose()
+        })()
+      } catch (error) {
+        if (active())
+          setFailure(
+            error instanceof Error && error.message
+              ? error.message
+              : t('formSaveFailed')
+          )
+      }
+    })
   }
-
   return (
-    <NamespaceContext value={uiConfig.namespace}>
+    <FormNamespace value={uiConfig.namespace}>
       <Stack
-        aria-busy={unavailable}
-        aria-labelledby={titleId}
+        as="section"
         className="monolith-form-dialog"
-        data-dirty={form.formState.isDirty}
-        gap="sm"
-        maxWidth="100%"
-        minWidth="0"
         role="dialog"
+        aria-labelledby={heading}
+        aria-busy={busy}
+        data-dirty={form.formState.isDirty}
         tabIndex={-1}
+        gap="md"
+        minWidth="0"
         width="440px"
+        maxWidth="100%"
       >
-        <ModalHeader
-          icon={uiConfig.icon}
-          namespace={uiConfig.namespace}
-          title={uiConfig.title}
-          titleId={titleId}
-          trailing={uiConfig.headerActions}
-          onClose={close}
-        />
-        {uiConfig.loading ? (
-          <Flex centered minHeight="12em">
+        <form noValidate onSubmit={submit}>
+          <ModalHeader
+            title={uiConfig.title}
+            icon={uiConfig.icon}
+            namespace={uiConfig.namespace}
+            titleId={heading}
+            trailing={uiConfig.headerActions}
+            onClose={close}
+          />
+          {uiConfig.loading ? (
             <LoadingScreen />
-          </Flex>
-        ) : (
-          <form noValidate onSubmit={submit}>
-            <Bordered
-              as="fieldset"
-              borderSide="none"
-              disabled={pending}
-              m="none"
-              minWidth="0"
-              p="none"
-            >
-              <Stack gap="sm">{children}</Stack>
-            </Bordered>
-            <Flex
-              className="monolith-form-actions"
-              gap="sm"
-              justify="end"
-              mt="md"
-              pt="sm"
-              wrap="wrap"
-            >
-              <Button
-                disabled={unavailable}
-                type="button"
-                variant="plain"
-                onClick={close}
+          ) : (
+            <>
+              <Stack
+                as="fieldset"
+                disabled={task.pending}
+                gap="sm"
+                minWidth="0"
+                style={{ border: 0 }}
+                p="none"
+                m="none"
               >
-                cancel
-              </Button>
-              <Button
-                disabled={submissionConfig.disabled}
-                icon={action.icon}
-                loading={pending}
-                type="submit"
+                {children}
+              </Stack>
+              {failure && (
+                <Text as="p" role="alert" size="sm" color="dangerous" mt="sm">
+                  {failure}
+                </Text>
+              )}
+              <Flex
+                as="footer"
+                className="monolith-form-actions"
+                justify="end"
+                wrap="wrap"
+                gap="sm"
+                mt="md"
+                pt="sm"
               >
-                {action.label}
-              </Button>
-            </Flex>
-          </form>
-        )}
+                <Button
+                  variant="plain"
+                  type="button"
+                  disabled={busy}
+                  onClick={close}
+                >
+                  cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={submissionConfig.disabled}
+                  loading={task.pending}
+                  icon={action.icon}
+                >
+                  {action.label}
+                </Button>
+              </Flex>
+            </>
+          )}
+        </form>
       </Stack>
-    </NamespaceContext>
+    </FormNamespace>
   )
 }

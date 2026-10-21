@@ -22,21 +22,11 @@ Use layout editing to reorder and resize blocks. Width choices include full, hal
 
 Templates provide a starting arrangement. Applying a template is an explicit layout change. Viewer roles can inspect the dashboard but do not receive editing, resizing or template controls.
 
-## Widget packages
-
-| Widget       | What you can configure or use                                                                             |
-| ------------ | --------------------------------------------------------------------------------------------------------- |
-| Achievements | Add and edit personal milestones through compact controls.                                                |
-| Code Time    | Coding totals and a 7-, 30- or 90-day chart window; requires an authenticated editor integration.         |
-| Flashcards   | Select a deck, study cards and manage decks in an overlay. Viewer permissions restrict reviews and edits. |
-| Pomodoro     | Focus sessions, breaks and timer preferences.                                                             |
-| Idea Box     | Quick idea capture and later organization.                                                                |
-
 ## Connected views
 
 Core views include Workspace pulse, Action agenda, Project focus, Quick links, Calendar and Upcoming events. Weather uses a selected city and available weather integration. Habit and market widgets depend on the features configured on your host.
 
-Wallet adds Assets balance. Gym adds Training pulse and Training plan. Tech Lab adds Services, Health and Device views. The optional uRPG experience has character, vitals and progression widgets; it is currently included in the main client rather than independently downloadable.
+Gym adds Training pulse and Training plan. Tech Lab adds Services, Health and Device views. The optional uRPG experience has character, vitals and progression widgets; it is currently included in the main client rather than independently downloadable.
 
 Linked databases use their canvas picker to select the original database. Widget settings hold presentation choices, not duplicate task or project data.
 

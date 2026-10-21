@@ -1,202 +1,32 @@
+// SPDX-License-Identifier: 0BSD
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { useState } from 'react'
-
-import { Flex } from '@/components/primitives'
-import { ScrollableStory } from '@/storybook/ScrollableStory'
 
 import { DateInput } from './index'
 
 const meta = {
+  title: 'Inputs/DateInput',
   component: DateInput,
-  title: 'Inputs/DateInput'
+  args: {
+    value: new Date(2026, 9, 20, 14, 30),
+    onChange: () => {},
+    label: 'Project deadline',
+    namespace: false
+  }
 } satisfies Meta<typeof DateInput>
-
 export default meta
-
 type Story = StoryObj<typeof meta>
-
-/**
- * Default DateInput component.
- */
-export const Default: Story = {
-  args: {
-    icon: 'tabler:calendar',
-    label: 'Date',
-    onChange: () => {},
-    value: new Date()
-  },
-  render: args => {
-    const [date, setDate] = useState(args.value)
-
-    return (
-      <ScrollableStory>
-        <DateInput {...args} value={date} onChange={setDate} />
-      </ScrollableStory>
-    )
+export const Editable: Story = {
+  render: function Editable(args) {
+    const [value, setValue] = useState<Date | null>(args.value)
+    return <DateInput {...args} value={value} onChange={setValue} />
   }
 }
-
-/**
- * DateInput component with time selection enabled.
- */
-export const WithTime: Story = {
-  args: {
-    hasTime: true,
-    icon: 'tabler:clock',
-    label: 'Date',
-    onChange: () => {},
-    value: new Date()
-  },
-
-  render: args => {
-    const [date, setDate] = useState(args.value)
-
-    return (
-      <ScrollableStory>
-        <DateInput {...args} value={date} onChange={setDate} />
-      </ScrollableStory>
-    )
-  }
+export const WithTime: Story = { ...Editable, args: { hasTime: true } }
+export const Required: Story = { ...Editable, args: { required: true } }
+export const WithinRange: Story = {
+  ...Editable,
+  args: { startDate: new Date(2026, 9, 10), endDate: new Date(2026, 10, 5) }
 }
-
-export const Required: Story = {
-  args: {
-    icon: 'tabler:calendar',
-    label: 'Date',
-    onChange: () => {},
-    required: true,
-    value: new Date()
-  },
-
-  render: args => {
-    const [date, setDate] = useState(args.value)
-
-    return (
-      <ScrollableStory>
-        <DateInput {...args} value={date} onChange={setDate} />
-      </ScrollableStory>
-    )
-  }
-}
-
-export const Disabled: Story = {
-  args: {
-    icon: 'tabler:calendar',
-    label: 'Date',
-    onChange: () => {},
-    value: new Date()
-  },
-  render: args => {
-    const [date, setDate] = useState(args.value)
-
-    return (
-      <ScrollableStory>
-        <DateInput {...args} disabled value={date} onChange={setDate} />
-      </ScrollableStory>
-    )
-  }
-}
-
-export const WithErrorMessage: Story = {
-  args: {
-    errorMsg: 'Invalid date provided',
-    icon: 'tabler:calendar',
-    label: 'Date',
-    onChange: () => {},
-    value: new Date()
-  },
-
-  render: args => {
-    const [date, setDate] = useState(args.value)
-
-    return (
-      <ScrollableStory>
-        <DateInput {...args} value={date} onChange={setDate} />
-      </ScrollableStory>
-    )
-  }
-}
-
-export const DisabledWithErrorMessage: Story = {
-  args: {
-    disabled: true,
-    errorMsg: 'Invalid date provided',
-    icon: 'tabler:calendar',
-    label: 'Date',
-    onChange: () => {},
-    value: new Date()
-  },
-  render: args => {
-    const [date, setDate] = useState(args.value)
-
-    return (
-      <ScrollableStory>
-        <DateInput {...args} disabled value={date} onChange={setDate} />
-      </ScrollableStory>
-    )
-  }
-}
-
-export const PlainVariant: Story = {
-  args: {
-    icon: 'tabler:calendar',
-    label: 'Date',
-    onChange: () => {},
-    value: new Date(),
-    variant: 'plain'
-  },
-
-  render: args => {
-    const [date, setDate] = useState(args.value)
-
-    return (
-      <ScrollableStory>
-        <DateInput {...args} value={date} onChange={setDate} />
-      </ScrollableStory>
-    )
-  }
-}
-
-export const PlainVariantWithErrorMessage: Story = {
-  args: {
-    errorMsg: 'Invalid date provided',
-    icon: 'tabler:calendar',
-    label: 'Date',
-    onChange: () => {},
-    value: new Date(),
-    variant: 'plain'
-  },
-
-  render: args => {
-    const [date, setDate] = useState(args.value)
-
-    return (
-      <ScrollableStory>
-        <Flex p="sm">
-          <DateInput {...args} value={date} onChange={setDate} />
-        </Flex>
-      </ScrollableStory>
-    )
-  }
-}
-
-export const WithDateRange: Story = {
-  args: {
-    endDate: new Date('2026-07-20'),
-    icon: 'tabler:calendar',
-    label: 'Date',
-    onChange: () => {},
-    startDate: new Date('2026-07-03'),
-    value: new Date('2026-07-15')
-  },
-
-  render: args => {
-    const [date, setDate] = useState(args.value)
-
-    return (
-      <ScrollableStory>
-        <DateInput {...args} value={date} onChange={setDate} />
-      </ScrollableStory>
-    )
-  }
-}
+export const Disabled: Story = { args: { disabled: true } }
+export const Compact: Story = { ...Editable, args: { variant: 'plain' } }

@@ -1,23 +1,8 @@
-input:autofill {
-  background: transparent;
-}
-
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus,
-input:-webkit-autofill:active {
+/* SPDX-License-Identifier: 0BSD */
+/* Keep saved credentials readable with the field's current theme. */
+input:is(:autofill, :-webkit-autofill) {
+  background-clip: text;
   -webkit-background-clip: text;
-  -webkit-text-fill-color: black;
-  transition: background-color 5000s ease-in-out 0s;
-  caret-color: var(--color-bg-800);
-}
-
-.dark input:-webkit-autofill,
-.dark input:-webkit-autofill:hover,
-.dark input:-webkit-autofill:focus,
-.dark input:-webkit-autofill:active {
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: #ffffff;
-  transition: background-color 5000s ease-in-out 0s;
-  caret-color: #ffffff;
+  -webkit-text-fill-color: currentColor;
+  caret-color: currentColor;
 }

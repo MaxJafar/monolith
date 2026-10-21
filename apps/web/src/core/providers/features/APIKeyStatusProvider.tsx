@@ -1,4 +1,6 @@
+// SPDX-License-Identifier: 0BSD
 import { useQuery } from '@tanstack/react-query'
+import { type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
@@ -14,89 +16,58 @@ import {
 
 import workspaceAPI from '@/core/utils/workspaceAPI'
 
-function APIKeyStatusProvider({
+export default function APIKeyStatusProvider({
   APIKeyAccess,
   children
 }: {
   APIKeyAccess: ModuleGroup['items'][number]['APIKeyAccess']
-  children: React.ReactNode
+  children: ReactNode
 }) {
   const { t } = useTranslation('common.api-keys')
-
-  const requiredAPIKeys = Object.entries(APIKeyAccess ?? {})
-    .filter(([_, value]) => value.required)
-    .map(([key]) => key)
-
-  const hasRequiredAPIKeysQuery = useQuery(
-    workspaceAPI
-      .checkAPIKeys({
-        keys: requiredAPIKeys.join(',')
-      })
-      .queryOptions({
-        enabled: requiredAPIKeys.length > 0
-      })
+  const requirements = Object.entries(APIKeyAccess ?? {}).filter(
+    ([, access]) => access.required
   )
-
+  const lookup = useQuery(
+    workspaceAPI
+      .checkAPIKeys({ keys: requirements.map(([id]) => id).join(',') })
+      .queryOptions({ enabled: requirements.length > 0 })
+  )
+  if (!requirements.length) return children
   return (
-    <>
-      {requiredAPIKeys.length > 0 ? (
-        <WithQuery query={hasRequiredAPIKeysQuery}>
-          {hasRequiredAPIKeys =>
-            hasRequiredAPIKeys ? (
-              <>{children}</>
-            ) : (
-              <EmptyStateScreen
-                icon="tabler:key-off"
-                message={{
-                  title: t('missing.title'),
-                  description: (
-                    <Stack
-                      centered
-                      px="xl"
-                      width={{
-                        sm: '75%',
-                        lg: '50%'
-                      }}
-                    >
-                      <Text align="center" as="p" color="muted" size="lg">
-                        {t('missing.description')}
+    <WithQuery query={lookup}>
+      {available =>
+        available ? (
+          children
+        ) : (
+          <EmptyStateScreen
+            icon="tabler:key-off"
+            message={{
+              title: t('missing.title'),
+              description: (
+                <Stack gap="sm">
+                  <Text color="muted">{t('missing.description')}</Text>
+                  {requirements.map(([id, access]) => (
+                    <Card key={id}>
+                      <Text as="code">{id}</Text>
+                      <Text as="p" color="muted">
+                        {access.usage}
                       </Text>
-                      {requiredAPIKeys.map((key, index) => (
-                        <Card key={index} width="100%">
-                          <Text
-                            as="code"
-                            color={{ base: 'bg-800', dark: 'bg-100' }}
-                            size="lg"
-                          >
-                            {key}
-                          </Text>
-                          <Text as="p" color="muted" mt="xs">
-                            {APIKeyAccess?.[key]?.usage}
-                          </Text>
-                        </Card>
-                      ))}
-                      <Button
-                        as={Link}
-                        icon="tabler:arrow-right"
-                        iconPosition="end"
-                        namespace="common.api-keys"
-                        to="/api-keys"
-                        width="100%"
-                      >
-                        configAPIKeys
-                      </Button>
-                    </Stack>
-                  )
-                }}
-              />
-            )
-          }
-        </WithQuery>
-      ) : (
-        children
-      )}
-    </>
+                    </Card>
+                  ))}
+                  <Button
+                    as={Link}
+                    to="/api-keys"
+                    icon="tabler:key"
+                    namespace="common.api-keys"
+                  >
+                    configAPIKeys
+                  </Button>
+                </Stack>
+              )
+            }}
+          />
+        )
+      }
+    </WithQuery>
   )
 }
-
-export default APIKeyStatusProvider

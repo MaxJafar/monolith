@@ -1,157 +1,98 @@
-import { promises as fs } from 'node:fs'
+// SPDX-License-Identifier: 0BSD
+import { access, readFile, readdir, utimes, writeFile } from 'node:fs/promises'
+import { join } from 'node:path'
 import { Readable } from 'node:stream'
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
+import sharp from 'sharp'
+import { afterAll, beforeAll, expect, it, vi } from 'vitest'
 
-import type { FileReference } from '../../core/contract/fileReference'
-import { FileStorage } from '../../core/fileStorage'
-import { LocalStorageProvider } from '../../core/providers/local'
-import type { FileMetadataStore } from '../../core/types'
-import {
-  STAGING_DIR,
-  ensureStagingDir,
-  releaseStaged,
-  stageStream,
-  sweepStagingDir
-} from './staging'
+import { readStream, sandbox } from '../../testing'
 
-const { TEST_ROOT } = vi.hoisted(() => ({
-  TEST_ROOT: `${process.cwd()}/temp_test_staging`
-}))
+let area: Awaited<ReturnType<typeof sandbox>>,
+  staging: typeof import('./staging')
+beforeAll(async () => {
+  area = await sandbox()
+  vi.stubEnv('FILE_STORAGE_LOCAL_PATH', join(area.root, 'uploads'))
+  vi.resetModules()
+  staging = await import('./staging')
+})
+afterAll(async () => {
+  vi.unstubAllEnvs()
+  await area.dispose()
+})
 
-vi.mock('@monolith/configs/node', () => ({
-  findProjectRoot: () => TEST_ROOT
-}))
-
-class MemoryStore implements FileMetadataStore {
-  private map = new Map<string, FileReference & { moduleId: string }>()
-
-  async upsert(ref: FileReference & { moduleId: string }) {
-    this.map.set(ref.key, ref)
-  }
-
-  async get(key: string) {
-    return this.map.get(key) ?? null
-  }
-
-  async delete(key: string) {
-    this.map.delete(key)
-  }
-}
-
-const PNG_BUFFER = Buffer.from(
-  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
-  'base64'
-)
-
-async function streamToBuffer(stream: Readable): Promise<Buffer> {
-  const chunks: Buffer[] = []
-
-  for await (const chunk of stream) {
-    chunks.push(Buffer.from(chunk))
-  }
-
-  return Buffer.concat(chunks)
-}
-
-describe('staging', () => {
-  beforeAll(async () => {
-    await fs.rm(TEST_ROOT, { recursive: true, force: true })
+it('detects image bytes, counts the entire stream and exposes repeatable reads', async () => {
+  const image = await sharp({
+    create: { width: 4, height: 4, channels: 3, background: '#496860' }
   })
-
-  afterAll(async () => {
-    await fs.rm(TEST_ROOT, { recursive: true, force: true })
+    .png()
+    .toBuffer()
+  const result = await staging.stageStream(
+    Readable.from([image.subarray(0, 12), image.subarray(12)]),
+    'misleading.txt',
+    'text/plain'
+  )
+  expect(result).toMatchObject({
+    __staged: true,
+    mimeType: 'image/png',
+    size: image.length,
+    originalName: 'misleading.txt'
   })
-
-  it('creates the staging directory', async () => {
-    await ensureStagingDir()
-
-    expect((await fs.stat(STAGING_DIR)).isDirectory()).toBe(true)
-  })
-
-  it('stages a stream with sniffed mime and byte count', async () => {
-    const staged = await stageStream(
-      Readable.from(PNG_BUFFER),
-      'pic.png',
-      'application/octet-stream'
-    )
-
-    expect(staged.__staged).toBe(true)
-    expect(staged.originalName).toBe('pic.png')
-    expect(staged.mimeType).toBe('image/png')
-    expect(staged.size).toBe(PNG_BUFFER.length)
-    expect(staged.path.startsWith(STAGING_DIR)).toBe(true)
-    expect((await fs.stat(staged.path)).isFile()).toBe(true)
-    expect(await staged.read()).toEqual(PNG_BUFFER)
-    expect(await streamToBuffer(staged.stream())).toEqual(PNG_BUFFER)
-  })
-
-  it('falls back to the provided mime type when sniffing fails', async () => {
-    const staged = await stageStream(
-      Readable.from(Buffer.from('not-a-known-type')),
+  expect(await result.read()).toEqual(image)
+  expect(await readStream(result.stream())).toEqual(image)
+  await staging.releaseStaged(result)
+  await staging.releaseStaged(result)
+  await expect(access(result.path)).rejects.toThrow()
+})
+it('retains non-image and empty content with the supplied MIME fallback', async () => {
+  for (const content of [Buffer.from('plain text'), Buffer.alloc(0)]) {
+    const result = await staging.stageStream(
+      Readable.from(content),
       'note.txt',
       'text/plain'
     )
-
-    expect(staged.mimeType).toBe('text/plain')
-    expect(staged.size).toBe('not-a-known-type'.length)
-  })
-
-  it('releases a staged file', async () => {
-    const staged = await stageStream(
-      Readable.from(Buffer.from('x')),
-      'x.bin',
-      'application/octet-stream'
-    )
-
-    await releaseStaged(staged)
-
-    await expect(fs.stat(staged.path)).rejects.toThrow()
-
-    await expect(releaseStaged(staged)).resolves.not.toThrow()
-  })
-
-  it('sweeps only files older than the TTL', async () => {
-    const oldFile = await stageStream(
-      Readable.from(Buffer.from('old')),
-      'old.bin',
-      'application/octet-stream'
-    )
-    const freshFile = await stageStream(
-      Readable.from(Buffer.from('fresh')),
-      'fresh.bin',
-      'application/octet-stream'
-    )
-
-    await fs.utimes(oldFile.path, new Date(0), new Date(0))
-
-    await sweepStagingDir()
-
-    await expect(fs.stat(oldFile.path)).rejects.toThrow()
-    expect((await fs.stat(freshFile.path)).isFile()).toBe(true)
-  })
-
-  it('commits a staged file through FileStorage.save', async () => {
-    const storage = new FileStorage(
-      new LocalStorageProvider(`${TEST_ROOT}/provider`),
-      new MemoryStore(),
-      'mod'
-    )
-
-    const staged = await stageStream(
-      Readable.from(PNG_BUFFER),
-      'p.png',
-      'image/png'
-    )
-
-    const ref = await storage.save({ file: staged })
-
-    expect(ref).not.toBeNull()
-    expect(ref!.originalName).toBe('p.png')
-
-    const stream = await storage.get(ref!.key)
-
-    expect(await streamToBuffer(stream!.stream)).toEqual(PNG_BUFFER)
-
-    await expect(fs.stat(staged.path)).rejects.toThrow()
-  })
+    expect(result.size).toBe(content.length)
+    expect(result.mimeType).toBe('text/plain')
+    expect(await result.read()).toEqual(content)
+    await staging.releaseStaged(result)
+  }
+})
+it('propagates an interrupted source and removes its partial staging file', async () => {
+  const before = await readdir(staging.STAGING_DIR)
+  const broken = Readable.from(
+    (async function* () {
+      yield Buffer.alloc(6000, 65)
+      await new Promise(resolve => setImmediate(resolve))
+      throw new Error('upload interrupted')
+    })()
+  )
+  await expect(
+    staging.stageStream(broken, 'partial.bin', 'application/octet-stream')
+  ).rejects.toThrow('upload interrupted')
+  expect(await readdir(staging.STAGING_DIR)).toEqual(before)
+})
+it('reclaims expired owned uploads while leaving fresh and unrelated files untouched', async () => {
+  const old = await staging.stageStream(
+    Readable.from('old'),
+    'old.txt',
+    'text/plain'
+  )
+  const fresh = await staging.stageStream(
+    Readable.from('fresh'),
+    'fresh.txt',
+    'text/plain'
+  )
+  const unrelated = join(staging.STAGING_DIR, 'keep-this.txt')
+  const outside = join(area.root, 'outside.txt')
+  await writeFile(unrelated, 'keep')
+  await writeFile(outside, 'outside')
+  await utimes(old.path, new Date(0), new Date(0))
+  await utimes(unrelated, new Date(0), new Date(0))
+  await expect(
+    staging.releaseStaged({ ...old, path: outside })
+  ).rejects.toThrow('outside')
+  await staging.sweepStagingDir()
+  await expect(access(old.path)).rejects.toThrow()
+  expect(await fresh.read()).toEqual(Buffer.from('fresh'))
+  expect(await readFile(unrelated, 'utf8')).toBe('keep')
+  expect(await readFile(outside, 'utf8')).toBe('outside')
 })

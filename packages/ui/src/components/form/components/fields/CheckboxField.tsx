@@ -1,64 +1,44 @@
-import {
-  type Control,
-  type FieldPathByValue,
-  type FieldValues,
-  useController
-} from 'react-hook-form'
+// SPDX-License-Identifier: 0BSD
+import type { FieldValues } from 'react-hook-form'
 
 import { Switch } from '@/components/inputs'
 import { useInputLabel } from '@/components/inputs/shared/hooks/useInputLabel'
 import { Flex, Icon, Text } from '@/components/primitives'
 
-import { useNamespace } from '../FormModal'
+import { type FieldBinding, useFieldBinding } from './binding'
 
-type CheckboxFieldProps<TFieldValues extends FieldValues> = {
-  control: Control<TFieldValues>
-  name: FieldPathByValue<TFieldValues, boolean | null | undefined>
-  label: string
-  icon: string
-  disabled?: boolean
-  namespace?: string | false
-}
-
-export function CheckboxField<TFieldValues extends FieldValues>({
+export function CheckboxField<Form extends FieldValues>({
   control,
   name,
   label,
   icon,
-  disabled = false,
+  disabled,
   namespace
-}: CheckboxFieldProps<TFieldValues>) {
-  const { field, fieldState } = useController({
-    control,
-    name
-  })
-
-  const contextNamespace = useNamespace()
-
-  const activeNamespace = namespace ?? contextNamespace
-
-  const labelText = useInputLabel({ label, namespace: activeNamespace })
-
-  function handleSwitchChange() {
-    field.onChange(!field.value)
-  }
-
+}: FieldBinding<Form, boolean> & {
+  label: string
+  icon: string
+  disabled?: boolean
+  namespace?: string | false
+}) {
+  const field = useFieldBinding(control, name, namespace)
+  const caption = useInputLabel({ label, namespace: field.namespace })
   return (
-    <Flex direction="column" gap="sm" width="100%">
-      <Flex align="center" justify="between" py="sm">
+    <Flex direction="column" gap="xs" width="100%">
+      <Flex align="center" gap="sm" justify="between" py="sm">
         <Flex align="center" gap="sm">
-          <Icon icon={icon} size="1.5em" />
-          <Text size="lg">{labelText}</Text>
+          <Icon icon={icon} />
+          <Text>{caption}</Text>
         </Flex>
         <Switch
+          aria-label={caption}
+          value={Boolean(field.value)}
+          onChange={field.onChange}
           disabled={disabled}
-          value={!!field.value}
-          onChange={handleSwitchChange}
         />
       </Flex>
-      {fieldState.error?.message && (
-        <Text color="dangerous" size="sm">
-          {fieldState.error.message}
+      {field.errorMsg && (
+        <Text role="alert" color="dangerous" size="sm">
+          {field.errorMsg}
         </Text>
       )}
     </Flex>

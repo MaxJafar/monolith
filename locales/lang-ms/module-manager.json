@@ -9,7 +9,7 @@
     },
     "categories": {
       "title": "Kategori",
-      "description": "Susun dan susun semula kategori bar sisi untuk menyesuaikan navigasi anda"
+      "description": "Kumpulkan navigasi addon dan pilih susunannya."
     }
   },
   "buttons": {
@@ -30,7 +30,7 @@
   "empty": {
     "category": {
       "title": "Tiada kategori dijumpai",
-      "description": "Cipta kategori untuk memulakan"
+      "description": "Tambah kumpulan navigasi pertama anda."
     },
     "modules": {
       "title": "Tiada addon dipasang",
@@ -66,7 +66,7 @@
     "enable": "Aktifkan Mod Pembangunan",
     "disable": "Nyahaktifkan Mod Pembangunan",
     "enabled": "{{module}} kini dalam mod pembangunan",
-    "disabled": "{{module}} tidak lagi dalam mod pembangunan"
+    "disabled": "Sumber pembangunan dimatikan untuk {{module}}"
   },
   "misc": {
     "translations": "Terjemahan"
@@ -75,7 +75,7 @@
     "label": "Tidak Dibina"
   },
   "messages": {
-    "categoriesMissingTranslations": "{{count}} kategori tiada terjemahan:"
+    "categoriesMissingTranslations": "Kumpulan yang memerlukan terjemahan: {{count}}"
   },
   "catalog": {
     "description": "Sesuaikan ruang kerja ini. Pilih alat yang anda perlukan.",

@@ -12,8 +12,8 @@
     "lockLayout": "Kunci Susun Atur"
   },
   "messages": {
-    "editingLayout": "Anda sedang menyunting susun atur papan pemuka",
-    "editingLayoutHint": "Laraskan susunan widget dengan menyeret widget atau laraskan saiz widget dengan menyeret segi tiga kecil di sudut kanan bawah setiap widget"
+    "editingLayout": "Penyuntingan susun atur aktif",
+    "editingLayoutHint": "Alihkan widget dengan pemegangnya. Ubah saiz dari tepi atau gunakan kawalan papan kekunci."
   },
   "empty": {
     "welcome": {

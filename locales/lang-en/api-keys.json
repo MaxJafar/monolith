@@ -2,7 +2,7 @@
   "title": "API Keys",
   "description": "Manage all the API keys required for the addons",
   "lockedMessage": "API key settings are locked",
-  "passwordRequired": "Password is required to decrypt the API keys",
+  "passwordRequired": "Unlock saved API credentials with your vault password.",
   "missing": {
     "title": "Missing API Keys",
     "description": "One or more API keys are missing. Open API key settings to configure them.",
@@ -38,7 +38,7 @@
   "empty": {
     "apiKeys": {
       "title": "No API Keys",
-      "description": "No API keys found. Click the button below to create a new API key"
+      "description": "Add a credential to connect an external service."
     }
   },
   "misc": {

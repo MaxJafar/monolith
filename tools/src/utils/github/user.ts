@@ -1,52 +1,27 @@
-import { log } from '@clack/prompts'
+// SPDX-License-Identifier: 0BSD
+import { ghApi } from './cli'
 
-import executeCommand from '@/utils/commands'
-
-import { run } from './cli'
-
-/** Returns the authenticated GitHub user's login. */
-export function getGithubLogin(): string {
-  return run('gh api user --jq .login')
+export function getGithubLogin() {
+  return ghApi<{ login: string }>('user').login
 }
-
-/** Returns the authenticated GitHub user's name and email, if available. */
 export function getGithubUser(): { name: string; email: string } | null {
   try {
-    // Try getting basic user info first
-    const basicInfo = executeCommand('gh api user')
-
-    const user = JSON.parse(basicInfo) as { name: string; email: string | null }
-
+    const user = ghApi<{
+      name: string | null
+      login: string
+      email: string | null
+    }>('user')
     let email = user.email
-
-    // If email is private/null, try fetching from /user/emails
     if (!email) {
       try {
-        const emailsJson = executeCommand('gh api user/emails')
-
-        const emails = JSON.parse(emailsJson) as Array<{
-          email: string
-          primary: boolean
-        }>
-
-        const primary = emails.find(e => e.primary)
-
-        if (primary) {
-          email = primary.email
-        }
-      } catch {
-        // Ignore error if can't fetch emails, just fallback
-      }
+        email =
+          ghApi<{ email: string; primary: boolean; verified: boolean }[]>(
+            'user/emails'
+          ).find(row => row.primary && row.verified)?.email ?? null
+      } catch {}
     }
-
-    if (user.name && email) {
-      return { name: user.name, email }
-    }
-
-    return null
+    return email ? { name: user.name || user.login, email } : null
   } catch {
-    log.error(`Failed to fetch GitHub user info.`)
-
     return null
   }
 }

@@ -1,0 +1,17 @@
+/* SPDX-License-Identifier: 0BSD */
+@keyframes monolith-dialog-appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+[data-modal-overlay][data-open='true'] {
+  animation: monolith-dialog-appear 160ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-modal-overlay][data-open='true'] {
+    animation: none;
+  }
+}

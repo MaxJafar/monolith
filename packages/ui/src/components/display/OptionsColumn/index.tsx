@@ -1,94 +1,60 @@
+// SPDX-License-Identifier: 0BSD
+import { type ReactNode, useId } from 'react'
+
 import { IconTooltip } from '@/components/feedback/IconTooltip'
 import { Card, type CardProps } from '@/components/layout'
 import { Flex, Icon, Text } from '@/components/primitives'
-import type { ResponsiveProp, SpaceToken } from '@/system'
 
-type DirectionValue = 'row' | 'column' | 'row-reverse' | 'column-reverse'
-
-interface OptionsColumnProps extends Omit<CardProps, 'title'> {
-  /** The title of the configuration column */
-  title: string | React.ReactNode
-  /** A brief description of the configuration column */
-  description: React.ReactNode | string
-  /** The icon to display alongside the title */
+type OptionsColumnProps = Omit<CardProps, 'title'> & {
+  title: ReactNode
+  description: ReactNode
   icon: string
-  /** The orientation of the configuration column */
-  orientation?: 'vertical' | 'horizontal'
-  /** Optional tooltip content to display alongside the title */
-  tooltip?: React.ReactNode
-  /** The child elements to render within the configuration column */
-  children: React.ReactNode
-  /** The breakpoint at which the layout should wrap. Only applies when orientation is 'horizontal' */
+  children: ReactNode
+  orientation?: 'horizontal' | 'vertical'
+  tooltip?: ReactNode
   breakpoint?: 'sm' | 'md' | 'lg' | 'xl' | false
 }
-
-/**
- * A reusable options column component for displaying settings options.
- */
 export function OptionsColumn({
   title,
   description,
   icon,
+  children,
   orientation = 'horizontal',
   tooltip,
-  children,
   breakpoint = 'md',
   className = '',
-  ...rest
+  ...props
 }: OptionsColumnProps) {
-  const getDirection = (): ResponsiveProp<DirectionValue> => {
-    if (orientation === 'vertical') return 'column'
-    if (!breakpoint) return 'row'
-
-    return { base: 'column', [breakpoint]: 'row' }
-  }
-
-  const getChildrenWidth = (): ResponsiveProp<string> | undefined => {
-    if (orientation !== 'horizontal') return undefined
-    if (!breakpoint) return undefined
-
-    return { base: 'full', [breakpoint]: 'auto' }
-  }
-
-  const getChildrenMarginRight = (): ResponsiveProp<SpaceToken> | undefined => {
-    if (orientation !== 'horizontal') return undefined
-    if (!breakpoint) return 'sm'
-
-    return { [breakpoint]: 'sm' }
-  }
-
+  const tooltipId = useId()
+  const stacked = orientation === 'vertical'
+  const direction = stacked
+    ? 'column'
+    : breakpoint
+      ? { base: 'column' as const, [breakpoint]: 'row' as const }
+      : 'row'
   return (
     <Card
-      className={`monolith-option-row ${className}`}
-      direction={getDirection()}
-      gapX="xl"
-      gapY="md"
+      {...props}
+      className={['monolith-option-row', className].filter(Boolean).join(' ')}
+      direction={direction}
       justify="between"
-      {...rest}
+      gap="md"
     >
-      <Flex align="center" flexShrink="1" gap="md">
-        <Icon color="muted" icon={icon} mx="sm" size="1.8em" />
-        <Flex direction="column">
-          <Flex
-            align="center"
-            as="h3"
-            gap="sm"
-            width={{ base: 'full', md: 'auto' }}
-          >
-            <Text size="xl" weight="medium">
+      <Flex align="start" gap="md" minWidth="0" flex="1">
+        <Icon icon={icon} size="24px" color="muted" style={{ flexShrink: 0 }} />
+        <Flex direction="column" gap="xs" minWidth="0">
+          <Flex align="center" gap="sm">
+            <Text as="h3" size="base" weight="semibold">
               {title}
             </Text>
-            {tooltip !== undefined && (
-              <IconTooltip
-                icon="tabler:info-circle"
-                id={title?.toString() || ''}
-              >
+            {tooltip != null && (
+              <IconTooltip id={tooltipId} icon="tabler:info-circle">
                 {tooltip}
               </IconTooltip>
             )}
           </Flex>
           {typeof description === 'string' ? (
-            <Text as="p" color="muted">
+            <Text as="p" size="sm" color="muted">
               {description}
             </Text>
           ) : (
@@ -98,11 +64,16 @@ export function OptionsColumn({
       </Flex>
       <Flex
         align="center"
-        flexShrink="0"
         gap="sm"
         minWidth="0"
-        mr={getChildrenMarginRight()}
-        width={getChildrenWidth()}
+        flexShrink="0"
+        width={
+          stacked
+            ? '100%'
+            : breakpoint
+              ? { base: '100%', [breakpoint]: 'auto' }
+              : 'auto'
+        }
       >
         {children}
       </Flex>

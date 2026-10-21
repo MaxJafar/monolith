@@ -63,7 +63,7 @@ its default of ten tasks. Several of the concurrent Node processes observed
 on 18 October 2026 were these addon/client builds. There was also no shared
 lock or whole-tree memory budget to prevent another invocation from overlapping.
 
-This explains the observed LifeForge/Monolith build pressure. It does not prove
+This explains the observed Monolith build pressure. It does not prove
 the cause of the earlier pre-restart black desktop incident. SearchX's indexing
 safety hold is separate and remains enabled.
 

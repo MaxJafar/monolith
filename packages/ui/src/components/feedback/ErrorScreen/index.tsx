@@ -1,33 +1,34 @@
+// SPDX-License-Identifier: 0BSD
+import type { ReactNode } from 'react'
+
 import { Button } from '@/components/inputs'
-import { Flex, Icon, Text } from '@/components/primitives'
 
-interface ErrorScreenProps {
-  /** The error message to display. Can be a string or a React node for more complex formatting. */
-  message: string | React.ReactNode
-  /** Whether to show a retry button that reloads the page */
+import { StateMessage } from '../StateMessage'
+
+export function ErrorScreen({
+  message,
+  showRetryButton
+}: {
+  message: ReactNode
   showRetryButton?: boolean
-}
-
-/**
- * A reusable error screen component for displaying error messages.
- */
-export function ErrorScreen({ message, showRetryButton }: ErrorScreenProps) {
+}) {
   return (
-    <Flex centered direction="column" gap="lg" height="100dvh" width="100%">
-      <Icon color="dangerous" icon="tabler:alert-triangle" size="4rem" />
-      <Text align="center" as="p" color="dangerous" size="lg" weight="medium">
-        {message}
-      </Text>
-      {showRetryButton && (
-        <Button
-          icon="tabler:refresh"
-          namespace={false}
-          variant="secondary"
-          onClick={() => window.location.reload()}
-        >
-          Retry
-        </Button>
-      )}
-    </Flex>
+    <StateMessage
+      error
+      icon="tabler:alert-triangle"
+      title={message}
+      action={
+        showRetryButton ? (
+          <Button
+            icon="tabler:refresh"
+            namespace={false}
+            variant="secondary"
+            onClick={() => window.location.reload()}
+          >
+            Retry
+          </Button>
+        ) : undefined
+      }
+    />
   )
 }

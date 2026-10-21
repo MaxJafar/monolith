@@ -1,121 +1,65 @@
-import { getInstance, init, registerRemotes } from '@module-federation/runtime'
+// SPDX-License-Identifier: 0BSD
+import type { FC, ReactNode } from 'react'
 
 import { type ModuleGroup, addonPackageName } from '@monolith/configs'
 
-import { type FederatedModuleGroup } from '../providers/FederationProvider'
+import type { FederatedModuleGroup } from '../providers/FederationProvider'
 import {
   type CategoryOrder,
-  type FederatedModule,
   fetchCategoryOrder,
   fetchModuleManifest
 } from '../utils/fetchModuleData'
 import { sortRoutes } from '../utils/sortRoutes'
 import { getBundledModules } from './bundledModules'
-import { registeredRemotesSet } from './loadRemoteModuleConfig'
-import { resolveRemoteEntry } from './remoteEntry'
+import { registerFederatedEntry } from './remoteRegistry'
 
-/**
- * Adds the module configuration to the moduleGroups
- */
-function addToRoute(
-  moduleGroups: ModuleGroup[],
-  category: string,
-  moduleConfig: ModuleGroup['items'][number]
-) {
-  const categoryIndex = moduleGroups.findIndex(cat => cat.title === category)
-
-  if (categoryIndex > -1) {
-    const cat = moduleGroups[categoryIndex]
-
-    if (cat) {
-      cat.items.push(moduleConfig)
-    }
-  } else {
-    moduleGroups.push({
-      title: category,
-      items: [moduleConfig]
-    })
-  }
-}
-
-/**
- * Entry point for constructing the module groups
- * Loads core modules (static) and federated modules (dynamic) from the server
- * Collects providers from module manifests
- */
 export async function bootstrapModules(
   apiHost: string,
   coreModules: ModuleGroup['items'][number][] = []
 ): Promise<{
   moduleGroups: FederatedModuleGroup[]
-  globalProviders: React.FC<{ children: React.ReactNode }>[]
+  globalProviders: FC<{ children: ReactNode }>[]
   categoryTranslations: CategoryOrder
 }> {
-  const moduleGroups: FederatedModuleGroup[] = []
-  const globalProviders: React.FC<{ children: React.ReactNode }>[] = []
-
-  // Register core/system modules
-  for (const mod of coreModules) {
-    addToRoute(moduleGroups, mod.category, mod)
-
-    // Collect provider from core module if exists
-    if (mod.provider) {
-      globalProviders.push(mod.provider)
-    }
-  }
-
-  // Fetch federated modules and category order
-  const [federatedModuleManifests, categoryOrder] = await Promise.all([
+  const [manifests, categoryTranslations] = await Promise.all([
     fetchModuleManifest(apiHost),
     fetchCategoryOrder(apiHost)
   ])
-
-  const remotes: { name: string; entry: string; type: 'module' }[] = []
-
-  for (const mod of federatedModuleManifests) {
-    const remoteName = `m_${mod.remoteId}`
-    if (!getBundledModules()?.[addonPackageName(mod.name)]) {
-      registeredRemotesSet.add(remoteName)
-      remotes.push({
-        name: remoteName,
-        entry: resolveRemoteEntry(mod.remoteEntryUrl),
-        type: 'module' as const
-      })
+  const groups = new Map<string, FederatedModuleGroup>()
+  const add = (item: FederatedModuleGroup['items'][number]) => {
+    let group = groups.get(item.category)
+    if (!group) {
+      group = { title: item.category, items: [] }
+      groups.set(item.category, group)
     }
-
-    const moduleConfig: ModuleGroup['items'][number] & {
-      rawModule: FederatedModule
-    } = {
-      name: mod.name,
-      id: mod.id,
-      remoteId: mod.remoteId,
-      icon: mod.icon,
-      category: mod.category,
+    group.items.push(item)
+  }
+  const globalProviders: FC<{ children: ReactNode }>[] = []
+  for (const module of coreModules) {
+    add(module)
+    if (module.provider && !globalProviders.includes(module.provider))
+      globalProviders.push(module.provider)
+  }
+  for (const module of manifests) {
+    if (!getBundledModules()?.[addonPackageName(module.name)])
+      registerFederatedEntry(module, apiHost)
+    add({
+      name: module.name,
+      id: module.id,
+      remoteId: module.remoteId,
+      icon: module.icon,
+      category: module.category,
       routes: {},
       widgets: [],
-      hidden: mod.hidden,
-      APIKeyAccess: mod.APIKeyAccess,
-      subsection: mod.subsection,
-      rawModule: mod
-    }
-
-    addToRoute(moduleGroups, mod.category, moduleConfig)
+      hidden: module.hidden,
+      APIKeyAccess: module.APIKeyAccess,
+      subsection: module.subsection,
+      rawModule: module
+    })
   }
-
-  if (remotes.length > 0) {
-    if (!getInstance()) {
-      init({
-        name: 'host',
-        remotes
-      })
-    } else {
-      registerRemotes(remotes)
-    }
-  }
-
   return {
-    moduleGroups: sortRoutes(moduleGroups, categoryOrder),
+    moduleGroups: sortRoutes(Array.from(groups.values()), categoryTranslations),
     globalProviders,
-    categoryTranslations: categoryOrder
+    categoryTranslations
   }
 }

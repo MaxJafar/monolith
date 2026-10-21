@@ -1,40 +1,41 @@
+// SPDX-License-Identifier: 0BSD
 import * as ts from '@typescript/typescript6'
 import { describe, expect, it } from 'vitest'
 
-import resolveExpressionMap, { findVariableDeclaration } from '../ast-utils'
+import readValues, { findVariableDeclaration } from '../ast-utils'
 
-function read(source: string) {
-  const file = ts.createSourceFile(
-    'config.ts',
+const parse = (source: string) => {
+  const syntax = ts.createSourceFile(
+    'widget.ts',
     source,
     ts.ScriptTarget.Latest,
     true
   )
-  return resolveExpressionMap(findVariableDeclaration(file, 'config') ?? {})
+  return readValues(findVariableDeclaration(syntax, 'config') ?? {})
 }
-
-describe('static addon metadata', () => {
-  it('reads typed literal configuration without evaluating expressions', () => {
-    const result = read(`const config = ({
-      id: 'timer', minW: 2, minH: +1, offset: -3,
-      hidden: false, unsafe: (() => { throw new Error('not evaluated') })()
+describe('metadata literal boundaries', () => {
+  it('accepts scalar literals behind type wrappers without evaluating code', () => {
+    expect({
+      ...parse(`const config = ({
+      id: 'session', minW: +2, offset: -7, ready: true, disabled: false,
+      generated: createSomething(), nested: {code:'unused'}
     } as const) satisfies WidgetConfig`)
-    expect({ ...result }).toEqual({
-      id: 'timer',
+    }).toEqual({
+      id: 'session',
       minW: 2,
-      minH: 1,
-      offset: -3,
-      hidden: false
+      offset: -7,
+      ready: true,
+      disabled: false
     })
   })
-
-  it('ignores executable keys and does not change the metadata object prototype', () => {
-    const result = read(
-      `const config = { ['computed']: 1, ...source, '__proto__': 'literal', id: 'clock' }`
+  it('treats prototype-like names as data and ignores computed or spread properties', () => {
+    const result = parse(
+      "const config = { '__proto__': 'data', id:'one', [execute()]: 1, ...other }"
     )
     expect(Object.getPrototypeOf(result)).toBeNull()
-    expect(result.id).toBe('clock')
-    expect(result.__proto__).toBe('literal')
-    expect(result.computed).toBeUndefined()
+    expect(Object.entries(result)).toEqual([
+      ['__proto__', 'data'],
+      ['id', 'one']
+    ])
   })
 })

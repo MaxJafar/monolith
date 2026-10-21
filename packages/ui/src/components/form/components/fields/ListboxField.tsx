@@ -1,221 +1,93 @@
-import {
-  type Control,
-  type FieldPathByValue,
-  type FieldValues,
-  useController
-} from 'react-hook-form'
+// SPDX-License-Identifier: 0BSD
+import { isEqual } from 'lodash'
+import type { FieldValues } from 'react-hook-form'
 
 import { ListboxInput, ListboxOption } from '@/components/inputs'
-import { Box, Flex, Icon, Text } from '@/components/primitives'
+import { Flex, Icon, Text } from '@/components/primitives'
 
-import { useNamespace } from '../FormModal'
+import { type FieldBinding, useFieldBinding } from './binding'
 
-type ListboxOptionType<TOption> = {
-  value: TOption
+type Choice<Value> = {
+  value: Value
   text: string
   icon?: string
   color?: string
   disabled?: boolean
 }
-
-type ListboxFieldProps<TFieldValues extends FieldValues, TOption> = {
-  control: Control<TFieldValues>
-  name: FieldPathByValue<TFieldValues, TOption | TOption[] | null | undefined>
+export function ListboxField<Form extends FieldValues, Value>({
+  control,
+  name,
+  options,
+  actionButtonOption,
+  ...input
+}: FieldBinding<Form, Value | Value[]> & {
+  options: Choice<Value>[]
   icon: string
   label: string
   multiple?: boolean
   disabled?: boolean
-  namespace?: string | false
   required?: boolean
-  options: ListboxOptionType<TOption>[]
-  actionButtonOption?: {
-    text: string
-    onClick: () => void
-    icon: string
-  }
-}
-
-function OptionColorAndIcon({
-  color,
-  icon
-}: {
-  color?: string
-  icon?: string
+  namespace?: string | false
+  actionButtonOption?: { text: string; icon: string; onClick: () => void }
 }) {
-  if (!color && !icon) return null
-
-  if (color && icon) {
-    return <Icon icon={icon} style={{ color }} />
-  }
-
-  if (!color) {
-    return <Icon icon={icon ?? ''} />
-  }
-
+  const field = useFieldBinding(control, name, input.namespace)
+  const selected =
+    input.multiple && Array.isArray(field.value) ? field.value : [field.value]
+  const choices = selected
+    .map(value => options.find(option => isEqual(option.value, value)))
+    .filter((option): option is Choice<Value> => !!option)
   return (
-    <Box
-      display="inline-block"
-      flexShrink="0"
-      height="0.75em"
-      r="full"
-      style={{
-        backgroundColor: color
-      }}
-      width="0.75em"
-    />
-  )
-}
-
-function ListboxButtonContent<TOption>({
-  multiple,
-  value,
-  options
-}: {
-  multiple?: boolean
-  value: unknown
-  options: ListboxOptionType<TOption>[]
-}) {
-  if (multiple === true && Array.isArray(value)) {
-    return (
-      <Flex align="center" gap="sm" wrap="wrap">
-        {value.length > 0 &&
-          value.map(function (item: TOption, i: number) {
-            const target = options.find(function (l) {
-              return l.value === item
-            })
-
-            return (
-              <Flex key={String(item)} align="center" gap="sm" minWidth="0">
-                <Icon
-                  icon={target?.icon ?? ''}
-                  style={{
-                    color: target?.color
-                  }}
-                />
-                <Text truncate>{target?.text ?? 'None'}</Text>
-                {i !== value.length - 1 && (
-                  <Icon
-                    color="muted"
-                    icon="tabler:circle-filled"
-                    size="0.25em"
-                  />
-                )}
-              </Flex>
-            )
-          })}
-      </Flex>
-    )
-  }
-
-  const targetOption = options.find(function (l) {
-    return l.value === value
-  })
-
-  if (!targetOption) {
-    return <Text>None</Text>
-  }
-
-  return (
-    <Flex align="center" gap="sm">
-      <OptionColorAndIcon color={targetOption.color} icon={targetOption.icon} />
-      <Text truncate>{targetOption.text}</Text>
-    </Flex>
-  )
-}
-
-export function ListboxField<TFieldValues extends FieldValues, TOption>({
-  control,
-  name,
-  icon,
-  label,
-  multiple = false,
-  disabled = false,
-  namespace,
-  required = false,
-  options,
-  actionButtonOption
-}: ListboxFieldProps<TFieldValues, TOption>) {
-  const { field, fieldState } = useController({
-    control,
-    name
-  })
-
-  const contextNamespace = useNamespace()
-
-  const activeNamespace = namespace ?? contextNamespace
-
-  function handleListboxChange(val: unknown) {
-    let cleanVal = val
-
-    if (Array.isArray(cleanVal) && cleanVal.includes(null)) {
-      cleanVal = cleanVal.filter(function (v) {
-        return v !== null
-      })
-    }
-
-    if (cleanVal === null) {
-      return
-    }
-
-    field.onChange(cleanVal)
-  }
-
-  function handleRenderContent() {
-    return (
-      <ListboxButtonContent
-        multiple={multiple}
-        options={options}
-        value={field.value}
-      />
-    )
-  }
-
-  return (
-    <ListboxInput
-      disabled={disabled}
-      errorMsg={fieldState.error?.message}
-      icon={icon}
-      label={label}
-      multiple={multiple}
-      namespace={activeNamespace}
-      renderContent={handleRenderContent}
-      required={required}
+    <ListboxInput<unknown>
+      {...input}
+      namespace={field.namespace}
+      errorMsg={field.errorMsg}
       value={field.value}
-      onChange={handleListboxChange}
-    >
-      {options.map(function ({
-        text,
-        color,
-        icon: optIcon,
-        value: v,
-        disabled
-      }) {
-        return (
-          <ListboxOption
-            key={String(v)}
-            color={color}
-            disabled={disabled}
-            icon={optIcon}
-            label={text}
-            selected={
-              multiple
-                ? Array.isArray(field.value) &&
-                  field.value.some(
-                    (item: unknown) =>
-                      JSON.stringify(item) === JSON.stringify(v)
-                  )
-                : JSON.stringify(v) === JSON.stringify(field.value)
-            }
-            value={v}
-          />
+      onChange={value => {
+        if (value === null) return
+        field.onChange(
+          Array.isArray(value) ? value.filter(item => item !== null) : value
         )
-      })}
+      }}
+      renderContent={() => (
+        <Flex align="center" gap="sm" wrap="wrap">
+          {choices.length === 0 ? (
+            <Text>None</Text>
+          ) : (
+            choices.map((choice, index) => (
+              <Flex key={index} align="center" gap="xs" minWidth="0">
+                {choice.icon ? (
+                  <Icon icon={choice.icon} style={{ color: choice.color }} />
+                ) : choice.color ? (
+                  <Icon
+                    icon="tabler:circle-filled"
+                    size="sm"
+                    style={{ color: choice.color }}
+                  />
+                ) : null}
+                <Text truncate>{choice.text}</Text>
+              </Flex>
+            ))
+          )}
+        </Flex>
+      )}
+    >
+      {options.map((option, index) => (
+        <ListboxOption
+          key={index}
+          value={option.value}
+          label={option.text}
+          icon={option.icon}
+          color={option.color}
+          disabled={option.disabled}
+          selected={selected.some(value => isEqual(value, option.value))}
+        />
+      ))}
       {actionButtonOption && (
         <ListboxOption
-          icon={actionButtonOption.icon}
-          label={actionButtonOption.text}
+          value={null}
           selected={false}
-          value={null as unknown as TOption}
+          label={actionButtonOption.text}
+          icon={actionButtonOption.icon}
           onClick={actionButtonOption.onClick}
         />
       )}

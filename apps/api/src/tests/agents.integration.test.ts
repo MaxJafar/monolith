@@ -29,16 +29,16 @@ import {
   usageRecords
 } from '../../../../modules/monolith--agents/server/schema.drizzle'
 import type { Database } from '../../../../modules/monolith--agents/server/store'
+import {
+  entries as projects,
+  tasks
+} from '../../../../modules/monolith--agents/server/workSchema'
 import type {
   AgentSnapshot,
   Principal,
   Run
 } from '../../../../modules/monolith--agents/shared'
 import { documents } from '../../../../modules/monolith--databases/server/schema.drizzle'
-import {
-  entries as projects,
-  tasks
-} from '../../../../modules/monolith--projects/server/schema.drizzle'
 import {
   AgentRuntimeClient,
   type ClaimedWork,

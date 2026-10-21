@@ -44,5 +44,6 @@
   "author": "Monolith contributors",
   "monolithBuilds": {
     "build": "vite build && tsc --emitDeclarationOnly"
-  }
+  },
+  "license": "0BSD"
 }

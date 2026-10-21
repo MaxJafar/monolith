@@ -1,0 +1,25 @@
+/* SPDX-License-Identifier: 0BSD */
+.monolith-workspace-backdrop {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+.monolith-workspace-backdrop[data-image]::before,
+.monolith-workspace-backdrop[data-image]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.monolith-workspace-backdrop[data-image]::before {
+  z-index: -2;
+  background: center / cover no-repeat var(--monolith-backdrop-image);
+}
+.monolith-workspace-backdrop[data-image]::after {
+  z-index: -1;
+  backdrop-filter: var(--monolith-backdrop-filter);
+  background: var(--monolith-backdrop-overlay);
+}

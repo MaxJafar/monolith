@@ -1,113 +1,101 @@
 <!doctype html>
+<!-- SPDX-License-Identifier: 0BSD -->
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <title>monolith</title>
-    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-    <link rel="manifest" href="/manifest.json" />
-    <meta name="theme-color" content="#ffffff" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Monolith</title>
     <meta
       name="description"
-      content="Monolith brings your projects, documents, and knowledge together in one focused workspace."
+      content="Projects, documents, calendars and knowledge in your Monolith workspace."
     />
-    <link rel="apple-touch-icon" href="/brand/monolith-180.png" />
+    <meta name="theme-color" content="#191919" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script>
-      try {
-        const theme = localStorage.getItem('monolith.theme')
-        if (
-          theme === 'dark' ||
-          (theme === 'system' &&
-            matchMedia('(prefers-color-scheme: dark)').matches)
-        )
-          document.documentElement.classList.add('dark')
-      } catch {}
-    </script>
-    <meta name="title" content="monolith" />
+    <link rel="apple-touch-icon" href="/brand/monolith-180.png" />
+    <link rel="manifest" href="/manifest.json" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <link rel="apple-touch-startup-image" href="/icon.svg" sizes="512x512" />
+    <script>
+      try {
+        const choice = localStorage.getItem('monolith.theme')
+        const dark =
+          choice === 'dark' ||
+          (choice === 'system' &&
+            window.matchMedia('(prefers-color-scheme: dark)').matches)
+        document.documentElement.classList.toggle('dark', dark)
+      } catch {
+        /* Storage can be disabled in private browsing. */
+      }
+    </script>
     <style>
+      :root {
+        --boot-bg: #fff;
+        --boot-fg: #252525;
+      }
+      :root.dark {
+        --boot-bg: #191919;
+        --boot-fg: #eeeeec;
+        color-scheme: dark;
+      }
       body {
         margin: 0;
+        background: var(--boot-bg);
+        color: var(--boot-fg);
       }
-
       .preloader {
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        background-color: #ffffff;
-        font-family: 'Inter', sans-serif;
+        inset: 0;
         z-index: 9999;
+        display: grid;
+        place-content: center;
+        justify-items: center;
+        gap: 20px;
+        background: var(--boot-bg);
+        font:
+          14px/1.5 system-ui,
+          sans-serif;
       }
-
-      .loader {
-        width: 18px;
-        height: 18px;
-        margin-top: 24px;
-        border: 3px solid #252525;
-        border-bottom-color: transparent;
-        border-radius: 50%;
-        display: inline-block;
-        box-sizing: border-box;
-        animation: rotation 1s linear infinite;
+      .boot-status {
+        margin: 0;
+        opacity: 0.65;
       }
-
-      @keyframes rotation {
-        0% {
-          transform: rotate(0deg);
+      .boot-track {
+        width: 100px;
+        height: 2px;
+        overflow: hidden;
+        background: color-mix(in srgb, currentColor 12%, transparent);
+      }
+      .boot-track::after {
+        content: '';
+        display: block;
+        width: 40%;
+        height: 100%;
+        background: currentColor;
+        animation: boot-travel 1.4s ease-in-out infinite alternate;
+      }
+      @keyframes boot-travel {
+        from {
+          transform: translateX(0);
         }
-        100% {
-          transform: rotate(360deg);
+        to {
+          transform: translateX(150%);
         }
-      }
-
-      .forging-text {
-        font-size: 1.125rem;
-        font-weight: 500;
-        color: #18181b;
-      }
-
-      .dark .preloader {
-        background-color: #191919;
-      }
-      .dark .forging-text {
-        color: #eeeeec;
-      }
-      .dark .loader {
-        border-color: #eeeeec;
-        border-bottom-color: transparent;
       }
       @media (prefers-reduced-motion: reduce) {
-        .loader {
+        .boot-track::after {
           animation: none;
+          width: 100%;
         }
-      }
-
-      #root {
-        background-color: #ffffff;
-        color: black;
-      }
-
-      .dark #root {
-        background-color: var(--color-bg-950);
-        color: var(--color-bg-50);
       }
     </style>
   </head>
-
   <body>
-    <div class="preloader">
-      <img src="/icon.svg" alt="monolith" width="48" height="48" />
-      <span class="loader" aria-hidden="true"></span>
-      <p class="forging-text">Opening your workspace…</p>
+    <div class="preloader" role="status" aria-live="polite">
+      <img src="/icon.svg" width="48" height="48" alt="Monolith" />
+      <p class="boot-status">Opening your workspace</p>
+      <div class="boot-track" aria-hidden="true"></div>
+      <noscript>Enable JavaScript to open Monolith.</noscript>
     </div>
     <div id="root"></div>
     <script type="module" src="/src/index.tsx"></script>

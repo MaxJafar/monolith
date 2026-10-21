@@ -2,7 +2,7 @@
   "title": "API 金钥",
   "description": "管理所有扩展所需的 API 金钥",
   "lockedMessage": "API 密钥设置已锁定",
-  "passwordRequired": "需要密码来解密 API 金钥",
+  "passwordRequired": "输入保险库密码以解锁已保存的 API 凭据。",
   "missing": {
     "title": "缺少 API 金钥",
     "description": "缺少一个或多个 API 密钥。请打开 API 密钥设置进行配置。",
@@ -38,7 +38,7 @@
   "empty": {
     "apiKeys": {
       "title": "无 API 金钥",
-      "description": "未找到 API 金钥。单击下面的按钮创建新的 API 金钥"
+      "description": "添加凭据以连接外部服务。"
     }
   },
   "misc": {

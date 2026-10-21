@@ -1,232 +1,166 @@
-import type {
-  Module,
-  ModuleEntry,
-  ModuleManifest,
-  ModuleWidget
+// SPDX-License-Identifier: 0BSD
+import {
+  type Module,
+  type ModuleEntry,
+  type ModuleManifest,
+  type ModuleWidget,
+  addonPackageName
 } from '@monolith/configs'
-import { addonPackageName } from '@monolith/configs'
 
 import type { ResolvedModuleSchema } from './types'
 
-const normalizePath = (value: string): string => value.replace(/\\/g, '/')
-
-/** Resolves the longest registered module directory containing `filePath`. */
-function findModulePath(
-  entries: Iterable<[string, string]>,
-  filePath: string
-): string | undefined {
-  for (const [moduleDir] of entries) {
-    if (filePath === moduleDir || filePath.startsWith(`${moduleDir}/`)) {
-      return moduleDir
-    }
-  }
-
-  return undefined
-}
-
-interface RegistryState {
+interface SharedRegistry {
   registeredModules: ModuleEntry[]
   modulePaths: Map<string, string>
   registeredSchemaParts: Map<string, ResolvedModuleSchema>
 }
+const registryKey = Symbol.for('monolith.module-registry.state')
+const globals = globalThis as unknown as Record<
+  symbol,
+  SharedRegistry | undefined
+>
+const store = (): SharedRegistry =>
+  (globals[registryKey] ??= {
+    registeredModules: [],
+    modulePaths: new Map(),
+    registeredSchemaParts: new Map()
+  })
+const directory = (value: string) =>
+  value.replaceAll('\\', '/').replace(/\/+$/, '')
 
-/**
- * The registry state is kept on `globalThis` so that every instance of this
- * package shares a single store — even when the package is both bundled into
- * one consumer and resolved from node_modules by another (e.g. the API bundle
- * inlining it while the external `server-utils`/`drizzle` import it).
- */
-const REGISTRY_STATE_KEY = Symbol.for('monolith.module-registry.state')
-
-function state(): RegistryState {
-  const globalObject = globalThis as unknown as Record<
-    symbol,
-    RegistryState | undefined
+const manifestKeys = [
+  'name',
+  'id',
+  'remoteId',
+  'displayName',
+  'experience',
+  'icon',
+  'category',
+  'remoteEntryUrl',
+  'APIKeyAccess',
+  'hasProvider',
+  'hidden',
+  'subsection'
+] as const
+const catalogKeys = [
+  'name',
+  'id',
+  'remoteId',
+  'displayName',
+  'experience',
+  'version',
+  'description',
+  'author',
+  'icon',
+  'category'
+] as const
+function fields<K extends keyof ModuleEntry>(
+  entry: ModuleEntry,
+  keys: readonly K[]
+): Pick<ModuleEntry, K> {
+  return Object.fromEntries(keys.map(key => [key, entry[key]])) as Pick<
+    ModuleEntry,
+    K
   >
-
-  if (!globalObject[REGISTRY_STATE_KEY]) {
-    globalObject[REGISTRY_STATE_KEY] = {
-      registeredModules: [],
-      modulePaths: new Map(),
-      registeredSchemaParts: new Map()
-    }
-  }
-
-  return globalObject[REGISTRY_STATE_KEY]
 }
 
+/** One process-wide registry is shared by source imports and bundled consumers. */
 export class ModuleRegistry {
   static register(entry: ModuleEntry, absolutePath?: string): void {
-    const { registeredModules } = state()
-
-    const collision = registeredModules.find(
-      existing =>
-        (existing.name === entry.name && existing.id !== entry.id) ||
-        (existing.name !== entry.name &&
-          (existing.id === entry.id ||
-            (entry.remoteId && existing.remoteId === entry.remoteId)))
-    )
-
-    if (collision)
-      throw new Error(
-        `Addon identity collision between ${entry.name} and ${collision.name}`
-      )
-
-    const existingIndex = registeredModules.findIndex(
-      m => m.name === entry.name
-    )
-
-    if (existingIndex === -1) {
-      registeredModules.push(entry)
-    } else {
-      registeredModules[existingIndex] = entry
+    const state = store()
+    for (const installed of state.registeredModules) {
+      const sameName = installed.name === entry.name
+      const sameId = installed.id === entry.id
+      const sameRemote =
+        Boolean(entry.remoteId) && installed.remoteId === entry.remoteId
+      if ((sameName && !sameId) || (!sameName && (sameId || sameRemote))) {
+        throw new Error(
+          'Addon identity collision between ' +
+            entry.name +
+            ' and ' +
+            installed.name
+        )
+      }
     }
-
-    if (absolutePath) {
-      ModuleRegistry.registerPath(absolutePath, entry.id)
-    }
+    const position = state.registeredModules.findIndex(
+      item => item.name === entry.name
+    )
+    if (position < 0) state.registeredModules.push(entry)
+    else state.registeredModules.splice(position, 1, entry)
+    if (absolutePath) this.registerPath(absolutePath, entry.id)
   }
 
   static unregister(name: string): void {
-    const store = state()
-
-    const entry = store.registeredModules.find(m => m.name === name)
-
-    store.registeredModules = store.registeredModules.filter(
-      m => m.name !== name
+    const state = store()
+    const position = state.registeredModules.findIndex(
+      item => item.name === name
     )
-
-    if (entry) {
-      for (const [modPath, modId] of store.modulePaths.entries()) {
-        if (modId === entry.id) {
-          store.modulePaths.delete(modPath)
-        }
-      }
-
-      ModuleRegistry.unregisterSchemaPart(entry.id)
+    if (position < 0) return
+    const [removed] = state.registeredModules.splice(position, 1)
+    for (const [path, id] of state.modulePaths) {
+      if (id === removed.id) state.modulePaths.delete(path)
     }
+    state.registeredSchemaParts.delete(removed.id)
   }
 
-  static isRegistered(name: string): boolean {
-    return state().registeredModules.some(m => m.name === name)
+  static isRegistered(name: string) {
+    return store().registeredModules.some(item => item.name === name)
   }
-
-  /** Whether a module (by full name or short id) is currently registered. */
-  static isAvailable(nameOrId: string): boolean {
-    return state().registeredModules.some(
-      m => m.id === nameOrId || m.name === addonPackageName(nameOrId)
+  static isAvailable(nameOrId: string) {
+    const packageName = addonPackageName(nameOrId)
+    return store().registeredModules.some(
+      item => item.id === nameOrId || item.name === packageName
     )
   }
-
   static get entries(): ModuleEntry[] {
-    return [...state().registeredModules]
+    return store().registeredModules.slice()
   }
-
   static get manifests(): ModuleManifest[] {
-    return state().registeredModules.map(mod => ({
-      name: mod.name,
-      id: mod.id,
-      remoteId: mod.remoteId,
-      displayName: mod.displayName,
-      experience: mod.experience,
-      icon: mod.icon,
-      category: mod.category,
-      remoteEntryUrl: mod.remoteEntryUrl,
-      APIKeyAccess: mod.APIKeyAccess,
-      hasProvider: mod.hasProvider,
-      hidden: mod.hidden,
-      subsection: mod.subsection
-    }))
+    return this.entries.map(entry => fields(entry, manifestKeys))
   }
-
   static get list(): Module[] {
-    const list: Module[] = []
-
-    for (const mod of state().registeredModules) {
-      list.push({
-        name: mod.name,
-        id: mod.id,
-        remoteId: mod.remoteId,
-        displayName: mod.displayName,
-        experience: mod.experience,
-        version: mod.version,
-        description: mod.description,
-        author: mod.author,
-        icon: mod.icon,
-        category: mod.category
-      })
-    }
-
-    return list
+    return this.entries.map(entry => fields(entry, catalogKeys))
   }
-
   static get widgets(): ModuleWidget[] {
-    const list: ModuleWidget[] = []
-
-    for (const mod of state().registeredModules) {
-      list.push(...mod.widgets)
-    }
-
-    return list
+    return this.entries.flatMap(entry => entry.widgets ?? [])
   }
 
-  /** Registers an absolute module directory against its module id. */
   static registerPath(moduleDir: string, id: string): void {
-    state().modulePaths.set(normalizePath(moduleDir), id)
+    store().modulePaths.set(directory(moduleDir), id)
   }
-
   static getPath(id: string): string | undefined {
-    for (const [modPath, modId] of state().modulePaths.entries()) {
-      if (modId === id) {
-        return modPath
+    for (const [path, owner] of store().modulePaths)
+      if (owner === id) return path
+  }
+  static getModuleIdByPath(filePath: string): string | undefined {
+    const candidate = directory(filePath)
+    let longest = -1
+    let owner: string | undefined
+    for (const [root, id] of store().modulePaths) {
+      if (
+        root.length > longest &&
+        (candidate === root || candidate.startsWith(root + '/'))
+      ) {
+        longest = root.length
+        owner = id
       }
     }
-
-    return undefined
+    return owner
   }
-
-  /** Resolves the registered module entry that contains `filePath`. */
   static getModuleByPath(filePath: string): ModuleEntry | undefined {
-    const id = ModuleRegistry.getModuleIdByPath(filePath)
-
-    return id ? state().registeredModules.find(m => m.id === id) : undefined
+    const id = this.getModuleIdByPath(filePath)
+    return id ? this.entries.find(entry => entry.id === id) : undefined
   }
-
-  /**
-   * Resolves the official module id for a file inside a registered module. Only
-   * matches at a directory boundary so `/modules/foo` never matches a file in
-   * `/modules/foo-bar`.
-   */
-  static getModuleIdByPath(filePath: string): string | undefined {
-    const store = state()
-
-    const normalizedPath = normalizePath(filePath)
-
-    const matches = [...store.modulePaths.entries()].sort(
-      ([a], [b]) => b.length - a.length
-    )
-
-    const moduleDir = findModulePath(matches, normalizedPath)
-
-    return moduleDir ? store.modulePaths.get(moduleDir) : undefined
-  }
-
-  /** Registers a module's drizzle schema part (keyed by module id / 'core'). */
   static registerSchemaPart(id: string, part: ResolvedModuleSchema): void {
-    state().registeredSchemaParts.set(id, part)
+    store().registeredSchemaParts.set(id, part)
   }
-
-  /** Removes a module's drizzle schema part (no-op for 'core' or unknown ids). */
   static unregisterSchemaPart(id: string): void {
-    state().registeredSchemaParts.delete(id)
+    store().registeredSchemaParts.delete(id)
   }
-
-  /** Bare table key -> namespaced key for a module, if it registered one. */
   static getModuleKeyMap(id: string): Record<string, string> | undefined {
-    return state().registeredSchemaParts.get(id)?.keyMap
+    return store().registeredSchemaParts.get(id)?.keyMap
   }
-
   static get schemaParts(): readonly ResolvedModuleSchema[] {
-    return [...state().registeredSchemaParts.values()]
+    return Array.from(store().registeredSchemaParts.values())
   }
 }

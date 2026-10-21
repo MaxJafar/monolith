@@ -1,27 +1,17 @@
-import { log } from '@clack/prompts'
-
-/** Converts a string to dash-case (kebab-case). */
-export function toKebabCase(value: string): string {
-  return value
-    .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
-    .replace(/[_\s]+/g, '-')
+// SPDX-License-Identifier: 0BSD
+export function toKebabCase(text: string) {
+  return text
+    .normalize('NFKD')
+    .replace(/([\p{Ll}\d])([\p{Lu}])/gu, '$1-$2')
     .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
 }
-
-/** Whether a string is dash-case (kebab-case). */
-export function isKebabCase(value: string): boolean {
-  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value)
+export function isKebabCase(text: string) {
+  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(text)
 }
-
-/** Ensures a `owner/repo` slug's repo name is dash-case, exiting otherwise. */
-export function assertKebabRepo(repo: string): void {
-  const name = repo.split('/').pop() ?? repo
-
-  if (!isKebabCase(name)) {
-    log.error(
-      `Repository name "${name}" must be dash-case (e.g. "monolith-addon-my-addon"). Please rename the GitHub repo.`
-    )
-
-    process.exit(1)
-  }
+export function assertKebabRepo(repo: string) {
+  const parts = repo.split('/')
+  if (parts.length !== 2 || !parts[0] || !isKebabCase(parts[1]!))
+    throw Error('Repository must have an owner and a lowercase hyphenated name')
 }

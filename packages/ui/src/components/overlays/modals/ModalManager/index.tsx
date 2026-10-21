@@ -1,92 +1,66 @@
+// SPDX-License-Identifier: 0BSD
+import { useCallback, useEffect } from 'react'
+
 import { ModuleMetadataProvider } from '@monolith/federation'
-import { useEffect, useMemo, useState } from 'react'
 
 import { useModalStore } from '@/providers'
 import type { ModalInstance } from '@/providers/ModalProvider'
 
 import { ModalWrapper } from '../ModalWrapper'
+import './entry.css'
 import { scheduleModalExit } from './modalExit'
 
-function FinalElement({
+function ManagedLayer({
   item,
-  onClose
+  index,
+  active
 }: {
   item: ModalInstance
-  onClose: () => void
+  index: number
+  active: boolean
 }) {
-  const { data, component: ModalComponent } = item
-
-  return (
-    <ModuleMetadataProvider value={item.metadata}>
-      <ModalComponent data={data} onClose={onClose} />
-    </ModuleMetadataProvider>
-  )
-}
-
-function StackModal({ item }: { item: ModalInstance }) {
-  const { stack, close, remove } = useModalStore()
-
-  const { id, isClosing } = item
-
-  const [localOpen, setLocalOpen] = useState(false)
-
+  const { close, remove } = useModalStore()
+  const dismiss = useCallback(() => close(item.id), [close, item.id])
+  const finish = useCallback(() => {
+    if (item.isClosing) remove(item.id)
+  }, [remove, item.id, item.isClosing])
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLocalOpen(true)
-    }, 10)
-
-    return () => clearTimeout(timer)
-  }, [])
-
-  useEffect(() => {
-    if (!isClosing) return
-
+    if (!item.isClosing) return
     return scheduleModalExit(
-      () => remove(id),
+      () => remove(item.id),
       window.matchMedia('(prefers-reduced-motion: reduce)').matches
     )
-  }, [id, isClosing, remove])
-
-  const isTopmost = useMemo(() => {
-    const topmostIndex = stack.findLastIndex(modal => !modal.isClosing)
-
-    return topmostIndex !== -1 && stack[topmostIndex].id === id
-  }, [stack, id])
-
-  const zIndex = useMemo(() => {
-    const index = stack.findIndex(modal => modal.id === id)
-
-    return (index === -1 ? 0 : index) * 10 + 500
-  }, [stack, id])
-
-  const onClose = () => close(id)
-
+  }, [item.id, item.isClosing, remove])
+  const Content = item.component
   return (
     <ModalWrapper
-      isOpen={localOpen && !isClosing}
-      isTopmost={isTopmost}
-      invoker={item.invoker}
+      isOpen={!item.isClosing}
+      isTopmost={active}
+      zIndex={500 + index * 10}
       anchor={item.anchor}
-      onClose={onClose}
-      zIndex={zIndex}
-      onExited={() => {
-        if (isClosing) {
-          remove(id)
-        }
-      }}
+      invoker={item.invoker}
+      onClose={dismiss}
+      onExited={finish}
     >
-      <FinalElement item={item} onClose={onClose} />
+      <ModuleMetadataProvider value={item.metadata}>
+        <Content data={item.data} onClose={dismiss} />
+      </ModuleMetadataProvider>
     </ModalWrapper>
   )
 }
-
+/** Interactivity starts on mount; CSS owns entry motion, never a delayed open flag. */
 export function ModalManager() {
   const { stack } = useModalStore()
-
+  const active = stack.findLastIndex(item => !item.isClosing)
   return (
     <>
-      {stack.map(item => (
-        <StackModal key={item.id} item={item} />
+      {stack.map((item, index) => (
+        <ManagedLayer
+          key={item.id}
+          item={item}
+          index={index}
+          active={index === active}
+        />
       ))}
     </>
   )

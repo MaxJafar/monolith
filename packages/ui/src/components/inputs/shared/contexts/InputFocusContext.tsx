@@ -1,44 +1,31 @@
-import { createContext, useCallback, useContext, useRef, useState } from 'react'
-
-type FocusableElement = HTMLElement & {
-  contains?(node: Node | null): boolean
-}
+// SPDX-License-Identifier: 0BSD
+import {
+  type PropsWithChildren,
+  createContext,
+  useContext,
+  useState
+} from 'react'
 
 export const InputFocusContext = createContext(false)
+export const useInputFocused = () => useContext(InputFocusContext)
 
-export function useInputFocused() {
-  return useContext(InputFocusContext)
-}
-
-export function InputFocusProvider({
-  children
-}: {
-  children: React.ReactNode
-}) {
-  const [isFocused, setIsFocused] = useState(false)
-  const containerRef = useRef<FocusableElement>(null)
-
-  const handleFocus = useCallback(() => {
-    setIsFocused(true)
-  }, [])
-  const handleBlur = useCallback((e: React.FocusEvent) => {
-    if (
-      containerRef.current?.contains
-        ? !containerRef.current.contains(e.relatedTarget)
-        : true
-    ) {
-      setIsFocused(false)
-    }
-  }, [])
-
+export function InputFocusProvider({ children }: PropsWithChildren) {
+  const [focused, setFocused] = useState(false)
   return (
-    <span
-      ref={containerRef}
-      style={{ display: 'contents' }}
-      onBlur={handleBlur}
-      onFocus={handleFocus}
-    >
-      <InputFocusContext value={isFocused}>{children}</InputFocusContext>
-    </span>
+    <InputFocusContext value={focused}>
+      <span
+        style={{ display: 'contents' }}
+        onFocusCapture={() => setFocused(true)}
+        onBlurCapture={event => {
+          if (
+            !(event.relatedTarget instanceof Node) ||
+            !event.currentTarget.contains(event.relatedTarget)
+          )
+            setFocused(false)
+        }}
+      >
+        {children}
+      </span>
+    </InputFocusContext>
   )
 }

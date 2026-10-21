@@ -1,49 +1,42 @@
-import { ErrorScreen, Flex, Text, registerWorkspaceIcons } from '@monolith/ui'
+// SPDX-License-Identifier: 0BSD
 import { useEffect } from 'react'
-import ReactDOM, { type Root } from 'react-dom/client'
+import { type Root, createRoot } from 'react-dom/client'
 import { ErrorBoundary } from 'react-error-boundary'
+
+import { ErrorScreen, Flex, registerWorkspaceIcons } from '@monolith/ui'
 
 import Providers from './core/providers'
 import './index.css'
 
 registerWorkspaceIcons()
-
-;(
-  window as unknown as { process: { env: Record<string, string | undefined> } }
-).process = {
-  env: {}
+const browser = window as unknown as {
+  process?: { env: Record<string, string | undefined> }
 }
+browser.process ??= { env: {} }
 
-function App() {
+function WorkspaceRoot() {
   useEffect(() => {
-    const preloader = document.querySelector('.preloader')
-
-    if (preloader) {
-      preloader.remove()
-    }
+    document.querySelector('.preloader')?.remove()
   }, [])
-
   return (
-    <ErrorBoundary
-      fallback={<ErrorScreen message="An unexpected error occurred." />}
-    >
-      <Text
-        asChild
-        color={{
-          base: 'bg-800',
-          dark: 'bg-100'
-        }}
+    <Flex as="main" id="app" height="100dvh" width="100%" overflow="hidden">
+      <ErrorBoundary
+        fallback={
+          <ErrorScreen
+            message="The workspace could not open."
+            showRetryButton
+          />
+        }
       >
-        <Flex as="main" height="100dvh" id="app" overflow="hidden" width="100%">
-          <Providers />
-        </Flex>
-      </Text>
-    </ErrorBoundary>
+        <Providers />
+      </ErrorBoundary>
+    </Flex>
   )
 }
 
-const root: Root =
-  import.meta.hot?.data.root ??
-  ReactDOM.createRoot(document.getElementById('root')!)
-if (import.meta.hot) import.meta.hot.data.root = root
-root.render(<App />)
+const container = document.getElementById('root')
+if (!container) throw Error('The Monolith application container is missing')
+const hot = import.meta.hot
+const mount: Root = hot?.data.root ?? createRoot(container)
+if (hot) hot.data.root = mount
+mount.render(<WorkspaceRoot />)

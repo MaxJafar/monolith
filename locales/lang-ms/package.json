@@ -7,5 +7,6 @@
     "code": "ms",
     "displayName": "Bahasa Malaysia",
     "icon": "circle-flags:my"
-  }
+  },
+  "license": "0BSD"
 }

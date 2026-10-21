@@ -1,112 +1,96 @@
-import { useCallback, useState } from 'react'
-import { useNavigate } from 'react-router'
+// SPDX-License-Identifier: 0BSD
+import { type ReactElement, useId, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { useLocation, useNavigate } from 'react-router'
 
-import { useModuleTranslation } from '@monolith/localization'
+import { ExpandButton, NavigationRow, useSidebarLabel } from '../shared'
 
-import { SidebarItemContent } from '../SidebarItem/components/SidebarItemContent'
-import { SidebarItemIcon } from '../SidebarItem/components/SidebarItemIcon'
-import { SidebarItemSubsection } from '../SidebarItem/components/SidebarItemSubsection'
-import { SidebarItemSubsectionExpandIcon } from '../SidebarItem/components/SidebarItemSubsectionExpandIcon'
-import { SidebarItemWrapper } from '../SidebarItem/components/SidebarItemWrapper'
-
-type MainSidebarItemAutoActiveProps =
-  | {
-      autoActive: true
-      active?: never
-    }
-  | {
-      autoActive?: false
-      active?: boolean
-    }
-
-interface MainSidebarItemBaseProps {
-  label: string | React.ReactElement
-  /**
-   * Icon string or React element to display alongside the label.
-   *
-   * - Default to icon identifier for Iconify icons (<icon-prefix>:<icon-name>).
-   * - Prefix "customHTML:" can be used to render custom SVG/HTML icons.
-   * - Prefix "url:" can be used to render image icons from a URL.
-   */
-  icon?: string | React.ReactElement
+type Props = {
+  label: string | ReactElement
+  icon?: string | ReactElement
   link: string
-  subsection?: {
-    label: string
-    icon: string | React.ReactElement
-    path: string
-  }[]
+  subsection?: { label: string; icon: string | ReactElement; path: string }[]
   sidebarExpanded: boolean
   toggleSidebar: () => void
+} & (
+  | { autoActive: true; active?: never }
+  | { autoActive?: false; active?: boolean }
+)
+
+function pathMatches(path: string, link: string) {
+  const target = link.split(/[?#]/)[0].replace(/\/$/, '') || '/'
+  return path === target || (target !== '/' && path.startsWith(target + '/'))
 }
-
-type MainSidebarItemProps = MainSidebarItemAutoActiveProps &
-  MainSidebarItemBaseProps
-
 export function MainSidebarItem({
   label,
   icon,
   link,
   subsection,
   sidebarExpanded,
-  active = false
-}: MainSidebarItemProps) {
+  active,
+  autoActive
+}: Props) {
   const navigate = useNavigate()
-  const { t } = useModuleTranslation(['common.sidebar'])
-  const [subsectionExpanded, setSubsectionExpanded] = useState(active)
-
-  const handleNavigation = useCallback(() => {
-    setSubsectionExpanded(!subsectionExpanded)
-
-    if (subsection?.length) {
-      return
-    }
-
-    navigate(link)
-
-    // The host closes its mobile drawer only once guarded navigation commits.
-  }, [subsectionExpanded, subsection, link, navigate])
-  const handleToggleSubsection = useCallback(() => {
-    if (subsection !== undefined) {
-      setSubsectionExpanded(!subsectionExpanded)
-    }
-  }, [subsection, subsectionExpanded])
-
+  const location = useLocation()
+  const translate = useSidebarLabel()
+  const { t } = useTranslation('common.sidebar')
+  const selected = autoActive
+    ? pathMatches(location.pathname, link)
+    : Boolean(active)
+  const [expanded, setExpanded] = useState(selected)
+  const id = useId()
+  const title = translate(label, 'app')
+  const hasChildren = Boolean(subsection?.length)
+  // The host owns drawer dismissal after its unsaved-change guard accepts navigation.
   return (
     <>
-      <SidebarItemWrapper
-        active={active}
-        ariaLabel={
-          typeof label === 'string'
-            ? t(`common.sidebar:apps.${label}.title`)
-            : undefined
+      <NavigationRow
+        label={title}
+        accessibleLabel={typeof title === 'string' ? title : undefined}
+        icon={icon}
+        active={selected}
+        collapsed={!sidebarExpanded}
+        onClick={() =>
+          hasChildren ? setExpanded(value => !value) : navigate(link)
         }
-        expanded={subsection ? subsectionExpanded : undefined}
-        onClick={handleNavigation}
-      >
-        <SidebarItemIcon active={active} icon={icon} />
-        <SidebarItemContent
-          active={active}
-          hasSubsection={subsection !== undefined}
-          isMainSidebarItem={true}
-          label={label}
-          sidebarExpanded={sidebarExpanded}
-        />
-        {sidebarExpanded && subsection !== undefined && (
-          <SidebarItemSubsectionExpandIcon
-            subsectionExpanded={subsectionExpanded}
-            toggleSubsection={handleToggleSubsection}
-          />
-        )}
-      </SidebarItemWrapper>
-      {subsection !== undefined && (
-        <SidebarItemSubsection
-          label={label}
-          subsection={subsection.map(e => ({
-            ...e,
-            callback: `${link}/${e.path}`.replace(/\/\//g, '/')
-          }))}
-          subsectionExpanded={subsectionExpanded}
-        />
+        expanded={hasChildren ? expanded : undefined}
+        controls={hasChildren ? id : undefined}
+        tools={
+          hasChildren && sidebarExpanded ? (
+            <ExpandButton
+              expanded={expanded}
+              controls={id}
+              label={t('toggleSection')}
+              onClick={() => setExpanded(value => !value)}
+            />
+          ) : undefined
+        }
+      />
+      {hasChildren && (
+        <li hidden={!expanded}>
+          <ul id={id} className="monolith-sidebar-children">
+            {subsection!.map(item => {
+              const destination =
+                link.replace(/\/$/, '') + '/' + item.path.replace(/^\//, '')
+              const text = translate(
+                item.label,
+                'item',
+                typeof label === 'string' ? label : undefined
+              )
+              return (
+                <NavigationRow
+                  key={destination}
+                  label={text}
+                  accessibleLabel={typeof text === 'string' ? text : undefined}
+                  icon={item.icon}
+                  collapsed={!sidebarExpanded}
+                  active={pathMatches(location.pathname, destination)}
+                  onClick={() => navigate(destination)}
+                />
+              )
+            })}
+          </ul>
+        </li>
       )}
     </>
   )

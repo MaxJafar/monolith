@@ -1,117 +1,122 @@
+// SPDX-License-Identifier: 0BSD
 import { PGlite } from '@electric-sql/pglite'
-import { pgTable, uuid, varchar } from 'drizzle-orm/pg-core'
+import { eq } from 'drizzle-orm'
+import { integer, pgTable, text } from 'drizzle-orm/pg-core'
 import { drizzle } from 'drizzle-orm/pglite'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import { composeRelations } from './composeRelations'
 import { defineModuleSchema } from './defineModuleSchema'
-import { scopeDbForModule } from './proxyDbQuery'
+import { proxyDbQuery, scopeDbForModule } from './proxyDbQuery'
 
-const events = pgTable('app__events', {
-  id: uuid('id').primaryKey(),
-  title: varchar('title'),
-  category_id: uuid('category_id')
+const projects = pgTable('workspace__projects', {
+  id: integer().primaryKey(),
+  title: text()
 })
-
-const categories = pgTable('app__categories', {
-  id: uuid('id').primaryKey(),
-  name: varchar('name')
+const actions = pgTable('workspace__actions', {
+  id: integer().primaryKey(),
+  title: text(),
+  project: integer()
 })
-
-const tags = pgTable('app__tags', {
-  id: uuid('id').primaryKey(),
-  label: varchar('label')
+const sessions = pgTable('focus__sessions', {
+  id: integer().primaryKey(),
+  minutes: integer()
 })
-
-const appSchema = defineModuleSchema(
-  { events, categories },
+const work = defineModuleSchema(
+  { projects, actions },
   r => ({
-    events: {
-      category: r.one.categories({
-        from: r.events.category_id,
-        to: r.categories.id
+    actions: {
+      linkedProject: r.one.projects({
+        from: r.actions.project,
+        to: r.projects.id
       })
-    }
+    },
+    projects: { actions: r.many.actions() }
   }),
-  'monolith--app'
+  'monolith--work'
 )
+const focus = defineModuleSchema({ sessions }, () => ({}), 'monolith--focus')
 
-const tagsSchema = defineModuleSchema({ tags }, () => ({}), 'monolith--tags')
-
-describe('scopeDbForModule (real PGlite)', () => {
+describe('database scope with persisted records', () => {
   let client: PGlite
   let db: any
-
   beforeAll(async () => {
     client = new PGlite()
-
     await client.exec(`
-      CREATE TABLE app__categories (id uuid PRIMARY KEY, name varchar);
-      CREATE TABLE app__events (id uuid PRIMARY KEY, title varchar, category_id uuid REFERENCES app__categories(id));
-      CREATE TABLE app__tags (id uuid PRIMARY KEY, label varchar);
-      INSERT INTO app__categories VALUES ('11111111-1111-1111-1111-111111111111', 'Work');
-      INSERT INTO app__events VALUES ('22222222-2222-2222-2222-222222222222', 'Standup', '11111111-1111-1111-1111-111111111111');
-      INSERT INTO app__tags VALUES ('33333333-3333-3333-3333-333333333333', 'urgent');
+      CREATE TABLE workspace__projects (id integer PRIMARY KEY, title text);
+      CREATE TABLE workspace__actions (id integer PRIMARY KEY, title text, project integer REFERENCES workspace__projects(id));
+      CREATE TABLE focus__sessions (id integer PRIMARY KEY, minutes integer);
+      INSERT INTO workspace__projects VALUES (10, 'Release');
+      INSERT INTO workspace__actions VALUES (20, 'Verify data', 10);
+      INSERT INTO focus__sessions VALUES (30, 25);
     `)
-
-    db = drizzle({
-      client,
-      relations: composeRelations([appSchema, tagsSchema])
-    })
+    db = drizzle({ client, relations: composeRelations([work, focus]) })
   })
-
   afterAll(async () => {
-    await client.close()
+    await client?.close()
   })
 
-  it('resolves bare query keys to the namespaced tables', async () => {
-    const scoped: any = scopeDbForModule(db, appSchema.keyMap)
-
-    const rows = await scoped.query.events.findMany({
-      with: { category: true }
+  it('reads existing relations through local keys and uses ordinary database methods', async () => {
+    const scoped = scopeDbForModule(db, work.keyMap)
+    const rows = await scoped.query.projects.findMany({
+      with: { actions: true }
     })
-
-    expect(rows).toHaveLength(1)
-    expect(rows[0].title).toBe('Standup')
-    expect(rows[0].category.name).toBe('Work')
+    expect(rows).toMatchObject([
+      { title: 'Release', actions: [{ title: 'Verify data', project: 10 }] }
+    ])
+    expect(await scoped.select().from(actions)).toHaveLength(1)
+    expect(scoped.query.sessions).toBeUndefined()
   })
 
-  it('passes non-query members through', async () => {
-    const scoped: any = scopeDbForModule(db, appSchema.keyMap)
-
-    expect(await scoped.select().from(events)).toHaveLength(1)
-  })
-
-  it('keeps the transaction callback scoped', async () => {
-    const scoped: any = scopeDbForModule(db, appSchema.keyMap)
-
-    const title = await scoped.transaction(async (tx: any) => {
-      const rows = await tx.query.events.findMany({ with: { category: true } })
-
-      return rows[0].title
+  it('keeps transaction queries scoped and rolls back rejected writes', async () => {
+    const scoped = scopeDbForModule(db, work.keyMap)
+    await expect(
+      scoped.transaction(async (tx: any) => {
+        const current = await tx.query.actions.findFirst({
+          where: { id: 20 },
+          with: { linkedProject: true }
+        })
+        expect(current.linkedProject.title).toBe('Release')
+        await tx
+          .update(actions)
+          .set({ title: 'Temporary' })
+          .where(eq(actions.id, 20))
+        throw Error('Cancel transaction')
+      })
+    ).rejects.toThrow('Cancel transaction')
+    expect((await scoped.query.actions.findFirst()).title).toBe('Verify data')
+    await scoped.transaction(async (tx: any) => {
+      await tx
+        .update(actions)
+        .set({ title: 'Verified' })
+        .where(eq(actions.id, 20))
     })
-
-    expect(title).toBe('Standup')
+    expect((await scoped.query.actions.findFirst()).title).toBe('Verified')
   })
 
-  it('leaves keys not in the keyMap unresolved', () => {
-    const scoped: any = scopeDbForModule(db, appSchema.keyMap)
-
-    expect(scoped.query.tags).toBeUndefined()
-  })
-
-  it('re-scopes an already scoped db for another module', async () => {
-    const scoped: any = scopeDbForModule(db, appSchema.keyMap)
-
-    const rescoped: any = scopeDbForModule(scoped, tagsSchema.keyMap)
-
-    const rows = await rescoped.query.tags.findMany()
-
-    expect(rows).toHaveLength(1)
-    expect(rows[0].label).toBe('urgent')
-  })
-
-  it('returns the db untouched with no keyMap', () => {
+  it('rebinds an existing facade to a different add-on without retaining old aliases', async () => {
+    const scoped = scopeDbForModule(db, work.keyMap)
+    const other = scopeDbForModule(scoped, focus.keyMap)
+    expect(await other.query.sessions.findMany()).toEqual([
+      { id: 30, minutes: 25 }
+    ])
+    expect(other.query.actions).toBeUndefined()
     expect(scopeDbForModule(db, undefined)).toBe(db)
+  })
+
+  it('refreshes a query facade when its underlying query object changes', () => {
+    const source = {
+      query: { persisted: 1 },
+      value() {
+        return this.query.persisted
+      }
+    }
+    const scoped = proxyDbQuery(source, {
+      local: 'persisted'
+    }) as typeof source & { query: { local: number } }
+    expect(scoped.query.local).toBe(1)
+    source.query = { persisted: 2 }
+    expect(scoped.query.local).toBe(2)
+    expect(scoped.value()).toBe(2)
   })
 })

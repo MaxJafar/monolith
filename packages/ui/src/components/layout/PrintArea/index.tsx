@@ -1,103 +1,112 @@
+// SPDX-License-Identifier: 0BSD
+import {
+  type CSSProperties,
+  type ReactNode,
+  type RefObject,
+  useLayoutEffect
+} from 'react'
+
 import { usePersonalization } from '@/providers'
 
-function getBodyStyles(): Record<string, string> {
-  if (typeof document === 'undefined') return {}
+import './print.css'
 
-  const styleObj: Record<string, string> = {}
-
-  const htmlStyle = document.documentElement.style
-
-  for (let i = 0; i < htmlStyle.length; i++) {
-    const key = htmlStyle[i]
-
-    if (key === 'pointer-events') continue
-
-    styleObj[key] = htmlStyle.getPropertyValue(key)
+/** Copy theme variables, never page backgrounds or interaction locks, into a printable subtree. */
+export function collectPrintVariables(elements: Element[]) {
+  const variables: Record<string, string> = {}
+  for (const element of elements) {
+    const computed = getComputedStyle(element)
+    for (let i = 0; i < computed.length; i++) {
+      const name = computed.item(i)
+      if (name.startsWith('--'))
+        variables[name] = computed.getPropertyValue(name)
+    }
   }
-
-  const bodyStyle = document.body.style
-
-  for (let i = 0; i < bodyStyle.length; i++) {
-    const key = bodyStyle[i]
-
-    if (key === 'pointer-events') continue
-
-    styleObj[key] = bodyStyle.getPropertyValue(key)
-  }
-
-  return styleObj
+  return variables
 }
 
 export function PrintArea({
   children,
   contentRef,
-  className = '',
-  style = {}
+  className,
+  style
 }: {
-  children: React.ReactNode
-  contentRef: React.RefObject<HTMLDivElement | null>
+  children: ReactNode
+  contentRef: RefObject<HTMLDivElement | null>
   className?: string
-  style?: React.CSSProperties
+  style?: CSSProperties
 }) {
   const {
     derivedTheme,
-    rawThemeColor,
-    bgTemp,
     bordered,
+    bgTemp,
+    rootElement,
     borderRadiusMultiplier
   } = usePersonalization()
-
-  const bodyStyles = getBodyStyles()
-
-  const themeClasses = [
-    derivedTheme === 'dark' ? 'dark' : '',
-    rawThemeColor,
+  useLayoutEffect(() => {
+    const element = contentRef.current
+    if (!element) return
+    let applied: string[] = []
+    const capture = () => {
+      const sources = [
+        ...new Set(
+          [document.documentElement, document.body, rootElement].filter(
+            (item): item is HTMLElement => Boolean(item)
+          )
+        )
+      ]
+      const variables = collectPrintVariables(sources)
+      for (const key of applied)
+        if (!(key in variables)) element.style.removeProperty(key)
+      for (const [key, value] of Object.entries(variables)) {
+        if (!style || !(key in style)) element.style.setProperty(key, value)
+      }
+      element.style.setProperty(
+        '--custom-border-radius-multiplier',
+        String(borderRadiusMultiplier)
+      )
+      applied = Object.keys(variables)
+    }
+    capture()
+    const observer = new MutationObserver(capture)
+    for (const source of new Set([
+      document.documentElement,
+      document.body,
+      rootElement
+    ])) {
+      if (source && source !== element)
+        observer.observe(source, {
+          attributes: true,
+          attributeFilter: ['style', 'class']
+        })
+    }
+    window.addEventListener('beforeprint', capture)
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('beforeprint', capture)
+    }
+  }, [
+    contentRef,
+    derivedTheme,
+    bordered,
     bgTemp,
-    bordered ? 'bordered' : ''
-  ]
-    .filter(Boolean)
-    .join(' ')
-
-  const nonBackgroundStyles = Object.fromEntries(
-    Object.entries(bodyStyles).filter(
-      ([key]) => key !== 'background' && key !== 'background-color'
-    )
-  )
-
-  const rootStylesCss = Object.entries(nonBackgroundStyles)
-    .map(([key, value]) => `${key}: ${value} !important;`)
-    .join('\n')
-
+    rootElement,
+    borderRadiusMultiplier,
+    style
+  ])
   return (
     <div
       ref={contentRef}
-      className={`${themeClasses} ${className} monolith-statement-print-wrapper`}
-      style={{
-        ...nonBackgroundStyles,
-        width: '100%',
-        ...style
-      }}
+      className={[
+        'monolith-statement-print-wrapper',
+        derivedTheme === 'dark' ? 'dark' : '',
+        bordered ? 'bordered' : '',
+        bgTemp,
+        className
+      ]
+        .filter(Boolean)
+        .join(' ')}
+      style={style}
     >
-      <style>{`
-        :root {
-          --custom-font-scale: 1 !important;
-          --custom-border-radius-multiplier: ${borderRadiusMultiplier} !important;
-          ${rootStylesCss}
-        }
-        @media print {
-          .monolith-statement-print-wrapper {
-            display: block !important;
-            color: black !important;
-          }
-           .monolith-statement-print-wrapper > * {
-            height: auto !important;
-          }
-          * {
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-          }
-        }
-      `}</style>
       {children}
     </div>
   )

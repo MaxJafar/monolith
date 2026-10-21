@@ -7,5 +7,6 @@
     "code": "zh-TW",
     "displayName": "繁體中文",
     "icon": "circle-flags:tw"
-  }
+  },
+  "license": "0BSD"
 }

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: 0BSD
 import {
   type HTMLAttributes,
   type ReactNode,
@@ -10,33 +11,15 @@ import {
 import { Flex } from '@/components/primitives'
 import { elasticScrollEdge } from '@/utils/elasticMotion'
 
+import {
+  type ScrollValues,
+  type ScrollbarHandle,
+  readScroll,
+  scrollHandle
+} from './scrollPosition'
 import './scrollbar.css'
 
-export type ScrollValues = {
-  left: number
-  top: number
-  scrollLeft: number
-  scrollTop: number
-  scrollWidth: number
-  scrollHeight: number
-  clientWidth: number
-  clientHeight: number
-}
-export interface ScrollbarHandle {
-  getValues(): ScrollValues
-  getScrollLeft(): number
-  getScrollTop(): number
-  getScrollWidth(): number
-  getScrollHeight(): number
-  getClientWidth(): number
-  getClientHeight(): number
-  scrollLeft(value?: number): void
-  scrollTop(value?: number): void
-  scrollToLeft(): void
-  scrollToRight(): void
-  scrollToTop(): void
-  scrollToBottom(): void
-}
+export type { ScrollbarHandle, ScrollValues } from './scrollPosition'
 export interface ScrollbarProps extends HTMLAttributes<HTMLDivElement> {
   ref?: Ref<ScrollbarHandle>
   children: ReactNode
@@ -52,32 +35,9 @@ export interface ScrollbarProps extends HTMLAttributes<HTMLDivElement> {
   onUpdate?: (values: ScrollValues) => void
 }
 
-function measure(view: HTMLElement | null): ScrollValues {
-  const scrollLeft = view?.scrollLeft ?? 0,
-    scrollTop = view?.scrollTop ?? 0
-  const scrollWidth = view?.scrollWidth ?? 0,
-    scrollHeight = view?.scrollHeight ?? 0
-  const clientWidth = view?.clientWidth ?? 0,
-    clientHeight = view?.clientHeight ?? 0
-  return {
-    scrollLeft,
-    scrollTop,
-    scrollWidth,
-    scrollHeight,
-    clientWidth,
-    clientHeight,
-    left:
-      scrollWidth > clientWidth ? scrollLeft / (scrollWidth - clientWidth) : 0,
-    top:
-      scrollHeight > clientHeight
-        ? scrollTop / (scrollHeight - clientHeight)
-        : 0
-  }
-}
-const length = (value: number | string | undefined) =>
-  typeof value === 'number' ? value + 'px' : value
+const pixels = (length: string | number) =>
+  typeof length === 'number' ? length + 'px' : length
 
-/** Native scrolling retains touch momentum, keyboard access and browser accessibility. */
 export function Scrollbar({
   ref,
   children,
@@ -88,84 +48,87 @@ export function Scrollbar({
   autoHeightMin = 0,
   autoHeightMax = 200,
   autoHide = true,
-  onScroll,
-  onWheel,
   onScrollFrame,
   onScrollStart,
   onScrollStop,
   onUpdate,
-  ...attributes
+  onScroll,
+  onWheel,
+  ...dom
 }: ScrollbarProps) {
-  const element = useRef<HTMLDivElement>(null)
-  const stop = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
-  useImperativeHandle(
-    ref,
-    () => ({
-      getValues: () => measure(element.current),
-      getScrollLeft: () => element.current?.scrollLeft ?? 0,
-      getScrollTop: () => element.current?.scrollTop ?? 0,
-      getScrollWidth: () => element.current?.scrollWidth ?? 0,
-      getScrollHeight: () => element.current?.scrollHeight ?? 0,
-      getClientWidth: () => element.current?.clientWidth ?? 0,
-      getClientHeight: () => element.current?.clientHeight ?? 0,
-      scrollLeft: (left = 0) => {
-        if (element.current) element.current.scrollLeft = left
-      },
-      scrollTop: (top = 0) => {
-        if (element.current) element.current.scrollTop = top
-      },
-      scrollToLeft: () => {
-        if (element.current) element.current.scrollLeft = 0
-      },
-      scrollToTop: () => {
-        if (element.current) element.current.scrollTop = 0
-      },
-      scrollToRight: () => {
-        if (element.current)
-          element.current.scrollLeft = element.current.scrollWidth
-      },
-      scrollToBottom: () => {
-        if (element.current)
-          element.current.scrollTop = element.current.scrollHeight
-      }
-    }),
+  const viewport = useRef<HTMLDivElement>(null)
+  const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const stopCallback = useRef(onScrollStop)
+  useEffect(() => {
+    stopCallback.current = onScrollStop
+  }, [onScrollStop])
+  useImperativeHandle(ref, () => scrollHandle(() => viewport.current), [])
+
+  useEffect(() => {
+    const view = viewport.current
+    if (!view || !onUpdate) return
+    let frame: number | undefined
+    const report = () => {
+      frame = undefined
+      onUpdate(readScroll(view))
+    }
+    const schedule = () => {
+      if (frame === undefined) frame = requestAnimationFrame(report)
+    }
+    // A fixed viewport can remain unchanged while images or children grow.
+    const resize =
+      typeof ResizeObserver === 'function'
+        ? new ResizeObserver(schedule)
+        : undefined
+    const watchChildren = () => {
+      resize?.disconnect()
+      resize?.observe(view)
+      for (const child of view.children) resize?.observe(child)
+      schedule()
+    }
+    const mutations = new MutationObserver(watchChildren)
+    mutations.observe(view, {
+      childList: true,
+      subtree: true,
+      characterData: true
+    })
+    watchChildren()
+    return () => {
+      mutations.disconnect()
+      resize?.disconnect()
+      if (frame !== undefined) cancelAnimationFrame(frame)
+    }
+  }, [onUpdate])
+
+  useEffect(
+    () => () => {
+      if (idleTimer.current !== null) clearTimeout(idleTimer.current)
+      idleTimer.current = null
+    },
     []
   )
-  useEffect(() => {
-    const view = element.current
-    if (!view || !onUpdate) return
-    const notify = () => onUpdate(measure(view))
-    const observer =
-      typeof ResizeObserver === 'undefined'
-        ? undefined
-        : new ResizeObserver(notify)
-    observer?.observe(view)
-    notify()
-    return () => observer?.disconnect()
-  }, [onUpdate, children])
-  useEffect(() => () => clearTimeout(stop.current), [])
 
   return (
     <Flex
-      {...attributes}
-      ref={element}
-      className={[
-        'monolith-scroll',
-        autoHide && 'monolith-scroll-auto',
-        className
-      ]
-        .filter(Boolean)
-        .join(' ')}
+      {...dom}
+      ref={viewport}
       direction="column"
       width="100%"
       height={autoHeight ? 'auto' : '100%'}
       minWidth="0"
-      minHeight={autoHeight ? length(autoHeightMin) : '0'}
-      maxHeight={autoHeight ? length(autoHeightMax) : undefined}
-      overflowY="auto"
-      overflowX={hideHorizontal ? 'hidden' : 'auto'}
+      minHeight={autoHeight ? pixels(autoHeightMin) : '0'}
+      maxHeight={autoHeight ? pixels(autoHeightMax) : undefined}
       pr={usePaddingRight ? 'sm' : undefined}
-      tabIndex={attributes.tabIndex ?? 0}
+      overflowX={hideHorizontal ? 'hidden' : 'auto'}
+      overflowY="auto"
+      tabIndex={dom.tabIndex ?? 0}
+      className={[
+        'monolith-scroll',
+        autoHide ? 'monolith-scroll-auto' : '',
+        className
+      ]
+        .filter(Boolean)
+        .join(' ')}
       onWheel={event => {
         onWheel?.(event)
         if (!event.defaultPrevented)
@@ -173,12 +136,12 @@ export function Scrollbar({
       }}
       onScroll={event => {
         onScroll?.(event)
-        onScrollFrame?.(measure(event.currentTarget))
-        if (stop.current === undefined) onScrollStart?.()
-        clearTimeout(stop.current)
-        stop.current = setTimeout(() => {
-          stop.current = undefined
-          onScrollStop?.()
+        if (idleTimer.current === null) onScrollStart?.()
+        else clearTimeout(idleTimer.current)
+        onScrollFrame?.(readScroll(event.currentTarget))
+        idleTimer.current = setTimeout(() => {
+          idleTimer.current = null
+          stopCallback.current?.()
         }, 120)
       }}
     >

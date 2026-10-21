@@ -1,3 +1,6 @@
+import { useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+
 import {
   Box,
   Button,
@@ -10,8 +13,6 @@ import {
   Text,
   surface
 } from '@monolith/ui'
-import { useRef, useState } from 'react'
-import { useTranslation } from 'react-i18next'
 
 import { useAppAppearance } from '@/core/appearance/AppearanceContext'
 
@@ -20,22 +21,13 @@ import { useWorkspace } from './WorkspaceProvider'
 import { workspaceAPI } from './workspaceAPI'
 
 const modules = [
-  'projects',
-  'notes',
-  'calendar',
-  'blog',
-  'todo-list',
   'agents',
+  'atlas',
+  'automations',
   'databases',
-  'wallet',
   'gym',
-  'tech-lab',
-  'achievements',
-  'wishlist',
-  'code-time',
-  'flashcards',
-  'idea-box',
-  'pomodoro-timer'
+  'redraw',
+  'tech-lab'
 ] as const
 
 export default function WorkspaceSwitcher() {

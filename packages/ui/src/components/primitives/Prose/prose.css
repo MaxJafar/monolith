@@ -1,0 +1,160 @@
+/* SPDX-License-Identifier: 0BSD */
+.monolith-prose {
+  font-size: var(--text-base);
+  line-height: 1.65;
+  color: var(--text-secondary);
+  user-select: text;
+  overflow-wrap: anywhere;
+}
+.monolith-prose :where(h1, h2, h3, h4, h5, h6, strong, dt, th) {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+.monolith-prose :where(h1, h2, h3, h4, h5, h6) {
+  line-height: 1.25;
+  margin-block: 1.5em 0.5em;
+  text-wrap: balance;
+}
+.monolith-prose h1 {
+  font-size: var(--text-4xl);
+}
+.monolith-prose h2 {
+  font-size: var(--text-2xl);
+}
+.monolith-prose h3 {
+  font-size: var(--text-xl);
+}
+.monolith-prose h4 {
+  font-size: var(--text-lg);
+}
+.monolith-prose h5 {
+  font-size: var(--text-base);
+}
+.monolith-prose h6 {
+  font-size: var(--text-sm);
+}
+.monolith-prose :where(p, ul, ol, dl, pre, blockquote, figure, table) {
+  margin-block: 1em;
+}
+.monolith-prose :where(ul, ol) {
+  padding-inline-start: 1.6em;
+}
+.monolith-prose ul {
+  list-style-type: disc;
+}
+.monolith-prose ol {
+  list-style-type: decimal;
+}
+.monolith-prose li {
+  padding-inline-start: 0.2em;
+  margin-block: 0.25em;
+}
+.monolith-prose li::marker {
+  color: var(--text-muted);
+}
+.monolith-prose li :where(p, ul, ol) {
+  margin-block: 0.4em;
+}
+.monolith-prose a {
+  color: var(--selection-color);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.monolith-prose a:hover {
+  text-decoration-thickness: 2px;
+}
+.monolith-prose a:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+.monolith-prose a strong {
+  color: inherit;
+}
+.monolith-prose blockquote {
+  border-inline-start: 3px solid var(--border-medium);
+  padding: 0.5em 1em;
+  background: var(--bg-surface);
+  border-radius: var(--radius-sm);
+}
+.monolith-prose :where(code, pre, kbd) {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.875em;
+}
+.monolith-prose :where(code, kbd) {
+  background: var(--bg-surface);
+  padding: 0.1em 0.35em;
+  border-radius: var(--radius-sm);
+}
+.monolith-prose kbd {
+  border: 1px solid var(--border-medium);
+  border-bottom-width: 2px;
+}
+.monolith-prose pre {
+  background: var(--bg-surface);
+  padding: 1em;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+.monolith-prose pre code {
+  color: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  padding: 0;
+  background: transparent;
+  border: none;
+}
+.monolith-prose hr {
+  border: 0;
+  border-top: 1px solid var(--border-medium);
+  margin-block: 2em;
+}
+.monolith-prose table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: var(--text-sm);
+}
+.monolith-prose :where(td, th) {
+  padding: 0.6em 0.8em;
+  text-align: start;
+  vertical-align: top;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.monolith-prose thead {
+  background: var(--bg-surface);
+}
+.monolith-prose tfoot {
+  border-top: 2px solid var(--border-medium);
+}
+.monolith-prose dt {
+  margin-block-start: 0.8em;
+}
+.monolith-prose dd {
+  margin-inline-start: 1.5em;
+  margin-block-start: 0.25em;
+}
+.monolith-prose :where(img, video) {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
+}
+.monolith-prose picture {
+  display: block;
+}
+.monolith-prose figcaption {
+  margin-block-start: 0.6em;
+  font-size: var(--text-sm);
+  text-align: center;
+  color: var(--text-muted);
+}
+.monolith-prose > :first-child,
+.monolith-prose blockquote > :first-child {
+  margin-block-start: 0;
+}
+.monolith-prose > :last-child,
+.monolith-prose blockquote > :last-child {
+  margin-block-end: 0;
+}

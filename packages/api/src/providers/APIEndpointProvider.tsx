@@ -1,35 +1,24 @@
-import { createContext, useContext } from 'react'
+// SPDX-License-Identifier: 0BSD
+import { type ReactNode, createContext, useContext } from 'react'
 
 import { getNativeRuntime } from '../desktop/runtime'
 
-const APIEndpointContext = createContext<string | null>(null)
-
-export function APIEndpointProvider({
-  endpoint,
-  children
-}: {
+const APIEndpointContext = createContext<string | undefined>(undefined)
+export function APIEndpointProvider(props: {
   endpoint: string
-  children: React.ReactNode
+  children: ReactNode
 }) {
+  const connection = getNativeRuntime()
+  const endpoint = connection
+    ? connection.profile.origin + '/api'
+    : props.endpoint
   return (
-    <APIEndpointContext
-      value={
-        getNativeRuntime()
-          ? getNativeRuntime()!.profile.origin + '/api'
-          : endpoint
-      }
-    >
-      {children}
-    </APIEndpointContext>
+    <APIEndpointContext value={endpoint}>{props.children}</APIEndpointContext>
   )
 }
-
-export function useAPIEndpoint() {
-  const context = useContext(APIEndpointContext)
-
-  if (context === null) {
-    throw new Error('useAPIEndpoint must be used within an APIEndpointProvider')
-  }
-
-  return context
+export function useAPIEndpoint(): string {
+  const endpoint = useContext(APIEndpointContext)
+  if (endpoint === undefined)
+    throw new Error('useAPIEndpoint requires an APIEndpointProvider')
+  return endpoint
 }

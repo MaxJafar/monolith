@@ -1,181 +1,112 @@
-import type React from 'react'
+// SPDX-License-Identifier: 0BSD
 import {
+  type ComponentProps,
+  type ReactNode,
   createContext,
-  useMemo,
-  useContext as useReactContext,
+  useContext as readContext,
   useState
 } from 'react'
 
 import { useModuleTranslation } from '@monolith/localization'
 
-import { Tabs as TabsComponent } from '@/components/navigation'
-import useNuqsOrBasicState from '@/hooks/useNuqsOrBasicState'
+import { Tabs } from '@/components/navigation/Tabs'
 
-export interface TabState<TTab extends string = string> {
-  amounts: Partial<Record<TTab, number>>
-  currentTab: TTab
-  setAmounts: (amounts: Partial<Record<TTab, number>>) => void
-  setCurrentTab: (tab: TTab) => void
+import { ChoiceRoot } from '../ChoiceRoot'
+
+type Tab = {
+  id: string
+  name: string
+  icon?: string
+  color?: string
+  amount?: number | ((currentTab: string) => number)
 }
-
-interface CreateTabbedViewConfig<
-  TTabItems extends ReadonlyArray<{
-    id: string
-    name: string
-    icon?: string
-    color?: string
-    amount?: number | ((currentTab: string) => number)
-  }>
-> {
-  tabs: TTabItems
-  defaultValue?: TTabItems[number]['id']
+type SelectorProps = Omit<
+  ComponentProps<typeof Tabs>,
+  'items' | 'currentTab' | 'onTabChange' | 'enabled'
+>
+export interface TabState<T extends string = string> {
+  currentTab: T
+  setCurrentTab: (tab: T) => void
+  amounts: Partial<Record<T, number>>
+  setAmounts: (amounts: Partial<Record<T, number>>) => void
+}
+export interface TabbedViewRootProps<T extends readonly Tab[]> {
+  children: ReactNode
+  currentTab?: T[number]['id']
+  onTabChange?: (tab: T[number]['id']) => void
+}
+type Configuration<T extends readonly Tab[]> = {
+  tabs: T
+  defaultValue?: T[number]['id']
   namespace?: string | false
   useNuqs?: boolean
-  enabled?: readonly TTabItems[number]['id'][]
-  selectorProps?: Omit<
-    React.ComponentProps<typeof TabsComponent>,
-    'items' | 'currentTab' | 'onTabChange' | 'enabled'
-  >
+  enabled?: readonly T[number]['id'][]
+  selectorProps?: SelectorProps
 }
-
-export interface TabbedViewRootProps<
-  TTabItems extends ReadonlyArray<{
-    id: string
-    name: string
-    icon?: string
-    color?: string
-    amount?: number | ((currentTab: string) => number)
-  }>
-> {
-  children: React.ReactNode
-  currentTab?: TTabItems[number]['id']
-  onTabChange?: (tab: TTabItems[number]['id']) => void
-}
-
-export function createTabbedView<
-  const TTabItems extends ReadonlyArray<{
-    id: string
-    name: string
-    icon?: string
-    color?: string
-    amount?: number | ((currentTab: string) => number)
-  }>
->({
-  tabs,
-  defaultValue,
-  namespace,
-  useNuqs: syncWithUrl = false,
-  enabled,
-  selectorProps: configSelectorProps
-}: CreateTabbedViewConfig<TTabItems>) {
-  const tabValues = tabs.map(t => t.id)
-
-  const TabContext = createContext<TabState<TTabItems[number]['id']> | null>(
-    null
-  )
-
-  function useContext(): TabState<TTabItems[number]['id']>
-  function useContext<T>(
-    selector: (state: TabState<TTabItems[number]['id']>) => T
-  ): T
-  function useContext<T>(
-    selector?: (state: TabState<TTabItems[number]['id']>) => T
-  ) {
-    const state = useReactContext(TabContext)
-
-    if (!state) throw new Error('TabbedView.Root is required')
-
-    return selector ? selector(state) : state
+export function createTabbedView<const T extends readonly Tab[]>(
+  config: Configuration<T>
+) {
+  type Id = T[number]['id']
+  const all = config.tabs.map(tab => tab.id) as Id[]
+  const enabled = config.enabled ?? all
+  const selectable = all.filter(id => enabled.includes(id))
+  const Context = createContext<TabState<Id> | null>(null)
+  function useContext(): TabState<Id>
+  function useContext<R>(select: (state: TabState<Id>) => R): R
+  function useContext<R>(select?: (state: TabState<Id>) => R) {
+    const state = readContext(Context)
+    if (!state)
+      throw new Error('TabbedView.Root must wrap its controls and panels.')
+    return select ? select(state) : state
   }
-
-  function Root({
-    children,
-    currentTab: controlledTab,
-    onTabChange: controlledOnTabChange
-  }: TabbedViewRootProps<TTabItems>) {
-    const effectiveDefault =
-      defaultValue && (!enabled || enabled.includes(defaultValue))
-        ? defaultValue
-        : enabled?.[0] || tabValues[0]
-
-    const [currentTab, setCurrentTab] = useNuqsOrBasicState<
-      TTabItems[number]['id']
-    >({
-      options: tabValues,
-      useNuqs: syncWithUrl ? 'tab' : false,
-      defaultValue: effectiveDefault,
-      controlled: {
-        value: controlledTab ?? null,
-        setValue: controlledOnTabChange ?? null
-      }
-    })
-
-    const [amounts, setAmounts] = useState<
-      Partial<Record<TTabItems[number]['id'], number>>
-    >({})
-
+  function Root({ children, currentTab, onTabChange }: TabbedViewRootProps<T>) {
+    const [amounts, setAmounts] = useState<Partial<Record<Id, number>>>({})
     return (
-      <TabContext value={{ currentTab, setCurrentTab, amounts, setAmounts }}>
-        {children}
-      </TabContext>
+      <ChoiceRoot
+        choices={selectable.length ? selectable : all}
+        initial={config.defaultValue}
+        value={currentTab}
+        onChange={onTabChange}
+        queryKey={config.useNuqs ? 'tab' : undefined}
+      >
+        {state => (
+          <Context
+            value={{
+              currentTab: state.value,
+              setCurrentTab: state.change,
+              amounts,
+              setAmounts
+            }}
+          >
+            {children}
+          </Context>
+        )}
+      </ChoiceRoot>
     )
   }
-
-  function When({
-    tabId,
-    children
-  }: {
-    tabId: TTabItems[number]['id']
-    children: React.ReactNode
-  }) {
-    const { currentTab } = useContext()
-
-    if (tabId !== currentTab) {
-      return null
-    }
-
-    return <>{children}</>
+  function When({ tabId, children }: { tabId: Id; children: ReactNode }) {
+    return useContext(state => state.currentTab) === tabId ? children : null
   }
-
-  function Selector(
-    props?: Omit<
-      React.ComponentProps<typeof TabsComponent>,
-      'items' | 'currentTab' | 'onTabChange' | 'enabled'
-    >
-  ) {
-    const { currentTab, setCurrentTab, amounts } = useContext()
-
+  function Selector(props: SelectorProps = {}) {
+    const state = useContext()
     const { t } = useModuleTranslation(
-      namespace === false ? [] : namespace ? [namespace] : []
+      config.namespace ? [config.namespace] : []
     )
-
-    const items = useMemo(
-      () =>
-        tabs.map(tab => {
-          const id = tab.id as TTabItems[number]['id']
-
-          return id in amounts
-            ? {
-                ...tab,
-                name: namespace === false ? tab.name : t(tab.name),
-                amount: amounts[id]
-              }
-            : { ...tab, name: namespace === false ? tab.name : t(tab.name) }
-        }),
-      [amounts, t]
-    )
-
+    const items = config.tabs.map(tab => ({
+      ...tab,
+      name: config.namespace === false ? tab.name : t(tab.name),
+      amount: state.amounts[tab.id as Id] ?? tab.amount
+    }))
     return (
-      <TabsComponent
-        currentTab={currentTab}
-        enabled={enabled ?? tabValues}
-        items={items as unknown as typeof tabs}
-        onTabChange={setCurrentTab}
-        {...configSelectorProps}
+      <Tabs
+        {...config.selectorProps}
         {...props}
+        items={items}
+        enabled={enabled}
+        currentTab={state.currentTab}
+        onTabChange={state.setCurrentTab}
       />
     )
   }
-
   return { Root, When, Selector, useContext }
 }

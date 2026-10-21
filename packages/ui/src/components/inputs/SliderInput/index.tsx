@@ -1,107 +1,126 @@
-import clsx from 'clsx'
-import { useId } from 'react'
+// SPDX-License-Identifier: 0BSD
+import { type CSSProperties, useId, useState } from 'react'
 
-import { useInputLabel } from '@/components/inputs/shared/hooks/useInputLabel'
-import { Box, type BoxProps } from '@/components/primitives'
+import { Box, type BoxProps, Flex, Icon, Text } from '@/components/primitives'
 
-import * as styles from './SliderInput.css'
-import { SliderHeader } from './components/SliderHeader'
-import { SliderTicks } from './components/SliderTicks'
+import { useInputLabel } from '../shared/hooks/useInputLabel'
 import { sliderRange } from './range'
+import './slider.css'
 
-export interface SliderInputProps extends Omit<
-  BoxProps<'div'>,
-  'value' | 'onChange'
-> {
-  label?: string
-  icon?: string
+export type SliderInputProps = Omit<BoxProps<'div'>, 'value' | 'onChange'> & {
   value: number
   onChange: (value: number) => void
-  required?: boolean
-  disabled?: boolean
   min?: number
   max?: number
   step?: number
-  className?: string
+  label?: string
+  icon?: string
+  required?: boolean
+  disabled?: boolean
   namespace?: string | false
   renderValue?: (value: number) => string
 }
-
 export function SliderInput({
-  label,
-  icon,
   value,
   onChange,
-  required,
-  disabled,
   min = 0,
   max = 100,
   step = 1,
-  className,
+  label,
+  icon,
+  required,
+  disabled,
   namespace,
   renderValue,
+  className,
   'aria-label': ariaLabel,
   'aria-labelledby': labelledBy,
-  ...rest
+  ...box
 }: SliderInputProps) {
   const id = useId()
-
-  const inputLabel = useInputLabel({
-    label: label ?? 'rangeValue',
+  const caption = useInputLabel({
+    label: label || 'rangeValue',
     namespace: label ? namespace : 'common.inputs'
   })
+  const [draft, setDraft] = useState<string | null>(null)
   const range = sliderRange(value, min, max, step)
-  const unavailable = disabled || range.fixed
-  const update = (next: number) =>
-    onChange(sliderRange(next, min, max, step).value)
-
+  const inactive = disabled || range.fixed
+  const update = (next: number) => {
+    if (!inactive) onChange(sliderRange(next, min, max, step).value)
+  }
+  const format = renderValue ?? ((number: number) => String(number))
+  function commit() {
+    if (draft !== null && draft.trim() && Number.isFinite(Number(draft)))
+      update(Number(draft))
+    setDraft(null)
+  }
   return (
-    <Box width="100%" {...rest}>
-      <SliderHeader
-        disabled={unavailable}
-        icon={icon}
-        inputId={id}
-        label={label}
-        max={range.max}
-        min={range.min}
-        namespace={namespace}
-        renderValue={renderValue}
-        required={required}
+    <Box
+      {...box}
+      className={['monolith-range', className].filter(Boolean).join(' ')}
+      data-disabled={inactive || undefined}
+      width="100%"
+    >
+      {label && (
+        <Flex justify="between" align="center" gap="md">
+          <Flex as="label" htmlFor={id} align="center" gap="xs" minWidth="0">
+            {icon && <Icon icon={icon} size="1rem" aria-hidden />}
+            <Text size="sm" color="muted">
+              {caption}
+              {required && <span aria-hidden> *</span>}
+            </Text>
+          </Flex>
+          <input
+            className="monolith-range-value"
+            type="number"
+            aria-label={caption + ' — ' + format(range.value)}
+            aria-valuetext={format(range.value)}
+            disabled={inactive}
+            min={range.min}
+            max={range.max}
+            step={range.step}
+            value={draft ?? range.value}
+            onChange={event => setDraft(event.currentTarget.value)}
+            onBlur={commit}
+            onKeyDown={event => {
+              if (event.key === 'Enter') {
+                event.preventDefault()
+                event.currentTarget.blur()
+              }
+              if (event.key === 'Escape') {
+                event.preventDefault()
+                setDraft(null)
+              }
+            }}
+          />
+        </Flex>
+      )}
+      <input
+        id={id}
+        className="monolith-range-control"
+        type="range"
         value={range.value}
-        onChange={update}
+        min={range.min}
+        max={range.max}
+        step={range.step}
+        disabled={inactive}
+        aria-required={required || undefined}
+        aria-label={ariaLabel || caption}
+        aria-labelledby={labelledBy}
+        aria-valuetext={format(range.value)}
+        style={
+          { '--monolith-range-fill': range.progress + '%' } as CSSProperties
+        }
+        onChange={event => update(event.currentTarget.valueAsNumber)}
       />
-      <Box
-        className={clsx(
-          styles.track,
-          unavailable && styles.inputDisabled,
-          className
-        )}
-      >
-        <Box aria-hidden="true" className={styles.rail} />
-        <Box
-          aria-hidden="true"
-          className={styles.fill}
-          style={{ width: `${range.progress}%` }}
-        />
-        <input
-          aria-label={ariaLabel || inputLabel}
-          aria-labelledby={labelledBy}
-          aria-required={required || undefined}
-          aria-valuetext={renderValue?.(range.value)}
-          className={styles.input}
-          disabled={unavailable}
-          id={id}
-          max={range.max}
-          min={range.min}
-          step={range.step}
-          type="range"
-          value={range.value}
-          onChange={e => {
-            update(e.target.valueAsNumber)
-          }}
-        />
-      </Box>
-      <SliderTicks max={range.max} min={range.min} renderValue={renderValue} />
+      <Flex justify="between" aria-hidden="true" gap="md">
+        <Text size="xs" color="muted">
+          {format(range.min)}
+        </Text>
+        <Text size="xs" color="muted">
+          {format(range.max)}
+        </Text>
+      </Flex>
     </Box>
   )
 }

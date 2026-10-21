@@ -1,128 +1,106 @@
-import _ from 'lodash'
+// SPDX-License-Identifier: 0BSD
+import type { ReactNode } from 'react'
 
 import { useModuleMetadata } from '@monolith/federation'
 import { useModuleTranslation } from '@monolith/localization'
 
-import { Box, Flex, Icon, Text } from '@/components/primitives'
+import { Flex, Icon, Stack, Text } from '@/components/primitives'
 import { useAppearance } from '@/providers/AppearanceProvider'
 import { colorWithOpacity } from '@/system'
 
-function getTKeys(
-  namespace: string | undefined,
-  title: string,
-  target: string
-) {
-  const withPrefix = (middle: string) => [
-    `${middle}${_.camelCase(title)}.${target}`,
-    `${middle}${title}.${target}`,
-    ...(namespace
-      ? [
-          `${namespace}:${middle}${_.camelCase(title)}.${target}`,
-          `${namespace}:${middle}${title}.${target}`
-        ]
-      : [])
-  ]
-
-  return [
-    ...withPrefix('subsections.'),
-    ...withPrefix(''),
-    ...(namespace ? [`${namespace}:${target}`] : []),
-    target
-  ]
-}
-
-interface ModuleHeaderProps {
+export interface ModuleHeaderProps {
   icon?: string
   title?: string
-  trailing?: React.ReactNode
+  trailing?: ReactNode
   namespace?: string | false
 }
-
-export function ModuleHeader({
-  icon,
-  title,
-  trailing,
-  namespace
-}: ModuleHeaderProps) {
-  const { title: innerTitle, icon: innerIcon } = useModuleMetadata()
+function candidates(
+  label: string,
+  field: string,
+  namespace: string | false | undefined
+) {
+  const words =
+    label.replace(/([a-z0-9])([A-Z])/g, '$1 $2').match(/[\p{L}\p{N}]+/gu) ?? []
+  const camel = words
+    .map((word, index) =>
+      index
+        ? word[0].toUpperCase() + word.slice(1).toLowerCase()
+        : word.toLowerCase()
+    )
+    .join('')
+  const names = [...new Set([camel, label])]
+  const keys: string[] = []
+  for (const prefix of ['subsections.', '']) {
+    const relative = names.map(name => prefix + name + '.' + field)
+    keys.push(...relative)
+    if (namespace) keys.push(...relative.map(key => namespace + ':' + key))
+  }
+  if (namespace) keys.push(namespace + ':' + field)
+  return keys.concat(field)
+}
+export function ModuleHeader(props: ModuleHeaderProps) {
+  const module = useModuleMetadata()
   const { appearance } = useAppearance()
-
-  title = title ?? innerTitle
-  icon = appearance.icon ?? icon ?? innerIcon
-
   const { t } = useModuleTranslation(
-    typeof namespace === 'string'
-      ? [namespace, 'common.sidebar']
+    typeof props.namespace === 'string'
+      ? [props.namespace, 'common.sidebar']
       : ['common.sidebar']
   )
-
+  const title = props.title ?? module.title
+  const heading =
+    props.namespace === false
+      ? title
+      : t(candidates(title, 'title', props.namespace), { defaultValue: title })
+  const description =
+    props.namespace === false
+      ? ''
+      : t(candidates(title, 'description', props.namespace), {
+          defaultValue: ''
+        })
   return (
     <Flex
+      as="header"
       data-module-header
       align={{ base: 'start', sm: 'center' }}
-      as="header"
       direction={{ base: 'column', sm: 'row' }}
-      gap="md"
       justify="between"
-      mb="lg"
-      minWidth="0"
+      gap="md"
       width="100%"
+      minWidth="0"
+      mb="lg"
     >
-      <Flex align="center" gap="md" minWidth="0" width="100%">
+      <Flex align="center" gap="md" minWidth="0" flexGrow="1">
         <Flex
-          align="center"
-          bg={colorWithOpacity('custom-500', '10%')}
+          centered
           flexShrink="0"
-          height="2.75em"
-          justify="center"
           r="md"
           width="2.75em"
+          height="2.75em"
+          bg={colorWithOpacity('custom-500', '10%')}
         >
           <Icon
+            icon={appearance.icon ?? props.icon ?? module.icon}
             color="primary"
-            icon={icon}
-            preserveStyle={!!appearance.icon}
             size="1.25rem"
+            preserveStyle={!!appearance.icon}
           />
         </Flex>
-        <Flex direction="column" gap="xs" minWidth="0" width="100%">
-          <Text
-            asChild
-            size="3xl"
-            tracking="tight"
-            weight="semibold"
-            whiteSpace="nowrap"
-          >
-            <Flex
-              align="end"
-              as="h1"
-              minWidth="0"
-              style={{ gap: '0.75rem' }}
-              width="100%"
-            >
-              <Text truncate display="block">
-                {namespace === false
-                  ? title
-                  : t(getTKeys(namespace, title, 'title'))}
-              </Text>
-            </Flex>
+        <Stack minWidth="0" gap="xs">
+          <Text as="h1" size="3xl" weight="semibold" tracking="tight" truncate>
+            {heading}
           </Text>
-          <Box asChild minWidth="0" width="100%">
-            <Text
-              color="muted"
-              size="sm"
-              whiteSpace={{ base: 'normal', sm: 'nowrap' }}
-            >
-              {namespace === false
-                ? `Description for ${title}`
-                : t(getTKeys(namespace, title, 'description'))}
+          {description && (
+            <Text as="p" size="sm" color="muted">
+              {description}
             </Text>
-          </Box>
+          )}
+        </Stack>
+      </Flex>
+      {props.trailing && (
+        <Flex align="center" gap="sm">
+          {props.trailing}
         </Flex>
-      </Flex>
-      <Flex align="center" gap="sm">
-        {trailing}
-      </Flex>
+      )}
     </Flex>
   )
 }

@@ -1,24 +1,32 @@
-import { useCallback, useRef, useState } from 'react'
+// SPDX-License-Identifier: 0BSD
+import { useCallback, useEffect, useRef, useState } from 'react'
 
-/** Pending remains true until every invocation settles, including overlapping saves. */
 export function usePromiseLoading<Args extends unknown[]>(
   operation: (...args: Args) => Promise<unknown>,
   onError?: (error: unknown) => void
 ): [boolean, (...args: Args) => Promise<void>] {
-  const pending = useRef(0)
+  const jobs = useRef(new Set<Promise<unknown>>())
+  const active = useRef(true)
   const [busy, setBusy] = useState(false)
+  useEffect(() => {
+    active.current = true
+    return () => {
+      active.current = false
+    }
+  }, [])
   const run = useCallback(
     async (...args: Args) => {
-      pending.current += 1
-      setBusy(true)
+      const job = Promise.resolve().then(() => operation(...args))
+      jobs.current.add(job)
+      if (active.current) setBusy(true)
       try {
-        await operation(...args)
+        await job
       } catch (error) {
         if (onError) onError(error)
         else console.error(error)
       } finally {
-        pending.current -= 1
-        setBusy(pending.current !== 0)
+        jobs.current.delete(job)
+        if (active.current) setBusy(jobs.current.size > 0)
       }
     },
     [operation, onError]

@@ -1,7 +1,7 @@
 export const contract = {
   '': {
     method: 'get',
-    description: 'Welcome to Monolith API',
+    description: 'Identify the workspace API',
     noAuth: true,
     encrypted: false,
     isDownloadable: false,
@@ -15,10 +15,81 @@ export const contract = {
       }
     }
   },
+  status: {
+    method: 'get',
+    description: 'Check database and addon readiness',
+    noAuth: true,
+    encrypted: false,
+    isDownloadable: false,
+    media: null,
+    input: {},
+    output: {
+      OK: {
+        $schema: 'https://json-schema.org/draft/2020-12/schema',
+        type: 'object',
+        properties: {
+          environment: {
+            type: 'string'
+          },
+          version: {
+            type: 'string'
+          },
+          healthy: {
+            type: 'boolean'
+          }
+        },
+        required: ['environment', 'version', 'healthy'],
+        additionalProperties: false
+      }
+    }
+  },
+  ping: {
+    method: 'post',
+    description: 'Echo a timestamp for connectivity diagnostics',
+    noAuth: true,
+    encrypted: false,
+    isDownloadable: false,
+    media: null,
+    input: {
+      body: {
+        $schema: 'https://json-schema.org/draft/2020-12/schema',
+        type: 'object',
+        properties: {
+          timestamp: {
+            type: 'number',
+            minimum: 0
+          }
+        },
+        required: ['timestamp'],
+        additionalProperties: false
+      }
+    },
+    output: {
+      OK: {
+        $schema: 'https://json-schema.org/draft/2020-12/schema',
+        type: 'string'
+      }
+    }
+  },
+  encryptionPublicKey: {
+    method: 'get',
+    description: 'Read the request encryption public key',
+    noAuth: true,
+    encrypted: false,
+    isDownloadable: false,
+    media: null,
+    input: {},
+    output: {
+      OK: {
+        $schema: 'https://json-schema.org/draft/2020-12/schema',
+        type: 'string'
+      }
+    }
+  },
   locales: {
     listLanguages: {
       method: 'get',
-      description: 'List all languages',
+      description: 'Read the installed language choices',
       noAuth: true,
       encrypted: false,
       isDownloadable: false,
@@ -55,7 +126,7 @@ export const contract = {
     },
     getLocale: {
       method: 'get',
-      description: 'Retrieve localization strings for namespace',
+      description: 'Read a translated namespace',
       noAuth: true,
       encrypted: true,
       isDownloadable: false,
@@ -92,8 +163,7 @@ export const contract = {
     },
     listUnsupportedModules: {
       method: 'get',
-      description:
-        "List modules that do not support the user's currently selected language",
+      description: 'Read add-ons without the current account language',
       noAuth: false,
       encrypted: true,
       isDownloadable: false,
@@ -129,7 +199,7 @@ export const contract = {
     auth: {
       createFirstUser: {
         method: 'post',
-        description: 'Create the first user (only works when no users exist)',
+        description: 'Initialize an empty installation with its first account',
         noAuth: true,
         encrypted: true,
         isDownloadable: false,
@@ -180,7 +250,7 @@ export const contract = {
     },
     me: {
       method: 'get',
-      description: 'Get current user data',
+      description: 'Read the current account profile and preferences',
       noAuth: false,
       encrypted: false,
       isDownloadable: false,
@@ -262,41 +332,6 @@ export const contract = {
                     }
                   ]
                 },
-                backdropFilters: {
-                  anyOf: [
-                    {
-                      anyOf: [
-                        {
-                          anyOf: [
-                            {
-                              type: 'string'
-                            },
-                            {
-                              type: 'number'
-                            },
-                            {
-                              type: 'boolean'
-                            },
-                            {
-                              type: 'null'
-                            }
-                          ]
-                        },
-                        {
-                          type: 'object',
-                          additionalProperties: {}
-                        },
-                        {
-                          type: 'array',
-                          items: {}
-                        }
-                      ]
-                    },
-                    {
-                      type: 'null'
-                    }
-                  ]
-                },
                 fontFamily: {
                   anyOf: [
                     {
@@ -307,6 +342,23 @@ export const contract = {
                       type: 'null'
                     }
                   ]
+                },
+                fontScale: {
+                  type: 'number',
+                  minimum: -8388608,
+                  maximum: 8388607
+                },
+                borderRadiusMultiplier: {
+                  type: 'number',
+                  minimum: -8388608,
+                  maximum: 8388607
+                },
+                bordered: {
+                  type: 'boolean'
+                },
+                language: {
+                  type: 'string',
+                  maxLength: 50
                 },
                 dashboardLayout: {
                   anyOf: [
@@ -343,35 +395,53 @@ export const contract = {
                     }
                   ]
                 },
-                fontScale: {
-                  type: 'number',
-                  minimum: -8388608,
-                  maximum: 8388607
-                },
-                borderRadiusMultiplier: {
-                  type: 'number',
-                  minimum: -8388608,
-                  maximum: 8388607
-                },
-                bordered: {
-                  type: 'boolean'
-                },
-                language: {
-                  type: 'string',
-                  maxLength: 50
+                backdropFilters: {
+                  anyOf: [
+                    {
+                      anyOf: [
+                        {
+                          anyOf: [
+                            {
+                              type: 'string'
+                            },
+                            {
+                              type: 'number'
+                            },
+                            {
+                              type: 'boolean'
+                            },
+                            {
+                              type: 'null'
+                            }
+                          ]
+                        },
+                        {
+                          type: 'object',
+                          additionalProperties: {}
+                        },
+                        {
+                          type: 'array',
+                          items: {}
+                        }
+                      ]
+                    },
+                    {
+                      type: 'null'
+                    }
+                  ]
                 },
                 avatar: {
                   anyOf: [
                     {
                       type: 'object',
                       properties: {
-                        key: {
-                          type: 'string'
-                        },
                         originalName: {
                           type: 'string'
                         },
                         mimeType: {
+                          type: 'string'
+                        },
+                        key: {
                           type: 'string'
                         },
                         size: {
@@ -382,10 +452,10 @@ export const contract = {
                           items: {
                             type: 'object',
                             properties: {
-                              size: {
+                              key: {
                                 type: 'string'
                               },
-                              key: {
+                              size: {
                                 type: 'string'
                               },
                               width: {
@@ -395,15 +465,15 @@ export const contract = {
                                 type: 'number'
                               }
                             },
-                            required: ['size', 'key', 'width', 'height'],
+                            required: ['key', 'size', 'width', 'height'],
                             additionalProperties: false
                           }
                         }
                       },
                       required: [
-                        'key',
                         'originalName',
                         'mimeType',
+                        'key',
                         'size',
                         'thumbs'
                       ],
@@ -419,13 +489,13 @@ export const contract = {
                     {
                       type: 'object',
                       properties: {
-                        key: {
-                          type: 'string'
-                        },
                         originalName: {
                           type: 'string'
                         },
                         mimeType: {
+                          type: 'string'
+                        },
+                        key: {
                           type: 'string'
                         },
                         size: {
@@ -436,10 +506,10 @@ export const contract = {
                           items: {
                             type: 'object',
                             properties: {
-                              size: {
+                              key: {
                                 type: 'string'
                               },
-                              key: {
+                              size: {
                                 type: 'string'
                               },
                               width: {
@@ -449,15 +519,15 @@ export const contract = {
                                 type: 'number'
                               }
                             },
-                            required: ['size', 'key', 'width', 'height'],
+                            required: ['key', 'size', 'width', 'height'],
                             additionalProperties: false
                           }
                         }
                       },
                       required: [
-                        'key',
                         'originalName',
                         'mimeType',
+                        'key',
                         'size',
                         'thumbs'
                       ],
@@ -486,13 +556,13 @@ export const contract = {
                 'theme',
                 'color',
                 'bgTemp',
-                'backdropFilters',
                 'fontFamily',
-                'dashboardLayout',
                 'fontScale',
                 'borderRadiusMultiplier',
                 'bordered',
                 'language',
+                'dashboardLayout',
+                'backdropFilters',
                 'avatar',
                 'bgImage',
                 'twoFAEnabled',
@@ -509,7 +579,7 @@ export const contract = {
     settings: {
       deleteAvatar: {
         method: 'post',
-        description: 'Remove user avatar',
+        description: 'Clear the current account image',
         noAuth: false,
         encrypted: true,
         isDownloadable: false,
@@ -521,7 +591,7 @@ export const contract = {
       },
       updateAvatar: {
         method: 'post',
-        description: 'Upload new user avatar',
+        description: 'Replace the current account image',
         noAuth: false,
         encrypted: true,
         isDownloadable: false,
@@ -536,13 +606,13 @@ export const contract = {
             $schema: 'https://json-schema.org/draft/2020-12/schema',
             type: 'object',
             properties: {
-              key: {
-                type: 'string'
-              },
               originalName: {
                 type: 'string'
               },
               mimeType: {
+                type: 'string'
+              },
+              key: {
                 type: 'string'
               },
               size: {
@@ -553,10 +623,10 @@ export const contract = {
                 items: {
                   type: 'object',
                   properties: {
-                    size: {
+                    key: {
                       type: 'string'
                     },
-                    key: {
+                    size: {
                       type: 'string'
                     },
                     width: {
@@ -566,19 +636,19 @@ export const contract = {
                       type: 'number'
                     }
                   },
-                  required: ['size', 'key', 'width', 'height'],
+                  required: ['key', 'size', 'width', 'height'],
                   additionalProperties: false
                 }
               }
             },
-            required: ['key', 'originalName', 'mimeType', 'size', 'thumbs'],
+            required: ['originalName', 'mimeType', 'key', 'size', 'thumbs'],
             additionalProperties: false
           }
         }
       },
       updatePassword: {
         method: 'post',
-        description: 'Update user password directly',
+        description: 'Change a password after verifying the current password',
         noAuth: false,
         encrypted: true,
         isDownloadable: false,
@@ -611,7 +681,7 @@ export const contract = {
       },
       updateProfile: {
         method: 'post',
-        description: 'Update user profile information',
+        description: 'Save selected account profile fields',
         noAuth: false,
         encrypted: true,
         isDownloadable: false,
@@ -656,7 +726,7 @@ export const contract = {
     personalization: {
       deleteBgImage: {
         method: 'post',
-        description: 'Remove background image',
+        description: 'Clear the current account background',
         noAuth: false,
         encrypted: true,
         isDownloadable: false,
@@ -1111,7 +1181,7 @@ export const contract = {
       },
       updateBgImage: {
         method: 'post',
-        description: 'Upload new background image',
+        description: 'Replace the current account background',
         noAuth: false,
         encrypted: true,
         isDownloadable: false,
@@ -1126,13 +1196,13 @@ export const contract = {
             $schema: 'https://json-schema.org/draft/2020-12/schema',
             type: 'object',
             properties: {
-              key: {
-                type: 'string'
-              },
               originalName: {
                 type: 'string'
               },
               mimeType: {
+                type: 'string'
+              },
+              key: {
                 type: 'string'
               },
               size: {
@@ -1143,10 +1213,10 @@ export const contract = {
                 items: {
                   type: 'object',
                   properties: {
-                    size: {
+                    key: {
                       type: 'string'
                     },
-                    key: {
+                    size: {
                       type: 'string'
                     },
                     width: {
@@ -1156,19 +1226,19 @@ export const contract = {
                       type: 'number'
                     }
                   },
-                  required: ['size', 'key', 'width', 'height'],
+                  required: ['key', 'size', 'width', 'height'],
                   additionalProperties: false
                 }
               }
             },
-            required: ['key', 'originalName', 'mimeType', 'size', 'thumbs'],
+            required: ['originalName', 'mimeType', 'key', 'size', 'thumbs'],
             additionalProperties: false
           }
         }
       },
       updatePersonalization: {
         method: 'post',
-        description: 'Update user personalization preferences',
+        description: 'Save account display preferences',
         noAuth: false,
         encrypted: true,
         isDownloadable: false,
@@ -1242,13 +1312,13 @@ export const contract = {
             $schema: 'https://json-schema.org/draft/2020-12/schema',
             type: 'object',
             properties: {
-              key: {
-                type: 'string'
-              },
               originalName: {
                 type: 'string'
               },
               mimeType: {
+                type: 'string'
+              },
+              key: {
                 type: 'string'
               },
               size: {
@@ -1259,10 +1329,10 @@ export const contract = {
                 items: {
                   type: 'object',
                   properties: {
-                    size: {
+                    key: {
                       type: 'string'
                     },
-                    key: {
+                    size: {
                       type: 'string'
                     },
                     width: {
@@ -1272,12 +1342,12 @@ export const contract = {
                       type: 'number'
                     }
                   },
-                  required: ['size', 'key', 'width', 'height'],
+                  required: ['key', 'size', 'width', 'height'],
                   additionalProperties: false
                 }
               }
             },
-            required: ['key', 'originalName', 'mimeType', 'size', 'thumbs'],
+            required: ['originalName', 'mimeType', 'key', 'size', 'thumbs'],
             additionalProperties: false
           }
         }
@@ -1398,1112 +1468,11 @@ export const contract = {
       }
     }
   },
-  fonts: {
-    google: {
-      get: {
-        method: 'get',
-        description: 'Get details of a specific Google Font',
-        noAuth: false,
-        encrypted: true,
-        isDownloadable: false,
-        media: null,
-        input: {
-          query: {
-            $schema: 'https://json-schema.org/draft/2020-12/schema',
-            type: 'object',
-            properties: {
-              family: {
-                type: 'string'
-              }
-            },
-            required: ['family'],
-            additionalProperties: false
-          }
-        },
-        output: {
-          OK: {
-            $schema: 'https://json-schema.org/draft/2020-12/schema',
-            type: 'object',
-            properties: {
-              enabled: {
-                type: 'boolean'
-              },
-              items: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    family: {
-                      type: 'string'
-                    },
-                    variants: {
-                      type: 'array',
-                      items: {
-                        type: 'string'
-                      }
-                    },
-                    subsets: {
-                      type: 'array',
-                      items: {
-                        type: 'string'
-                      }
-                    },
-                    version: {
-                      type: 'string'
-                    },
-                    lastModified: {
-                      type: 'string'
-                    },
-                    files: {
-                      type: 'object',
-                      properties: {
-                        '100': {
-                          type: 'string'
-                        },
-                        '200': {
-                          type: 'string'
-                        },
-                        '300': {
-                          type: 'string'
-                        },
-                        '500': {
-                          type: 'string'
-                        },
-                        '600': {
-                          type: 'string'
-                        },
-                        '700': {
-                          type: 'string'
-                        },
-                        '800': {
-                          type: 'string'
-                        },
-                        '900': {
-                          type: 'string'
-                        },
-                        regular: {
-                          type: 'string'
-                        },
-                        italic: {
-                          type: 'string'
-                        },
-                        '100italic': {
-                          type: 'string'
-                        },
-                        '200italic': {
-                          type: 'string'
-                        },
-                        '300italic': {
-                          type: 'string'
-                        },
-                        '500italic': {
-                          type: 'string'
-                        },
-                        '600italic': {
-                          type: 'string'
-                        },
-                        '700italic': {
-                          type: 'string'
-                        },
-                        '800italic': {
-                          type: 'string'
-                        },
-                        '900italic': {
-                          type: 'string'
-                        }
-                      },
-                      additionalProperties: false
-                    },
-                    category: {
-                      type: 'string',
-                      enum: [
-                        'display',
-                        'handwriting',
-                        'monospace',
-                        'sans-serif',
-                        'serif'
-                      ]
-                    },
-                    kind: {
-                      type: 'string',
-                      const: 'webfonts#webfont'
-                    },
-                    menu: {
-                      type: 'string'
-                    },
-                    colorCapabilities: {
-                      type: 'array',
-                      items: {
-                        type: 'string',
-                        enum: ['COLRv0', 'COLRv1', 'SVG']
-                      }
-                    }
-                  },
-                  required: [
-                    'family',
-                    'variants',
-                    'subsets',
-                    'version',
-                    'lastModified',
-                    'files',
-                    'category',
-                    'kind',
-                    'menu'
-                  ],
-                  additionalProperties: false
-                }
-              }
-            },
-            required: ['enabled'],
-            additionalProperties: false
-          }
-        }
-      },
-      list: {
-        method: 'get',
-        description: 'Retrieve available Google Fonts',
-        noAuth: false,
-        encrypted: true,
-        isDownloadable: false,
-        media: null,
-        input: {},
-        output: {
-          OK: {
-            $schema: 'https://json-schema.org/draft/2020-12/schema',
-            type: 'object',
-            properties: {
-              enabled: {
-                type: 'boolean'
-              },
-              items: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    family: {
-                      type: 'string'
-                    },
-                    variants: {
-                      type: 'array',
-                      items: {
-                        type: 'string'
-                      }
-                    },
-                    subsets: {
-                      type: 'array',
-                      items: {
-                        type: 'string'
-                      }
-                    },
-                    version: {
-                      type: 'string'
-                    },
-                    lastModified: {
-                      type: 'string'
-                    },
-                    files: {
-                      type: 'object',
-                      properties: {
-                        '100': {
-                          type: 'string'
-                        },
-                        '200': {
-                          type: 'string'
-                        },
-                        '300': {
-                          type: 'string'
-                        },
-                        '500': {
-                          type: 'string'
-                        },
-                        '600': {
-                          type: 'string'
-                        },
-                        '700': {
-                          type: 'string'
-                        },
-                        '800': {
-                          type: 'string'
-                        },
-                        '900': {
-                          type: 'string'
-                        },
-                        regular: {
-                          type: 'string'
-                        },
-                        italic: {
-                          type: 'string'
-                        },
-                        '100italic': {
-                          type: 'string'
-                        },
-                        '200italic': {
-                          type: 'string'
-                        },
-                        '300italic': {
-                          type: 'string'
-                        },
-                        '500italic': {
-                          type: 'string'
-                        },
-                        '600italic': {
-                          type: 'string'
-                        },
-                        '700italic': {
-                          type: 'string'
-                        },
-                        '800italic': {
-                          type: 'string'
-                        },
-                        '900italic': {
-                          type: 'string'
-                        }
-                      },
-                      additionalProperties: false
-                    },
-                    category: {
-                      type: 'string',
-                      enum: [
-                        'display',
-                        'handwriting',
-                        'monospace',
-                        'sans-serif',
-                        'serif'
-                      ]
-                    },
-                    kind: {
-                      type: 'string',
-                      const: 'webfonts#webfont'
-                    },
-                    menu: {
-                      type: 'string'
-                    },
-                    colorCapabilities: {
-                      type: 'array',
-                      items: {
-                        type: 'string',
-                        enum: ['COLRv0', 'COLRv1', 'SVG']
-                      }
-                    }
-                  },
-                  required: [
-                    'family',
-                    'variants',
-                    'subsets',
-                    'version',
-                    'lastModified',
-                    'files',
-                    'category',
-                    'kind',
-                    'menu'
-                  ],
-                  additionalProperties: false
-                }
-              }
-            },
-            required: ['enabled', 'items'],
-            additionalProperties: false
-          }
-        }
-      }
-    },
-    custom: {
-      get: {
-        method: 'get',
-        description: 'Get a specific custom font by ID',
-        noAuth: false,
-        encrypted: true,
-        isDownloadable: false,
-        media: null,
-        input: {
-          query: {
-            $schema: 'https://json-schema.org/draft/2020-12/schema',
-            type: 'object',
-            properties: {
-              id: {
-                type: 'string'
-              }
-            },
-            required: ['id'],
-            additionalProperties: false
-          }
-        },
-        output: {
-          OK: {
-            $schema: 'https://json-schema.org/draft/2020-12/schema',
-            type: 'object',
-            properties: {
-              id: {
-                type: 'string',
-                format: 'uuid',
-                pattern:
-                  '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
-              },
-              displayName: {
-                type: 'string',
-                maxLength: 255
-              },
-              family: {
-                type: 'string',
-                maxLength: 255
-              },
-              weight: {
-                type: 'number',
-                minimum: -8388608,
-                maximum: 8388607
-              },
-              created: {
-                type: 'string',
-                format: 'date-time'
-              },
-              updated: {
-                type: 'string',
-                format: 'date-time'
-              },
-              file: {
-                anyOf: [
-                  {
-                    type: 'object',
-                    properties: {
-                      key: {
-                        type: 'string'
-                      },
-                      originalName: {
-                        type: 'string'
-                      },
-                      mimeType: {
-                        type: 'string'
-                      },
-                      size: {
-                        type: 'number'
-                      },
-                      thumbs: {
-                        type: 'array',
-                        items: {
-                          type: 'object',
-                          properties: {
-                            size: {
-                              type: 'string'
-                            },
-                            key: {
-                              type: 'string'
-                            },
-                            width: {
-                              type: 'number'
-                            },
-                            height: {
-                              type: 'number'
-                            }
-                          },
-                          required: ['size', 'key', 'width', 'height'],
-                          additionalProperties: false
-                        }
-                      }
-                    },
-                    required: [
-                      'key',
-                      'originalName',
-                      'mimeType',
-                      'size',
-                      'thumbs'
-                    ],
-                    additionalProperties: false
-                  },
-                  {
-                    type: 'null'
-                  }
-                ]
-              }
-            },
-            required: [
-              'id',
-              'displayName',
-              'family',
-              'weight',
-              'created',
-              'updated',
-              'file'
-            ],
-            additionalProperties: false
-          }
-        }
-      },
-      list: {
-        method: 'get',
-        description: 'List all custom uploaded fonts',
-        noAuth: false,
-        encrypted: true,
-        isDownloadable: false,
-        media: null,
-        input: {},
-        output: {
-          OK: {
-            $schema: 'https://json-schema.org/draft/2020-12/schema',
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                id: {
-                  type: 'string',
-                  format: 'uuid',
-                  pattern:
-                    '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
-                },
-                displayName: {
-                  type: 'string',
-                  maxLength: 255
-                },
-                family: {
-                  type: 'string',
-                  maxLength: 255
-                },
-                weight: {
-                  type: 'number',
-                  minimum: -8388608,
-                  maximum: 8388607
-                },
-                created: {
-                  type: 'string',
-                  format: 'date-time'
-                },
-                updated: {
-                  type: 'string',
-                  format: 'date-time'
-                },
-                file: {
-                  anyOf: [
-                    {
-                      type: 'object',
-                      properties: {
-                        key: {
-                          type: 'string'
-                        },
-                        originalName: {
-                          type: 'string'
-                        },
-                        mimeType: {
-                          type: 'string'
-                        },
-                        size: {
-                          type: 'number'
-                        },
-                        thumbs: {
-                          type: 'array',
-                          items: {
-                            type: 'object',
-                            properties: {
-                              size: {
-                                type: 'string'
-                              },
-                              key: {
-                                type: 'string'
-                              },
-                              width: {
-                                type: 'number'
-                              },
-                              height: {
-                                type: 'number'
-                              }
-                            },
-                            required: ['size', 'key', 'width', 'height'],
-                            additionalProperties: false
-                          }
-                        }
-                      },
-                      required: [
-                        'key',
-                        'originalName',
-                        'mimeType',
-                        'size',
-                        'thumbs'
-                      ],
-                      additionalProperties: false
-                    },
-                    {
-                      type: 'null'
-                    }
-                  ]
-                }
-              },
-              required: [
-                'id',
-                'displayName',
-                'family',
-                'weight',
-                'created',
-                'updated',
-                'file'
-              ],
-              additionalProperties: false
-            }
-          }
-        }
-      },
-      remove: {
-        method: 'post',
-        description: 'Delete a custom font',
-        noAuth: false,
-        encrypted: true,
-        isDownloadable: false,
-        media: null,
-        input: {
-          query: {
-            $schema: 'https://json-schema.org/draft/2020-12/schema',
-            type: 'object',
-            properties: {
-              id: {
-                type: 'string'
-              }
-            },
-            required: ['id'],
-            additionalProperties: false
-          }
-        },
-        output: {
-          NO_CONTENT: true
-        }
-      },
-      upload: {
-        method: 'post',
-        description: 'Upload a new custom font',
-        noAuth: false,
-        encrypted: true,
-        isDownloadable: false,
-        media: {
-          file: {
-            optional: false
-          }
-        },
-        input: {
-          query: {
-            $schema: 'https://json-schema.org/draft/2020-12/schema',
-            type: 'object',
-            properties: {
-              id: {
-                type: 'string'
-              }
-            },
-            additionalProperties: false
-          },
-          body: {
-            $schema: 'https://json-schema.org/draft/2020-12/schema',
-            type: 'object',
-            properties: {
-              displayName: {
-                type: 'string',
-                minLength: 1
-              },
-              family: {
-                type: 'string',
-                minLength: 1
-              },
-              weight: {
-                default: 400,
-                type: 'number',
-                minimum: 100,
-                maximum: 900
-              }
-            },
-            required: ['displayName', 'family', 'weight'],
-            additionalProperties: false
-          }
-        },
-        output: {
-          OK: {
-            $schema: 'https://json-schema.org/draft/2020-12/schema',
-            type: 'object',
-            properties: {
-              id: {
-                type: 'string',
-                format: 'uuid',
-                pattern:
-                  '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
-              },
-              displayName: {
-                type: 'string',
-                maxLength: 255
-              },
-              family: {
-                type: 'string',
-                maxLength: 255
-              },
-              weight: {
-                type: 'number',
-                minimum: -8388608,
-                maximum: 8388607
-              },
-              created: {
-                type: 'string',
-                format: 'date-time'
-              },
-              updated: {
-                type: 'string',
-                format: 'date-time'
-              },
-              file: {
-                anyOf: [
-                  {
-                    type: 'object',
-                    properties: {
-                      key: {
-                        type: 'string'
-                      },
-                      originalName: {
-                        type: 'string'
-                      },
-                      mimeType: {
-                        type: 'string'
-                      },
-                      size: {
-                        type: 'number'
-                      },
-                      thumbs: {
-                        type: 'array',
-                        items: {
-                          type: 'object',
-                          properties: {
-                            size: {
-                              type: 'string'
-                            },
-                            key: {
-                              type: 'string'
-                            },
-                            width: {
-                              type: 'number'
-                            },
-                            height: {
-                              type: 'number'
-                            }
-                          },
-                          required: ['size', 'key', 'width', 'height'],
-                          additionalProperties: false
-                        }
-                      }
-                    },
-                    required: [
-                      'key',
-                      'originalName',
-                      'mimeType',
-                      'size',
-                      'thumbs'
-                    ],
-                    additionalProperties: false
-                  },
-                  {
-                    type: 'null'
-                  }
-                ]
-              }
-            },
-            required: [
-              'id',
-              'displayName',
-              'family',
-              'weight',
-              'created',
-              'updated',
-              'file'
-            ],
-            additionalProperties: false
-          }
-        }
-      }
-    },
-    pins: {
-      list: {
-        method: 'get',
-        description: 'Retrieve pinned Google Fonts',
-        noAuth: false,
-        encrypted: true,
-        isDownloadable: false,
-        media: null,
-        input: {},
-        output: {
-          OK: {
-            $schema: 'https://json-schema.org/draft/2020-12/schema',
-            type: 'array',
-            items: {
-              type: 'string'
-            }
-          }
-        }
-      },
-      toggle: {
-        method: 'post',
-        description: 'Pin or unpin a Google Font',
-        noAuth: false,
-        encrypted: true,
-        isDownloadable: false,
-        media: null,
-        input: {
-          body: {
-            $schema: 'https://json-schema.org/draft/2020-12/schema',
-            type: 'object',
-            properties: {
-              family: {
-                type: 'string'
-              }
-            },
-            required: ['family'],
-            additionalProperties: false
-          }
-        },
-        output: {
-          NO_CONTENT: true
-        }
-      }
-    }
-  },
-  apiKeys: {
-    entries: {
-      get: {
-        method: 'get',
-        description:
-          'Retrieve API key by key ID. Only exposable keys can be retrieved.',
-        noAuth: false,
-        encrypted: true,
-        isDownloadable: false,
-        media: null,
-        input: {
-          query: {
-            $schema: 'https://json-schema.org/draft/2020-12/schema',
-            type: 'object',
-            properties: {
-              keyId: {
-                type: 'string'
-              }
-            },
-            required: ['keyId'],
-            additionalProperties: false
-          }
-        },
-        output: {
-          OK: {
-            $schema: 'https://json-schema.org/draft/2020-12/schema',
-            anyOf: [
-              {
-                type: 'string'
-              },
-              {
-                type: 'null'
-              }
-            ]
-          }
-        }
-      },
-      list: {
-        method: 'get',
-        description: 'Retrieve all API key entries',
-        noAuth: false,
-        encrypted: true,
-        isDownloadable: false,
-        media: null,
-        input: {},
-        output: {
-          OK: {
-            $schema: 'https://json-schema.org/draft/2020-12/schema',
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                id: {
-                  type: 'string',
-                  format: 'uuid',
-                  pattern:
-                    '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
-                },
-                keyId: {
-                  type: 'string',
-                  maxLength: 255
-                },
-                name: {
-                  type: 'string',
-                  maxLength: 255
-                },
-                icon: {
-                  type: 'string',
-                  maxLength: 255
-                },
-                key: {
-                  type: 'string',
-                  maxLength: 500
-                },
-                exposable: {
-                  type: 'boolean'
-                },
-                created: {
-                  type: 'string',
-                  format: 'date-time'
-                },
-                updated: {
-                  type: 'string',
-                  format: 'date-time'
-                }
-              },
-              required: [
-                'id',
-                'keyId',
-                'name',
-                'icon',
-                'key',
-                'exposable',
-                'created',
-                'updated'
-              ],
-              additionalProperties: false
-            }
-          }
-        }
-      },
-      checkKeys: {
-        method: 'get',
-        description: 'Verify if API keys exist.',
-        noAuth: false,
-        encrypted: true,
-        isDownloadable: false,
-        media: null,
-        input: {
-          query: {
-            $schema: 'https://json-schema.org/draft/2020-12/schema',
-            type: 'object',
-            properties: {
-              keys: {
-                type: 'string'
-              }
-            },
-            required: ['keys'],
-            additionalProperties: false
-          }
-        },
-        output: {
-          OK: {
-            $schema: 'https://json-schema.org/draft/2020-12/schema',
-            type: 'boolean'
-          }
-        }
-      },
-      create: {
-        method: 'post',
-        description: 'Create a new API key entry',
-        noAuth: false,
-        encrypted: true,
-        isDownloadable: false,
-        media: null,
-        input: {
-          body: {
-            $schema: 'https://json-schema.org/draft/2020-12/schema',
-            type: 'object',
-            properties: {
-              keyId: {
-                type: 'string'
-              },
-              name: {
-                type: 'string'
-              },
-              icon: {
-                type: 'string'
-              },
-              key: {
-                type: 'string'
-              },
-              exposable: {
-                type: 'boolean'
-              }
-            },
-            required: ['keyId', 'name', 'icon', 'key', 'exposable'],
-            additionalProperties: false
-          }
-        },
-        output: {
-          CREATED: {
-            $schema: 'https://json-schema.org/draft/2020-12/schema',
-            type: 'object',
-            properties: {
-              id: {
-                type: 'string',
-                format: 'uuid',
-                pattern:
-                  '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
-              },
-              keyId: {
-                type: 'string',
-                maxLength: 255
-              },
-              name: {
-                type: 'string',
-                maxLength: 255
-              },
-              icon: {
-                type: 'string',
-                maxLength: 255
-              },
-              key: {
-                type: 'string',
-                maxLength: 500
-              },
-              exposable: {
-                type: 'boolean'
-              },
-              created: {
-                type: 'string',
-                format: 'date-time'
-              },
-              updated: {
-                type: 'string',
-                format: 'date-time'
-              }
-            },
-            required: [
-              'id',
-              'keyId',
-              'name',
-              'icon',
-              'key',
-              'exposable',
-              'created',
-              'updated'
-            ],
-            additionalProperties: false
-          }
-        }
-      },
-      update: {
-        method: 'post',
-        description: 'Update an existing API key entry',
-        noAuth: false,
-        encrypted: true,
-        isDownloadable: false,
-        media: null,
-        input: {
-          query: {
-            $schema: 'https://json-schema.org/draft/2020-12/schema',
-            type: 'object',
-            properties: {
-              id: {
-                type: 'string'
-              }
-            },
-            required: ['id'],
-            additionalProperties: false
-          },
-          body: {
-            $schema: 'https://json-schema.org/draft/2020-12/schema',
-            type: 'object',
-            properties: {
-              keyId: {
-                type: 'string'
-              },
-              name: {
-                type: 'string'
-              },
-              icon: {
-                type: 'string'
-              },
-              key: {
-                type: 'string'
-              },
-              exposable: {
-                type: 'boolean'
-              },
-              overrideKey: {
-                type: 'boolean'
-              }
-            },
-            required: [
-              'keyId',
-              'name',
-              'icon',
-              'key',
-              'exposable',
-              'overrideKey'
-            ],
-            additionalProperties: false
-          }
-        },
-        output: {
-          OK: {
-            $schema: 'https://json-schema.org/draft/2020-12/schema',
-            type: 'object',
-            properties: {
-              id: {
-                type: 'string',
-                format: 'uuid',
-                pattern:
-                  '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
-              },
-              keyId: {
-                type: 'string',
-                maxLength: 255
-              },
-              name: {
-                type: 'string',
-                maxLength: 255
-              },
-              icon: {
-                type: 'string',
-                maxLength: 255
-              },
-              key: {
-                type: 'string',
-                maxLength: 500
-              },
-              exposable: {
-                type: 'boolean'
-              },
-              created: {
-                type: 'string',
-                format: 'date-time'
-              },
-              updated: {
-                type: 'string',
-                format: 'date-time'
-              }
-            },
-            required: [
-              'id',
-              'keyId',
-              'name',
-              'icon',
-              'key',
-              'exposable',
-              'created',
-              'updated'
-            ],
-            additionalProperties: false
-          }
-        }
-      },
-      remove: {
-        method: 'post',
-        description: 'Delete an API key entry',
-        noAuth: false,
-        encrypted: true,
-        isDownloadable: false,
-        media: null,
-        input: {
-          query: {
-            $schema: 'https://json-schema.org/draft/2020-12/schema',
-            type: 'object',
-            properties: {
-              id: {
-                type: 'string'
-              }
-            },
-            required: ['id'],
-            additionalProperties: false
-          }
-        },
-        output: {
-          NO_CONTENT: true
-        }
-      }
-    }
-  },
   auth: {
     '2fa': {
       disable: {
         method: 'post',
-        description: 'Disable two-factor authentication',
+        description: 'Remove the current account authenticator',
         noAuth: false,
         encrypted: false,
         isDownloadable: false,
@@ -2515,7 +1484,7 @@ export const contract = {
       },
       enable: {
         method: 'post',
-        description: 'Verify OTP and enable two-factor authentication',
+        description: 'Confirm an authenticator setup',
         noAuth: false,
         encrypted: false,
         isDownloadable: false,
@@ -2542,7 +1511,7 @@ export const contract = {
       },
       generate: {
         method: 'post',
-        description: 'Generate 2FA authenticator app setup link',
+        description: 'Prepare an authenticator for the signed-in account',
         noAuth: false,
         encrypted: false,
         isDownloadable: false,
@@ -2567,7 +1536,7 @@ export const contract = {
       },
       verify: {
         method: 'post',
-        description: 'Verify two-factor authentication code during login',
+        description: 'Finish a pending sign-in with an authenticator code',
         noAuth: true,
         encrypted: false,
         isDownloadable: false,
@@ -2605,7 +1574,7 @@ export const contract = {
     },
     login: {
       method: 'post',
-      description: 'Authenticate user with email and password',
+      description: 'Sign in with an existing account',
       noAuth: true,
       encrypted: false,
       isDownloadable: false,
@@ -2664,7 +1633,7 @@ export const contract = {
     },
     logout: {
       method: 'post',
-      description: 'Invalidate refresh token and clear session',
+      description: 'End the browser session and revoke its refresh family',
       noAuth: true,
       encrypted: false,
       isDownloadable: false,
@@ -2680,7 +1649,7 @@ export const contract = {
     oauth: {
       authorize: {
         method: 'get',
-        description: 'Start OAuth authorization flow',
+        description: 'Create a provider sign-in challenge',
         noAuth: true,
         encrypted: false,
         isDownloadable: false,
@@ -2691,7 +1660,9 @@ export const contract = {
             type: 'object',
             properties: {
               provider: {
-                type: 'string'
+                type: 'string',
+                minLength: 1,
+                maxLength: 64
               }
             },
             required: ['provider'],
@@ -2717,7 +1688,7 @@ export const contract = {
       },
       verify: {
         method: 'post',
-        description: 'Verify OAuth authorization callback',
+        description: 'Complete a single-use provider sign-in challenge',
         noAuth: true,
         encrypted: false,
         isDownloadable: false,
@@ -2728,13 +1699,19 @@ export const contract = {
             type: 'object',
             properties: {
               provider: {
-                type: 'string'
+                type: 'string',
+                minLength: 1,
+                maxLength: 64
               },
               code: {
-                type: 'string'
+                type: 'string',
+                minLength: 1,
+                maxLength: 4096
               },
               state: {
-                type: 'string'
+                type: 'string',
+                minLength: 1,
+                maxLength: 512
               }
             },
             required: ['provider', 'code', 'state'],
@@ -2776,7 +1753,7 @@ export const contract = {
       providers: {
         listEnabled: {
           method: 'get',
-          description: 'List enabled OAuth providers for the login portal',
+          description: 'Read configured sign-in choices',
           noAuth: true,
           encrypted: false,
           isDownloadable: false,
@@ -2807,8 +1784,7 @@ export const contract = {
         },
         listOptions: {
           method: 'get',
-          description:
-            'List all available OAuth provider options for configuration',
+          description: 'Read sign-in provider settings without credentials',
           noAuth: false,
           encrypted: true,
           isDownloadable: false,
@@ -2821,6 +1797,15 @@ export const contract = {
               items: {
                 type: 'object',
                 properties: {
+                  provider: {
+                    type: 'string'
+                  },
+                  icon: {
+                    type: 'string'
+                  },
+                  name: {
+                    type: 'string'
+                  },
                   id: {
                     anyOf: [
                       {
@@ -2831,20 +1816,11 @@ export const contract = {
                       }
                     ]
                   },
-                  provider: {
-                    type: 'string'
-                  },
                   configured: {
                     type: 'boolean'
                   },
                   enabled: {
                     type: 'boolean'
-                  },
-                  icon: {
-                    type: 'string'
-                  },
-                  name: {
-                    type: 'string'
                   },
                   updated: {
                     anyOf: [
@@ -2859,12 +1835,12 @@ export const contract = {
                   }
                 },
                 required: [
-                  'id',
                   'provider',
-                  'configured',
-                  'enabled',
                   'icon',
                   'name',
+                  'id',
+                  'configured',
+                  'enabled',
                   'updated'
                 ],
                 additionalProperties: false
@@ -2874,7 +1850,7 @@ export const contract = {
         },
         remove: {
           method: 'post',
-          description: 'Delete OAuth provider configuration',
+          description: 'Forget a sign-in provider configuration',
           noAuth: false,
           encrypted: true,
           isDownloadable: false,
@@ -2885,7 +1861,8 @@ export const contract = {
               type: 'object',
               properties: {
                 id: {
-                  type: 'string'
+                  type: 'string',
+                  minLength: 1
                 }
               },
               required: ['id'],
@@ -2898,7 +1875,7 @@ export const contract = {
         },
         toggle: {
           method: 'post',
-          description: 'Toggle OAuth provider enabled status',
+          description: 'Enable or disable a configured sign-in provider',
           noAuth: false,
           encrypted: true,
           isDownloadable: false,
@@ -2909,7 +1886,8 @@ export const contract = {
               type: 'object',
               properties: {
                 id: {
-                  type: 'string'
+                  type: 'string',
+                  minLength: 1
                 }
               },
               required: ['id'],
@@ -2922,7 +1900,7 @@ export const contract = {
         },
         upsert: {
           method: 'post',
-          description: 'Update OAuth provider configuration',
+          description: 'Save sign-in provider credentials',
           noAuth: false,
           encrypted: true,
           isDownloadable: false,
@@ -2944,10 +1922,12 @@ export const contract = {
               type: 'object',
               properties: {
                 clientId: {
-                  type: 'string'
+                  type: 'string',
+                  maxLength: 255
                 },
                 clientSecret: {
-                  type: 'string'
+                  type: 'string',
+                  maxLength: 255
                 }
               },
               required: ['clientId', 'clientSecret'],
@@ -2963,7 +1943,7 @@ export const contract = {
     qrLogin: {
       approve: {
         method: 'post',
-        description: 'Approve a QR login request from an authenticated device',
+        description: 'Confirm the account for a QR sign-in request',
         noAuth: false,
         encrypted: false,
         isDownloadable: false,
@@ -3000,7 +1980,7 @@ export const contract = {
       },
       claim: {
         method: 'post',
-        description: 'Claim approved QR login session and set auth cookie',
+        description: 'Consume an approved QR request on the receiving browser',
         noAuth: true,
         encrypted: false,
         isDownloadable: false,
@@ -3037,7 +2017,7 @@ export const contract = {
       },
       register: {
         method: 'post',
-        description: 'Register a new QR login session',
+        description: 'Create a short-lived QR sign-in request',
         noAuth: true,
         encrypted: false,
         isDownloadable: false,
@@ -3074,7 +2054,7 @@ export const contract = {
       },
       status: {
         method: 'get',
-        description: 'Check QR login session status',
+        description: 'Read the state of a QR sign-in request',
         noAuth: true,
         encrypted: false,
         isDownloadable: false,
@@ -3156,7 +2136,7 @@ export const contract = {
     },
     refresh: {
       method: 'post',
-      description: 'Refresh access token using refresh token cookie',
+      description: 'Exchange a valid refresh credential for the next session',
       noAuth: true,
       encrypted: false,
       isDownloadable: false,
@@ -3177,12 +2157,12 @@ export const contract = {
       }
     }
   },
-  pixabay: {
-    searchImages: {
+  files: {
+    get: {
       method: 'get',
-      description: 'Search for images on Pixabay',
+      description: 'Stream a file owned by the signed-in account',
       noAuth: false,
-      encrypted: true,
+      encrypted: false,
       isDownloadable: false,
       media: null,
       input: {
@@ -3190,178 +2170,1021 @@ export const contract = {
           $schema: 'https://json-schema.org/draft/2020-12/schema',
           type: 'object',
           properties: {
-            q: {
+            key: {
               type: 'string',
               minLength: 1
             },
-            page: {
-              default: '1',
+            thumb: {
               type: 'string'
             },
-            type: {
-              default: 'all',
-              type: 'string',
-              enum: ['all', 'photo', 'illustration', 'vector']
-            },
-            category: {
-              type: 'string',
-              enum: [
-                'backgrounds',
-                'fashion',
-                'nature',
-                'science',
-                'education',
-                'feelings',
-                'health',
-                'people',
-                'religion',
-                'places',
-                'animals',
-                'industry',
-                'computer',
-                'food',
-                'sports',
-                'transportation',
-                'travel',
-                'buildings',
-                'business',
-                'music'
-              ]
-            },
-            colors: {
-              anyOf: [
-                {
-                  type: 'string',
-                  enum: [
-                    'grayscale',
-                    'transparent',
-                    'red',
-                    'orange',
-                    'yellow',
-                    'green',
-                    'turquoise',
-                    'blue',
-                    'lilac',
-                    'pink',
-                    'white',
-                    'gray',
-                    'black',
-                    'brown'
-                  ]
-                },
-                {
-                  type: 'null'
-                }
-              ]
-            },
-            editors_choice: {
-              default: 'false',
-              type: 'string',
-              enum: ['true', 'false']
+            download: {
+              type: 'string'
             }
           },
-          required: ['q', 'page', 'type', 'editors_choice'],
+          required: ['key'],
           additionalProperties: false
         }
       },
-      output: {
-        OK: {
-          $schema: 'https://json-schema.org/draft/2020-12/schema',
-          type: 'object',
-          properties: {
-            total: {
-              type: 'number'
-            },
-            hits: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  id: {
-                    type: 'string'
-                  },
-                  thumbnail: {
-                    type: 'object',
-                    properties: {
-                      url: {
-                        type: 'string'
-                      },
-                      width: {
-                        type: 'number'
-                      },
-                      height: {
-                        type: 'number'
-                      }
-                    },
-                    required: ['url', 'width', 'height'],
-                    additionalProperties: false
-                  },
-                  imageURL: {
-                    type: 'string'
-                  }
-                },
-                required: ['id', 'thumbnail', 'imageURL'],
-                additionalProperties: false
+      output: 'custom'
+    }
+  },
+  apiKeys: {
+    entries: {
+      get: {
+        method: 'get',
+        description: 'Read a key explicitly marked for client access',
+        noAuth: false,
+        encrypted: true,
+        isDownloadable: false,
+        media: null,
+        input: {
+          query: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            type: 'object',
+            properties: {
+              keyId: {
+                type: 'string'
               }
+            },
+            required: ['keyId'],
+            additionalProperties: false
+          }
+        },
+        output: {
+          OK: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            anyOf: [
+              {
+                type: 'string'
+              },
+              {
+                type: 'null'
+              }
+            ]
+          }
+        }
+      },
+      list: {
+        method: 'get',
+        description: 'List credentials with masked values',
+        noAuth: false,
+        encrypted: true,
+        isDownloadable: false,
+        media: null,
+        input: {},
+        output: {
+          OK: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                id: {
+                  type: 'string',
+                  format: 'uuid',
+                  pattern:
+                    '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                },
+                created: {
+                  type: 'string',
+                  format: 'date-time'
+                },
+                updated: {
+                  type: 'string',
+                  format: 'date-time'
+                },
+                keyId: {
+                  type: 'string',
+                  maxLength: 255
+                },
+                key: {
+                  type: 'string',
+                  maxLength: 500
+                },
+                exposable: {
+                  type: 'boolean'
+                },
+                name: {
+                  type: 'string',
+                  maxLength: 255
+                },
+                icon: {
+                  type: 'string',
+                  maxLength: 255
+                }
+              },
+              required: [
+                'id',
+                'created',
+                'updated',
+                'keyId',
+                'key',
+                'exposable',
+                'name',
+                'icon'
+              ],
+              additionalProperties: false
             }
+          }
+        }
+      },
+      checkKeys: {
+        method: 'get',
+        description: 'Check availability of the requested credentials',
+        noAuth: false,
+        encrypted: true,
+        isDownloadable: false,
+        media: null,
+        input: {
+          query: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            type: 'object',
+            properties: {
+              keys: {
+                type: 'string'
+              }
+            },
+            required: ['keys'],
+            additionalProperties: false
+          }
+        },
+        output: {
+          OK: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            type: 'boolean'
+          }
+        }
+      },
+      create: {
+        method: 'post',
+        description: 'Store an encrypted credential',
+        noAuth: false,
+        encrypted: true,
+        isDownloadable: false,
+        media: null,
+        input: {
+          body: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            type: 'object',
+            properties: {
+              keyId: {
+                type: 'string'
+              },
+              name: {
+                type: 'string'
+              },
+              icon: {
+                type: 'string'
+              },
+              key: {
+                type: 'string'
+              },
+              exposable: {
+                type: 'boolean'
+              }
+            },
+            required: ['keyId', 'name', 'icon', 'key', 'exposable'],
+            additionalProperties: false
+          }
+        },
+        output: {
+          CREATED: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            type: 'object',
+            properties: {
+              id: {
+                type: 'string',
+                format: 'uuid',
+                pattern:
+                  '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+              },
+              created: {
+                type: 'string',
+                format: 'date-time'
+              },
+              updated: {
+                type: 'string',
+                format: 'date-time'
+              },
+              keyId: {
+                type: 'string',
+                maxLength: 255
+              },
+              key: {
+                type: 'string',
+                maxLength: 500
+              },
+              exposable: {
+                type: 'boolean'
+              },
+              name: {
+                type: 'string',
+                maxLength: 255
+              },
+              icon: {
+                type: 'string',
+                maxLength: 255
+              }
+            },
+            required: [
+              'id',
+              'created',
+              'updated',
+              'keyId',
+              'key',
+              'exposable',
+              'name',
+              'icon'
+            ],
+            additionalProperties: false
+          }
+        }
+      },
+      update: {
+        method: 'post',
+        description: 'Edit credential metadata or replace its secret',
+        noAuth: false,
+        encrypted: true,
+        isDownloadable: false,
+        media: null,
+        input: {
+          query: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            type: 'object',
+            properties: {
+              id: {
+                type: 'string'
+              }
+            },
+            required: ['id'],
+            additionalProperties: false
           },
-          required: ['total', 'hits'],
-          additionalProperties: false
+          body: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            type: 'object',
+            properties: {
+              keyId: {
+                type: 'string'
+              },
+              name: {
+                type: 'string'
+              },
+              icon: {
+                type: 'string'
+              },
+              key: {
+                type: 'string'
+              },
+              exposable: {
+                type: 'boolean'
+              },
+              overrideKey: {
+                type: 'boolean'
+              }
+            },
+            required: [
+              'keyId',
+              'name',
+              'icon',
+              'key',
+              'exposable',
+              'overrideKey'
+            ],
+            additionalProperties: false
+          }
+        },
+        output: {
+          OK: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            type: 'object',
+            properties: {
+              id: {
+                type: 'string',
+                format: 'uuid',
+                pattern:
+                  '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+              },
+              created: {
+                type: 'string',
+                format: 'date-time'
+              },
+              updated: {
+                type: 'string',
+                format: 'date-time'
+              },
+              keyId: {
+                type: 'string',
+                maxLength: 255
+              },
+              key: {
+                type: 'string',
+                maxLength: 500
+              },
+              exposable: {
+                type: 'boolean'
+              },
+              name: {
+                type: 'string',
+                maxLength: 255
+              },
+              icon: {
+                type: 'string',
+                maxLength: 255
+              }
+            },
+            required: [
+              'id',
+              'created',
+              'updated',
+              'keyId',
+              'key',
+              'exposable',
+              'name',
+              'icon'
+            ],
+            additionalProperties: false
+          }
+        }
+      },
+      remove: {
+        method: 'post',
+        description: 'Remove a stored credential',
+        noAuth: false,
+        encrypted: true,
+        isDownloadable: false,
+        media: null,
+        input: {
+          query: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            type: 'object',
+            properties: {
+              id: {
+                type: 'string'
+              }
+            },
+            required: ['id'],
+            additionalProperties: false
+          }
+        },
+        output: {
+          NO_CONTENT: true
         }
       }
     }
   },
-  locations: {
-    search: {
-      method: 'get',
-      description: 'Search for locations using Google Places API',
-      noAuth: false,
-      encrypted: true,
-      isDownloadable: false,
-      media: null,
-      input: {
-        query: {
-          $schema: 'https://json-schema.org/draft/2020-12/schema',
-          type: 'object',
-          properties: {
-            q: {
-              type: 'string'
-            }
-          },
-          required: ['q'],
-          additionalProperties: false
-        }
-      },
-      output: {
-        OK: {
-          $schema: 'https://json-schema.org/draft/2020-12/schema',
-          type: 'array',
-          items: {
+  fonts: {
+    google: {
+      get: {
+        method: 'get',
+        description: 'Look up a hosted font family',
+        noAuth: false,
+        encrypted: true,
+        isDownloadable: false,
+        media: null,
+        input: {
+          query: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
             type: 'object',
             properties: {
-              name: {
-                type: 'string'
-              },
-              formattedAddress: {
-                type: 'string'
-              },
-              location: {
-                type: 'object',
-                properties: {
-                  latitude: {
-                    type: 'number'
-                  },
-                  longitude: {
-                    type: 'number'
-                  }
-                },
-                required: ['latitude', 'longitude'],
-                additionalProperties: false
+              family: {
+                type: 'string',
+                minLength: 1,
+                maxLength: 255
               }
             },
-            required: ['name', 'formattedAddress', 'location'],
+            required: ['family'],
             additionalProperties: false
           }
+        },
+        output: {
+          OK: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            type: 'object',
+            properties: {
+              enabled: {
+                type: 'boolean'
+              },
+              items: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    family: {
+                      type: 'string'
+                    },
+                    category: {
+                      type: 'string',
+                      enum: [
+                        'display',
+                        'handwriting',
+                        'monospace',
+                        'sans-serif',
+                        'serif'
+                      ]
+                    },
+                    variants: {
+                      type: 'array',
+                      items: {
+                        type: 'string'
+                      }
+                    },
+                    subsets: {
+                      type: 'array',
+                      items: {
+                        type: 'string'
+                      }
+                    },
+                    files: {
+                      type: 'object',
+                      additionalProperties: {
+                        type: 'string'
+                      }
+                    },
+                    version: {
+                      type: 'string'
+                    },
+                    lastModified: {
+                      type: 'string'
+                    },
+                    kind: {
+                      type: 'string',
+                      const: 'webfonts#webfont'
+                    },
+                    menu: {
+                      type: 'string'
+                    },
+                    colorCapabilities: {
+                      type: 'array',
+                      items: {
+                        type: 'string',
+                        enum: ['COLRv0', 'COLRv1', 'SVG']
+                      }
+                    }
+                  },
+                  required: [
+                    'family',
+                    'category',
+                    'variants',
+                    'subsets',
+                    'files',
+                    'version',
+                    'lastModified',
+                    'kind',
+                    'menu'
+                  ],
+                  additionalProperties: false
+                }
+              }
+            },
+            required: ['enabled', 'items'],
+            additionalProperties: false
+          }
+        }
+      },
+      list: {
+        method: 'get',
+        description: 'Browse the configured Google Fonts catalog',
+        noAuth: false,
+        encrypted: true,
+        isDownloadable: false,
+        media: null,
+        input: {},
+        output: {
+          OK: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            type: 'object',
+            properties: {
+              enabled: {
+                type: 'boolean'
+              },
+              items: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    family: {
+                      type: 'string'
+                    },
+                    category: {
+                      type: 'string',
+                      enum: [
+                        'display',
+                        'handwriting',
+                        'monospace',
+                        'sans-serif',
+                        'serif'
+                      ]
+                    },
+                    variants: {
+                      type: 'array',
+                      items: {
+                        type: 'string'
+                      }
+                    },
+                    subsets: {
+                      type: 'array',
+                      items: {
+                        type: 'string'
+                      }
+                    },
+                    files: {
+                      type: 'object',
+                      additionalProperties: {
+                        type: 'string'
+                      }
+                    },
+                    version: {
+                      type: 'string'
+                    },
+                    lastModified: {
+                      type: 'string'
+                    },
+                    kind: {
+                      type: 'string',
+                      const: 'webfonts#webfont'
+                    },
+                    menu: {
+                      type: 'string'
+                    },
+                    colorCapabilities: {
+                      type: 'array',
+                      items: {
+                        type: 'string',
+                        enum: ['COLRv0', 'COLRv1', 'SVG']
+                      }
+                    }
+                  },
+                  required: [
+                    'family',
+                    'category',
+                    'variants',
+                    'subsets',
+                    'files',
+                    'version',
+                    'lastModified',
+                    'kind',
+                    'menu'
+                  ],
+                  additionalProperties: false
+                }
+              }
+            },
+            required: ['enabled', 'items'],
+            additionalProperties: false
+          }
+        }
+      }
+    },
+    custom: {
+      get: {
+        method: 'get',
+        description: 'Read an uploaded font',
+        noAuth: false,
+        encrypted: true,
+        isDownloadable: false,
+        media: null,
+        input: {
+          query: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            type: 'object',
+            properties: {
+              id: {
+                type: 'string',
+                minLength: 1
+              }
+            },
+            required: ['id'],
+            additionalProperties: false
+          }
+        },
+        output: {
+          OK: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            type: 'object',
+            properties: {
+              displayName: {
+                type: 'string',
+                minLength: 1,
+                maxLength: 255
+              },
+              family: {
+                type: 'string',
+                minLength: 1,
+                maxLength: 255
+              },
+              weight: {
+                default: 400,
+                type: 'number',
+                minimum: 100,
+                maximum: 900
+              },
+              id: {
+                type: 'string'
+              },
+              created: {
+                type: 'string',
+                format: 'date-time'
+              },
+              updated: {
+                type: 'string',
+                format: 'date-time'
+              },
+              file: {
+                anyOf: [
+                  {
+                    type: 'object',
+                    properties: {
+                      originalName: {
+                        type: 'string'
+                      },
+                      mimeType: {
+                        type: 'string'
+                      },
+                      key: {
+                        type: 'string'
+                      },
+                      size: {
+                        type: 'number'
+                      },
+                      thumbs: {
+                        type: 'array',
+                        items: {
+                          type: 'object',
+                          properties: {
+                            key: {
+                              type: 'string'
+                            },
+                            size: {
+                              type: 'string'
+                            },
+                            width: {
+                              type: 'number'
+                            },
+                            height: {
+                              type: 'number'
+                            }
+                          },
+                          required: ['key', 'size', 'width', 'height'],
+                          additionalProperties: false
+                        }
+                      }
+                    },
+                    required: [
+                      'originalName',
+                      'mimeType',
+                      'key',
+                      'size',
+                      'thumbs'
+                    ],
+                    additionalProperties: false
+                  },
+                  {
+                    type: 'null'
+                  }
+                ]
+              }
+            },
+            required: [
+              'displayName',
+              'family',
+              'weight',
+              'id',
+              'created',
+              'updated',
+              'file'
+            ],
+            additionalProperties: false
+          }
+        }
+      },
+      list: {
+        method: 'get',
+        description: 'Browse uploaded font families',
+        noAuth: false,
+        encrypted: true,
+        isDownloadable: false,
+        media: null,
+        input: {},
+        output: {
+          OK: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                displayName: {
+                  type: 'string',
+                  minLength: 1,
+                  maxLength: 255
+                },
+                family: {
+                  type: 'string',
+                  minLength: 1,
+                  maxLength: 255
+                },
+                weight: {
+                  default: 400,
+                  type: 'number',
+                  minimum: 100,
+                  maximum: 900
+                },
+                id: {
+                  type: 'string'
+                },
+                created: {
+                  type: 'string',
+                  format: 'date-time'
+                },
+                updated: {
+                  type: 'string',
+                  format: 'date-time'
+                },
+                file: {
+                  anyOf: [
+                    {
+                      type: 'object',
+                      properties: {
+                        originalName: {
+                          type: 'string'
+                        },
+                        mimeType: {
+                          type: 'string'
+                        },
+                        key: {
+                          type: 'string'
+                        },
+                        size: {
+                          type: 'number'
+                        },
+                        thumbs: {
+                          type: 'array',
+                          items: {
+                            type: 'object',
+                            properties: {
+                              key: {
+                                type: 'string'
+                              },
+                              size: {
+                                type: 'string'
+                              },
+                              width: {
+                                type: 'number'
+                              },
+                              height: {
+                                type: 'number'
+                              }
+                            },
+                            required: ['key', 'size', 'width', 'height'],
+                            additionalProperties: false
+                          }
+                        }
+                      },
+                      required: [
+                        'originalName',
+                        'mimeType',
+                        'key',
+                        'size',
+                        'thumbs'
+                      ],
+                      additionalProperties: false
+                    },
+                    {
+                      type: 'null'
+                    }
+                  ]
+                }
+              },
+              required: [
+                'displayName',
+                'family',
+                'weight',
+                'id',
+                'created',
+                'updated',
+                'file'
+              ],
+              additionalProperties: false
+            }
+          }
+        }
+      },
+      remove: {
+        method: 'post',
+        description: 'Remove an uploaded font',
+        noAuth: false,
+        encrypted: true,
+        isDownloadable: false,
+        media: null,
+        input: {
+          query: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            type: 'object',
+            properties: {
+              id: {
+                type: 'string',
+                minLength: 1
+              }
+            },
+            required: ['id'],
+            additionalProperties: false
+          }
+        },
+        output: {
+          NO_CONTENT: true
+        }
+      },
+      upload: {
+        method: 'post',
+        description: 'Save an uploaded font and its display settings',
+        noAuth: false,
+        encrypted: true,
+        isDownloadable: false,
+        media: {
+          file: {
+            optional: false
+          }
+        },
+        input: {
+          query: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            type: 'object',
+            properties: {
+              id: {
+                type: 'string',
+                minLength: 1
+              }
+            },
+            additionalProperties: false
+          },
+          body: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            type: 'object',
+            properties: {
+              displayName: {
+                type: 'string',
+                minLength: 1,
+                maxLength: 255
+              },
+              family: {
+                type: 'string',
+                minLength: 1,
+                maxLength: 255
+              },
+              weight: {
+                default: 400,
+                type: 'number',
+                minimum: 100,
+                maximum: 900
+              }
+            },
+            required: ['displayName', 'family', 'weight'],
+            additionalProperties: false
+          }
+        },
+        output: {
+          OK: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            type: 'object',
+            properties: {
+              displayName: {
+                type: 'string',
+                minLength: 1,
+                maxLength: 255
+              },
+              family: {
+                type: 'string',
+                minLength: 1,
+                maxLength: 255
+              },
+              weight: {
+                default: 400,
+                type: 'number',
+                minimum: 100,
+                maximum: 900
+              },
+              id: {
+                type: 'string'
+              },
+              created: {
+                type: 'string',
+                format: 'date-time'
+              },
+              updated: {
+                type: 'string',
+                format: 'date-time'
+              },
+              file: {
+                anyOf: [
+                  {
+                    type: 'object',
+                    properties: {
+                      originalName: {
+                        type: 'string'
+                      },
+                      mimeType: {
+                        type: 'string'
+                      },
+                      key: {
+                        type: 'string'
+                      },
+                      size: {
+                        type: 'number'
+                      },
+                      thumbs: {
+                        type: 'array',
+                        items: {
+                          type: 'object',
+                          properties: {
+                            key: {
+                              type: 'string'
+                            },
+                            size: {
+                              type: 'string'
+                            },
+                            width: {
+                              type: 'number'
+                            },
+                            height: {
+                              type: 'number'
+                            }
+                          },
+                          required: ['key', 'size', 'width', 'height'],
+                          additionalProperties: false
+                        }
+                      }
+                    },
+                    required: [
+                      'originalName',
+                      'mimeType',
+                      'key',
+                      'size',
+                      'thumbs'
+                    ],
+                    additionalProperties: false
+                  },
+                  {
+                    type: 'null'
+                  }
+                ]
+              }
+            },
+            required: [
+              'displayName',
+              'family',
+              'weight',
+              'id',
+              'created',
+              'updated',
+              'file'
+            ],
+            additionalProperties: false
+          }
+        }
+      }
+    },
+    pins: {
+      list: {
+        method: 'get',
+        description: 'Read saved font favorites in creation order',
+        noAuth: false,
+        encrypted: true,
+        isDownloadable: false,
+        media: null,
+        input: {},
+        output: {
+          OK: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            type: 'array',
+            items: {
+              type: 'string'
+            }
+          }
+        }
+      },
+      toggle: {
+        method: 'post',
+        description: 'Change whether a hosted font is a favorite',
+        noAuth: false,
+        encrypted: true,
+        isDownloadable: false,
+        media: null,
+        input: {
+          body: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            type: 'object',
+            properties: {
+              family: {
+                type: 'string',
+                minLength: 1,
+                maxLength: 255
+              }
+            },
+            required: ['family'],
+            additionalProperties: false
+          }
+        },
+        output: {
+          NO_CONTENT: true
         }
       }
     }
@@ -3369,7 +3192,7 @@ export const contract = {
   modules: {
     checkModuleAvailability: {
       method: 'get',
-      description: 'Check if a module is available (installed)',
+      description: 'Resolve an installed addon identity',
       noAuth: false,
       encrypted: true,
       isDownloadable: false,
@@ -3397,7 +3220,7 @@ export const contract = {
     },
     list: {
       method: 'get',
-      description: 'List installed modules with metadata',
+      description: 'Inspect installed addon metadata',
       noAuth: false,
       encrypted: true,
       isDownloadable: false,
@@ -3410,6 +3233,27 @@ export const contract = {
           items: {
             type: 'object',
             properties: {
+              name: {
+                type: 'string'
+              },
+              displayName: {
+                type: 'string'
+              },
+              version: {
+                type: 'string'
+              },
+              description: {
+                type: 'string'
+              },
+              author: {
+                type: 'string'
+              },
+              icon: {
+                type: 'string'
+              },
+              category: {
+                type: 'string'
+              },
               experience: {
                 type: 'object',
                 properties: {
@@ -3449,44 +3293,23 @@ export const contract = {
                 required: ['kind', 'surfaces'],
                 additionalProperties: false
               },
-              name: {
-                type: 'string'
-              },
               id: {
                 type: 'string'
               },
               remoteId: {
                 type: 'string'
-              },
-              displayName: {
-                type: 'string'
-              },
-              version: {
-                type: 'string'
-              },
-              description: {
-                type: 'string'
-              },
-              author: {
-                type: 'string'
-              },
-              icon: {
-                type: 'string'
-              },
-              category: {
-                type: 'string'
               }
             },
             required: [
               'name',
-              'id',
-              'remoteId',
               'displayName',
               'version',
               'description',
               'author',
               'icon',
-              'category'
+              'category',
+              'id',
+              'remoteId'
             ],
             additionalProperties: false
           }
@@ -3495,7 +3318,7 @@ export const contract = {
     },
     manifest: {
       method: 'get',
-      description: 'Get installed modules manifest for runtime loading',
+      description: 'Read the current addon loading manifest',
       noAuth: false,
       encrypted: true,
       isDownloadable: false,
@@ -3511,6 +3334,18 @@ export const contract = {
               items: {
                 type: 'object',
                 properties: {
+                  name: {
+                    type: 'string'
+                  },
+                  displayName: {
+                    type: 'string'
+                  },
+                  icon: {
+                    type: 'string'
+                  },
+                  category: {
+                    type: 'string'
+                  },
                   experience: {
                     type: 'object',
                     properties: {
@@ -3550,27 +3385,6 @@ export const contract = {
                     required: ['kind', 'surfaces'],
                     additionalProperties: false
                   },
-                  name: {
-                    type: 'string'
-                  },
-                  id: {
-                    type: 'string'
-                  },
-                  remoteId: {
-                    type: 'string'
-                  },
-                  displayName: {
-                    type: 'string'
-                  },
-                  icon: {
-                    type: 'string'
-                  },
-                  category: {
-                    type: 'string'
-                  },
-                  remoteEntryUrl: {
-                    type: 'string'
-                  },
                   APIKeyAccess: {
                     type: 'object',
                     additionalProperties: {
@@ -3586,6 +3400,15 @@ export const contract = {
                       required: ['usage', 'required'],
                       additionalProperties: false
                     }
+                  },
+                  id: {
+                    type: 'string'
+                  },
+                  remoteId: {
+                    type: 'string'
+                  },
+                  remoteEntryUrl: {
+                    type: 'string'
                   },
                   hasProvider: {
                     type: 'boolean'
@@ -3615,11 +3438,11 @@ export const contract = {
                 },
                 required: [
                   'name',
-                  'id',
-                  'remoteId',
                   'displayName',
                   'icon',
                   'category',
+                  'id',
+                  'remoteId',
                   'remoteEntryUrl',
                   'hasProvider'
                 ],
@@ -3634,7 +3457,7 @@ export const contract = {
     },
     widgets: {
       method: 'get',
-      description: 'Get all available widgets configuration',
+      description: 'Read widgets registered by available addons',
       noAuth: false,
       encrypted: true,
       isDownloadable: false,
@@ -3970,7 +3793,7 @@ export const contract = {
     categories: {
       aiTranslate: {
         method: 'post',
-        description: 'Translate a specific category into desired languages',
+        description: 'Suggest localized navigation labels',
         noAuth: false,
         encrypted: true,
         isDownloadable: false,
@@ -3981,12 +3804,17 @@ export const contract = {
             type: 'object',
             properties: {
               key: {
-                type: 'string'
+                type: 'string',
+                minLength: 1,
+                maxLength: 128
               },
               languages: {
+                minItems: 1,
+                maxItems: 64,
                 type: 'array',
                 items: {
-                  type: 'string'
+                  type: 'string',
+                  pattern: '^[a-z]{2,3}(?:-[a-zA-Z0-9]{2,8})*$'
                 }
               }
             },
@@ -4013,7 +3841,7 @@ export const contract = {
       },
       list: {
         method: 'get',
-        description: 'Get the category display order',
+        description: 'Read category labels in navigation order',
         noAuth: false,
         encrypted: true,
         isDownloadable: false,
@@ -4034,7 +3862,7 @@ export const contract = {
       },
       update: {
         method: 'post',
-        description: 'Update the category display order',
+        description: 'Save category labels and navigation order',
         noAuth: false,
         encrypted: true,
         isDownloadable: false,
@@ -4757,828 +4585,6 @@ export const contract = {
             'canRollback',
             'noticeId'
           ],
-          additionalProperties: false
-        }
-      }
-    }
-  },
-  ai: {
-    imageGeneration: {
-      generateImage: {
-        method: 'post',
-        description: 'Generate image from text prompt using AI',
-        noAuth: false,
-        encrypted: true,
-        isDownloadable: false,
-        media: null,
-        input: {
-          body: {
-            $schema: 'https://json-schema.org/draft/2020-12/schema',
-            type: 'object',
-            properties: {
-              prompt: {
-                type: 'string',
-                minLength: 1
-              }
-            },
-            required: ['prompt'],
-            additionalProperties: false
-          }
-        },
-        output: {
-          OK: {
-            $schema: 'https://json-schema.org/draft/2020-12/schema',
-            type: 'string'
-          }
-        }
-      }
-    },
-    shared: {
-      embed: {
-        method: 'post',
-        description: 'Embed bounded text on the shared Mac mini',
-        noAuth: false,
-        encrypted: true,
-        isDownloadable: false,
-        media: null,
-        input: {
-          body: {
-            $schema: 'https://json-schema.org/draft/2020-12/schema',
-            type: 'object',
-            properties: {
-              texts: {
-                minItems: 1,
-                maxItems: 16,
-                type: 'array',
-                items: {
-                  type: 'string',
-                  minLength: 1,
-                  maxLength: 7600
-                }
-              },
-              purpose: {
-                default: 'document',
-                type: 'string',
-                enum: ['query', 'document']
-              }
-            },
-            required: ['texts', 'purpose'],
-            additionalProperties: false
-          }
-        },
-        output: {
-          OK: {
-            $schema: 'https://json-schema.org/draft/2020-12/schema',
-            type: 'object',
-            properties: {
-              model: {
-                type: 'string'
-              },
-              vectors: {
-                type: 'array',
-                items: {
-                  minItems: 768,
-                  maxItems: 768,
-                  type: 'array',
-                  items: {
-                    type: 'number'
-                  }
-                }
-              }
-            },
-            required: ['model', 'vectors'],
-            additionalProperties: false
-          }
-        }
-      },
-      generate: {
-        method: 'post',
-        description: 'Run text or image understanding on the shared Mac mini',
-        noAuth: false,
-        encrypted: true,
-        isDownloadable: false,
-        media: null,
-        input: {
-          body: {
-            $schema: 'https://json-schema.org/draft/2020-12/schema',
-            type: 'object',
-            properties: {
-              prompt: {
-                type: 'string',
-                minLength: 1,
-                maxLength: 12000
-              },
-              image: {
-                type: 'string',
-                maxLength: 11000000,
-                pattern: '^data:image\\/(png|jpeg);base64,[A-Za-z0-9+/]+={0,2}$'
-              }
-            },
-            required: ['prompt'],
-            additionalProperties: false
-          }
-        },
-        output: {
-          OK: {
-            $schema: 'https://json-schema.org/draft/2020-12/schema',
-            type: 'object',
-            properties: {
-              model: {
-                type: 'string'
-              },
-              text: {
-                type: 'string'
-              }
-            },
-            required: ['model', 'text'],
-            additionalProperties: false
-          }
-        }
-      },
-      rerank: {
-        method: 'post',
-        description: 'Score retrieved evidence using Mac mini Laya',
-        noAuth: false,
-        encrypted: true,
-        isDownloadable: false,
-        media: null,
-        input: {
-          body: {
-            $schema: 'https://json-schema.org/draft/2020-12/schema',
-            type: 'object',
-            properties: {
-              query: {
-                type: 'string',
-                minLength: 1,
-                maxLength: 800
-              },
-              items: {
-                minItems: 1,
-                maxItems: 12,
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    id: {
-                      type: 'integer',
-                      minimum: -9007199254740991,
-                      maximum: 9007199254740991
-                    },
-                    passage: {
-                      type: 'string',
-                      minLength: 1,
-                      maxLength: 1400
-                    }
-                  },
-                  required: ['id', 'passage'],
-                  additionalProperties: false
-                }
-              }
-            },
-            required: ['query', 'items'],
-            additionalProperties: false
-          }
-        },
-        output: {
-          OK: {
-            $schema: 'https://json-schema.org/draft/2020-12/schema',
-            type: 'object',
-            properties: {
-              model: {
-                type: 'string',
-                const: 'laya'
-              },
-              scores: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    id: {
-                      type: 'integer',
-                      minimum: -9007199254740991,
-                      maximum: 9007199254740991
-                    },
-                    relevance: {
-                      type: 'number',
-                      minimum: 0,
-                      maximum: 1
-                    },
-                    confidence: {
-                      type: 'number',
-                      minimum: 0,
-                      maximum: 1
-                    },
-                    truncated: {
-                      type: 'boolean'
-                    },
-                    model: {
-                      type: 'string'
-                    }
-                  },
-                  required: [
-                    'id',
-                    'relevance',
-                    'confidence',
-                    'truncated',
-                    'model'
-                  ],
-                  additionalProperties: false
-                }
-              }
-            },
-            required: ['model', 'scores'],
-            additionalProperties: false
-          }
-        }
-      },
-      status: {
-        method: 'get',
-        description: 'Check the shared Mac mini inference host',
-        noAuth: false,
-        encrypted: true,
-        isDownloadable: false,
-        media: null,
-        input: {},
-        output: {
-          OK: {
-            $schema: 'https://json-schema.org/draft/2020-12/schema',
-            type: 'object',
-            properties: {
-              ready: {
-                type: 'boolean'
-              },
-              laya: {
-                type: 'boolean'
-              },
-              host: {
-                type: 'string',
-                const: 'mac-mini'
-              },
-              models: {
-                type: 'array',
-                items: {
-                  type: 'string'
-                }
-              }
-            },
-            required: ['ready', 'laya', 'host', 'models'],
-            additionalProperties: false
-          }
-        }
-      }
-    }
-  },
-  search: {
-    status: {
-      method: 'get',
-      description: 'Current authorized system search coverage',
-      noAuth: false,
-      encrypted: true,
-      isDownloadable: false,
-      media: null,
-      input: {
-        query: {
-          $schema: 'https://json-schema.org/draft/2020-12/schema',
-          type: 'object',
-          properties: {
-            workspace_id: {
-              type: 'string',
-              format: 'uuid',
-              pattern:
-                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
-            },
-            module: {
-              type: 'string',
-              maxLength: 60,
-              pattern: '^[a-z-]+$'
-            }
-          },
-          additionalProperties: false
-        }
-      },
-      output: {
-        OK: {
-          $schema: 'https://json-schema.org/draft/2020-12/schema',
-          type: 'object',
-          properties: {
-            total: {
-              type: 'number'
-            },
-            ready: {
-              type: 'number'
-            },
-            pending: {
-              type: 'number'
-            },
-            modules: {
-              type: 'array',
-              items: {
-                type: 'string'
-              }
-            },
-            warnings: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  source: {
-                    type: 'string'
-                  },
-                  code: {
-                    type: 'string'
-                  }
-                },
-                required: ['source', 'code'],
-                additionalProperties: false
-              }
-            }
-          },
-          required: ['total', 'ready', 'pending', 'modules', 'warnings'],
-          additionalProperties: false
-        }
-      }
-    },
-    host: {
-      method: 'get',
-      description: 'Shared Mac mini model health',
-      noAuth: false,
-      encrypted: true,
-      isDownloadable: false,
-      media: null,
-      input: {},
-      output: {
-        OK: {
-          $schema: 'https://json-schema.org/draft/2020-12/schema',
-          type: 'object',
-          properties: {
-            ready: {
-              type: 'boolean'
-            },
-            laya: {
-              type: 'boolean'
-            },
-            models: {
-              type: 'array',
-              items: {
-                type: 'string'
-              }
-            },
-            host: {
-              type: 'string',
-              const: 'mac-mini'
-            }
-          },
-          required: ['ready', 'laya', 'models', 'host'],
-          additionalProperties: false
-        }
-      }
-    },
-    index: {
-      method: 'post',
-      description: 'Index one resumable batch through the Mac mini',
-      noAuth: false,
-      encrypted: true,
-      isDownloadable: false,
-      media: null,
-      input: {
-        body: {
-          $schema: 'https://json-schema.org/draft/2020-12/schema',
-          type: 'object',
-          properties: {
-            workspace_id: {
-              type: 'string',
-              format: 'uuid',
-              pattern:
-                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
-            },
-            module: {
-              type: 'string',
-              maxLength: 60,
-              pattern: '^[a-z-]+$'
-            }
-          },
-          additionalProperties: false
-        }
-      },
-      output: {
-        OK: {
-          $schema: 'https://json-schema.org/draft/2020-12/schema',
-          type: 'object',
-          properties: {
-            total: {
-              type: 'number'
-            },
-            ready: {
-              type: 'number'
-            },
-            pending: {
-              type: 'number'
-            },
-            processed: {
-              type: 'number'
-            },
-            source: {
-              type: 'string'
-            },
-            warnings: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  source: {
-                    type: 'string'
-                  },
-                  code: {
-                    type: 'string'
-                  }
-                },
-                required: ['source', 'code'],
-                additionalProperties: false
-              }
-            }
-          },
-          required: [
-            'total',
-            'ready',
-            'pending',
-            'processed',
-            'source',
-            'warnings'
-          ],
-          additionalProperties: false
-        }
-      }
-    },
-    clear: {
-      method: 'post',
-      description: 'Remove only the signed-in account search cache',
-      noAuth: false,
-      encrypted: true,
-      isDownloadable: false,
-      media: null,
-      input: {
-        body: {
-          $schema: 'https://json-schema.org/draft/2020-12/schema',
-          type: 'object',
-          properties: {},
-          additionalProperties: false
-        }
-      },
-      output: {
-        OK: {
-          $schema: 'https://json-schema.org/draft/2020-12/schema',
-          type: 'boolean',
-          const: true
-        }
-      }
-    },
-    query: {
-      method: 'post',
-      description: 'Retrieve whole-system evidence and a grounded answer',
-      noAuth: false,
-      encrypted: true,
-      isDownloadable: false,
-      media: null,
-      input: {
-        body: {
-          $schema: 'https://json-schema.org/draft/2020-12/schema',
-          type: 'object',
-          properties: {
-            workspace_id: {
-              type: 'string',
-              format: 'uuid',
-              pattern:
-                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
-            },
-            module: {
-              type: 'string',
-              maxLength: 60,
-              pattern: '^[a-z-]+$'
-            },
-            query: {
-              type: 'string',
-              minLength: 1,
-              maxLength: 800
-            },
-            mode: {
-              default: 'hybrid',
-              type: 'string',
-              enum: ['hybrid', 'keyword']
-            },
-            answer: {
-              default: true,
-              type: 'boolean'
-            }
-          },
-          required: ['query', 'mode', 'answer'],
-          additionalProperties: false
-        }
-      },
-      output: {
-        OK: {
-          $schema: 'https://json-schema.org/draft/2020-12/schema',
-          type: 'object',
-          properties: {
-            hits: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  id: {
-                    type: 'string'
-                  },
-                  source_id: {
-                    type: 'string'
-                  },
-                  graph_key: {
-                    type: 'string'
-                  },
-                  title: {
-                    type: 'string'
-                  },
-                  module: {
-                    type: 'string'
-                  },
-                  workspace: {
-                    anyOf: [
-                      {
-                        type: 'string'
-                      },
-                      {
-                        type: 'null'
-                      }
-                    ]
-                  },
-                  href: {
-                    type: 'string'
-                  },
-                  file_key: {
-                    type: 'string'
-                  },
-                  text: {
-                    type: 'string'
-                  },
-                  score: {
-                    type: 'number'
-                  },
-                  relevance: {
-                    anyOf: [
-                      {
-                        type: 'number'
-                      },
-                      {
-                        type: 'null'
-                      }
-                    ]
-                  },
-                  confidence: {
-                    anyOf: [
-                      {
-                        type: 'number'
-                      },
-                      {
-                        type: 'null'
-                      }
-                    ]
-                  },
-                  inferred: {
-                    type: 'boolean'
-                  }
-                },
-                required: [
-                  'id',
-                  'source_id',
-                  'title',
-                  'module',
-                  'workspace',
-                  'href',
-                  'text',
-                  'score',
-                  'relevance',
-                  'confidence',
-                  'inferred'
-                ],
-                additionalProperties: false
-              }
-            },
-            answer: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  text: {
-                    type: 'string'
-                  },
-                  citations: {
-                    type: 'array',
-                    items: {
-                      type: 'number'
-                    }
-                  }
-                },
-                required: ['text', 'citations'],
-                additionalProperties: false
-              }
-            },
-            total: {
-              type: 'number'
-            },
-            ready: {
-              type: 'number'
-            },
-            stages: {
-              type: 'array',
-              items: {
-                type: 'string'
-              }
-            },
-            warnings: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  source: {
-                    type: 'string'
-                  },
-                  code: {
-                    type: 'string'
-                  }
-                },
-                required: ['source', 'code'],
-                additionalProperties: false
-              }
-            },
-            model: {
-              type: 'string'
-            }
-          },
-          required: [
-            'hits',
-            'answer',
-            'total',
-            'ready',
-            'stages',
-            'warnings',
-            'model'
-          ],
-          additionalProperties: false
-        }
-      }
-    },
-    map: {
-      method: 'get',
-      description:
-        'Read contextual knowledge connections from the authorized RAG index',
-      noAuth: false,
-      encrypted: true,
-      isDownloadable: false,
-      media: null,
-      input: {
-        query: {
-          $schema: 'https://json-schema.org/draft/2020-12/schema',
-          type: 'object',
-          properties: {
-            workspace_id: {
-              type: 'string',
-              format: 'uuid',
-              pattern:
-                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
-            }
-          },
-          required: ['workspace_id'],
-          additionalProperties: false
-        }
-      },
-      output: {
-        OK: {
-          $schema: 'https://json-schema.org/draft/2020-12/schema',
-          type: 'object',
-          properties: {
-            nodes: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  id: {
-                    type: 'string'
-                  },
-                  key: {
-                    type: 'string'
-                  },
-                  kind: {
-                    type: 'string',
-                    enum: [
-                      'document',
-                      'record',
-                      'note',
-                      'tag',
-                      'topic',
-                      'source',
-                      'redraw'
-                    ]
-                  },
-                  title: {
-                    type: 'string'
-                  },
-                  entityType: {
-                    type: 'string'
-                  },
-                  tags: {
-                    type: 'array',
-                    items: {
-                      type: 'string'
-                    }
-                  },
-                  context: {
-                    type: 'string'
-                  },
-                  excerpt: {
-                    type: 'string'
-                  },
-                  href: {
-                    type: 'string'
-                  }
-                },
-                required: ['id', 'key', 'kind', 'title'],
-                additionalProperties: false
-              }
-            },
-            edges: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  id: {
-                    type: 'string'
-                  },
-                  source: {
-                    type: 'string'
-                  },
-                  target: {
-                    type: 'string'
-                  },
-                  kind: {
-                    type: 'string',
-                    enum: ['tag', 'topic', 'context']
-                  },
-                  label: {
-                    type: 'string'
-                  },
-                  strength: {
-                    type: 'number'
-                  },
-                  evidence: {
-                    type: 'array',
-                    items: {
-                      type: 'string'
-                    }
-                  },
-                  method: {
-                    type: 'string',
-                    enum: ['tag', 'topic', 'lexical', 'embedding']
-                  }
-                },
-                required: ['id', 'source', 'target', 'kind', 'label'],
-                additionalProperties: false
-              }
-            },
-            unresolved: {
-              type: 'number'
-            },
-            coverage: {
-              type: 'object',
-              properties: {
-                eligible: {
-                  type: 'number'
-                },
-                analyzed: {
-                  type: 'number'
-                },
-                embedded: {
-                  type: 'number'
-                },
-                topics: {
-                  type: 'number'
-                },
-                tags: {
-                  type: 'number'
-                },
-                omittedTags: {
-                  type: 'number'
-                }
-              },
-              required: [
-                'eligible',
-                'analyzed',
-                'embedded',
-                'topics',
-                'tags',
-                'omittedTags'
-              ],
-              additionalProperties: false
-            }
-          },
-          required: ['nodes', 'edges', 'unresolved', 'coverage'],
           additionalProperties: false
         }
       }
@@ -8881,12 +7887,12 @@ export const contract = {
       }
     }
   },
-  files: {
-    get: {
+  search: {
+    status: {
       method: 'get',
-      description: 'Retrieve a stored file or thumbnail',
+      description: 'Current authorized system search coverage',
       noAuth: false,
-      encrypted: false,
+      encrypted: true,
       isDownloadable: false,
       media: null,
       input: {
@@ -8894,82 +7900,1013 @@ export const contract = {
           $schema: 'https://json-schema.org/draft/2020-12/schema',
           type: 'object',
           properties: {
-            key: {
-              type: 'string'
+            workspace_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
             },
-            thumb: {
-              type: 'string'
-            },
-            download: {
-              type: 'string'
+            module: {
+              type: 'string',
+              maxLength: 60,
+              pattern: '^[a-z-]+$'
             }
           },
-          required: ['key'],
           additionalProperties: false
         }
       },
-      output: 'custom'
-    }
-  },
-  ping: {
-    method: 'post',
-    description: 'Ping the server',
-    noAuth: true,
-    encrypted: false,
-    isDownloadable: false,
-    media: null,
-    input: {
-      body: {
-        $schema: 'https://json-schema.org/draft/2020-12/schema',
-        type: 'object',
-        properties: {
-          timestamp: {
-            type: 'number',
-            minimum: 0
-          }
-        },
-        required: ['timestamp'],
-        additionalProperties: false
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            total: {
+              type: 'number'
+            },
+            ready: {
+              type: 'number'
+            },
+            pending: {
+              type: 'number'
+            },
+            modules: {
+              type: 'array',
+              items: {
+                type: 'string'
+              }
+            },
+            warnings: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  source: {
+                    type: 'string'
+                  },
+                  code: {
+                    type: 'string'
+                  }
+                },
+                required: ['source', 'code'],
+                additionalProperties: false
+              }
+            }
+          },
+          required: ['total', 'ready', 'pending', 'modules', 'warnings'],
+          additionalProperties: false
+        }
       }
     },
-    output: {
-      OK: {
-        $schema: 'https://json-schema.org/draft/2020-12/schema',
-        type: 'string'
+    host: {
+      method: 'get',
+      description: 'Shared Mac mini model health',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {},
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            ready: {
+              type: 'boolean'
+            },
+            laya: {
+              type: 'boolean'
+            },
+            models: {
+              type: 'array',
+              items: {
+                type: 'string'
+              }
+            },
+            host: {
+              type: 'string',
+              const: 'mac-mini'
+            }
+          },
+          required: ['ready', 'laya', 'models', 'host'],
+          additionalProperties: false
+        }
+      }
+    },
+    index: {
+      method: 'post',
+      description: 'Index one resumable batch through the Mac mini',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {
+        body: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            workspace_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            module: {
+              type: 'string',
+              maxLength: 60,
+              pattern: '^[a-z-]+$'
+            }
+          },
+          additionalProperties: false
+        }
+      },
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            total: {
+              type: 'number'
+            },
+            ready: {
+              type: 'number'
+            },
+            pending: {
+              type: 'number'
+            },
+            processed: {
+              type: 'number'
+            },
+            source: {
+              type: 'string'
+            },
+            warnings: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  source: {
+                    type: 'string'
+                  },
+                  code: {
+                    type: 'string'
+                  }
+                },
+                required: ['source', 'code'],
+                additionalProperties: false
+              }
+            }
+          },
+          required: [
+            'total',
+            'ready',
+            'pending',
+            'processed',
+            'source',
+            'warnings'
+          ],
+          additionalProperties: false
+        }
+      }
+    },
+    clear: {
+      method: 'post',
+      description: 'Remove only the signed-in account search cache',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {
+        body: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {},
+          additionalProperties: false
+        }
+      },
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'boolean',
+          const: true
+        }
+      }
+    },
+    query: {
+      method: 'post',
+      description: 'Retrieve whole-system evidence and a grounded answer',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {
+        body: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            workspace_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            },
+            module: {
+              type: 'string',
+              maxLength: 60,
+              pattern: '^[a-z-]+$'
+            },
+            query: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 800
+            },
+            mode: {
+              default: 'hybrid',
+              type: 'string',
+              enum: ['hybrid', 'keyword']
+            },
+            answer: {
+              default: true,
+              type: 'boolean'
+            }
+          },
+          required: ['query', 'mode', 'answer'],
+          additionalProperties: false
+        }
+      },
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            hits: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  id: {
+                    type: 'string'
+                  },
+                  source_id: {
+                    type: 'string'
+                  },
+                  graph_key: {
+                    type: 'string'
+                  },
+                  title: {
+                    type: 'string'
+                  },
+                  module: {
+                    type: 'string'
+                  },
+                  workspace: {
+                    anyOf: [
+                      {
+                        type: 'string'
+                      },
+                      {
+                        type: 'null'
+                      }
+                    ]
+                  },
+                  href: {
+                    type: 'string'
+                  },
+                  file_key: {
+                    type: 'string'
+                  },
+                  text: {
+                    type: 'string'
+                  },
+                  score: {
+                    type: 'number'
+                  },
+                  relevance: {
+                    anyOf: [
+                      {
+                        type: 'number'
+                      },
+                      {
+                        type: 'null'
+                      }
+                    ]
+                  },
+                  confidence: {
+                    anyOf: [
+                      {
+                        type: 'number'
+                      },
+                      {
+                        type: 'null'
+                      }
+                    ]
+                  },
+                  inferred: {
+                    type: 'boolean'
+                  }
+                },
+                required: [
+                  'id',
+                  'source_id',
+                  'title',
+                  'module',
+                  'workspace',
+                  'href',
+                  'text',
+                  'score',
+                  'relevance',
+                  'confidence',
+                  'inferred'
+                ],
+                additionalProperties: false
+              }
+            },
+            answer: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  text: {
+                    type: 'string'
+                  },
+                  citations: {
+                    type: 'array',
+                    items: {
+                      type: 'number'
+                    }
+                  }
+                },
+                required: ['text', 'citations'],
+                additionalProperties: false
+              }
+            },
+            total: {
+              type: 'number'
+            },
+            ready: {
+              type: 'number'
+            },
+            stages: {
+              type: 'array',
+              items: {
+                type: 'string'
+              }
+            },
+            warnings: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  source: {
+                    type: 'string'
+                  },
+                  code: {
+                    type: 'string'
+                  }
+                },
+                required: ['source', 'code'],
+                additionalProperties: false
+              }
+            },
+            model: {
+              type: 'string'
+            }
+          },
+          required: [
+            'hits',
+            'answer',
+            'total',
+            'ready',
+            'stages',
+            'warnings',
+            'model'
+          ],
+          additionalProperties: false
+        }
+      }
+    },
+    map: {
+      method: 'get',
+      description:
+        'Read contextual knowledge connections from the authorized RAG index',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {
+        query: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            workspace_id: {
+              type: 'string',
+              format: 'uuid',
+              pattern:
+                '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+            }
+          },
+          required: ['workspace_id'],
+          additionalProperties: false
+        }
+      },
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            nodes: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  id: {
+                    type: 'string'
+                  },
+                  key: {
+                    type: 'string'
+                  },
+                  kind: {
+                    type: 'string',
+                    enum: [
+                      'document',
+                      'record',
+                      'note',
+                      'tag',
+                      'topic',
+                      'source',
+                      'redraw'
+                    ]
+                  },
+                  title: {
+                    type: 'string'
+                  },
+                  entityType: {
+                    type: 'string'
+                  },
+                  tags: {
+                    type: 'array',
+                    items: {
+                      type: 'string'
+                    }
+                  },
+                  context: {
+                    type: 'string'
+                  },
+                  excerpt: {
+                    type: 'string'
+                  },
+                  href: {
+                    type: 'string'
+                  }
+                },
+                required: ['id', 'key', 'kind', 'title'],
+                additionalProperties: false
+              }
+            },
+            edges: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  id: {
+                    type: 'string'
+                  },
+                  source: {
+                    type: 'string'
+                  },
+                  target: {
+                    type: 'string'
+                  },
+                  kind: {
+                    type: 'string',
+                    enum: ['tag', 'topic', 'context']
+                  },
+                  label: {
+                    type: 'string'
+                  },
+                  strength: {
+                    type: 'number'
+                  },
+                  evidence: {
+                    type: 'array',
+                    items: {
+                      type: 'string'
+                    }
+                  },
+                  method: {
+                    type: 'string',
+                    enum: ['tag', 'topic', 'lexical', 'embedding']
+                  }
+                },
+                required: ['id', 'source', 'target', 'kind', 'label'],
+                additionalProperties: false
+              }
+            },
+            unresolved: {
+              type: 'number'
+            },
+            coverage: {
+              type: 'object',
+              properties: {
+                eligible: {
+                  type: 'number'
+                },
+                analyzed: {
+                  type: 'number'
+                },
+                embedded: {
+                  type: 'number'
+                },
+                topics: {
+                  type: 'number'
+                },
+                tags: {
+                  type: 'number'
+                },
+                omittedTags: {
+                  type: 'number'
+                }
+              },
+              required: [
+                'eligible',
+                'analyzed',
+                'embedded',
+                'topics',
+                'tags',
+                'omittedTags'
+              ],
+              additionalProperties: false
+            }
+          },
+          required: ['nodes', 'edges', 'unresolved', 'coverage'],
+          additionalProperties: false
+        }
       }
     }
   },
-  status: {
-    method: 'get',
-    description: 'Get server status',
-    noAuth: true,
-    encrypted: false,
-    isDownloadable: false,
-    media: null,
-    input: {},
-    output: {
-      OK: {
-        $schema: 'https://json-schema.org/draft/2020-12/schema',
-        type: 'object',
-        properties: {
-          environment: {
-            type: 'string'
-          },
-          version: {
-            type: 'string'
-          },
-          healthy: {
-            type: 'boolean'
+  ai: {
+    imageGeneration: {
+      generateImage: {
+        method: 'post',
+        description: 'Render an image from a text description',
+        noAuth: false,
+        encrypted: true,
+        isDownloadable: false,
+        media: null,
+        input: {
+          body: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            type: 'object',
+            properties: {
+              prompt: {
+                type: 'string',
+                minLength: 1,
+                maxLength: 32000
+              }
+            },
+            required: ['prompt'],
+            additionalProperties: false
           }
         },
-        required: ['environment', 'version', 'healthy'],
-        additionalProperties: false
+        output: {
+          OK: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            type: 'string'
+          }
+        }
+      }
+    },
+    shared: {
+      embed: {
+        method: 'post',
+        description: 'Embed bounded text on the shared Mac mini',
+        noAuth: false,
+        encrypted: true,
+        isDownloadable: false,
+        media: null,
+        input: {
+          body: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            type: 'object',
+            properties: {
+              texts: {
+                minItems: 1,
+                maxItems: 16,
+                type: 'array',
+                items: {
+                  type: 'string',
+                  minLength: 1,
+                  maxLength: 7600
+                }
+              },
+              purpose: {
+                default: 'document',
+                type: 'string',
+                enum: ['query', 'document']
+              }
+            },
+            required: ['texts', 'purpose'],
+            additionalProperties: false
+          }
+        },
+        output: {
+          OK: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            type: 'object',
+            properties: {
+              model: {
+                type: 'string'
+              },
+              vectors: {
+                type: 'array',
+                items: {
+                  minItems: 768,
+                  maxItems: 768,
+                  type: 'array',
+                  items: {
+                    type: 'number'
+                  }
+                }
+              }
+            },
+            required: ['model', 'vectors'],
+            additionalProperties: false
+          }
+        }
+      },
+      generate: {
+        method: 'post',
+        description: 'Run text or image understanding on the shared Mac mini',
+        noAuth: false,
+        encrypted: true,
+        isDownloadable: false,
+        media: null,
+        input: {
+          body: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            type: 'object',
+            properties: {
+              prompt: {
+                type: 'string',
+                minLength: 1,
+                maxLength: 12000
+              },
+              image: {
+                type: 'string',
+                maxLength: 11000000,
+                pattern: '^data:image\\/(png|jpeg);base64,[A-Za-z0-9+/]+={0,2}$'
+              }
+            },
+            required: ['prompt'],
+            additionalProperties: false
+          }
+        },
+        output: {
+          OK: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            type: 'object',
+            properties: {
+              model: {
+                type: 'string'
+              },
+              text: {
+                type: 'string'
+              }
+            },
+            required: ['model', 'text'],
+            additionalProperties: false
+          }
+        }
+      },
+      rerank: {
+        method: 'post',
+        description: 'Score retrieved evidence using Mac mini Laya',
+        noAuth: false,
+        encrypted: true,
+        isDownloadable: false,
+        media: null,
+        input: {
+          body: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            type: 'object',
+            properties: {
+              query: {
+                type: 'string',
+                minLength: 1,
+                maxLength: 800
+              },
+              items: {
+                minItems: 1,
+                maxItems: 12,
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    id: {
+                      type: 'integer',
+                      minimum: -9007199254740991,
+                      maximum: 9007199254740991
+                    },
+                    passage: {
+                      type: 'string',
+                      minLength: 1,
+                      maxLength: 1400
+                    }
+                  },
+                  required: ['id', 'passage'],
+                  additionalProperties: false
+                }
+              }
+            },
+            required: ['query', 'items'],
+            additionalProperties: false
+          }
+        },
+        output: {
+          OK: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            type: 'object',
+            properties: {
+              model: {
+                type: 'string',
+                const: 'laya'
+              },
+              scores: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    id: {
+                      type: 'integer',
+                      minimum: -9007199254740991,
+                      maximum: 9007199254740991
+                    },
+                    relevance: {
+                      type: 'number',
+                      minimum: 0,
+                      maximum: 1
+                    },
+                    confidence: {
+                      type: 'number',
+                      minimum: 0,
+                      maximum: 1
+                    },
+                    truncated: {
+                      type: 'boolean'
+                    },
+                    model: {
+                      type: 'string'
+                    }
+                  },
+                  required: [
+                    'id',
+                    'relevance',
+                    'confidence',
+                    'truncated',
+                    'model'
+                  ],
+                  additionalProperties: false
+                }
+              }
+            },
+            required: ['model', 'scores'],
+            additionalProperties: false
+          }
+        }
+      },
+      status: {
+        method: 'get',
+        description: 'Check the shared Mac mini inference host',
+        noAuth: false,
+        encrypted: true,
+        isDownloadable: false,
+        media: null,
+        input: {},
+        output: {
+          OK: {
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            type: 'object',
+            properties: {
+              ready: {
+                type: 'boolean'
+              },
+              laya: {
+                type: 'boolean'
+              },
+              host: {
+                type: 'string',
+                const: 'mac-mini'
+              },
+              models: {
+                type: 'array',
+                items: {
+                  type: 'string'
+                }
+              }
+            },
+            required: ['ready', 'laya', 'host', 'models'],
+            additionalProperties: false
+          }
+        }
+      }
+    }
+  },
+  locations: {
+    search: {
+      method: 'get',
+      description: 'Find places by name or address',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {
+        query: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            q: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 1000
+            }
+          },
+          required: ['q'],
+          additionalProperties: false
+        }
+      },
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              name: {
+                type: 'string'
+              },
+              formattedAddress: {
+                type: 'string'
+              },
+              location: {
+                type: 'object',
+                properties: {
+                  latitude: {
+                    type: 'number'
+                  },
+                  longitude: {
+                    type: 'number'
+                  }
+                },
+                required: ['latitude', 'longitude'],
+                additionalProperties: false
+              }
+            },
+            required: ['name', 'formattedAddress', 'location'],
+            additionalProperties: false
+          }
+        }
+      }
+    }
+  },
+  pixabay: {
+    searchImages: {
+      method: 'get',
+      description: 'Search the configured image catalog',
+      noAuth: false,
+      encrypted: true,
+      isDownloadable: false,
+      media: null,
+      input: {
+        query: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            q: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 200
+            },
+            page: {
+              default: '1',
+              type: 'string',
+              maxLength: 6,
+              pattern: '^[1-9]\\d*$'
+            },
+            type: {
+              default: 'all',
+              type: 'string',
+              enum: ['all', 'photo', 'illustration', 'vector']
+            },
+            category: {
+              type: 'string',
+              enum: [
+                'backgrounds',
+                'fashion',
+                'nature',
+                'science',
+                'education',
+                'feelings',
+                'health',
+                'people',
+                'religion',
+                'places',
+                'animals',
+                'industry',
+                'computer',
+                'food',
+                'sports',
+                'transportation',
+                'travel',
+                'buildings',
+                'business',
+                'music'
+              ]
+            },
+            colors: {
+              anyOf: [
+                {
+                  type: 'string',
+                  enum: [
+                    'grayscale',
+                    'transparent',
+                    'red',
+                    'orange',
+                    'yellow',
+                    'green',
+                    'turquoise',
+                    'blue',
+                    'lilac',
+                    'pink',
+                    'white',
+                    'gray',
+                    'black',
+                    'brown'
+                  ]
+                },
+                {
+                  type: 'null'
+                }
+              ]
+            },
+            editors_choice: {
+              default: 'false',
+              type: 'string',
+              enum: ['true', 'false']
+            }
+          },
+          required: ['q', 'page', 'type', 'editors_choice'],
+          additionalProperties: false
+        }
+      },
+      output: {
+        OK: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            total: {
+              type: 'number'
+            },
+            hits: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  id: {
+                    type: 'string'
+                  },
+                  imageURL: {
+                    type: 'string'
+                  },
+                  thumbnail: {
+                    type: 'object',
+                    properties: {
+                      url: {
+                        type: 'string'
+                      },
+                      width: {
+                        type: 'number'
+                      },
+                      height: {
+                        type: 'number'
+                      }
+                    },
+                    required: ['url', 'width', 'height'],
+                    additionalProperties: false
+                  }
+                },
+                required: ['id', 'imageURL', 'thumbnail'],
+                additionalProperties: false
+              }
+            }
+          },
+          required: ['total', 'hits'],
+          additionalProperties: false
+        }
       }
     }
   },
   corsAnywhere: {
     method: 'get',
-    description: 'CORS Anywhere - Fetch external URL content',
+    description: 'Read remote text or JSON through the authenticated workspace',
     noAuth: false,
     encrypted: true,
     isDownloadable: false,
@@ -8991,21 +8928,6 @@ export const contract = {
     output: {
       OK: {
         $schema: 'https://json-schema.org/draft/2020-12/schema'
-      }
-    }
-  },
-  encryptionPublicKey: {
-    method: 'get',
-    description: 'Get server public key for end-to-end encryption',
-    noAuth: true,
-    encrypted: false,
-    isDownloadable: false,
-    media: null,
-    input: {},
-    output: {
-      OK: {
-        $schema: 'https://json-schema.org/draft/2020-12/schema',
-        type: 'string'
       }
     }
   }

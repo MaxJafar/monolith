@@ -12,8 +12,8 @@
     "lockLayout": "鎖定佈局"
   },
   "messages": {
-    "editingLayout": "您正在編輯儀表板佈局",
-    "editingLayoutHint": "透過拖動小工具來調整排列，或透過拖動每個小工具右下角的小三角形來調整小工具大小"
+    "editingLayout": "正在編輯版面配置",
+    "editingLayoutHint": "使用拖曳把手移動小工具，拖曳邊緣調整大小，也可以使用鍵盤操作。"
   },
   "empty": {
     "welcome": {

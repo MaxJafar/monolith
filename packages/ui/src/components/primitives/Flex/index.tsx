@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: 0BSD
 import type { ElementType } from 'react'
 
 import type { ResponsiveProp, SpaceToken } from '@/system'
@@ -8,29 +9,24 @@ import {
   renderSurface
 } from '../surface'
 
-interface FlexOwnProps<T extends ElementType> extends SurfaceOwnProps<
+type Conditional<T> = ResponsiveProp<T>
+type Alignment = 'stretch' | 'center' | 'start' | 'end' | 'baseline'
+type FlexOptions<T extends ElementType> = SurfaceOwnProps<
   T,
-  'none' | 'flex' | 'inline-flex'
-> {
+  'flex' | 'inline-flex' | 'none'
+> & {
   centered?: boolean
-  direction?: ResponsiveProp<
-    'row' | 'column' | 'row-reverse' | 'column-reverse'
-  >
-  align?: ResponsiveProp<'stretch' | 'center' | 'start' | 'end' | 'baseline'>
-  justify?: ResponsiveProp<
+  direction?: Conditional<'row' | 'column' | 'row-reverse' | 'column-reverse'>
+  align?: Conditional<Alignment>
+  justify?: Conditional<
     'start' | 'center' | 'between' | 'around' | 'evenly' | 'end'
   >
-  wrap?: ResponsiveProp<'nowrap' | 'wrap' | 'wrap-reverse'>
-  gap?: ResponsiveProp<SpaceToken>
-  gapX?: ResponsiveProp<SpaceToken>
-  gapY?: ResponsiveProp<SpaceToken>
-}
-
+  wrap?: Conditional<'nowrap' | 'wrap' | 'wrap-reverse'>
+} & Partial<Record<'gap' | 'gapX' | 'gapY', Conditional<SpaceToken>>>
 export type FlexProps<T extends ElementType = 'div'> = SurfaceProps<
   T,
-  FlexOwnProps<T>
+  FlexOptions<T>
 >
-
-export function Flex<T extends ElementType = 'div'>(props: FlexProps<T>) {
-  return renderSurface(props, 'flex')
+export function Flex<T extends ElementType = 'div'>(options: FlexProps<T>) {
+  return renderSurface(options, 'flex')
 }

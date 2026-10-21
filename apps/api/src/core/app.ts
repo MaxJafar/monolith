@@ -1,6 +1,7 @@
+// SPDX-License-Identifier: 0BSD
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
-import express from 'express'
+import express, { type RequestHandler } from 'express'
 import helmet from 'helmet'
 
 import { db } from './drizzle'
@@ -9,46 +10,24 @@ import requestLogging from './middlewares/requestLogging'
 import router from './routes'
 import { CORS_ALLOWED_ORIGINS } from './routes/constants/corsAllowedOrigins'
 
-const app = express()
-
-// Drizzle request context middleware
-app.use((req, res, next) => {
-  req.db = db
+const databaseContext: RequestHandler = (request, _response, next) => {
+  request.db = db
   next()
-})
-
-// Security headers
-app.use(
+}
+const app = express()
+app.use([
+  databaseContext,
   helmet({
-    crossOriginResourcePolicy: {
-      policy: 'cross-origin'
-    },
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
     xPoweredBy: false,
     xXssProtection: false
-  })
-)
-
-// CORS configuration with credentials support
-app.use(
-  cors({
-    origin: CORS_ALLOWED_ORIGINS,
-    credentials: true
-  })
-)
-
-// Cookie parser
-app.use(cookieParser())
-
-// Body parsers
-app.use(express.raw())
-app.use(express.json({ limit: '50mb' }))
-
-// HTTP request logger
-app.use(requestLogging)
-
-// Rate limiting
-app.use(rateLimitingMiddleware)
-
-app.use('/', router)
-
+  }),
+  cors({ origin: CORS_ALLOWED_ORIGINS, credentials: true }),
+  cookieParser(),
+  express.raw(),
+  express.json({ limit: '50mb' }),
+  requestLogging,
+  rateLimitingMiddleware
+])
+app.use(router)
 export default app

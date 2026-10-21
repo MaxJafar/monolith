@@ -36,5 +36,6 @@
   },
   "monolithBuilds": {
     "build": "rimraf dist && vite build"
-  }
+  },
+  "license": "0BSD"
 }

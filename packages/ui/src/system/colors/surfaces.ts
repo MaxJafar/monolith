@@ -1,22 +1,18 @@
+// SPDX-License-Identifier: 0BSD
+import type { TokenizedColor } from './constants/colors'
+
+function tones<Base extends TokenizedColor>(base: Base) {
+  return { base, dark: base }
+}
+function interactive<Base extends TokenizedColor, Hover extends TokenizedColor>(
+  base: Base,
+  hover: Hover
+) {
+  return { ...tones(base), hover, darkHover: hover }
+}
 export const surface = {
-  light: {
-    base: 'surface-container',
-    dark: 'surface-container'
-  },
-  lightInteractive: {
-    base: 'surface-container',
-    dark: 'surface-container',
-    hover: 'surface-container-high',
-    darkHover: 'surface-container-high'
-  },
-  default: {
-    base: 'surface',
-    dark: 'surface'
-  },
-  defaultInteractive: {
-    base: 'surface',
-    dark: 'surface',
-    hover: 'surface-container',
-    darkHover: 'surface-container'
-  }
-} as const
+  default: tones('surface'),
+  defaultInteractive: interactive('surface', 'surface-container'),
+  light: tones('surface-container'),
+  lightInteractive: interactive('surface-container', 'surface-container-high')
+}

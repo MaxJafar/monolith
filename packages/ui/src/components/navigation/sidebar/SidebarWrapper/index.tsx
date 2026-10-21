@@ -1,48 +1,31 @@
-import { Scrollbar } from '@/components/layout'
-import { Box, Flex } from '@/components/primitives'
+// SPDX-License-Identifier: 0BSD
+import type { ReactNode } from 'react'
+
+import { Scrollbar } from '@/components/layout/Scrollbar'
+import { Box, Stack } from '@/components/primitives'
 import { useModuleSidebarState } from '@/providers'
 
 import { GoBackButton } from '../../GoBackButton'
+import '../sidebar.css'
 
-export function SidebarWrapper({ children }: { children: React.ReactNode }) {
+export function SidebarWrapper({ children }: { children: ReactNode }) {
   const { isSidebarOpen, setIsSidebarOpen } = useModuleSidebarState()
-
   return (
     <Box
-      shadow
       as="aside"
-      bg={{ base: 'bg-50', dark: 'bg-900' }}
-      className={isSidebarOpen ? 'sidebar-opening' : 'sidebar-closing'}
+      className="monolith-module-sidebar"
+      data-open={isSidebarOpen}
+      r="md"
       flexShrink="0"
-      height={{ base: '100%', xl: 'calc(100% - 2rem)' }}
-      left={isSidebarOpen ? '0' : '100%'}
-      minWidth={{ base: '0', xl: '24rem' }}
-      position={{ base: 'absolute', xl: 'static' }}
-      py="md"
-      r="lg"
-      top="0"
-      width={{ base: '100%', xl: '25%' }}
-      zIndex={isSidebarOpen ? '250' : '0'}
+      py="sm"
     >
       <Scrollbar usePaddingRight={false}>
-        <Flex
-          align="center"
-          display={{ base: 'flex', xl: 'none' }}
-          justify="between"
-          p="md"
-        >
+        <Box className="monolith-sidebar-back" p="sm">
           <GoBackButton onClick={() => setIsSidebarOpen(false)} />
-        </Flex>
-        <Flex
-          as="ul"
-          direction="column"
-          height="100%"
-          minWidth="0"
-          style={{ gap: '0.125rem' }}
-          width="100%"
-        >
+        </Box>
+        <Stack as="ul" gap="xs">
           {children}
-        </Flex>
+        </Stack>
       </Scrollbar>
     </Box>
   )

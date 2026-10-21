@@ -10,6 +10,7 @@ describe('native sidebar preferences', () => {
       'actions',
       'rooms',
       'docs',
+      'journal',
       'dashboard',
       'databases'
     ])

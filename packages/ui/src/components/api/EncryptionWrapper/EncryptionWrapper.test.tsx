@@ -1,42 +1,45 @@
+// SPDX-License-Identifier: 0BSD
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, expect, it, vi } from 'vitest'
 
 import { EncryptionWrapper } from './index'
 
-const state = vi.hoisted(() => ({ ready: false, error: null as string | null }))
-vi.mock('@monolith/api', () => ({ useEncryption: () => state }))
+const encryption = vi.hoisted(() => ({
+  ready: false,
+  error: null as string | null
+}))
+vi.mock('@monolith/api', () => ({ useEncryption: () => encryption }))
 vi.mock('@/components/feedback', () => ({
-  LoadingScreen: ({ message }: { message: string }) => <p>{message}</p>,
-  EmptyStateScreen: ({
-    message
-  }: {
-    message: { title: string; description: string }
-  }) => (
+  LoadingScreen: ({ message }: { message: string }) => <p>{message}</p>
+}))
+vi.mock('@/components/feedback/StateMessage', () => ({
+  StateMessage: ({ title, detail }: { title: string; detail: string }) => (
     <p>
-      {message.title}: {message.description}
+      {title}: {detail}
     </p>
   )
 }))
-
-afterEach(() => {
-  state.ready = false
-  state.error = null
-})
-
-it('shows a failed bootstrap instead of leaving the app stuck on its loading screen', () => {
-  state.error = 'Failed to fetch public key: 429'
-  const html = renderToStaticMarkup(
-    <EncryptionWrapper>Workspace</EncryptionWrapper>
+vi.mock('@/components/inputs/Button', () => ({
+  Button: () => <button>Retry</button>
+}))
+afterEach(() => Object.assign(encryption, { ready: false, error: null }))
+const render = () =>
+  renderToStaticMarkup(
+    <EncryptionWrapper>
+      <main>Private workspace</main>
+    </EncryptionWrapper>
   )
-  expect(html).toContain('Encryption failed')
-  expect(html).toContain('429')
-  expect(html).not.toContain('Initializing')
-  state.error = null
-  expect(
-    renderToStaticMarkup(<EncryptionWrapper>Workspace</EncryptionWrapper>)
-  ).toContain('Initializing')
-  state.ready = true
-  expect(
-    renderToStaticMarkup(<EncryptionWrapper>Workspace</EncryptionWrapper>)
-  ).toBe('Workspace')
+
+it('withholds workspace content until the key exchange completes', () => {
+  expect(render()).toContain('Initializing end-to-end encryption')
+  expect(render()).not.toContain('Private workspace')
+  encryption.ready = true
+  expect(render()).toBe('<main>Private workspace</main>')
+})
+it('shows bootstrap errors even if a prior initialization was ready', () => {
+  encryption.ready = true
+  encryption.error = 'Public key request failed (429)'
+  expect(render()).toContain('Encryption failed')
+  expect(render()).toContain('429')
+  expect(render()).not.toContain('Private workspace')
 })

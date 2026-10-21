@@ -1,333 +1,188 @@
-import { useDebounce } from '@uidotdev/usehooks'
-import _ from 'lodash'
-import { useEffect, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
+// SPDX-License-Identifier: 0BSD
+import { camelCase } from 'lodash'
+import {
+  type ComponentProps,
+  type KeyboardEvent,
+  type ReactNode,
+  useRef,
+  useState
+} from 'react'
 
 import { useModuleTranslation } from '@monolith/localization'
 
-import { Card } from '@/components/layout'
-import { Icon } from '@/components/primitives'
-import { Box, Flex, type FlexProps, Transition } from '@/components/primitives'
+import { FloatingPopover } from '@/components/overlays/FloatingPopover'
+import { Box, Flex, type FlexProps, Icon } from '@/components/primitives'
 import useDivSize from '@/hooks/useDivSize'
-import { COLORS, surface } from '@/system'
+import { surface } from '@/system'
 
 import { Button } from '../Button'
-import { Placeholder } from '../shared/components/Placeholder'
+import { TextInputBox } from '../TextInput/components/TextInputBox'
+import { useSearchDraft } from './useSearchDraft'
 
 interface SearchInputProps extends Omit<FlexProps<'search'>, 'onChange'> {
-  /** Whether the search input is disabled and non-interactive. */
-  disabled?: boolean
-  /** The icon to display in the search input. Should be a valid icon name from Iconify. */
-  icon?: string
-  /** The current search query value of the input field. */
   value: string
-  /** Callback function called when the search query changes. */
   onChange: (query: string) => void
-  /** Callback function called when the search query is cleared. */
-  onClear?: () => void
-  /** The target or context being searched for accessibility and labeling purposes. */
   searchTarget: string
-  /** Properties to construct the action button component at the right hand side of the searchbar. */
-  actionButtonProps?: React.ComponentProps<typeof Button>
-  /** Callback function called when a key is released in the input field. */
-  onKeyUp?: (e: React.KeyboardEvent<HTMLInputElement>) => void
-  /** Additional CSS class names to apply to the search input container. */
-  className?: string
-  /** The i18n namespace for internationalization. See the [main documentation](https://github.com/MaxJafar/monolith/tree/main/docs) for more details. */
+  icon?: string
+  disabled?: boolean
+  onClear?: () => void
+  actionButtonProps?: ComponentProps<typeof Button>
+  onKeyUp?: (event: KeyboardEvent<HTMLInputElement>) => void
   namespace?: string | false
-  /** Optional debounce delay in milliseconds. When set, the onChange callback will be debounced by this amount. */
   debounceMs?: number
-  /** Policy for showing children components.
-   * - "always": Always show children components below the search input.
-   * - "input-focus": Only show children components when the search input is focused.
-   * - "query-not-empty": Only show children components when the search query is not empty.
-   * - "input-focus-query-not-empty": Show children components when the search input is focused and the query is not empty.
-   *
-   * @default "query-not-empty"
-   */
   showChildrenPolicy?:
     'always' | 'input-focus' | 'query-not-empty' | 'input-focus-query-not-empty'
-  /** Child components to render below the search input, typically used for displaying search results or suggestions. */
-  children?: React.ReactNode
-  /** Callback function called when Enter is pressed. */
+  children?: ReactNode
   onEnter?: () => void
 }
-
-/**
- * SearchInput component for entering search queries.
- */
 export function SearchInput({
-  icon = 'tabler:search',
   value,
   onChange,
-  onClear,
   searchTarget,
+  icon = 'tabler:search',
+  disabled = false,
+  onClear,
   actionButtonProps,
   onKeyUp,
-  className,
   namespace,
-  debounceMs,
+  debounceMs = 0,
   showChildrenPolicy = 'query-not-empty',
-  disabled = false,
   children,
   onEnter,
-  ...props
+  ...layout
 }: SearchInputProps) {
   const { t } = useModuleTranslation(
-    namespace === false
-      ? []
-      : ['common.misc', ...(namespace ? [namespace] : [])]
+    namespace === false ? [] : [namespace || 'common.misc', 'common.misc']
   )
-  // Internal state for immediate input feedback when debouncing
-
-  const [internalValue, setInternalValue] = useState(value)
-  const [isFocused, setIsFocused] = useState(false)
-  const debouncedValue = useDebounce(internalValue, debounceMs ?? 0)
-  // Track if we have a pending debounce to avoid syncing back from parent
-  const isPendingDebounce = useRef(false)
-  // Sync internal value when external value changes (only if not pending our own debounce)
-
-  useEffect(() => {
-    if (!isPendingDebounce.current) {
-      setInternalValue(value)
-    }
-  }, [value])
-  // Call onChange with debounced value when it changes
-  useEffect(() => {
-    if (debounceMs && isPendingDebounce.current) {
-      isPendingDebounce.current = false
-      onChange(debouncedValue)
-    }
-  }, [debouncedValue, debounceMs, onChange])
-
-  const displayValue = debounceMs ? internalValue : value
-
-  const handleChange = (newValue: string) => {
-    if (debounceMs) {
-      isPendingDebounce.current = true
-      setInternalValue(newValue)
-    } else {
-      onChange(newValue)
-    }
-  }
-
-  const handleClear = () => {
-    isPendingDebounce.current = false
-
-    if (debounceMs) {
-      setInternalValue('')
-    }
-    onChange('')
-    onClear?.()
-  }
-
-  const shouldShowChildren = (() => {
-    switch (showChildrenPolicy) {
-      case 'always':
-        return true
-      case 'input-focus':
-        return isFocused
-      case 'query-not-empty':
-        return displayValue.length > 0
-      case 'input-focus-query-not-empty':
-        return isFocused && displayValue.length > 0
-    }
-  })()
-
-  const containerRef = useRef<HTMLDivElement>(null)
-  const childrenRef = useRef<HTMLDivElement>(null)
-  const { height: childrenHeight } = useDivSize(childrenRef)
-  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({})
-
-  useEffect(() => {
-    const updatePosition = () => {
-      if (!containerRef.current || !shouldShowChildren) return
-
-      const rect = containerRef.current.getBoundingClientRect()
-
-      setDropdownStyle({
-        left: rect.left,
-        top: rect.bottom + 8,
-        width: rect.width
-      })
-    }
-
-    updatePosition()
-
-    window.addEventListener('scroll', updatePosition, true)
-    window.addEventListener('resize', updatePosition)
-
-    return () => {
-      window.removeEventListener('scroll', updatePosition, true)
-      window.removeEventListener('resize', updatePosition)
-    }
-  }, [shouldShowChildren])
-
-  const handleBlur = (e: React.FocusEvent) => {
-    if (
-      containerRef.current &&
-      !containerRef.current.contains(e.relatedTarget) &&
-      !childrenRef.current?.contains(e.relatedTarget)
-    ) {
-      setIsFocused(false)
-    }
-  }
+  const target =
+    namespace === false
+      ? searchTarget
+      : t(
+          [
+            'items.' + camelCase(searchTarget),
+            'items.' + searchTarget,
+            searchTarget
+          ],
+          { defaultValue: searchTarget }
+        )
+  const label =
+    namespace === false
+      ? 'Search ' + searchTarget
+      : t('search', { item: target, defaultValue: 'Search ' + target })
+  const input = useRef<HTMLInputElement>(null)
+  const anchor = useRef<HTMLDivElement>(null)
+  const results = useRef<HTMLDivElement>(null)
+  const { width } = useDivSize(anchor)
+  const [focused, setFocused] = useState(false)
+  const [dismissed, setDismissed] = useState(false)
+  const query = useSearchDraft(value, onChange, debounceMs, disabled)
+  const visible =
+    !disabled &&
+    !dismissed &&
+    (showChildrenPolicy === 'always' ||
+      (showChildrenPolicy === 'input-focus' && focused) ||
+      (showChildrenPolicy === 'query-not-empty' && query.value.length > 0) ||
+      (showChildrenPolicy === 'input-focus-query-not-empty' &&
+        focused &&
+        query.value.length > 0))
 
   return (
-    <Box
-      ref={containerRef}
-      minWidth="0"
-      position="relative"
-      width="100%"
-      onBlur={handleBlur}
-      onFocus={() => setIsFocused(true)}
-    >
-      <Transition>
-        <Flex
-          shadow
-          align="center"
-          as="search"
-          bg={props.bg ?? surface.defaultInteractive}
-          className={className}
-          gap="md"
-          minWidth="0"
-          p="md"
-          position="relative"
-          r="lg"
-          style={
-            disabled
-              ? {
-                  cursor: 'not-allowed',
-                  opacity: 0.5
-                }
-              : { cursor: 'text' }
-          }
-          width="100%"
-          onClick={e => {
-            if (disabled) return
-
-            if ((e.target as HTMLElement).closest('button')) return
-
-            e.currentTarget.querySelector('input')?.focus()
+    <Box ref={anchor} width="100%" minWidth="0">
+      <Flex
+        {...layout}
+        as="search"
+        align="center"
+        gap="sm"
+        minWidth="0"
+        width="100%"
+        p={layout.p ?? 'sm'}
+        r={layout.r ?? 'md'}
+        bg={layout.bg ?? surface.defaultInteractive}
+        onFocus={event => {
+          setFocused(true)
+          setDismissed(false)
+          layout.onFocus?.(event)
+        }}
+        onBlur={event => {
+          if (
+            !event.currentTarget.contains(event.relatedTarget) &&
+            !results.current?.contains(event.relatedTarget)
+          )
+            setFocused(false)
+          layout.onBlur?.(event)
+        }}
+      >
+        <Icon aria-hidden="true" icon={icon} color="muted" />
+        <TextInputBox
+          inputRef={input}
+          variant="plain"
+          value={query.value}
+          placeholder={label}
+          aria-label={label}
+          disabled={disabled}
+          type="search"
+          autoComplete="off"
+          onChange={next => {
+            setDismissed(false)
+            query.change(next)
           }}
-          {...props}
-        >
-          <Icon color="muted" icon={icon} />
-          <Placeholder>
-            <input
-              autoComplete="one-time-code"
-              autoCorrect="off"
-              data-form-type="other"
-              data-lpignore="true"
-              disabled={disabled}
-              placeholder={
-                namespace === false
-                  ? `Search ${searchTarget}`
-                  : t([`common.misc:search`, `Search ${searchTarget}`], {
-                      item: t(
-                        [
-                          `items.${_.camelCase(searchTarget)}`,
-                          `items.${searchTarget}`,
-                          `${_.camelCase(searchTarget)}`,
-                          `${searchTarget}`,
-                          `${namespace}:items.${_.camelCase(searchTarget)}`,
-                          `${namespace}:items.${searchTarget}`,
-                          `${namespace}:${_.camelCase(searchTarget)}`,
-                          `${namespace}:${searchTarget}`,
-                          `common.misc:items.${_.camelCase(searchTarget)}`,
-                          `common.misc:items.${searchTarget}`,
-                          `common.misc:${_.camelCase(searchTarget)}`,
-                          `common.misc:${searchTarget}`
-                        ],
-                        {
-                          defaultValue: searchTarget
-                        }
-                      )
-                    })
-              }
-              style={{
-                minWidth: '0',
-                caretColor: COLORS['custom-500'],
-                paddingRight: actionButtonProps ? '5rem' : '2.5rem'
-              }}
-              type="text"
-              value={displayValue}
-              onChange={e => {
-                handleChange(e.target.value)
-              }}
-              onKeyDown={e => {
-                if (e.key === 'Enter' && onEnter) {
-                  onEnter()
-                }
-              }}
-              onKeyUp={onKeyUp}
-            />
-          </Placeholder>
-          <Flex
-            align="center"
-            gap="sm"
-            position="absolute"
-            right="1rem"
-            style={{ transform: 'translateY(-50%)' }}
-            top="50%"
-          >
-            <Button
-              disabled={disabled}
-              icon="tabler:x"
-              style={{
-                height: '2rem',
-                opacity: displayValue ? 1 : 0,
-                padding: 0,
-                visibility: displayValue ? 'visible' : 'hidden',
-                width: '2rem'
-              }}
-              variant="plain"
-              onClick={handleClear}
-            />
-            {actionButtonProps && (
-              <Button
-                {...actionButtonProps}
-                disabled={disabled || actionButtonProps.disabled}
-                style={{
-                  height: '2rem',
-                  padding: 0,
-                  width: '2rem',
-                  ...actionButtonProps.style
-                }}
-                variant={actionButtonProps.variant || 'plain'}
-              />
-            )}
-          </Flex>
-        </Flex>
-      </Transition>
-      {children &&
-        createPortal(
-          <Transition property="all">
-            <Card
-              height={shouldShowChildren ? `${childrenHeight}px` : '0'}
-              overflow="hidden"
-              p="none"
-              position="fixed"
-              style={{
-                opacity: shouldShowChildren ? 1 : 0,
-                pointerEvents: shouldShowChildren
-                  ? ('auto' as const)
-                  : ('none' as const),
-                visibility: shouldShowChildren
-                  ? ('visible' as const)
-                  : ('hidden' as const),
-                ...dropdownStyle
-              }}
-              zIndex="9999"
-              onMouseDown={e => e.preventDefault()}
-            >
-              <Box ref={childrenRef} p="md">
-                {children}
-              </Box>
-            </Card>
-          </Transition>,
-          document.body
+          onEnter={onEnter}
+          onKeyUp={onKeyUp}
+        />
+        {query.value && (
+          <Button
+            icon="tabler:x"
+            aria-label="Clear search"
+            variant="plain"
+            p="xs"
+            disabled={disabled}
+            onClick={() => {
+              query.change('', true)
+              onClear?.()
+              input.current?.focus()
+            }}
+          />
         )}
+        {actionButtonProps && (
+          <Button
+            {...actionButtonProps}
+            disabled={disabled || actionButtonProps.disabled}
+            variant={actionButtonProps.variant ?? 'plain'}
+          />
+        )}
+      </Flex>
+      {children && visible && anchor.current && (
+        <FloatingPopover
+          anchor={anchor.current}
+          label={label}
+          width={Math.max(200, width)}
+          autoFocus={false}
+          onClose={() => setDismissed(true)}
+        >
+          <Box
+            ref={results}
+            onFocus={() => setFocused(true)}
+            onBlur={event => {
+              if (
+                !event.currentTarget.contains(event.relatedTarget) &&
+                !anchor.current?.contains(event.relatedTarget)
+              )
+                setFocused(false)
+            }}
+            onMouseDown={event => {
+              if (
+                event.target instanceof Element &&
+                !event.target.closest(
+                  'button, a, input, select, textarea, [tabindex]'
+                )
+              )
+                event.preventDefault()
+            }}
+          >
+            {children}
+          </Box>
+        </FloatingPopover>
+      )}
     </Box>
   )
 }

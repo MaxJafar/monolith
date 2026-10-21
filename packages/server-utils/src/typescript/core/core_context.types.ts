@@ -1,100 +1,78 @@
+// SPDX-License-Identifier: 0BSD
 import type OpenAI from 'openai'
-import { Server } from 'socket.io'
-import z from 'zod'
+import type { Server } from 'socket.io'
+import type { z } from 'zod'
 
 import type { FileStorage } from '@monolith/file-storage'
 import type { Logger } from '@monolith/log'
 
-import { ITempFileManagerConstructor } from './tempfile_manager.types'
+import type { Location } from '../standalone/location.types'
+import type { ITempFileManagerConstructor } from './tempfile_manager.types'
 
+type Transform<T> = (value: T, key: string) => T
+export type EncryptFunc = Transform<Buffer>
+export type DecryptFunc = Transform<Buffer>
+export type Encrypt2Func = Transform<string>
+export type Decrypt2Func = Transform<string>
 export type FetchAIFunc = <
-  T extends z.ZodTypeAny | undefined = undefined
->(params: {
+  S extends z.ZodType | undefined = undefined
+>(request: {
   provider: string
   model: string
   messages: OpenAI.ChatCompletionMessageParam[]
-  structure?: T
-}) => Promise<(T extends z.ZodTypeAny ? z.infer<T> : string) | null>
-
+  structure?: S
+}) => Promise<(S extends z.ZodType ? z.infer<S> : string) | null>
 export type SearchLocationsFunc = (
   key: string,
-  q: string
-) => Promise<
-  {
-    name: string
-    formattedAddress: string
-    location: { latitude: number; longitude: number }
-  }[]
->
-
-type GetAPIKeyFunc = (id: string) => Promise<string>
-
-type CheckModulesAvailabilityFunc = (moduleIds: string) => Promise<boolean>
-
+  query: string
+) => Promise<Location[]>
 export type ConvertPDFToImageFunc = (path: string) => Promise<File | undefined>
-
-export type ParseOCRFunc = (imagePath: string) => Promise<string>
-
+export type ParseOCRFunc = (path: string) => Promise<string>
 export type TaskPoolTask = {
   module: string
   description: string
-  status: 'pending' | 'running' | 'completed' | 'failed'
-  data?: unknown
-  error?: string
   createdAt: Date
   updatedAt: Date
+  status: 'pending' | 'running' | 'completed' | 'failed'
   progress?: number | string | Record<string, number | string>
+  data?: unknown
+  error?: string
 }
-
 export type GlobalTaskPool = Record<string, TaskPoolTask>
-
 export type AddToTaskPoolFunc = (
   io: Server,
-  taskData: Pick<
+  task: Pick<
     TaskPoolTask,
     'module' | 'description' | 'status' | 'data' | 'progress'
   >
 ) => string
-
 export type UpdateTaskInPoolFunc = (
   io: Server,
-  taskId: string,
-  updates: Partial<TaskPoolTask>
+  id: string,
+  changes: Partial<TaskPoolTask>
 ) => void
 
-export type DecryptFunc = (encrypted: Buffer, key: string) => Buffer
-
-export type Decrypt2Func = (encrypted: string, key: string) => string
-
-export type EncryptFunc = (data: Buffer, key: string) => Buffer
-
-export type Encrypt2Func = (data: string, key: string) => string
-
+/** Services supplied by the host to a module request. */
 export interface CoreContext {
   logging: Logger
   storage: FileStorage
+  tempFile: ITempFileManagerConstructor
   api: {
+    getAPIKey(id: string): Promise<string>
     fetchAI: FetchAIFunc
     searchLocations: SearchLocationsFunc
-    getAPIKey: GetAPIKeyFunc
   }
-  tempFile: ITempFileManagerConstructor
-  validation: {
-    checkModulesAvailability: CheckModulesAvailabilityFunc
-  }
-  media: {
-    convertPDFToImage: ConvertPDFToImageFunc
-    parseOCR: ParseOCRFunc
+  validation: { checkModulesAvailability(moduleIds: string): Promise<boolean> }
+  media: { convertPDFToImage: ConvertPDFToImageFunc; parseOCR: ParseOCRFunc }
+  crypto: {
+    encrypt: EncryptFunc
+    decrypt: DecryptFunc
+    encrypt2: Encrypt2Func
+    decrypt2: Decrypt2Func
   }
   tasks: {
     global: GlobalTaskPool
     add: AddToTaskPoolFunc
     update: UpdateTaskInPoolFunc
-  }
-  crypto: {
-    decrypt: DecryptFunc
-    decrypt2: Decrypt2Func
-    encrypt: EncryptFunc
-    encrypt2: Encrypt2Func
   }
 }

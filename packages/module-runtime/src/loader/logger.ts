@@ -1,5 +1,6 @@
-import { type Logger, createLogger } from '@monolith/log'
+// SPDX-License-Identifier: 0BSD
+import { createLogger } from '@monolith/log'
 
-export const loaderLogger: Logger = createLogger({ name: 'Module Loader' })
+export type { Logger } from '@monolith/log'
 
-export type { Logger }
+export const loaderLogger = createLogger({ name: 'Module Loader' })

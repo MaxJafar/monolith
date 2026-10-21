@@ -1,46 +1,64 @@
-import { describe, expect, it } from 'vitest'
-import z from 'zod'
+// SPDX-License-Identifier: 0BSD
+import { expect, expectTypeOf, it } from 'vitest'
+import { z } from 'zod'
 
-import { createOutputHelpers } from './index'
+import {
+  ClientError,
+  createOutputHelpers,
+  getStatusMessage,
+  isSuccessOutputKey
+} from './index'
+import type { ResponseObject } from './types'
 
-describe('createOutputHelpers', () => {
-  it('should always expose the universal error helpers', () => {
-    const helpers = createOutputHelpers({ OK: z.string() })
-
-    expect(helpers.ok).toBeTypeOf('function')
-    expect(helpers.badRequest).toBeTypeOf('function')
-    expect(helpers.unauthorized).toBeTypeOf('function')
-    expect(helpers.forbidden).toBeTypeOf('function')
-    expect(helpers.notFound).toBeTypeOf('function')
-    expect(helpers.conflict).toBeTypeOf('function')
-
-    expect(helpers.badRequest('nope')).toEqual({
-      $status: 400,
-      payload: 'nope'
-    })
-    expect(helpers.unauthorized()).toEqual({ $status: 401 })
-    expect(helpers.forbidden()).toEqual({ $status: 403 })
-    expect(helpers.notFound()).toEqual({ $status: 404 })
-    expect(helpers.conflict()).toEqual({ $status: 409 })
+it('only offers declared success responses and always exposes standard failures', () => {
+  const api = createOutputHelpers({
+    CREATED: z.object({ id: z.number() }),
+    NO_CONTENT: true
   })
-
-  it('should ignore non-success output keys at runtime', () => {
-    const helpers = createOutputHelpers({
-      OK: z.string(),
-      NOT_FOUND: true,
-      BAD_REQUEST: z.string()
-    } as { OK: z.ZodTypeAny })
-
-    expect(helpers.notFound()).toEqual({ $status: 404 })
-    expect(helpers.badRequest('bad')).toEqual({
-      $status: 400,
-      payload: 'bad'
-    })
+  expect(Object.keys(api).sort()).toEqual(
+    [
+      'created',
+      'noContent',
+      'badRequest',
+      'unauthorized',
+      'forbidden',
+      'notFound',
+      'conflict'
+    ].sort()
+  )
+  expect(api.created({ id: 12 })).toEqual({ $status: 201, payload: { id: 12 } })
+  expect(api.noContent()).toEqual({ $status: 204 })
+  expect(api.badRequest('Invalid date')).toEqual({
+    $status: 400,
+    payload: 'Invalid date'
   })
-
-  it('should return no helpers for custom output', () => {
-    const helpers = createOutputHelpers('custom')
-
-    expect(Object.keys(helpers)).toHaveLength(0)
+  expect(api.conflict()).toEqual({ $status: 409 })
+  expect(api.forbidden()).toEqual({ $status: 403 })
+  expect(api.unauthorized()).toEqual({ $status: 401 })
+  expect(api.notFound()).toEqual({ $status: 404 })
+})
+it('does not adopt inherited or unknown declarations, and leaves custom routes alone', () => {
+  const definitions = Object.assign(Object.create({ OK: z.string() }), {
+    surprise: true
   })
+  expect(createOutputHelpers(definitions)).not.toHaveProperty('ok')
+  expect(createOutputHelpers('custom')).toEqual({})
+  expect(isSuccessOutputKey('toString')).toBe(false)
+  expect(isSuccessOutputKey('BAD_REQUEST')).toBe(false)
+  expect(isSuccessOutputKey('ACCEPTED')).toBe(true)
+  expect(getStatusMessage(204)).toBe('No Content')
+  expect(getStatusMessage(999)).toBe('Error')
+})
+it('keeps payload inference and error classification compatible with route callbacks', () => {
+  const definition = { OK: z.object({ done: z.boolean() }) }
+  const api = createOutputHelpers(definition)
+  expectTypeOf(api.ok).parameter(0).toEqualTypeOf<{ done: boolean }>()
+  const value: ResponseObject<typeof definition> = api.ok({ done: true })
+  expect(value.payload).toEqual({ done: true })
+  const failure = new ClientError('Missing', 404)
+  expect(ClientError.isClientError(failure)).toBe(true)
+  expect(ClientError.isClientError({ name: 'ClientError', code: 404 })).toBe(
+    false
+  )
+  expect(failure).toBeInstanceOf(Error)
 })

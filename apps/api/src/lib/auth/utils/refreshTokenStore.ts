@@ -1,101 +1,105 @@
-import { and, eq, gt, lt } from 'drizzle-orm'
+// SPDX-License-Identifier: 0BSD
+import { and, eq, gt, lte } from 'drizzle-orm'
 
 import { db } from '../../../core/drizzle'
-import { authRefreshTokens } from '../schema.drizzle'
-import { hashToken } from './tokens'
+import { authRefreshTokens as sessions } from '../schema.drizzle'
+import { REFRESH_TOKEN_EXPIRY_MS, hashToken } from './tokens'
 
-export async function storeRefreshToken(params: {
-  userId: string
-  token: string
-  family: string
-  ip: string
-}): Promise<void> {
-  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-
-  await db.insert(authRefreshTokens).values({
-    userId: params.userId,
-    token_hash: hashToken(params.token),
-    family: params.family,
-    bound_ip: params.ip,
-    last_ip: params.ip,
-    expires_at: expiresAt,
-    revoked: false,
-    last_used_at: new Date()
-  })
-}
-
-export async function findToken(
-  token: string
-): Promise<typeof authRefreshTokens.$inferSelect | null> {
-  const tokenHash = hashToken(token)
-
-  const record = await db.query.authRefreshTokens.findFirst({
-    where: { token_hash: tokenHash }
-  })
-
-  return record ?? null
-}
-
-export async function rotateToken(params: {
+type NewSession = { userId: string; token: string; family: string; ip: string }
+type Rotation = {
   oldTokenHash: string
   newToken: string
   ip: string
   family: string
-}): Promise<boolean> {
-  return db.transaction(async transaction => {
-    const [oldRecord] = await transaction
-      .update(authRefreshTokens)
-      .set({
-        revoked: true,
-        last_used_at: new Date(),
-        last_ip: params.ip,
-        updated: new Date()
-      })
-      .where(
-        and(
-          eq(authRefreshTokens.token_hash, params.oldTokenHash),
-          eq(authRefreshTokens.family, params.family),
-          eq(authRefreshTokens.bound_ip, params.ip),
-          eq(authRefreshTokens.revoked, false),
-          gt(authRefreshTokens.expires_at, new Date())
+}
+
+function sessionValues(input: NewSession, time: Date) {
+  return {
+    userId: input.userId,
+    family: input.family,
+    token_hash: hashToken(input.token),
+    bound_ip: input.ip,
+    last_ip: input.ip,
+    last_used_at: time,
+    expires_at: new Date(time.getTime() + REFRESH_TOKEN_EXPIRY_MS),
+    revoked: false
+  }
+}
+
+/** A rotation claims the old credential and inserts its successor in one transaction. */
+export function createRefreshTokenStore(database: typeof db) {
+  return {
+    async store(input: NewSession): Promise<void> {
+      await database.insert(sessions).values(sessionValues(input, new Date()))
+    },
+    async find(token: string): Promise<typeof sessions.$inferSelect | null> {
+      const [row] = await database
+        .select()
+        .from(sessions)
+        .where(eq(sessions.token_hash, hashToken(token)))
+        .limit(1)
+      return row ?? null
+    },
+    async rotate(input: Rotation): Promise<boolean> {
+      return database.transaction(async transaction => {
+        const now = new Date()
+        const claimed = await transaction
+          .update(sessions)
+          .set({
+            revoked: true,
+            last_ip: input.ip,
+            last_used_at: now,
+            updated: now
+          })
+          .where(
+            and(
+              eq(sessions.token_hash, input.oldTokenHash),
+              eq(sessions.family, input.family),
+              eq(sessions.bound_ip, input.ip),
+              eq(sessions.revoked, false),
+              gt(sessions.expires_at, now)
+            )
+          )
+          .returning({ userId: sessions.userId, family: sessions.family })
+        const previous = claimed[0]
+        if (!previous) return false
+        await transaction.insert(sessions).values(
+          sessionValues(
+            {
+              userId: previous.userId,
+              family: previous.family,
+              token: input.newToken,
+              ip: input.ip
+            },
+            now
+          )
         )
-      )
-      .returning()
-
-    if (!oldRecord) return false
-
-    await transaction.insert(authRefreshTokens).values({
-      userId: oldRecord.userId,
-      token_hash: hashToken(params.newToken),
-      family: oldRecord.family,
-      bound_ip: params.ip,
-      last_ip: params.ip,
-      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      revoked: false,
-      last_used_at: new Date()
-    })
-
-    return true
-  })
+        return true
+      })
+    },
+    async revoke(family: string): Promise<void> {
+      await database
+        .update(sessions)
+        .set({ revoked: true, updated: new Date() })
+        .where(eq(sessions.family, family))
+    },
+    async expire(): Promise<void> {
+      const now = new Date()
+      await database
+        .update(sessions)
+        .set({ revoked: true, updated: now })
+        .where(and(eq(sessions.revoked, false), lte(sessions.expires_at, now)))
+    }
+  }
 }
 
-export async function revokeFamily(family: string): Promise<void> {
-  await db
-    .update(authRefreshTokens)
-    .set({ revoked: true, updated: new Date() })
-    .where(eq(authRefreshTokens.family, family))
-}
-
-export async function cleanupExpired(): Promise<void> {
-  const now = new Date()
-
-  await db
-    .update(authRefreshTokens)
-    .set({ revoked: true, updated: new Date() })
-    .where(
-      and(
-        lt(authRefreshTokens.expires_at, now),
-        eq(authRefreshTokens.revoked, false)
-      )
-    )
-}
+// Resolve the live database on each call so add-on reloads retain the current schema.
+export const storeRefreshToken = (input: NewSession) =>
+  createRefreshTokenStore(db).store(input)
+export const findToken = (token: string) =>
+  createRefreshTokenStore(db).find(token)
+export const rotateToken = (input: Rotation) =>
+  createRefreshTokenStore(db).rotate(input)
+export const revokeFamily = (family: string) =>
+  createRefreshTokenStore(db).revoke(family)
+export const cleanupExpired = () => createRefreshTokenStore(db).expire()

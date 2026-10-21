@@ -7,13 +7,25 @@ export const releaseVersionSchema = z
   .string()
   .max(80)
   .regex(/^\d+\.\d+\.\d+(?:-[a-zA-Z0-9.-]+)?$/)
-export const coreAddonIds = [
-  'monolith--calendar',
-  'monolith--projects',
-  'monolith--todo-list',
-  'monolith--notes',
-  'monolith--databases'
-] as const
+export const coreAddonIds = ['monolith--databases'] as const
+/** Retired packages cannot be reactivated from a cached or older release catalog. */
+export const retiredAddonIds = new Set(
+  [
+    'achievements',
+    'blog',
+    'calendar',
+    'code-time',
+    'flashcards',
+    'idea-box',
+    'notes',
+    'pomodoro-timer',
+    'projects',
+    'todo-list',
+    'wallet',
+    'wishlist'
+  ].map(name => 'monolith--' + name)
+)
+
 export const addonReleaseSchema = z.object({
   id: addonIdSchema,
   name: z.string().min(1).max(120),

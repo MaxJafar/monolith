@@ -1,9 +1,10 @@
+// SPDX-License-Identifier: 0BSD
 import { federation } from '@module-federation/vite'
-import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin'
 import react from '@vitejs/plugin-react'
-import fs from 'node:fs'
+import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import {
+  type ConfigEnv,
   type Plugin,
   type UserConfig,
   defineConfig,
@@ -11,126 +12,87 @@ import {
   mergeConfig
 } from 'vite'
 
-import { ADDON_SHARED, SHARED_PACKAGES } from '../constants/shared-packages'
+import { ADDON_SHARED } from '../constants/shared-packages'
 import extractModuleMetadata from '../metadata/extractModuleMetadata'
 import { resolveAddonIdentity } from '../utils/addonIdentity'
 import { blocksuiteRuntime, blocksuiteSyntax } from './blocksuite'
+import { sharedSourceAliases, stylesheetPlugin } from './clientEnvironment'
 
-/**
- * Emits the module's parsed metadata (`monolith-manifest.json`) alongside the
- * build output so the server can read it without parsing source.
- */
-function emitModuleMetadataPlugin(moduleDir: string): Plugin {
+function metadataAsset(directory: string, portable: boolean): Plugin {
   return {
     name: 'monolith:emit-addon-metadata',
     apply: 'build',
     generateBundle() {
-      const metadata = extractModuleMetadata(moduleDir)
-
+      const metadata = {
+        ...extractModuleMetadata(directory),
+        distribution: { portable }
+      }
       this.emitFile({
         type: 'asset',
         fileName: 'monolith-manifest.json',
-        source: JSON.stringify(
-          {
-            ...metadata,
-            distribution: {
-              portable: process.env.MONOLITH_ADDON_RELEASE === '1'
-            }
-          },
-          null,
-          2
-        )
+        source: JSON.stringify(metadata, null, 2)
       })
     }
   }
 }
-
 interface ModuleConfigOptions {
   dirname: string
-  pkg?: {
-    name: string
-    [key: string]: any
-  }
+  pkg?: { name: string; [key: string]: any }
 }
 
-/**
- * Creates a standard Vite configuration for Monolith addons.
- * Supports custom overrides via the second parameter.
- */
 export function defineModuleClientConfig(
-  { dirname, pkg: customPkg }: ModuleConfigOptions,
-  overrides: UserConfig | ((env: any) => UserConfig) = {}
+  { dirname, pkg }: ModuleConfigOptions,
+  overrides: UserConfig | ((env: ConfigEnv) => UserConfig) = {}
 ) {
-  const isDocker = process.env.DOCKER_BUILD === 'true'
-  const editor = blocksuiteRuntime(path.resolve(dirname, '../../..'))
-
-  const outDir = isDocker ? 'dist-docker' : 'dist'
-
-  const pkg =
-    customPkg ||
-    JSON.parse(
-      fs.readFileSync(path.resolve(dirname, '../package.json'), 'utf8')
-    )
-
-  const moduleName = path.basename(path.resolve(dirname, '..'))
-  const { remoteId } = resolveAddonIdentity(pkg)
-  const remoteName = `m_${remoteId}`
-
-  return defineConfig(configEnv => {
-    const isDev = configEnv.command === 'serve'
-
-    // 1. Resolve environment variables natively from the root env folder
-    const envDir = path.resolve(dirname, '../../../env')
-
-    const env = loadEnv(configEnv.mode, envDir, '')
-
-    const apiHost = isDocker ? '/api' : env.VITE_API_HOST || ''
-
-    // 2. Base default configuration
-    const baseConfig: UserConfig = {
-      base:
-        process.env.MONOLITH_ADDON_RELEASE === '1'
-          ? './'
-          : `${apiHost}/modules/${moduleName}/`,
+  const directory = path.resolve(dirname, '..')
+  const root = path.resolve(directory, '../..')
+  const manifest =
+    pkg ??
+    JSON.parse(readFileSync(path.join(directory, 'package.json'), 'utf8'))
+  const { remoteId } = resolveAddonIdentity(manifest)
+  const editor = blocksuiteRuntime(root)
+  const docker = process.env.DOCKER_BUILD === 'true'
+  const portable = process.env.MONOLITH_ADDON_RELEASE === '1'
+  return defineConfig(environment => {
+    const development = environment.command === 'serve'
+    const envDir = path.join(root, 'env')
+    const apiHost = docker
+      ? '/api'
+      : loadEnv(environment.mode, envDir, '').VITE_API_HOST || ''
+    const config: UserConfig = {
       envDir,
+      base: portable
+        ? './'
+        : apiHost.replace(/\/+$/, '') +
+          '/modules/' +
+          path.basename(directory) +
+          '/',
       plugins: [
         blocksuiteSyntax(),
         react(),
-        vanillaExtractPlugin({
-          unstable_pluginFilter: ({ name }) =>
-            name === 'monolith-blocksuite-syntax'
-        }) as any,
-        !isDev &&
+        stylesheetPlugin(),
+        !development &&
           federation({
-            name: remoteName,
+            name: 'm_' + remoteId,
             filename: 'remoteEntry.js',
             dts: false,
-            exposes: {
-              './Manifest': './manifest.ts'
-            },
+            exposes: { './Manifest': './manifest.ts' },
             remotes: {},
             shared: ADDON_SHARED
           }),
-        !isDev && emitModuleMetadataPlugin(path.resolve(dirname, '..'))
+        !development && metadataAsset(directory, portable)
       ].filter(Boolean),
       resolve: {
         dedupe: ['react', 'react-dom', 'lit', 'yjs'],
         alias: [
           ...editor.aliases,
-          ...(isDev
-            ? Object.entries(SHARED_PACKAGES).map(
-                ([, { aliasRegex, entryPoint }]) => ({
-                  find: aliasRegex,
-                  replacement: path.resolve(dirname, '/../../', entryPoint)
-                })
-              )
-            : []),
+          ...(development ? sharedSourceAliases(root) : []),
           {
             find: /^@\/manifest$/,
-            replacement: path.resolve(dirname, './manifest.ts')
+            replacement: path.join(dirname, 'manifest.ts')
           },
-          { find: /^@\/(.*)$/, replacement: path.resolve(dirname, './src/$1') },
-          { find: /^@$/, replacement: path.resolve(dirname, './src/index') }
+          { find: /^@\/(.*)$/, replacement: path.join(dirname, 'src/$1') },
+          { find: /^@$/, replacement: path.join(dirname, 'src/index') }
         ]
       },
       optimizeDeps: {
@@ -138,17 +100,14 @@ export function defineModuleClientConfig(
         rolldownOptions: { plugins: [blocksuiteSyntax()] }
       },
       build: {
-        outDir,
+        outDir: docker ? 'dist-docker' : 'dist',
         target: 'esnext',
         modulePreload: false
       }
     }
-
-    // 3. Resolve custom overrides if they are passed as a function
-    const resolvedOverrides =
-      typeof overrides === 'function' ? overrides(configEnv) : overrides
-
-    // 4. Merge base configuration with the module-specific overrides
-    return mergeConfig(baseConfig, resolvedOverrides)
+    return mergeConfig(
+      config,
+      typeof overrides === 'function' ? overrides(environment) : overrides
+    )
   })
 }

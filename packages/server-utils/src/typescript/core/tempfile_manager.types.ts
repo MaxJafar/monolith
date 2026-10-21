@@ -1,11 +1,9 @@
-export interface ITempFileManager {
-  read<T>(): T
-  write(data: Buffer | string): void
+// SPDX-License-Identifier: 0BSD
+export type ITempFileManager = {
+  write: (data: Buffer | string) => void
+  read: <T>() => T
 }
-
-export interface ITempFileManagerConstructor {
-  new (
-    fileName: `${string}.json`,
-    jsonType?: 'object' | 'array'
-  ): ITempFileManager
-}
+export type ITempFileManagerConstructor = new (
+  fileName: `${string}.json`,
+  jsonType?: 'object' | 'array'
+) => ITempFileManager

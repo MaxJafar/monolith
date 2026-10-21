@@ -1,83 +1,84 @@
+// SPDX-License-Identifier: 0BSD
 import fs from 'node:fs'
 import { builtinModules, createRequire } from 'node:module'
 import path from 'node:path'
-import { type Alias, type Plugin } from 'vite'
+import type { Alias, Plugin } from 'vite'
 
 import { findProjectRoot } from '../utils/projectRoot'
 
-const cjsRequire = createRequire(import.meta.url)
-
-/**
- * Dynamically resolves the host api's package.json dependencies to build the external whitelist.
- */
-function getCoreDependencies(dirname: string): Set<string> {
-  const deps = new Set<string>()
-  const root = findProjectRoot(dirname)
-  const apiPkgPath = path.join(root, 'apps/api/package.json')
-
-  if (fs.existsSync(apiPkgPath)) {
-    try {
-      const pkg = JSON.parse(fs.readFileSync(apiPkgPath, 'utf8'))
-      const allDeps = {
-        ...pkg.dependencies,
-        ...pkg.devDependencies
-      }
-
-      for (const dep of Object.keys(allDeps)) {
-        deps.add(dep)
-      }
-    } catch {
-      // Ignore read/parse errors and fallback
+const requireFromConfig = createRequire(import.meta.url)
+const builtins = new Set(builtinModules.map(name => name.replace(/^node:/, '')))
+function manifestAt(filename: string):
+  | {
+      name?: string
+      exports?: unknown
+      dependencies?: object
+      devDependencies?: object
     }
+  | undefined {
+  if (!fs.existsSync(filename)) return
+  try {
+    return JSON.parse(fs.readFileSync(filename, 'utf8'))
+  } catch {
+    return
   }
-
-  return deps
+}
+function exportedPackage(filename: string, name: string): boolean {
+  let folder = path.dirname(filename)
+  for (;;) {
+    const manifest = manifestAt(path.join(folder, 'package.json'))
+    if (manifest?.name === name) return manifest.exports !== undefined
+    const parent = path.dirname(folder)
+    if (folder === parent) return false
+    folder = parent
+  }
+}
+function aliasMatches(alias: Alias, source: string): boolean {
+  if (typeof alias.find === 'string')
+    return source === alias.find || source.startsWith(alias.find + '/')
+  alias.find.lastIndex = 0
+  return alias.find.test(source)
 }
 
-/**
- * Node.js core built-in modules that are resolved without node: prefix.
- */
-const NODE_BUILT_INS = new Set(builtinModules)
-
-/** Export-map names are public specifiers, independent of the backing filename. */
-function hasPackageExportMap(
-  resolvedPath: string,
-  packageName: string
-): boolean {
-  for (
-    let directory = path.dirname(resolvedPath);
-    directory !== path.dirname(directory);
-    directory = path.dirname(directory)
-  ) {
-    const manifestPath = path.join(directory, 'package.json')
-
-    if (fs.existsSync(manifestPath)) {
-      try {
-        const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8')) as {
-          name?: unknown
-          exports?: unknown
-        }
-
-        if (manifest.name === packageName) return manifest.exports !== undefined
-      } catch {
-        // Preserve the existing extension fallback for unreadable manifests.
-      }
-    }
+function externalSpecifier(
+  source: string,
+  packageName: string,
+  directory: string
+): string {
+  const split = source.search(/[?#]/)
+  const plain = split < 0 ? source : source.slice(0, split)
+  const suffix = split < 0 ? '' : source.slice(split)
+  if (plain === packageName || builtins.has(plain)) return source
+  try {
+    const resolved = requireFromConfig
+      .resolve(plain, { paths: [directory] })
+      .replaceAll('\\', '/')
+    if (exportedPackage(resolved, packageName)) return source
+    const extension = path.extname(resolved)
+    if (!extension || plain.endsWith(extension)) return source
+    const leaf = resolved.slice(resolved.lastIndexOf('/') + 1)
+    return (
+      plain +
+      (leaf === 'index' + extension && !plain.endsWith('/index')
+        ? '/index'
+        : '') +
+      extension +
+      suffix
+    )
+  } catch {
+    return source
   }
-
-  return false
 }
 
-/**
- * Custom resolution plugin that intercepts bare module imports and marks them as external,
- * appending correct extensions to subpath imports. Fully respects custom path aliases,
- * virtual modules, Node built-ins, and query/hash URL suffixes.
- */
 export function serverAliasResolver(dirname: string): Plugin {
+  const host = manifestAt(
+    path.join(findProjectRoot(dirname), 'apps/api/package.json')
+  )
+  const shared = new Set([
+    ...Object.keys(host?.dependencies ?? {}),
+    ...Object.keys(host?.devDependencies ?? {})
+  ])
   let aliases: Alias[] = []
-
-  const coreDeps = getCoreDependencies(dirname)
-
   return {
     name: 'externalize-node-modules',
     enforce: 'pre',
@@ -85,118 +86,31 @@ export function serverAliasResolver(dirname: string): Plugin {
       aliases = config.resolve.alias
     },
     resolveId(source) {
-      // 1. Skip Vite virtual modules
-      if (source.startsWith('\0') || source.startsWith('virtual:')) {
-        return null
-      }
-
-      // 2. Unconditionally externalize native Node built-ins
-      if (source.startsWith('node:')) {
-        return { id: source, external: true }
-      }
-
-      // 3. Skip configured path aliases
-      const isAlias = aliases.some(alias => {
-        if (alias.find instanceof RegExp) {
-          return alias.find.test(source)
-        }
-
-        return source === alias.find || source.startsWith(alias.find + '/')
-      })
-
-      if (isAlias) {
-        return null
-      }
-
+      if (source.startsWith('node:')) return { id: source, external: true }
       if (
-        !source.startsWith('.') &&
-        !source.startsWith('@/') &&
-        source !== '@' &&
-        !path.isAbsolute(source)
-      ) {
-        // 4. Handle query parameters and hashes (e.g. "pkg/subpath?query#hash")
-        const queryIndex = source.indexOf('?')
-        const hashIndex = source.indexOf('#')
-
-        let cleanSource = source
-        let suffix = ''
-
-        if (queryIndex !== -1 || hashIndex !== -1) {
-          const splitIndex =
-            queryIndex !== -1 && hashIndex !== -1
-              ? Math.min(queryIndex, hashIndex)
-              : queryIndex !== -1
-                ? queryIndex
-                : hashIndex
-          cleanSource = source.slice(0, splitIndex)
-          suffix = source.slice(splitIndex)
-        }
-
-        // Extract the bare package name (e.g. "zod" or "@monolith/server-utils")
-        const parts = cleanSource.split('/')
-        const packageName = cleanSource.startsWith('@')
-          ? parts.slice(0, 2).join('/')
-          : parts[0]
-
-        if (!packageName) {
-          return null
-        }
-
-        // 5. Determine if this package is a shared core dependency dynamically
-        const isCoreExternal =
-          packageName.startsWith('@monolith/') ||
-          coreDeps.has(packageName) ||
-          NODE_BUILT_INS.has(packageName)
-
-        // If it is not a core package, return null to bundle it locally
-        if (!isCoreExternal) {
-          return null
-        }
-
-        // If it is a bare package import, externalize it as-is
-        if (cleanSource === packageName) {
-          return { id: source, external: true }
-        }
-
-        // It's a subpath import. Resolve it to find its real file extension.
-        try {
-          const resolvedPath = cjsRequire.resolve(cleanSource, {
-            paths: [dirname]
-          })
-
-          if (hasPackageExportMap(resolvedPath, packageName))
-            return { id: source, external: true }
-
-          // Normalize Windows backslashes to forward slashes
-          const normalizedPath = resolvedPath.replace(/\\/g, '/')
-          const ext = path.extname(normalizedPath)
-
-          if (ext) {
-            // Check if it resolved to an index file under a folder (e.g. ".../folder/index.js")
-            const isIndexFile = normalizedPath.endsWith('/index' + ext)
-            const cleanEndsWithIndex =
-              cleanSource.endsWith('/index') ||
-              cleanSource.endsWith('/index' + ext)
-
-            if (isIndexFile && !cleanEndsWithIndex) {
-              return {
-                id: cleanSource + '/index' + ext + suffix,
-                external: true
-              }
-            }
-
-            if (!cleanSource.endsWith(ext)) {
-              return { id: cleanSource + ext + suffix, external: true }
-            }
-          }
-        } catch {
-          // Fallback if resolution fails
-        }
-
-        return { id: source, external: true }
+        !source ||
+        /^[./\\\0#]/.test(source) ||
+        source.includes(':') ||
+        source === '@' ||
+        source.startsWith('@/')
+      )
+        return null
+      if (aliases.some(alias => aliasMatches(alias, source))) return null
+      const plain = source.split(/[?#]/)[0]!
+      const pieces = plain.split('/')
+      const packageName = plain.startsWith('@')
+        ? pieces.slice(0, 2).join('/')
+        : pieces[0]!
+      if (!(
+        packageName.startsWith('@monolith/') ||
+        shared.has(packageName) ||
+        builtins.has(packageName)
+      ))
+        return null
+      return {
+        id: externalSpecifier(source, packageName, dirname),
+        external: true
       }
-
-      return null
     }
   }
 }

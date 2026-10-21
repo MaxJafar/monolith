@@ -1,0 +1,30 @@
+/* SPDX-License-Identifier: 0BSD */
+.journal-input {
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid var(--color-bg-500);
+  border-radius: var(--radius-md);
+  padding: 0.55rem 0.7rem;
+  max-width: 100%;
+  min-width: 0;
+}
+.journal-input:focus-visible {
+  outline: 2px solid var(--color-custom-500);
+  outline-offset: 2px;
+}
+.journal-workspace .journal-entry {
+  justify-content: flex-start;
+  text-align: start;
+  gap: 1.25rem;
+  padding: 1.1rem;
+  border: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+  border-radius: var(--radius-lg);
+}
+.journal-entry:hover {
+  background: color-mix(in srgb, currentColor 4%, transparent);
+}
+.journal-entry:focus-visible {
+  outline: 2px solid var(--color-custom-500);
+  outline-offset: 2px;
+}

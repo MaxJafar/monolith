@@ -9,7 +9,7 @@
     },
     "categories": {
       "title": "類別",
-      "description": "整理和重新排序側邊欄類別以自訂您的導覽"
+      "description": "為擴充功能導覽分組並設定順序。"
     }
   },
   "buttons": {
@@ -30,7 +30,7 @@
   "empty": {
     "category": {
       "title": "未找到類別",
-      "description": "建立類別以開始"
+      "description": "新增第一個導覽群組。"
     },
     "modules": {
       "title": "未安裝擴充套件",
@@ -66,7 +66,7 @@
     "enable": "啟用開發模式",
     "disable": "停用開發模式",
     "enabled": "{{module}} 已進入開發模式",
-    "disabled": "{{module}} 已退出開發模式"
+    "disabled": "已停用 {{module}} 的開發來源"
   },
   "misc": {
     "translations": "翻譯"
@@ -75,7 +75,7 @@
     "label": "未建置"
   },
   "messages": {
-    "categoriesMissingTranslations": "{{count}} 個分類缺少翻譯:"
+    "categoriesMissingTranslations": "需要翻譯的群組：{{count}}"
   },
   "catalog": {
     "description": "自訂這個工作空間，選擇您需要的工具。",

@@ -1,9 +1,7 @@
-import { LOG_LEVELS, type LogLevel, createLogger } from '@monolith/log'
+// SPDX-License-Identifier: 0BSD
+import { createLogger } from '@monolith/log'
 
-export const coreLogger = createLogger({ name: 'Server Core' })
-
-export function createServiceLogger(serviceName: string) {
-  return coreLogger.child({ service: serviceName })
-}
-
-export { LOG_LEVELS, type LogLevel }
+export { LOG_LEVELS, type LogLevel } from '@monolith/log'
+export const coreLogger = createLogger({ name: 'monolith-api' })
+export const createServiceLogger = (service: string) =>
+  coreLogger.child({ service })

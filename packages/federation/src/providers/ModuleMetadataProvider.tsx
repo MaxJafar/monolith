@@ -1,24 +1,19 @@
+// SPDX-License-Identifier: 0BSD
 import { createContext, useContext } from 'react'
 
-export const ModuleMetadataProvider = createContext<
-  | {
-      name?: string
-      icon: string
-      title: string
-    }
-  | undefined
->(undefined)
-
-export function useModuleMetadata() {
-  const context = useContext(ModuleMetadataProvider)
-
-  if (!context) {
-    return {
-      name: '',
-      icon: 'tabler:cube',
-      title: 'Untitled Module'
-    }
-  }
-
-  return context
+interface Metadata {
+  name?: string
+  icon: string
+  title: string
+}
+const empty: Metadata = {
+  name: '',
+  icon: 'tabler:cube',
+  title: 'Untitled Module'
+}
+export const ModuleMetadataProvider = createContext<Metadata | undefined>(
+  undefined
+)
+export function useModuleMetadata(): Metadata {
+  return useContext(ModuleMetadataProvider) ?? empty
 }

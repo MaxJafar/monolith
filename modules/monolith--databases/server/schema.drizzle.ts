@@ -17,7 +17,6 @@ import type { AnyPgColumn } from 'drizzle-orm/pg-core'
 import type { Appearance } from '@monolith/blocks'
 import { createModuleTable } from '@monolith/drizzle'
 
-import { entries } from '../../monolith--notes/server/schema.drizzle'
 import type { Schedule, ScheduleRow } from '../calendarShared'
 import type {
   CellValue,
@@ -338,9 +337,7 @@ export const knowledgeLinks = table(
     source_record_id: uuid('source_record_id').references(() => records.id, {
       onDelete: 'cascade'
     }),
-    source_note_id: uuid('source_note_id').references(() => entries.id, {
-      onDelete: 'cascade'
-    }),
+    source_note_id: uuid('source_note_id'),
     target_document_id: uuid('target_document_id').references(
       () => documents.id,
       { onDelete: 'cascade' }
@@ -351,9 +348,7 @@ export const knowledgeLinks = table(
     target_record_id: uuid('target_record_id').references(() => records.id, {
       onDelete: 'cascade'
     }),
-    target_note_id: uuid('target_note_id').references(() => entries.id, {
-      onDelete: 'cascade'
-    }),
+    target_note_id: uuid('target_note_id'),
     label: varchar('label', { length: 255 }).notNull().default('Related'),
     created: timestamp('created', { mode: 'date', withTimezone: true })
       .defaultNow()

@@ -1,5 +1,7 @@
+// SPDX-License-Identifier: 0BSD
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { NuqsAdapter } from 'nuqs/adapters/react'
+import { type ReactNode, useEffect } from 'react'
 
 import {
   APIEndpointProvider,
@@ -28,86 +30,86 @@ import {
   toast
 } from '@monolith/ui'
 
-import CoreFederationProvider from '@/core/providers/features/CoreFederationProvider'
 import AppRoutesProvider from '@/core/routing/providers/AppRoutesProvider'
 import { initI18n } from '@/core/utils/i18n'
 import workspaceAPI from '@/core/utils/workspaceAPI'
 
+import CoreFederationProvider from './features/CoreFederationProvider'
 import ExternalModuleProviders from './features/ExternalModuleProviders'
 import UserPersonalizationProvider from './features/UserPersonalizationProvider'
-import { constructComponentTree, defineProviders } from './utils/providerUtils'
 
-const queryClient = new QueryClient()
-window.addEventListener('monolith-auth-cleared', () => queryClient.clear())
-
-setApiMutationErrorHandler(msg => toast.error(msg))
-
-// IMPORTANT: The order of these providers matters!
-// From top to bottom, they are nested inside one another in that order.
-const PROVIDERS = defineProviders([
-  // Provider that manages global modal state (open/close) via zustand store
-  [ModalProvider],
-
-  // Providers from external packages
-  [NuqsAdapter],
-  [QueryClientProvider, { client: queryClient }],
-  [ToastProvider],
-
-  // Provider that tells components the API endpoint to use
-  [APIEndpointProvider, { endpoint: import.meta.env.VITE_API_HOST }],
-
-  // Provider that stores all the theming information
-  [PersonalizationProvider, { workspaceAPI }],
-
-  // Provider that checks if the API is online or not
-  // A wrapper exported from @monolith/ui is used to avoid circular dependencies
-  [
-    APIOnlineStatusProvider,
-    {
-      clientEnvironment: (import.meta.env.DEV
-        ? 'development'
-        : 'production') as 'development' | 'production' | null
-    }
-  ],
-  [APIOnlineStatusWrapper],
-
-  // Provider that makes sure the localization service is properly instantiated
-  [
-    I18nInitProvider,
-    {
-      errorFallback: (
-        <ErrorScreen message="Failed to initialized localization service. Please check your i18n config." />
-      ),
-
-      init: initI18n,
-      loadingFallback: <LoadingScreen message="Initializing localization..." />
-    }
-  ],
-
-  // Provider that initializes end-to-end encryption (fetches server public key)
-  [EncryptionProvider, { apiHost: import.meta.env.VITE_API_HOST }],
-  [EncryptionWrapper],
-
-  // Provider that handles authentication, very obviously
-  [AuthProvider],
-  [GatewayProvider],
-  // Provider that manages the main sidebar state (not the module sidebars, the main one)
-  [MainSidebarStateProvider],
-  // Provider that synchronizes user personalization data with the backend
-  [UserPersonalizationProvider],
-  // Post-processing for preloaded common namesapce, splitting into multiple subnamespaces
-  [I18nCommonNameSpacePreloadProvider],
-  // Provider that manages background images styling
-  [BackgroundProvider],
-  // Provider that exposes a socket.io client instance to the app
-  [SocketProvider],
-  // Provider that loads federated modules (routes and global providers)
-  [FederationProvider],
-  [CoreFederationProvider],
-  // Global providers from federated modules
-  [ExternalModuleProviders],
-  // This is where all the routes are defined
-  [AppRoutesProvider]
-] as const)
-
-export default () => constructComponentTree(PROVIDERS)
+const cache = new QueryClient()
+setApiMutationErrorHandler(message => toast.error(message))
+function SessionProviders({ children }: { children: ReactNode }) {
+  return (
+    <AuthProvider>
+      <GatewayProvider>
+        <MainSidebarStateProvider>
+          <UserPersonalizationProvider>
+            <I18nCommonNameSpacePreloadProvider>
+              <BackgroundProvider>
+                <SocketProvider>
+                  <FederationProvider>
+                    <CoreFederationProvider>
+                      <ExternalModuleProviders>
+                        {children}
+                      </ExternalModuleProviders>
+                    </CoreFederationProvider>
+                  </FederationProvider>
+                </SocketProvider>
+              </BackgroundProvider>
+            </I18nCommonNameSpacePreloadProvider>
+          </UserPersonalizationProvider>
+        </MainSidebarStateProvider>
+      </GatewayProvider>
+    </AuthProvider>
+  )
+}
+export default function ApplicationProviders() {
+  useEffect(() => {
+    const clear = () => cache.clear()
+    window.addEventListener('monolith-auth-cleared', clear)
+    return () => window.removeEventListener('monolith-auth-cleared', clear)
+  }, [])
+  return (
+    <ModalProvider>
+      <NuqsAdapter>
+        <QueryClientProvider client={cache}>
+          <ToastProvider>
+            <APIEndpointProvider endpoint={import.meta.env.VITE_API_HOST}>
+              <PersonalizationProvider workspaceAPI={workspaceAPI}>
+                <APIOnlineStatusProvider
+                  clientEnvironment={
+                    import.meta.env.DEV ? 'development' : 'production'
+                  }
+                >
+                  <APIOnlineStatusWrapper>
+                    <I18nInitProvider
+                      init={initI18n}
+                      loadingFallback={
+                        <LoadingScreen message="Loading languages…" />
+                      }
+                      errorFallback={
+                        <ErrorScreen message="Language setup failed. Please reload to try again." />
+                      }
+                    >
+                      <EncryptionProvider
+                        apiHost={import.meta.env.VITE_API_HOST}
+                      >
+                        <EncryptionWrapper>
+                          <SessionProviders>
+                            <AppRoutesProvider />
+                          </SessionProviders>
+                        </EncryptionWrapper>
+                      </EncryptionProvider>
+                    </I18nInitProvider>
+                  </APIOnlineStatusWrapper>
+                </APIOnlineStatusProvider>
+              </PersonalizationProvider>
+            </APIEndpointProvider>
+          </ToastProvider>
+        </QueryClientProvider>
+      </NuqsAdapter>
+    </ModalProvider>
+  )
+}

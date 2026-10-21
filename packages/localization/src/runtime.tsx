@@ -1,97 +1,121 @@
+// SPDX-License-Identifier: 0BSD
 import type { InitOptions, i18n } from 'i18next'
 import { type ReactNode, useEffect, useState } from 'react'
-import { getI18n as currentReactI18n } from 'react-i18next'
+import { getI18n as reactI18n } from 'react-i18next'
 
 import { getI18n } from './getI18n'
 
-type LocaleRequest = {
+interface LocaleRequest {
   lang: string
   namespace: 'apps' | 'common'
   subnamespace: string
 }
-type Configuration = {
+interface Configuration {
   workspaceAPI: {
     locales: {
-      getLocale: { input: (request: LocaleRequest) => { endpoint: string } }
+      getLocale: { input(request: LocaleRequest): { endpoint: string } }
     }
   }
-  getAvailableLanguages: () => Array<{
+  getAvailableLanguages(): {
     name: string
     alternative?: string[]
     icon: string
-  }>
+  }[]
 }
 
-export function clientI18nConfig({
-  workspaceAPI,
-  getAvailableLanguages
-}: Configuration): InitOptions {
+export function clientI18nConfig(config: Configuration): InitOptions {
   return {
     lng: 'en',
     fallbackLng: 'en',
     ns: ['common'],
     fallbackNS: false,
+    interpolation: { escapeValue: false },
     cleanCode: true,
-    maxRetries: 1,
     saveMissing: false,
     debug: false,
-    interpolation: { escapeValue: false },
+    maxRetries: 1,
     parseMissingKeyHandler: key => '[MISSING LOCALE] ' + key,
     returnedObjectHandler: (key, value, options) =>
       JSON.stringify({ key, value, options }),
     backend: {
       loadPath(languages: string[], namespaces: string[]) {
         const requested = languages[0]
-        const language = getAvailableLanguages().find(
-          entry =>
-            entry.name === requested ||
-            entry.alternative?.includes(requested ?? '')
-        )
-        const [namespace, ...parts] = (namespaces[0] || '').split('.')
-        if (!language || (namespace !== 'common' && namespace !== 'apps'))
-          return undefined
-        return workspaceAPI.locales.getLocale.input({
+        const requestedNamespace = namespaces[0] ?? ''
+        const split = requestedNamespace.indexOf('.')
+        const namespace =
+          split < 0 ? requestedNamespace : requestedNamespace.slice(0, split)
+        if (namespace !== 'apps' && namespace !== 'common') return undefined
+        const language = config
+          .getAvailableLanguages()
+          .find(
+            item =>
+              item.name === requested ||
+              item.alternative?.includes(requested ?? '')
+          )
+        if (!language) return undefined
+        return config.workspaceAPI.locales.getLocale.input({
           lang: language.name,
           namespace,
-          subnamespace: parts.join('.')
+          subnamespace: split < 0 ? '' : requestedNamespace.slice(split + 1)
         }).endpoint
       },
-      parse(text: string) {
-        return JSON.parse(text).data
+      parse(payload: string) {
+        const response = JSON.parse(payload)
+        if (
+          !response ||
+          typeof response !== 'object' ||
+          !Object.hasOwn(response, 'data')
+        ) {
+          throw new Error('Locale response has no data')
+        }
+        return response.data
       }
     }
   }
 }
 
+const languageRequests = new WeakMap<
+  i18n,
+  { desired: string; pending: Promise<unknown> }
+>()
 export function useLanguageEffect(language: string): void {
   useEffect(() => {
     const instance = getI18n()
-    if (!language || !instance || instance.language === language) return
-    void instance
-      .changeLanguage(language)
-      .catch(error => console.error('Language could not be loaded', error))
+    if (!instance || !language) return
+    let queue = languageRequests.get(instance)
+    if (!queue) {
+      queue = { desired: language, pending: Promise.resolve() }
+      languageRequests.set(instance, queue)
+    }
+    queue.desired = language
+    const state = queue
+    state.pending = state.pending
+      .catch(() => {})
+      .then(() => {
+        if (state.desired === language && instance.language !== language)
+          return instance.changeLanguage(language)
+      })
+      .catch(error => {
+        console.error('Language update failed', error)
+      })
   }, [language])
 }
 
 export function preloadCommonNamespaces(instance: i18n): void {
-  for (const language of instance.languages?.length
-    ? instance.languages
-    : ['en']) {
-    const bundle = instance.getResourceBundle(language, 'common') as
-      Record<string, unknown> | undefined
-    for (const [section, values] of Object.entries(bundle ?? {})) {
+  const languages = instance.languages?.length ? instance.languages : ['en']
+  for (const language of languages) {
+    const common = instance.getResourceBundle(language, 'common')
+    if (!common || typeof common !== 'object') continue
+    for (const section of Object.keys(common)) {
+      const namespace = 'common.' + section
+      const contents = common[section]
       if (
-        values &&
-        typeof values === 'object' &&
-        !instance.hasResourceBundle(language, 'common.' + section)
-      )
-        instance.addResourceBundle(
-          language,
-          'common.' + section,
-          values,
-          true,
-          true
-        )
+        contents &&
+        typeof contents === 'object' &&
+        !instance.hasResourceBundle(language, namespace)
+      ) {
+        instance.addResourceBundle(language, namespace, contents, true, true)
+      }
     }
   }
 }
@@ -102,16 +126,29 @@ export function I18nCommonNameSpacePreloadProvider({
   children: ReactNode
 }) {
   useEffect(() => {
-    const instance = currentReactI18n()
+    const instance = reactI18n()
     if (!instance) return
-    const sync = () => preloadCommonNamespaces(instance)
-    instance.on('loaded', sync)
-    sync()
+    const refresh = () => preloadCommonNamespaces(instance)
+    refresh()
+    instance.on('loaded', refresh)
     return () => {
-      instance.off('loaded', sync)
+      instance.off('loaded', refresh)
     }
   }, [])
   return children
+}
+
+const initializing = new WeakMap<() => Promise<unknown>, Promise<unknown>>()
+function initialize(callback: () => Promise<unknown>) {
+  const current = initializing.get(callback)
+  if (current) return current
+  const pending = Promise.resolve().then(callback)
+  initializing.set(callback, pending)
+  const release = () => {
+    if (initializing.get(callback) === pending) initializing.delete(callback)
+  }
+  void pending.then(release, release)
+  return pending
 }
 
 export function I18nInitProvider({
@@ -125,28 +162,26 @@ export function I18nInitProvider({
   loadingFallback: ReactNode
   errorFallback: ReactNode
 }) {
-  const [state, setState] = useState<'pending' | 'ready' | 'error'>('pending')
+  const [result, setResult] = useState<{
+    initializer: typeof init
+    status: 'ready' | 'error'
+  } | null>(null)
   useEffect(() => {
-    let subscribed = true
-    setState('pending')
-    Promise.resolve()
-      .then(init)
-      .then(
-        () => {
-          if (subscribed) setState('ready')
-        },
-        error => {
-          console.error('Localization initialization failed', error)
-          if (subscribed) setState('error')
-        }
-      )
+    let active = true
+    setResult(null)
+    void initialize(init).then(
+      () => {
+        if (active) setResult({ initializer: init, status: 'ready' })
+      },
+      error => {
+        console.error('Localization initialization failed', error)
+        if (active) setResult({ initializer: init, status: 'error' })
+      }
+    )
     return () => {
-      subscribed = false
+      active = false
     }
   }, [init])
-  return state === 'ready'
-    ? children
-    : state === 'error'
-      ? errorFallback
-      : loadingFallback
+  if (!result || result.initializer !== init) return loadingFallback
+  return result.status === 'ready' ? children : errorFallback
 }

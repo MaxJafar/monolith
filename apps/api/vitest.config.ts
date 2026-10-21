@@ -1,41 +1,35 @@
-import dotenv from 'dotenv'
-import fs from 'fs'
-import { resolve } from 'path'
+// SPDX-License-Identifier: 0BSD
+import { config as loadEnvironment } from 'dotenv'
+import { existsSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vitest/config'
 
-function findEnvFile(startDir: string): string | null {
-  let dir = startDir
-  while (true) {
-    const envPath = resolve(dir, 'env', '.env.local')
-    if (fs.existsSync(envPath)) return envPath
-    const parent = resolve(dir, '..')
-    if (parent === dir) break
-    dir = parent
-  }
-  return null
-}
+import { serverAliases } from './vite.config'
 
-const envPath = findEnvFile(__dirname || process.cwd())
-
-if (envPath) {
-  dotenv.config({ path: envPath, quiet: true })
-}
-
+const environmentFile = fileURLToPath(
+  new URL('../../env/.env.local', import.meta.url)
+)
+if (existsSync(environmentFile))
+  loadEnvironment({ path: environmentFile, quiet: true })
 export default defineConfig({
+  resolve: {
+    alias: {
+      ...serverAliases,
+      '@tests': fileURLToPath(new URL('src/tests', import.meta.url))
+    }
+  },
   test: {
+    // Disabled integration suites import the models but never open a connection.
+    // Their opt-in guards reject this sentinel when a real fixture DB is needed.
+    env: {
+      DATABASE_URL:
+        process.env.DATABASE_URL ??
+        'postgres://127.0.0.1:1/monolith_tests_disabled'
+    },
     globals: true,
     environment: 'node',
     testTimeout: 30000,
     hookTimeout: 30000,
     fileParallelism: false
-  },
-  resolve: {
-    alias: {
-      '@tests': resolve(__dirname, 'src/tests'),
-      '@schema': resolve(__dirname, '../database/pb_data/types.d.ts'),
-      '@functions': resolve(__dirname, 'src/core/functions'),
-      '@constants': resolve(__dirname, 'src/core/constants'),
-      '@lib': resolve(__dirname, 'src/lib')
-    }
   }
 })

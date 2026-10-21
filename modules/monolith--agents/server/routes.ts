@@ -4,11 +4,6 @@ import z from 'zod'
 import { contentText } from '@monolith/blocks'
 
 import {
-  columns,
-  entries as projects,
-  tasks
-} from '../../monolith--projects/server/schema.drizzle'
-import {
   ADAPTERS,
   type AgentSnapshot,
   ROLES,
@@ -53,6 +48,7 @@ import {
   validateRunAccess,
   writableMember
 } from './store'
+import { columns, entries as projects, tasks } from './workSchema'
 
 export { playbook } from './playbooks'
 

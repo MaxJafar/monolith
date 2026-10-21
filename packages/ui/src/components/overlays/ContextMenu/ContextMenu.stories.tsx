@@ -1,147 +1,81 @@
+// SPDX-License-Identifier: 0BSD
 import type { Meta, StoryObj } from '@storybook/react-vite'
+import { useRef, useState } from 'react'
 
-import { Box, Flex, Icon, Text } from '@/components/primitives'
+import { Box, Stack, Text } from '@/components/primitives'
 
 import { ContextMenuGroup } from './components/ContextMenuGroup'
 import { ContextMenuItem } from './components/ContextMenuItem'
 import { ContextMenu } from './index'
 
 const meta = {
-  argTypes: {
-    children: {
-      control: false
-    }
-  },
-  component: ContextMenu,
-  title: 'Overlays/ContextMenu'
+  title: 'Overlays/ContextMenu',
+  component: ContextMenu
 } satisfies Meta<typeof ContextMenu>
-
 export default meta
-
 type Story = StoryObj<typeof meta>
-
-export const Default: Story = {
-  args: {
-    children: <></>
-  },
-  render: () => (
-    <Box px="3xl" width="100%">
+function Actions() {
+  const target = useRef<HTMLDivElement>(null)
+  const [selected, setSelected] = useState('None')
+  const [checked, setChecked] = useState(false)
+  return (
+    <Stack>
       <Box
-        shadow
-        bg={{ base: 'bg-50', dark: 'bg-900' }}
-        height="100%"
-        p="md"
+        ref={target}
+        tabIndex={0}
+        p="lg"
         r="lg"
-        width="100%"
+        bg={{ base: 'bg-100', dark: 'bg-800' }}
       >
-        <Flex align="center" justify="between">
-          <Flex align="center" style={{ gap: '0.75rem' }}>
-            <Box
-              p="sm"
-              r="md"
-              style={{
-                backgroundColor:
-                  'color-mix(in srgb, var(--color-custom-500) 30%, transparent)'
-              }}
-            >
-              <Icon
-                icon="tabler:cube"
-                style={{
-                  color: 'var(--color-custom-500)',
-                  height: '1.5rem',
-                  width: '1.5rem'
-                }}
-              />
-            </Box>
-            <Text as="h1" size="2xl" weight="medium">
-              Something Cool
-            </Text>
-          </Flex>
-          <ContextMenu>
+        <Text>Right-click this project, or press Shift+F10.</Text>
+        <ContextMenu contextTarget={target}>
+          <ContextMenuGroup icon="tabler:adjustments" label="Project options">
             <ContextMenuItem
-              icon="tabler:pencil"
-              label="Edit"
-              onClick={() => {}}
+              label="Open project"
+              namespace={false}
+              icon="tabler:external-link"
+              onClick={() => setSelected('Open project')}
             />
             <ContextMenuItem
-              dangerous
-              icon="tabler:trash"
-              label="Delete"
-              onClick={() => {}}
+              label="Pin project"
+              namespace={false}
+              checked={checked}
+              shouldCloseMenuOnClick={false}
+              onClick={() => setChecked(value => !value)}
             />
-          </ContextMenu>
-        </Flex>
-        <Text as="p" color="muted" mt="md">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-        </Text>
+          </ContextMenuGroup>
+          <ContextMenuItem
+            disabled
+            label="Managed by workspace"
+            namespace={false}
+            onClick={() => setSelected('Disabled')}
+          />
+          <ContextMenuItem
+            dangerous
+            label="Archive project"
+            namespace={false}
+            onClick={() => setSelected('Archive project')}
+          />
+        </ContextMenu>
       </Box>
-    </Box>
+      <Text role="status">Selected: {selected}</Text>
+    </Stack>
   )
 }
-
-export const WithGroup: Story = {
+export const Default: Story = {
+  args: { children: null },
+  render: () => <Actions />
+}
+export const CustomTrigger: Story = {
   args: {
+    buttonComponent: <button type="button">Project options</button>,
+    align: 'start',
     children: (
-      <>
-        <ContextMenuGroup icon="tabler:eye" label="View">
-          <ContextMenuItem icon="tabler:list" label="List" onClick={() => {}} />
-          <ContextMenuItem
-            checked
-            icon="tabler:category-2"
-            label="Grid"
-            onClick={() => {}}
-          />
-        </ContextMenuGroup>
-        <ContextMenuItem
-          dangerous
-          icon="tabler:trash"
-          label="Delete"
-          onClick={() => {}}
-        />
-      </>
+      <ContextMenuItem
+        label="Open notes"
+        namespace={false}
+        onClick={() => {}}
+      />
     )
-  }
-}
-
-export const CustomAnchor: Story = {
-  args: {
-    align: 'end',
-    children: (
-      <>
-        <ContextMenuItem icon="tabler:pencil" label="Edit" onClick={() => {}} />
-        <ContextMenuItem
-          dangerous
-          icon="tabler:trash"
-          label="Delete"
-          onClick={() => {}}
-        />
-      </>
-    ),
-    side: 'right'
-  }
-}
-
-export const CustomIcon: Story = {
-  args: {
-    children: (
-      <>
-        <ContextMenuItem
-          icon="tabler:file-text"
-          label="Documents"
-          onClick={() => {}}
-        />
-        <ContextMenuItem
-          icon="tabler:photo"
-          label="Pictures"
-          onClick={() => {}}
-        />
-        <ContextMenuItem
-          icon="tabler:video"
-          label="Videos"
-          onClick={() => {}}
-        />
-      </>
-    ),
-    customIcon: 'tabler:upload'
   }
 }

@@ -1,21 +1,18 @@
-export const SHARED_PACKAGES = {
-  '@monolith/api': {
-    aliasRegex: /^@monolith\/api$/,
-    entryPoint: '../packages/api/src/index.ts'
-  },
-  '@monolith/federation': {
-    aliasRegex: /^@monolith\/federation$/,
-    entryPoint: '../packages/federation/src/index.ts'
-  },
-  '@monolith/localization': {
-    aliasRegex: /^@monolith\/localization$/,
-    entryPoint: '../packages/localization/src/index.ts'
-  },
-  '@monolith/ui': {
-    aliasRegex: /^@monolith\/ui$/,
-    entryPoint: '../packages/ui/src/index.ts'
-  }
-}
+// SPDX-License-Identifier: 0BSD
+type SharedSource = { aliasRegex: RegExp; entryPoint: string }
+const sources = ['api', 'federation', 'localization', 'ui'] as const
+export const SHARED_PACKAGES: Record<
+  `@monolith/${(typeof sources)[number]}`,
+  SharedSource
+> = Object.fromEntries(
+  sources.map(name => [
+    '@monolith/' + name,
+    {
+      aliasRegex: new RegExp('^@monolith/' + name + '$'),
+      entryPoint: '../packages/' + name + '/src/index.ts'
+    }
+  ])
+) as Record<`@monolith/${(typeof sources)[number]}`, SharedSource>
 
 export const SHARED_DEPS = {
   react: {},
@@ -25,20 +22,16 @@ export const SHARED_DEPS = {
   'react-i18next': {},
   'react-router': {},
   nuqs: {},
-  'nuqs/adapters/react': {
-    version: '2.9.0'
-  }
+  'nuqs/adapters/react': { version: '2.9.0' }
 } as const
 
-// Addons run inside Monolith and must consume its providers and state. Bundling
-// fallback libraries can execute a second private context before loadShare even
-// selects the host singleton (for example nuqs' adapter context).
+// Add-ons consume the host's stateful libraries and must not bundle private fallbacks.
 export const ADDON_SHARED = Object.fromEntries(
-  [
-    ...Object.entries(SHARED_DEPS),
-    ...Object.keys(SHARED_PACKAGES).map(name => [name, {}] as const)
-  ].map(([name, config]) => [
+  Object.entries({
+    ...SHARED_DEPS,
+    ...Object.fromEntries(Object.keys(SHARED_PACKAGES).map(name => [name, {}]))
+  }).map(([name, options]) => [
     name,
-    { ...config, singleton: true, import: false as const }
+    { ...options, singleton: true, import: false as const }
   ])
 )

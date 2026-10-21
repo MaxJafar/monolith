@@ -1,67 +1,33 @@
+// SPDX-License-Identifier: 0BSD
 import type { ModuleGroup } from '@monolith/configs'
 
 import { SYSTEM_CATEGORIES } from '../providers/FederationProvider'
-
-function routeSorter(categoriesSeq: Record<string, Record<string, string>>) {
-  return (a: ModuleGroup, b: ModuleGroup) => {
-    const aIndex = SYSTEM_CATEGORIES.indexOf(a.title)
-
-    const bIndex = SYSTEM_CATEGORIES.indexOf(b.title)
-
-    // Both are special categories
-    if (aIndex !== -1 && bIndex !== -1) {
-      return aIndex - bIndex
-    }
-
-    // Only a is special - handle positioning
-    if (aIndex !== -1) {
-      if (aIndex === 0) return -1 // <START> goes first
-      if (aIndex >= 1) return 1 // Settings, SSO, <END> go last
-    }
-
-    // Only b is special - handle positioning
-    if (bIndex !== -1) {
-      if (bIndex === 0) return 1 // <START> goes first
-      if (bIndex >= 1) return -1 // Settings, SSO, <END> go last
-    }
-
-    if (Object.keys(categoriesSeq).length > 0) {
-      const aCatIndex = Object.keys(categoriesSeq).indexOf(
-        a.title.toLowerCase()
-      )
-
-      const bCatIndex = Object.keys(categoriesSeq).indexOf(
-        b.title.toLowerCase()
-      )
-
-      // Both found in sequence
-      if (aCatIndex !== -1 && bCatIndex !== -1) {
-        return aCatIndex - bCatIndex
-      }
-
-      // Only a found in sequence
-      if (aCatIndex !== -1) {
-        return -1
-      }
-
-      // Only b found in sequence
-      if (bCatIndex !== -1) {
-        return 1
-      }
-    }
-
-    // Default to alphabetical
-    return a.title.localeCompare(b.title)
-  }
-}
 
 export function sortRoutes<T extends ModuleGroup>(
   routes: T[],
   categoryOrder: Record<string, Record<string, string>>
 ): T[] {
-  return routes.sort(routeSorter(categoryOrder)).map(cat => ({
-    ...cat,
-    title: ['<START>', '<END>'].includes(cat.title) ? '' : cat.title,
-    items: cat.items.sort((a, b) => a.name.localeCompare(b.name))
-  }))
+  const preferences = new Map(
+    Object.keys(categoryOrder).map((name, index) => [name.toLowerCase(), index])
+  )
+  const rank = (name: string): [number, number] => {
+    const system = SYSTEM_CATEGORIES.indexOf(name)
+    if (system === 0) return [0, 0]
+    if (system > 0) return [3, system]
+    const selected = preferences.get(name.toLowerCase())
+    return selected === undefined ? [2, 0] : [1, selected]
+  }
+  return routes
+    .slice()
+    .sort((left, right) => {
+      const a = rank(left.title),
+        b = rank(right.title)
+      return a[0] - b[0] || a[1] - b[1] || left.title.localeCompare(right.title)
+    })
+    .map(group => ({
+      ...group,
+      title:
+        group.title === '<START>' || group.title === '<END>' ? '' : group.title,
+      items: group.items.slice().sort((a, b) => a.name.localeCompare(b.name))
+    }))
 }

@@ -4,6 +4,7 @@ export const systemAreas = {
   actions: 'lucide:circle-check',
   rooms: 'lucide:messages-square',
   docs: 'lucide:files',
+  journal: 'lucide:book-open',
   dashboard: 'lucide:chart-no-axes-combined',
   databases: 'lucide:database'
 } as const

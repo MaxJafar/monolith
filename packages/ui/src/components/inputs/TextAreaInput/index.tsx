@@ -1,7 +1,7 @@
-import { useEffect, useRef } from 'react'
+// SPDX-License-Identifier: 0BSD
+import { useEffect, useId, useRef } from 'react'
 
-import { Box, Flex, Text } from '@/components/primitives'
-import { vars } from '@/system'
+import { Flex } from '@/components/primitives'
 
 import { InputIcon } from '../shared/components/InputIcon'
 import { InputLabel } from '../shared/components/InputLabel'
@@ -12,150 +12,103 @@ import {
 import { Placeholder } from '../shared/components/Placeholder'
 import { useInputLabel } from '../shared/hooks/useInputLabel'
 import type { InputVariants } from '../shared/types'
-import { autoFocusableRef } from '../shared/utils/autoFocusableRef'
+import { textarea } from './textarea.css'
 
-export type TextAreaInputProps = {
-  /** The label text displayed above the textarea field. Required for 'classic' style. */
-  label?: string
-  /** The icon to display next to the label. Should be a valid icon name from Iconify. Required for 'classic' style. */
-  icon?: string
-  /** The placeholder text displayed when the textarea is empty. */
-  placeholder: string
-  /** The current text value of the textarea. */
+export type TextAreaInputProps = InputVariants & {
   value: string
-  /** Callback function called when the textarea value changes. */
   onChange: (value: string) => void
-  /** Whether the textarea field is required for form validation. */
+  placeholder: string
+  label?: string
+  icon?: string
   required?: boolean
-  /** Whether the textarea is disabled and non-interactive. */
   disabled?: boolean
-  /** Whether the textarea should automatically focus when rendered. */
   autoFocus?: boolean
-  /** Additional CSS class names to apply to the textarea element. Use `!` suffix for Tailwind CSS class overrides. */
   className?: string
-  /** The i18n namespace for internationalization. See the [main documentation](https://github.com/MaxJafar/monolith/tree/main/docs) for more details. */
   namespace?: string | false
-  /** Error message to display when the input is invalid. */
   errorMsg?: string
-  /** Callback function called when Enter is pressed. */
   onEnter?: () => void
-  /** Additional props forwarded to the underlying `InputWrapper`. */
   wrapperProps?: InputWrapperPassthrough
-} & InputVariants
+}
 
 export function TextAreaInput({
-  variant = 'classic',
-  label,
-  icon,
-  placeholder,
   value,
   onChange,
-  required = false,
-  disabled = false,
-  autoFocus = false,
+  placeholder,
+  label,
+  icon,
+  required,
+  disabled,
+  autoFocus,
   className,
   namespace,
   errorMsg,
   onEnter,
-  wrapperProps
+  wrapperProps,
+  variant = 'classic'
 }: TextAreaInputProps) {
-  const inputLabel = useInputLabel({ namespace, label: label ?? '' })
+  const id = useId()
   const ref = useRef<HTMLTextAreaElement>(null)
-
+  const translatedLabel = useInputLabel({ label: label ?? '', namespace })
   useEffect(() => {
-    if (!ref.current) return
-
-    ref.current.style.height = 'auto'
-    ref.current.style.height = ref.current.scrollHeight + 'px'
+    const element = ref.current
+    if (!element) return
+    element.style.height = 'auto'
+    element.style.height = element.scrollHeight + 'px'
   }, [value])
-
   return (
     <InputWrapper
       {...wrapperProps}
+      variant={variant}
+      inputRef={ref}
       className={className}
       disabled={disabled}
       errorMsg={errorMsg}
-      inputRef={ref}
-      variant={variant}
+      errorId={id + '-error'}
     >
       {variant === 'classic' && icon && (
         <InputIcon
-          active={!!value && String(value).length > 0}
-          hasError={!!errorMsg}
           icon={icon}
+          active={value.length > 0}
+          hasError={!!errorMsg}
         />
       )}
-      <Flex align="center" gap="sm" position="relative" width="100%">
+      <Flex position="relative" width="100%" minWidth="0">
         {variant === 'classic' && label && (
           <InputLabel
-            active={!!value && String(value).length > 0}
+            htmlFor={id}
+            label={translatedLabel}
+            required={required}
+            active={value.length > 0}
             hasError={!!errorMsg}
-            label={inputLabel}
-            required={required === true}
           />
         )}
         <Placeholder
-          color={variant === 'classic' ? 'transparent' : 'default'}
-          focusColor="default"
+          color={variant === 'classic' && label ? 'transparent' : 'default'}
         >
-          <Box
-            asChild
-            bg="transparent"
-            maxHeight="32rem"
-            minHeight="4rem"
-            p={variant === 'classic' ? 'xl' : 'none'}
-            pl={variant === 'classic' ? 'none' : undefined}
-            style={
-              variant === 'classic'
-                ? { paddingBottom: vars.radii.md }
-                : undefined
-            }
-            width="100%"
-          >
-            <Text asChild tracking="wide">
-              <textarea
-                ref={autoFocusableRef(autoFocus, ref)}
-                aria-label={inputLabel || placeholder}
-                disabled={disabled}
-                required={required}
-                placeholder={placeholder}
-                style={{
-                  resize: 'none'
-                }}
-                value={value}
-                onInput={e => {
-                  onChange(e.currentTarget.value)
-                }}
-                onKeyDown={e => {
-                  if (e.key === 'Enter') {
-                    if (onEnter) {
-                      onEnter()
-                      e.preventDefault()
-
-                      return
-                    }
-
-                    const cursorPosition = e.currentTarget.selectionStart
-
-                    const text = e.currentTarget.value
-
-                    const newText =
-                      text.slice(0, cursorPosition) +
-                      '\n' +
-                      text.slice(cursorPosition)
-
-                    onChange(newText)
-                    e.currentTarget.value = newText
-                    e.currentTarget.setSelectionRange(
-                      cursorPosition + 1,
-                      cursorPosition + 1
-                    )
-                    e.preventDefault()
-                  }
-                }}
-              />
-            </Text>
-          </Box>
+          <textarea
+            id={id}
+            ref={ref}
+            autoFocus={autoFocus}
+            required={required}
+            disabled={disabled}
+            placeholder={placeholder}
+            className={textarea({ variant })}
+            value={value}
+            aria-label={translatedLabel || placeholder}
+            aria-invalid={!!errorMsg || undefined}
+            aria-describedby={errorMsg ? id + '-error' : undefined}
+            onChange={event => onChange(event.currentTarget.value)}
+            onKeyDown={event => {
+              if (
+                onEnter &&
+                event.key === 'Enter' &&
+                !event.nativeEvent.isComposing
+              ) {
+                event.preventDefault()
+                onEnter()
+              }
+            }}
+          />
         </Placeholder>
       </Flex>
     </InputWrapper>

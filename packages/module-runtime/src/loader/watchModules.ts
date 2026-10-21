@@ -1,66 +1,70 @@
+// SPDX-License-Identifier: 0BSD
 import { watch } from 'chokidar'
 
 import { loaderLogger } from './logger'
 
-const DEBOUNCE_MS = 500
-
-/**
- * Watches `modulesDir` and invokes `onReload` (debounced) whenever modules are
- * installed, removed, or changed on disk. Returns a disposer that stops the
- * watcher.
- */
 export function watchModules(
   modulesDir: string,
   onReload: () => void | Promise<void>
 ): () => void {
-  let timer: NodeJS.Timeout | null = null
-
-  const scheduleReload = (): void => {
-    if (timer) {
-      clearTimeout(timer)
+  let closed = false
+  let timer: ReturnType<typeof setTimeout> | undefined
+  let running = false
+  let dirty = false
+  const drain = async () => {
+    timer = undefined
+    if (running || closed) return
+    running = true
+    try {
+      do {
+        dirty = false
+        try {
+          await onReload()
+        } catch (error) {
+          loaderLogger.error('Add-on reload failed', { error: String(error) })
+        }
+      } while (dirty && !closed && timer === undefined)
+    } finally {
+      running = false
     }
-
-    timer = setTimeout(() => {
-      timer = null
-
-      Promise.resolve(onReload()).catch(error => {
-        loaderLogger.error(`Failed to reload modules: ${error}`)
-      })
-    }, DEBOUNCE_MS)
   }
-
+  const schedule = () => {
+    if (closed) return
+    dirty = true
+    clearTimeout(timer)
+    timer = setTimeout(() => {
+      void drain()
+    }, 500)
+  }
   const watcher = watch(modulesDir, {
     ignoreInitial: true,
-    // Match directory roots as well as children. Windows dependency junctions
-    // and transient build directories must never enter the watcher.
+    followSymlinks: false,
     ignored: [
       /[\\/](?:node_modules|\.git|\.turbo|dist|dist-docker)(?:[\\/]|$)/
     ],
-    followSymlinks: false,
-    awaitWriteFinish: {
-      stabilityThreshold: 300,
-      pollInterval: 100
-    }
+    awaitWriteFinish: { stabilityThreshold: 300, pollInterval: 100 }
   })
-
-  watcher.on('addDir', scheduleReload)
-  watcher.on('unlinkDir', scheduleReload)
-  watcher.on('add', scheduleReload)
-  watcher.on('unlink', scheduleReload)
-
-  // Prevent watcher errors (e.g. transient EMFILE) from crashing the server.
-  watcher.on('error', error => {
-    loaderLogger.error(`Modules watcher error: ${error}`)
-  })
-
-  loaderLogger.info('Watching modules directory for changes')
-
+  for (const event of [
+    'add',
+    'change',
+    'unlink',
+    'addDir',
+    'unlinkDir'
+  ] as const)
+    watcher.on(event, schedule)
+  watcher.on('error', error =>
+    loaderLogger.error('Add-on directory watcher failed', {
+      error: String(error)
+    })
+  )
   return () => {
-    if (timer) {
-      clearTimeout(timer)
-      timer = null
-    }
-
-    watcher.close()
+    if (closed) return
+    closed = true
+    clearTimeout(timer)
+    void watcher.close().catch(error =>
+      loaderLogger.error('Add-on watcher cleanup failed', {
+        error: String(error)
+      })
+    )
   }
 }

@@ -1,34 +1,29 @@
-import fs from 'node:fs'
-import path from 'node:path'
+// SPDX-License-Identifier: 0BSD
+import { existsSync } from 'node:fs'
+import { dirname, join, resolve } from 'node:path'
 
 export function findProjectRoot(startDir?: string): string {
-  const dirsToTry = [
+  const checked = new Set<string>()
+  for (const candidate of [
     process.env.ROOT_DIR,
     startDir,
     process.cwd(),
-    typeof import.meta.dirname === 'string' ? import.meta.dirname : undefined
-  ].filter((d): d is string => Boolean(d))
-
-  for (const dir of dirsToTry) {
-    let current = path.resolve(dir)
-
-    while (true) {
+    import.meta.dirname
+  ]) {
+    if (!candidate) continue
+    let directory = resolve(candidate)
+    while (!checked.has(directory)) {
+      checked.add(directory)
       if (
-        fs.existsSync(path.join(current, 'pnpm-workspace.yaml')) ||
-        fs.existsSync(path.join(current, 'pnpm-lock.yaml')) ||
-        fs.existsSync(path.join(current, '.git'))
-      ) {
-        return current
-      }
-
-      const parent = path.dirname(current)
-
-      if (parent === current) {
-        break
-      }
-      current = parent
+        ['pnpm-workspace.yaml', 'pnpm-lock.yaml', '.git'].some(marker =>
+          existsSync(join(directory, marker))
+        )
+      )
+        return directory
+      const parent = dirname(directory)
+      if (parent === directory) break
+      directory = parent
     }
   }
-
   return process.cwd()
 }

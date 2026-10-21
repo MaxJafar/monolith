@@ -1,19 +1,15 @@
-import { RESPONSIVE_CONDITIONS } from '../constant'
+// SPDX-License-Identifier: 0BSD
+import { atBreakpoints } from '../conditions'
 import type { ResponsiveProp } from '../types'
 
 export function normalizeResponsiveProp<Input, Output = Input>(
   value: ResponsiveProp<Input, any> | undefined,
-  mapper?: (value: Input) => Output
+  mapper?: (item: Input) => Output
 ): ResponsiveProp<Input, Output, 'output'> | undefined {
-  if (value == null) return
-  const convert = mapper ?? ((item: Input) => item as unknown as Output)
-  if (typeof value !== 'object') return convert(value as Input)
-  return Object.fromEntries(
-    Object.entries(value)
-      .filter(
-        ([key, item]) =>
-          Object.hasOwn(RESPONSIVE_CONDITIONS, key) && item !== undefined
-      )
-      .map(([key, item]) => [key, convert(item as Input)])
+  if (value == null) return undefined
+  const map = mapper ?? ((item: Input) => item as unknown as Output)
+  const mapped = atBreakpoints<Input>(value).map(
+    ([key, item]) => [key, map(item)] as const
   )
+  return typeof value === 'object' ? Object.fromEntries(mapped) : mapped[0]?.[1]
 }

@@ -1,7 +1,9 @@
+// SPDX-License-Identifier: 0BSD
+import { type ComponentType, Suspense, lazy } from 'react'
+import { Navigate, type RouteObject, useLocation } from 'react-router'
+
 import type { ModuleGroup } from '@monolith/configs'
 import { ErrorScreen, NotFoundScreen } from '@monolith/ui'
-import { Suspense, lazy } from 'react'
-import { Navigate, type RouteObject, useLocation } from 'react-router'
 
 import { useWorkspace } from '@/core/workspaces/WorkspaceProvider'
 import Auth from '@/system/auth'
@@ -15,208 +17,129 @@ import { resolveModuleAvailability } from './moduleAvailability'
 import { modulePath, workspaceRedirect } from './navigation'
 import { createModuleRoute } from './routeBuilder'
 
-const SystemSearchPage = lazy(() => import('@/core/search/SystemSearchPage'))
-const RoomsPage = lazy(() => import('@/core/rooms/RoomsPage'))
-const RpgPage = lazy(() => import('@/addons/urpg/RpgPage'))
+const Search = lazy(() => import('@/core/search/SystemSearchPage'))
+const Rooms = lazy(() => import('@/core/rooms/RoomsPage'))
+const Roleplay = lazy(() => import('@/addons/urpg/RpgPage'))
+const workspaceAreas = [
+  'calendar',
+  'projects',
+  'actions',
+  'docs',
+  'ideas',
+  'journal',
+  'blog',
+  'dashboard',
+  'databases'
+]
 
-function SystemRoute(props: Parameters<typeof LazyRouteLoader>[0]) {
-  const { active, loading, error } = useWorkspace(),
-    location = useLocation()
-
-  if (loading) return <RouteLoadingScreen message="loadingUserData" />
-  if (error || !active)
-    return <ErrorScreen message={error || 'Workspace unavailable'} />
-
-  const params = new URLSearchParams(location.search)
-
-  if (!params.has('workspace')) {
-    params.set('workspace', active.id)
-
+function WorkspaceRoute(props: Parameters<typeof LazyRouteLoader>[0]) {
+  const workspace = useWorkspace()
+  const location = useLocation()
+  if (workspace.loading) return <RouteLoadingScreen message="loadingUserData" />
+  if (workspace.error || !workspace.active)
+    return <ErrorScreen message={workspace.error || 'Workspace unavailable'} />
+  const query = new URLSearchParams(location.search)
+  if (!query.has('workspace')) {
+    query.set('workspace', workspace.active.id)
     return (
-      <Navigate replace to={`${location.pathname}?${params}${location.hash}`} />
+      <Navigate replace to={location.pathname + '?' + query + location.hash} />
     )
   }
-
   return <LazyRouteLoader {...props} systemView />
 }
-
-interface CreateRouterConfigOptions {
-  routes: ModuleGroup[]
-  loadingMessage: string
+function page(path: string, View: ComponentType): RouteObject {
+  return {
+    path,
+    element: (
+      <Suspense fallback={<RouteLoadingScreen message="loadingUserData" />}>
+        <View />
+      </Suspense>
+    )
+  }
 }
-
-/**
- * Component for handling dashboard redirects with query parameters
- */
 export function DashboardRedirectHandler() {
-  const searchParams = new URLSearchParams(window.location.search)
-
-  const redirect = searchParams.get('redirect')
-
-  return <Navigate replace to={workspaceRedirect(redirect)} />
-}
-
-export function AuthRedirectHandler() {
-  const { pathname, search, hash } = window.location
-
-  const fullPath = `${pathname}${search}${hash}`
-
+  const location = useLocation()
   return (
-    <Navigate replace to={`/auth?redirect=${encodeURIComponent(fullPath)}`} />
+    <Navigate
+      replace
+      to={workspaceRedirect(
+        new URLSearchParams(location.search).get('redirect')
+      )}
+    />
   )
 }
-
-/**
- * Creates the main router configuration based on authentication state
- */
+export function AuthRedirectHandler() {
+  const location = useLocation()
+  return (
+    <Navigate
+      replace
+      to={
+        '/auth?redirect=' +
+        encodeURIComponent(location.pathname + location.search + location.hash)
+      }
+    />
+  )
+}
 export async function createRouterConfig({
   routes,
   loadingMessage
-}: CreateRouterConfigOptions): Promise<RouteObject[]> {
-  const allItems = routes.flatMap(category => category.items)
-
-  const resolvedItems = await resolveModuleAvailability(allItems)
-
-  const enabledItems = resolvedItems.filter(item => !item.disabled)
-
-  const database = enabledItems.find(
-    item => modulePath(item.name) === '/databases'
+}: {
+  routes: ModuleGroup[]
+  loadingMessage: string
+}): Promise<RouteObject[]> {
+  const available = await resolveModuleAvailability(
+    routes.flatMap(group => group.items)
   )
-  const systemPaths = [
-    '/calendar',
-    '/projects',
-    '/dashboard',
-    '/databases',
-    '/blog'
-  ]
-  const moduleRoutes = enabledItems
-    .filter(item => !database || !systemPaths.includes(modulePath(item.name)))
-    .flatMap(item => createModuleRoute(item, loadingMessage))
-
-  if (database)
-    for (const area of [
-      'calendar',
-      'projects',
-      'actions',
-      'docs',
-      'ideas',
-      'journal',
-      'blog',
-      'dashboard',
-      'databases'
-    ])
-      moduleRoutes.push({
-        path: `/${area}/*`,
-        element: <SystemRoute item={database} loadingMessage={loadingMessage} />
+  const enabled = available.filter(item => !item.disabled)
+  const database = enabled.find(item => modulePath(item.name) === '/databases')
+  const children: RouteObject[] = []
+  const nativePaths = new Set(workspaceAreas.map(area => '/' + area))
+  for (const item of enabled) {
+    if (database && nativePaths.has(modulePath(item.name))) continue
+    children.push(createModuleRoute(item, loadingMessage))
+  }
+  if (database) {
+    for (const area of workspaceAreas)
+      children.push({
+        path: '/' + area + '/*',
+        element: (
+          <WorkspaceRoute item={database} loadingMessage={loadingMessage} />
+        )
       })
-
-  const calendar = enabledItems.find(
-    item => modulePath(item.name) === '/calendar'
-  )
-
-  if (calendar)
-    moduleRoutes.push({
-      path: '/calendar/sources/*',
-      element: (
-        <LazyRouteLoader
-          systemView
-          item={calendar}
-          loadingMessage={loadingMessage}
-        />
-      )
-    })
-
-  const manager = enabledItems.find(item => item.name === 'module-manager')
-
+  }
+  const manager = enabled.find(item => item.name === 'module-manager')
   if (manager)
-    moduleRoutes.push({
-      ...(createModuleRoute(manager, loadingMessage) as RouteObject),
+    children.push({
+      ...createModuleRoute(manager, loadingMessage),
       path: '/addons'
     })
-
+  children.push(
+    page('/rooms', Rooms),
+    page('/urpg', Roleplay),
+    page('/search', Search),
+    { path: '/page/:id', element: <CanvasPageRoute /> },
+    { path: '/auth/*', element: <DashboardRedirectHandler /> },
+    { index: true, element: <Navigate replace to="/dashboard" /> },
+    { path: '*', element: <NotFoundScreen /> }
+  )
   return [
     {
       path: '/',
       ErrorBoundary: RouteErrorScreen,
       element: <RootLayout />,
-      children: [
-        ...moduleRoutes,
-        {
-          path: '/rooms',
-          element: (
-            <Suspense
-              fallback={<RouteLoadingScreen message="loadingUserData" />}
-            >
-              <RoomsPage />
-            </Suspense>
-          )
-        },
-        {
-          path: '/urpg',
-          element: (
-            <Suspense
-              fallback={<RouteLoadingScreen message="loadingUserData" />}
-            >
-              <RpgPage />
-            </Suspense>
-          )
-        },
-        {
-          path: '/search',
-          element: (
-            <Suspense
-              fallback={<RouteLoadingScreen message="loadingUserData" />}
-            >
-              <SystemSearchPage />
-            </Suspense>
-          )
-        },
-        { path: '/page/:id', element: <CanvasPageRoute /> },
-        {
-          path: '/auth/*',
-          element: <DashboardRedirectHandler />
-        },
-        {
-          path: '/',
-          element: <Navigate replace to="/dashboard" />
-        },
-        {
-          path: '*',
-          element: <NotFoundScreen />
-        }
-      ]
+      children
     }
   ]
 }
-
-/**
- * Creates authentication-only router configuration
- */
 export function createAuthRouterConfig(): RouteObject[] {
   return [
-    {
-      path: '/',
-      element: <Auth />
-    },
-    {
-      path: '/auth',
-      element: <Auth />
-    },
-    {
-      path: '*',
-      element: <AuthRedirectHandler />
-    }
+    { path: '/', element: <Auth /> },
+    { path: '/auth', element: <Auth /> },
+    { path: '*', element: <AuthRedirectHandler /> }
   ]
 }
-
-/**
- * Creates a loading screen configuration for when session token is being verified
- */
 export function createAuthLoadingConfig(): RouteObject[] {
   return [
-    {
-      path: '*',
-      element: <RouteLoadingScreen message="loadingUserData" />
-    }
+    { path: '*', element: <RouteLoadingScreen message="loadingUserData" /> }
   ]
 }

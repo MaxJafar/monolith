@@ -25,7 +25,7 @@ For structured information beyond tasks, create a [database](/docs/databases) wi
 
 Open **Dashboard** and use **Add widget** to choose a connected view. Enter layout editing to arrange and resize widgets.
 
-In **Addons and Widgets**, select **Widgets**, open **Preview & configure**, adjust the available options and choose a supported placement. Pomodoro, Flashcards, Achievements and Code Time each provide focused views; some require an installed package or integration.
+In **Addons and Widgets**, select **Widgets**, open **Preview & configure**, adjust the available options and choose a supported placement. Calendar, Action agenda, Project focus and Training pulse provide focused views; some require an installed package or integration.
 
 Use the **Sidebar** section for compact placements. Drag native section handles to reorder navigation, or use the keyboard and settings controls. [Widgets and dashboards](/docs/widgets) covers configuration and placement; [Your workspace](/docs/workspace) covers navigation.
 

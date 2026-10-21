@@ -1,218 +1,108 @@
-import { decrypt, encrypt } from '@functions/auth/encryption'
+// SPDX-License-Identifier: 0BSD
 import { eq } from 'drizzle-orm'
-import speakeasy from 'speakeasy'
-import { v4 } from 'uuid'
-import z from 'zod'
+import { randomUUID } from 'node:crypto'
+import { z } from 'zod'
 
 import { users } from '../../user/schema.drizzle'
-import { getCookieOptions, setRefreshCookie } from '../constants/cookie'
 import endpoints from '../endpoints'
 import { pending2FASessions, pendingTOTPSetups } from '../utils/2fa'
-import { storeRefreshToken } from '../utils/refreshTokenStore'
 import {
-  generateFamily,
-  generateRefreshToken,
-  signAccessToken
-} from '../utils/tokens'
+  acceptsCode,
+  createAuthenticator,
+  openAuthenticator,
+  sealAuthenticator
+} from '../utils/authenticator'
+import { issueBrowserSession } from '../utils/signInSession'
 
-const MASTER_KEY = process.env.MASTER_KEY!
-
+const challengeInput = { body: z.object({ otp: z.string(), tid: z.string() }) }
 export const generate = endpoints
   .mutation({
-    description: 'Generate 2FA authenticator app setup link',
+    description: 'Prepare an authenticator for the signed-in account',
     encrypted: false,
     input: {},
-    output: {
-      OK: z.object({
-        tid: z.string(),
-        link: z.string()
-      })
-    }
+    output: { OK: z.object({ tid: z.string(), link: z.string() }) }
   })
-  .callback(async ({ res, db, response }) => {
-    const user = await db.query.users.findFirst({
+  .callback(async ({ db, res, response }) => {
+    const account = await db.query.users.findFirst({
       where: { id: res.locals.userId as string }
     })
-
-    if (!user) {
-      return response.unauthorized()
-    }
-
-    const secret = speakeasy.generateSecret({
-      name: user.email,
-      length: 32,
-      issuer: 'Monolith'
-    }).base32
-
-    const tid = v4()
-
-    pendingTOTPSetups.set(tid, { secret, userId: user.id })
-
-    const otpauthUrl = `otpauth://totp/${encodeURIComponent(user.email)}?secret=${secret}&issuer=Monolith`
-
-    return response.ok({
-      tid,
-      link: otpauthUrl
-    })
+    if (!account) return response.unauthorized()
+    const setup = createAuthenticator(account.email)
+    const tid = randomUUID()
+    pendingTOTPSetups.set(tid, { secret: setup.secret, userId: account.id })
+    return response.ok({ tid, link: setup.link })
   })
 
 export const enable = endpoints
   .mutation({
-    description: 'Verify OTP and enable two-factor authentication',
+    description: 'Confirm an authenticator setup',
     encrypted: false,
-    input: {
-      body: z.object({
-        otp: z.string(),
-        tid: z.string()
-      })
-    },
-    output: {
-      NO_CONTENT: true
-    }
+    input: challengeInput,
+    output: { NO_CONTENT: true }
   })
-  .callback(async ({ res, db, body: { otp, tid }, response }) => {
-    const pending = pendingTOTPSetups.get(tid)
-
-    if (!pending || pending.userId !== res.locals.userId) {
+  .callback(async ({ body, db, res, response }) => {
+    const setup = pendingTOTPSetups.get(body.tid)
+    if (
+      !setup ||
+      setup.userId !== res.locals.userId ||
+      !acceptsCode(setup.secret, body.otp)
+    ) {
       return response.unauthorized()
     }
-
-    const verified = speakeasy.totp.verify({
-      secret: pending.secret,
-      encoding: 'base32',
-      token: otp,
-      window: 1
+    const account = await db.query.users.findFirst({
+      where: { id: setup.userId }
     })
-
-    if (!verified) {
+    if (!account || pendingTOTPSetups.get(body.tid) !== setup)
       return response.unauthorized()
-    }
-
-    // Only consume the setup session once verification succeeds, so a wrong or
-    // late code can be retried within the TTL.
-    pendingTOTPSetups.del(tid)
-
-    const user = await db.query.users.findFirst({
-      where: { id: res.locals.userId as string }
-    })
-
-    if (!user) {
-      return response.unauthorized()
-    }
-
+    const sealed = sealAuthenticator(setup.secret)
+    pendingTOTPSetups.del(body.tid)
     await db
       .update(users)
-      .set({
-        twoFASecret: encrypt(Buffer.from(pending.secret), MASTER_KEY).toString(
-          'base64'
-        ),
-        updated: new Date()
-      })
-      .where(eq(users.id, user.id))
-
+      .set({ twoFASecret: sealed, updated: new Date() })
+      .where(eq(users.id, account.id))
     return response.noContent()
   })
 
 export const disable = endpoints
   .mutation({
-    description: 'Disable two-factor authentication',
+    description: 'Remove the current account authenticator',
     encrypted: false,
     input: {},
-    output: {
-      NO_CONTENT: true
-    }
+    output: { NO_CONTENT: true }
   })
-  .callback(async ({ res, db, response }) => {
-    const user = await db.query.users.findFirst({
-      where: { id: res.locals.userId as string }
-    })
-
-    if (!user) {
-      return response.unauthorized()
-    }
-
-    await db
+  .callback(async ({ db, res, response }) => {
+    const updated = await db
       .update(users)
       .set({ twoFASecret: null, updated: new Date() })
-      .where(eq(users.id, user.id))
-
-    return response.noContent()
+      .where(eq(users.id, res.locals.userId as string))
+      .returning({ id: users.id })
+    return updated.length ? response.noContent() : response.unauthorized()
   })
 
 export const verify = endpoints
   .mutation({
-    description: 'Verify two-factor authentication code during login',
+    description: 'Finish a pending sign-in with an authenticator code',
     noAuth: true,
     encrypted: false,
-    input: {
-      body: z.object({
-        otp: z.string(),
-        tid: z.string()
-      })
-    },
-    output: {
-      OK: z.object({
-        accessToken: z.string()
-      })
-    }
+    input: challengeInput,
+    output: { OK: z.object({ accessToken: z.string() }) }
   })
-  .callback(async ({ db, body: { otp, tid }, req, res, response }) => {
-    const pending = pending2FASessions.get(tid)
-
-    if (!pending) {
-      return response.unauthorized()
+  .callback(async ({ body, db, req, res, response }) => {
+    const challenge = pending2FASessions.get(body.tid)
+    if (!challenge) return response.unauthorized()
+    const account = await db.query.users.findFirst({
+      where: { id: challenge.userId }
+    })
+    if (!account?.twoFASecret) return response.unauthorized()
+    let valid = false
+    try {
+      valid = acceptsCode(openAuthenticator(account.twoFASecret), body.otp)
+    } catch {
+      /* An unreadable setup cannot authenticate. */
     }
-
-    const user = await db.query.users.findFirst({
-      where: { id: pending.userId }
-    })
-
-    const encryptedSecret = user?.twoFASecret
-
-    if (!encryptedSecret) {
+    if (!valid || pending2FASessions.get(body.tid) !== challenge)
       return response.unauthorized()
-    }
-
-    const secret = decrypt(
-      Buffer.from(encryptedSecret, 'base64'),
-      MASTER_KEY
-    ).toString('utf-8')
-
-    const verified = speakeasy.totp.verify({
-      secret,
-      encoding: 'base32',
-      token: otp,
-      window: 1
-    })
-
-    if (!verified) {
-      return response.unauthorized()
-    }
-
-    // Only consume the login session once verification succeeds, so a wrong or
-    // late code can be retried within the TTL.
-    pending2FASessions.del(tid)
-
-    const userId = pending.userId
-    const ip = req.ip || req.socket.remoteAddress || '127.0.0.1'
-
-    const accessToken = signAccessToken(userId)
-    const refreshToken = generateRefreshToken()
-    const family = generateFamily()
-
-    await storeRefreshToken({
-      userId,
-      token: refreshToken,
-      family,
-      ip
-    })
-
-    setRefreshCookie(req, res, refreshToken)
-    res.cookie('access_token', accessToken, {
-      ...getCookieOptions(req),
-      path: '/',
-      maxAge: 15 * 60 * 1000
-    })
-
-    return response.ok({ accessToken })
+    // Claim synchronously after the user lookup; concurrent requests cannot reuse this challenge.
+    pending2FASessions.del(body.tid)
+    return response.ok(await issueBrowserSession(account.id, req, res))
   })

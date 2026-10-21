@@ -3,7 +3,7 @@
   "version": "0.1.12",
   "private": true,
   "description": "Monolith workspace client",
-  "license": "MIT",
+  "license": "0BSD",
   "author": "Monolith contributors",
   "repository": {
     "type": "git",

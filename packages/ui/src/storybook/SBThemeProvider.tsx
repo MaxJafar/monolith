@@ -1,51 +1,64 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { type ReactNode, useMemo } from 'react'
+// SPDX-License-Identifier: 0BSD
+import { type ReactNode, useEffect } from 'react'
 
+import { PersonalizationProvider, usePersonalization } from '@/providers'
+import { defaults } from '@/providers/PersonalizationProvider/preferences'
 import { workspaceAPI } from '@/utils/workspaceAPI'
 
-import { PersonalizationProvider } from '../providers'
 import { useSBTheme } from './useSBTheme'
 
-function deriveFinalValue(value: any, fallback: any) {
-  if (value === '_reset' || value === undefined) return fallback
-
-  return value
+type Globals = {
+  theme?: unknown
+  themeColor?: unknown
+  fontScale?: unknown
+  bgTemp?: unknown
 }
-
+function choices(globals: Globals) {
+  const reset = (value: unknown, fallback: string) =>
+    typeof value === 'string' && value !== '_reset' ? value : fallback
+  const scale = Number(globals.fontScale)
+  return {
+    theme: globals.theme === 'dark' ? ('dark' as const) : ('light' as const),
+    rawThemeColor: reset(globals.themeColor, defaults.rawThemeColor),
+    bgTemp: reset(globals.bgTemp, defaults.bgTemp),
+    fontScale: Number.isFinite(scale) && scale > 0 ? Math.min(3, scale) : 1
+  }
+}
+function ApplyGlobals({ globals }: { globals: ReturnType<typeof choices> }) {
+  const { setTheme, setRawThemeColor, setBgTemp, setFontScale } =
+    usePersonalization()
+  useEffect(() => {
+    setTheme(globals.theme)
+    setRawThemeColor(globals.rawThemeColor)
+    setBgTemp(globals.bgTemp)
+    setFontScale(globals.fontScale)
+  }, [
+    globals.theme,
+    globals.rawThemeColor,
+    globals.bgTemp,
+    globals.fontScale,
+    setTheme,
+    setRawThemeColor,
+    setBgTemp,
+    setFontScale
+  ])
+  return null
+}
 export function SBThemeProvider({
   children,
   context
 }: {
   children: ReactNode
-  context: any
+  context: { globals?: Globals }
 }) {
-  const derivedContext = useMemo(() => {
-    const existingGlobals = context?.globals || {}
-
-    return {
-      ...context,
-      globals: {
-        ...existingGlobals,
-        rawThemeColor: deriveFinalValue(existingGlobals.themeColor, '#a9d066'),
-        theme: deriveFinalValue(existingGlobals.theme, 'light'),
-        fontScale: Number(deriveFinalValue(existingGlobals.fontScale, 1)),
-        bgTemp: deriveFinalValue(existingGlobals.bgTemp, 'bg-zinc')
-      }
-    }
-  }, [context])
-
-  useSBTheme(derivedContext)
-
+  const globals = choices(context.globals ?? {})
+  useSBTheme({ globals })
   return (
     <PersonalizationProvider
-      // Force remount when theme changes
-      key={`${derivedContext.globals.themeColor}-${derivedContext.globals.fontScale}-${derivedContext.globals.bgTemp}-${derivedContext.globals.theme}`}
-      defaultValueOverride={{
-        rootElement: document.body,
-        ...derivedContext.globals
-      }}
       workspaceAPI={workspaceAPI}
+      defaultValueOverride={{ ...globals, rootElement: document.body }}
     >
+      <ApplyGlobals globals={globals} />
       {children}
     </PersonalizationProvider>
   )

@@ -146,21 +146,29 @@
   },
   "modals": {
     "deleteConfirmation": {
-      "title": "Adakah anda pasti mahu memadam {{itemName}}?",
-      "desc": "Ini akan memadam {{itemName}} dan semua kandungan yang berkaitan. Tindakan ini tidak boleh dipulihkan!",
+      "title": "Padam {{itemName}} secara kekal?",
+      "desc": "{{itemName}} dan kandungan berkaitannya akan dipadam. Tindakan ini tidak boleh dibatalkan.",
       "inputs": {
         "confirmation": {
-          "placeholder": "Sila taip \"{{text}}\" untuk mengesahkan pemadaman",
+          "placeholder": "Masukkan {{text}} untuk membenarkan pemadaman",
           "label": "Sahkan Pembuangan"
         }
       },
-      "error": "Ralat semasa memadam item. Sila cuba lagi."
+      "error": "Tiada yang dipadam. Cuba semula apabila sambungan tersedia."
     },
     "searchFilters": "Penapis Carian",
     "datePicker": {
       "title": "Pilih Tarikh",
       "titleWithTime": "Pilih Tarikh & Masa",
-      "yearMonth": "Pilih Tahun & Bulan"
+      "yearMonth": "Pilih Tahun & Bulan",
+      "month": "Bulan",
+      "year": "Tahun",
+      "time": "Masa (24 jam)",
+      "clear": "Kosongkan tarikh",
+      "today": "Hari ini",
+      "previousMonth": "Bulan sebelumnya",
+      "nextMonth": "Bulan seterusnya",
+      "invalidSelection": "Pilih tarikh dan masa tempatan yang sah dalam julat yang dibenarkan."
     },
     "iconPicker": {
       "title": "Pilih Ikon",
@@ -171,9 +179,12 @@
       "empty": {
         "icon": {
           "title": "Tiada ikon",
-          "description": "Tiada ikon ditemui, sila cuba kata kunci lain."
+          "description": "Cuba nama lebih pendek atau kata kunci ikon lain."
         }
-      }
+      },
+      "allCollections": "Semua set ikon",
+      "loadError": "Katalog ikon tidak tersedia. Cuba lagi.",
+      "more": "Muatkan lebih banyak ikon"
     },
     "imagePicker": {
       "title": "Pilih Fail",
@@ -201,22 +212,33 @@
       "empty": {
         "result": {
           "title": "Tiada hasil",
-          "description": "Tiada imej ditemui, sila cuba kata kunci lain."
+          "description": "Tiada gambar sepadan. Ubah carian untuk hasil lain."
         },
         "pixabay": {
           "title": "Disediakan oleh Pixabay",
-          "description": "Cari lebih daripada 13 juta imej percuma berkualiti tinggi."
+          "description": "Cari imej stok dalam koleksi Pixabay."
         },
         "noAPIKey": {
           "title": "Kunci API Pixabay tidak dikonfigurasikan",
-          "description": "Sila tetapkan kunci API Pixabay anda dalam Peti Kunci API untuk menggunakan ciri ini."
+          "description": "Simpan kelayakan Pixabay dalam Kunci API sebelum mencari imej."
         },
         "noOpenAIKey": {
           "title": "Kunci API OpenAI tidak dikonfigurasikan",
-          "description": "Sila tetapkan kunci API OpenAI anda dalam Peti Kunci API untuk menggunakan ciri ini."
+          "description": "Simpan kelayakan OpenAI dalam Kunci API untuk menjana imej."
         }
       },
-      "ai": "Penjanaan Imej AI"
+      "ai": "Penjanaan Imej AI",
+      "choose": "Pilih fail",
+      "unsupported": "Jenis fail ini tidak disokong.",
+      "readError": "Fail tidak dapat dibaca. Pilih semula.",
+      "reading": "Membaca fail…",
+      "drop": "Lepaskan fail di sini atau semak imbas peranti anda",
+      "paste": "Tampal imej",
+      "clipboardError": "Tiada imej yang disokong dapat dibaca daripada papan keratan.",
+      "saveError": "Fail tidak dapat disimpan. Pilihan anda dikekalkan; cuba lagi.",
+      "serviceError": "Perkhidmatan imej tidak tersedia. Cuba lagi.",
+      "result": "Imej {{id}}",
+      "promptHint": "Huraikan imej yang ingin anda cipta."
     },
     "colorPicker": {
       "title": "Pilih Warna",
@@ -234,7 +256,13 @@
     "imagePreview": "Pratonton Imej",
     "qrCodeScanner": "Pengimbas Kod QR",
     "viewImage": "Lihat Imej",
-    "confirmationFailed": "Tindakan ini tidak dapat diselesaikan. Sila cuba lagi."
+    "confirmationFailed": "Tindakan ini tidak dapat diselesaikan. Sila cuba lagi.",
+    "scanner": {
+      "permission": "Kebenaran kamera diperlukan. Benarkan akses dalam pelayar dan cuba lagi.",
+      "camera": "Kamera tidak dapat dibuka. Pastikan kamera disambungkan dan tersedia.",
+      "scan": "Kod tidak dapat diproses. Cuba imbas semula.",
+      "processing": "Memproses kod yang diimbas…"
+    }
   },
   "misc": {
     "alert": {
@@ -246,8 +274,8 @@
     },
     "search": "Cari {{item}}...",
     "notFound": {
-      "title": "Oops! Tiada apa-apa di sini",
-      "description": "Halaman yang anda cari tidak dapat dijumpai. Sila semak URL dan cuba lagi."
+      "title": "Halaman tidak tersedia",
+      "description": "Tiada halaman pada alamat ini. Semak pautan atau kembali ke ruang kerja."
     },
     "tipsAndTricks": "Petua dan Trik",
     "loadingModule": "Memuatkan addon...",
@@ -276,17 +304,17 @@
       "empty": {
         "result": {
           "title": "Tiada hasil",
-          "description": "Tiada imej dijumpai, sila cuba kata kunci lain."
+          "description": "Tiada gambar sepadan. Ubah carian dan cuba lagi."
         },
         "pixabay": {
           "title": "Disediakan oleh Pixabay",
-          "description": "Cari lebih daripada 13 juta imej percuma berkualiti tinggi."
+          "description": "Lihat hasil imej daripada Pixabay."
         }
       }
     },
     "dnd": {
       "dropHere": "Letakkan item di sini",
-      "dragAndDropToUpload": "Seret dan lepas atau klik untuk memuat naik",
+      "dragAndDropToUpload": "Lepaskan fail di sini atau pilih fail",
       "or": "atau",
       "buttons": {
         "pasteFromClipboard": "Tampal dari Papan Klip"
@@ -310,7 +338,7 @@
     "empty": {
       "apiStatus": {
         "title": "Tidak dapat menyambung ke API",
-        "description": "Sila semak sambungan rangkaian anda dan cuba lagi. Jika anda seorang pembangun, sila semak jika pelayan berjalan dengan betul."
+        "description": "Monolith tidak dapat menghubungi pelayan ini. Semak sambungan dan alamat pelayan, kemudian cuba lagi."
       }
     },
     "iconPicker": {
@@ -321,12 +349,12 @@
       "empty": {
         "icon": {
           "title": "Tiada ikon",
-          "description": "Tiada ikon dijumpai, sila cuba kata kunci lain."
+          "description": "Cuba nama lain untuk mencari ikon."
         }
       }
     },
     "locationDisabled": {
-      "description": "Input lokasi kini tidak tersedia. Sila tambah kunci API Google Cloud yang telah dikonfigurasikan dengan betul untuk mengaktifkan ciri ini. Untuk maklumat lanjut, rujuk kepada",
+      "description": "Carian lokasi memerlukan kelayakan Google Cloud dengan akses Places. Sediakan dalam Kunci API. Butiran persediaan:",
       "title": "T/A"
     },
     "dates": {
@@ -356,10 +384,10 @@
     },
     "fieldRequired": "Ruangan ini adalah wajib.",
     "invalidField": "Medan tidak sah.",
-    "invalidColor": "Warna tidak sah. Sila masukkan nilai hex yang sah dalam format #RRGGBB.",
-    "invalidIcon": "Ikon tidak sah. Ia mesti pengenalan ikon yang sah dari Iconify dalam format <icon-set>:<icon-name>.",
+    "invalidColor": "Gunakan enam digit heksadesimal selepas #, contohnya #336699.",
+    "invalidIcon": "Pilih pengenal ikon dengan koleksi dan nama, seperti tabler:calendar.",
     "loadingUserData": "Memuatkan data pengguna...",
-    "invalidSelection": "Pemilihan tidak sah. Sila pilih pilihan yang sah dari senarai.",
+    "invalidSelection": "Pilih salah satu pilihan yang tersedia.",
     "fileInputSupportedFormat": "Format yang disokong: {{format}}",
     "viewMode": "Lihat sebagai"
   },
@@ -379,37 +407,19 @@
       }
     },
     "openNavigation": "Buka navigasi",
-    "collapseNavigation": "Tutup navigasi"
+    "collapseNavigation": "Tutup navigasi",
+    "itemAction": "Tindakan untuk {{name}}",
+    "clearSelection": "Kosongkan pilihan",
+    "toggleSection": "Kembangkan atau tutup bahagian"
   },
   "fetch": {
-    "error": "Gagal mendapatkan data dari pelayan",
-    "success": "Yay! Berjaya {{action}} item!",
-    "failure": "Oh tidak... Gagal {{action}} item. Sila cuba lagi.",
+    "error": "Pelayan tidak memulangkan data yang diminta.",
+    "success": "Selesai: {{action}}",
+    "failure": "Tidak dapat menyelesaikan {{action}}. Sila cuba lagi.",
     "action": {
       "create": "mencipta",
       "update": "mengemas kini",
-      "delete": "memadam",
-      "rename": "menamakan semula",
-      "pin": "pin",
-      "unpin": "nyahpin",
-      "archive": "arkib",
-      "unarchive": "nyaharkib",
-      "remove": "mengeluarkan",
-      "add": "menambah",
-      "save": "menyimpan",
-      "public": "umum",
-      "private": "peribadi",
-      "replace": "menggantikan",
-      "clearMedium": "membersihkan",
-      "thumbnail": "mengemas kini gambar kecil",
-      "generate": "menjana",
-      "cleanedup": "dibersihkan",
-      "summarized": "diringkaskan",
-      "unlock": "membuka kunci",
-      "download": "memuat turun",
-      "NASFilesReady": " Fail sedia untuk dimuat turun. Pergi ke NAS anda.",
-      "addedToFavourites": "ditambah ke kegemaran",
-      "removedFromFavourites": "dikeluarkan dari kegemaran"
+      "delete": "memadam"
     },
     "redirected": "telah dialihkan",
     "redirecting": "mengalihkan...",
@@ -459,24 +469,24 @@
     },
     "validation": {
       "emailRequired": "Emel diperlukan",
-      "emailInvalid": "Sila masukkan alamat emel yang sah",
+      "emailInvalid": "Gunakan alamat e-mel dengan nama dan domain.",
       "usernameRequired": "Nama pengguna diperlukan",
-      "usernameTooShort": "Nama pengguna mesti sekurang-kurangnya 3 aksara",
-      "usernameInvalid": "Nama pengguna hanya boleh mengandungi huruf, nombor, dan garis bawah",
+      "usernameTooShort": "Pilih nama pengguna dengan sekurang-kurangnya 3 aksara.",
+      "usernameInvalid": "Gunakan huruf, digit atau _ dalam nama pengguna.",
       "nameRequired": "Nama diperlukan",
       "passwordRequired": "Kata laluan diperlukan",
-      "passwordTooShort": "Kata laluan mesti sekurang-kurangnya 8 aksara",
+      "passwordTooShort": "Pilih kata laluan dengan sekurang-kurangnya 8 aksara.",
       "passwordMismatch": "Kata laluan tidak sepadan"
     },
     "modals": {
       "twoFA": {
         "title": "Pengesahan Dua Fasa",
-        "description": "Sila masukkan OTP yang diberikan oleh aplikasi pengesah yang anda daftarkan sebelum ini.",
+        "description": "Gunakan kod log masuk semasa daripada pengesah yang disambungkan.",
         "buttons": {
           "useEmailOtp": "Gunakan OTP Emel",
           "useAuthApp": "Gunakan Aplikasi Pengesah"
         },
-        "emailDescription": "Sila masukkan alamat emel yang anda gunakan untuk akaun anda.",
+        "emailDescription": "Masukkan e-mel yang digunakan untuk akaun Monolith ini.",
         "inputs": {
           "email": "Alamat Emel"
         }
@@ -484,26 +494,26 @@
     },
     "orAuthenticateWith": "Atau sahkan dengan",
     "messages": {
-      "otpSent": "Kata laluan sekali guna telah dihantar ke alamat email anda, jika ia dikaitkan dengan mana-mana akaun.",
+      "otpSent": "Jika alamat ini milik suatu akaun, kod log masuk akan dihantar melalui e-mel.",
       "welcomeBack": "Selamat datang kembali, {{name}}!",
-      "invalidCredentials": "Emel atau kata laluan tidak sah. Sila cuba lagi.",
-      "invalidFields": "Medan tidak sah. Sila masukkan alamat email dan kata laluan yang sah.",
-      "quotaExceeded": "Jumlah percubaan maksimum telah dicapai. Sila cuba lagi kemudian.",
-      "unknownError": "Ralat yang tidak diketahui. Sila cuba lagi nanti.",
-      "invalidLoginAttempt": "Percubaan log masuk tidak sah. Sila cuba lagi.",
+      "invalidCredentials": "Butiran log masuk tersebut tidak diterima.",
+      "invalidFields": "Semak e-mel dan kata laluan sebelum menghantar.",
+      "quotaExceeded": "Log masuk dihadkan sementara. Tunggu sebelum mencuba lagi.",
+      "unknownError": "Log masuk tidak dapat diselesaikan. Cuba sebentar lagi.",
+      "invalidLoginAttempt": "Permintaan log masuk ini tidak lagi sah. Mulakan semula.",
       "userCreated": "Akaun berjaya dibuat! Selamat datang ke monolith.",
       "otpLength": "Masukkan kod enam digit daripada aplikasi pengesah anda.",
       "invalidOTP": "Kod itu tidak dapat disahkan. Cuba lagi."
     },
     "qrLogin": {
       "title": "Imbas untuk Log Masuk",
-      "description": "Log masuk ke akaun anda menggunakan peranti lain.",
+      "description": "Luluskan peranti ini daripada klien Monolith lain yang sudah log masuk.",
       "expired": "Kod QR tamat tempoh",
       "clickToRefresh": "Klik untuk muat semula",
       "approved": "Log masuk diluluskan! Mengalihkan...",
       "waiting": "Menunggu kelulusan...",
       "approvalTitle": "Luluskan Log Masuk",
-      "approvalDescription": "Peranti meminta untuk log masuk ke akaun anda",
+      "approvalDescription": "Semak peranti ini sebelum membenarkan akses akaun.",
       "browserInfo": "Maklumat Peranti",
       "approve": "Luluskan Log Masuk",
       "deny": "Tolak",
@@ -520,7 +530,7 @@
   "vault": {
     "vault": {
       "lockedMessage": "Petak simpanan anda dikunci",
-      "passwordRequired": "Kata laluan utama diperlukan untuk menyahsulit petak simpanan anda.",
+      "passwordRequired": "Masukkan kata laluan peti simpanan untuk membaca kandungan tersulit.",
       "unlocked": "Petak simpanan dibuka",
       "failedToUnlock": "Gagal membuka petak simpanan",
       "buttons": {
@@ -529,7 +539,7 @@
       },
       "createPassword": {
         "title": "Tetapkan Kata Laluan Utama",
-        "desc": "Sila tetapkan kata laluan utama untuk melindungi petak simpanan anda."
+        "desc": "Pilih kata laluan untuk menyulitkan data peti simpanan."
       },
       "inputs": {
         "newPassword": "Kata Laluan Baru",
@@ -537,8 +547,18 @@
         "masterPassword": "Kata Laluan Utama"
       },
       "confirmSetNewPassword": {
-        "title": "Pastikan anda ingat kata laluan utama anda!",
-        "desc": "Kata laluan utama ini tidak boleh diubah (buat masa ini)! Jika anda terlupa kata laluan secara tidak sengaja, anda akan kehilangan segala-galanya. Kata laluan ini dihash dan disimpan dalam profil pengguna anda, dan ia tidak boleh disahsulit. Ia akan digunakan untuk menyulit dan menyahsulit data yang anda simpan dalam petak simpanan anda."
+        "title": "Simpan salinan selamat kata laluan peti simpanan",
+        "desc": "Kata laluan peti simpanan belum boleh ditukar atau dipulihkan. Monolith menyimpan hash, bukan kata laluan yang boleh dibaca. Jika hilang, data tersulit tidak dapat diakses."
+      },
+      "generate": "Jana kata laluan",
+      "edit": "Sunting kata laluan",
+      "review": "Semak kata laluan",
+      "confirmCreate": "Tetapkan kata laluan peti simpanan",
+      "errors": {
+        "empty": "Masukkan dan sahkan kata laluan anda.",
+        "mismatch": "Kata laluan mesti sepadan tepat, termasuk ruang.",
+        "random": "Penjanaan kata laluan selamat tidak tersedia dalam pelayar ini.",
+        "create": "Kata laluan tidak dapat disimpan. Cuba lagi."
       }
     },
     "otp": {
@@ -549,10 +569,10 @@
         "authByQR": "Sahkan dengan Kod QR"
       },
       "messages": {
-        "success": "OTP dihantar! Sila semak emel anda.",
+        "success": "Semak e-mel untuk kod yang diminta.",
         "failed": "Gagal meminta OTP",
         "invalid": "OTP mesti nombor 6 digit",
-        "cooldown": "Permintaan terlalu kerap, sila cuba lagi nanti",
+        "cooldown": "Tunggu sebentar sebelum meminta kod lain.",
         "required": {
           "title": "OTP Diperlukan untuk Membuka Kunci",
           "desc": "Untuk keselamatan tambahan, OTP diperlukan untuk membuka kunci addon ini. Sila klik butang di bawah untuk meminta OTP."
@@ -561,7 +581,8 @@
           "success": "Pengesahan OTP berjaya",
           "failed": "Pengesahan OTP gagal"
         }
-      }
+      },
+      "codeLabel": "Kod pengesahan"
     }
   },
   "recurring": {
@@ -660,6 +681,21 @@
       "week": "Minggu",
       "month": "Bulan",
       "year": "Tahun"
+    },
+    "editor": {
+      "rawDescription": "Jadual ini mempunyai tetapan ulangan lanjutan. Edit teksnya untuk mengekalkan semua peraturan.",
+      "raw": "Peraturan ulangan",
+      "structured": "Gunakan kawalan jadual",
+      "start": "Bermula",
+      "interval": "Ulang setiap",
+      "weekdays": "Hari dalam minggu",
+      "pattern": "Corak ulangan",
+      "monthDay": "Hari dalam bulan (negatif dikira dari akhir)",
+      "position": "Kedudukan dalam bulan",
+      "dayGroup": "Hari atau kumpulan hari",
+      "count": "Bilangan kejadian",
+      "until": "Ulang sehingga",
+      "incomplete": "Lengkapkan jadual dengan sela nombor bulat, hari pilihan dan tarikh tamat yang sah."
     }
   },
   "blocks": {
@@ -879,7 +915,16 @@
     "clearIndex": "Kosongkan indeks carian saya"
   },
   "inputs": {
-    "rangeValue": "Nilai"
+    "rangeValue": "Nilai",
+    "locationSearch": {
+      "searching": "Mencari tempat…",
+      "failed": "Carian lokasi gagal. Cuba carian lain.",
+      "empty": "Tiada tempat yang sepadan.",
+      "checking": "Menyemak carian lokasi…",
+      "unconfigured": "Carian lokasi memerlukan penyedia peta yang dikonfigurasi oleh pentadbir anda.",
+      "serviceFailed": "Perkhidmatan lokasi tidak dapat disemak."
+    },
+    "formSaveFailed": "Perubahan tidak dapat disimpan. Entri anda dikekalkan untuk percubaan seterusnya."
   },
   "desktop": {
     "welcome": "Ruang kerja anda, bersambung.",
@@ -1459,7 +1504,9 @@
     "addons": "Tambahan dan Widget",
     "addonsHelp": "Aktifkan pengalaman khusus untuk ruang kerja anda.",
     "updates": "Kemas kini",
-    "updatesHelp": "Urus keluaran aplikasi dan pelayan, muat turun automatik dan pemulihan."
+    "updatesHelp": "Urus keluaran aplikasi dan pelayan, muat turun automatik dan pemulihan.",
+    "resultCount_one": "{{count}} hasil",
+    "resultCount_other": "{{count}} hasil"
   },
   "urpg": {
     "addonDescription": "Your life, in progress. Turn meaningful work into quests and grow a character alongside you.",
@@ -2053,5 +2100,26 @@
     "editSeries": "Tajuk dan penerangan digunakan untuk seluruh siri",
     "saveEvent": "Simpan acara",
     "unscheduled": "Belum dijadualkan"
+  },
+  "journal": {
+    "title": "Jurnal",
+    "description": "Ruang untuk merenung, mengingati dan menulis.",
+    "newEntry": "Entri baharu",
+    "entryTitle": "Tajuk entri",
+    "date": "Tarikh",
+    "close": "Tutup",
+    "startWriting": "Mula menulis",
+    "saveFailed": "Entri tidak dapat dicipta. Draf anda masih disimpan; cuba lagi.",
+    "back": "Kembali ke Jurnal",
+    "loading": "Memuatkan jurnal…",
+    "stale": "Jurnal tidak dapat dimuat semula. Cuba lagi sebelum membuat perubahan.",
+    "retry": "Cuba lagi",
+    "search": "Cari jurnal",
+    "month": "Bulan",
+    "allDates": "Semua tarikh",
+    "entries_one": "{{count}} entri",
+    "entries_other": "{{count}} entri",
+    "empty": "Ruang untuk halaman baharu",
+    "emptyHint": "Tulis entri baharu atau ubah carian anda."
   }
 }

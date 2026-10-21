@@ -1,52 +1,32 @@
+// SPDX-License-Identifier: 0BSD
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { useState } from 'react'
 
-import { Switch } from './index'
+import { Switch } from '.'
 
 const meta = {
+  title: 'Inputs/Switch',
   component: Switch,
-  title: 'Inputs/Switch'
+  args: { value: false, onChange: () => {} }
 } satisfies Meta<typeof Switch>
-
 export default meta
-
-type Story = StoryObj<typeof meta>
-
-export const Default: Story = {
-  args: {
-    'aria-label': 'Enable notifications',
-    onChange: () => {},
-    value: true
-  },
-  render: props => {
-    const [checked, setChecked] = useState(props.value)
-
+export const Notifications: StoryObj<typeof meta> = {
+  render: () => {
+    const [value, onChange] = useState(true)
     return (
       <Switch
-        {...props}
-        value={checked}
-        onChange={value => {
-          setChecked(value)
-          props.onChange(value)
-        }}
+        value={value}
+        onChange={onChange}
+        aria-label="Workspace notifications"
       />
     )
   }
 }
-
-export const Disabled: Story = {
+export const Unavailable: StoryObj<typeof meta> = {
   args: {
-    'aria-label': 'Enable notifications',
     disabled: true,
+    value: false,
     onChange: () => {},
-    value: false
-  }
-}
-
-export const Unchecked: Story = {
-  args: {
-    'aria-label': 'Enable notifications',
-    onChange: () => {},
-    value: false
+    'aria-label': 'Workspace notifications'
   }
 }

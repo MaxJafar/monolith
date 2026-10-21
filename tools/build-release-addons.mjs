@@ -9,10 +9,6 @@ if (
 )
   throw Error('Invalid addon ID')
 const core = new Set([
-  'monolith--calendar',
-  'monolith--projects',
-  'monolith--todo-list',
-  'monolith--notes',
   'monolith--databases'
 ])
 const pnpm = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm'

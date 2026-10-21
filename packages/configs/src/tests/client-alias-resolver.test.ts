@@ -1,207 +1,70 @@
+// SPDX-License-Identifier: 0BSD
+import assert from 'node:assert/strict'
 import fs from 'node:fs'
+import { tmpdir } from 'node:os'
 import path from 'node:path'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { clientAliasResolver } from '../resolvers/client-alias-resolver'
 
-vi.mock('node:fs', () => {
-  return {
-    default: {
-      existsSync: vi.fn()
-    }
-  }
+let root: string
+function write(file: string) {
+  const target = path.join(root, file)
+  fs.mkdirSync(path.dirname(target), { recursive: true })
+  fs.writeFileSync(target, 'export {}')
+  return target.replaceAll('\\', '/')
+}
+beforeEach(() => {
+  root = fs.mkdtempSync(path.join(tmpdir(), 'monolith-client-alias-'))
 })
-
-// Build paths with node:path so they are valid on any platform.
-const ROOT = path.resolve('/project')
-const CLIENT = path.join(ROOT, 'modules', 'mrt-builder', 'client')
-const CLIENT_SRC = path.join(CLIENT, 'src')
-const WEB = path.join(ROOT, 'apps', 'web')
-const WEB_SRC = path.join(WEB, 'src')
-const CORE_SRC = path.join(ROOT, 'packages', 'core', 'src')
-
-/** Normalizes a path to forward slashes for cross-platform comparisons. */
-function norm(p: string): string {
-  return p.replace(/\\/g, '/')
-}
-
-/** Mocks existsSync to return true only for the given (normalized) paths. */
-function mockExistsSync(...expected: string[]) {
-  const normalized = expected.map(norm)
-
-  vi.mocked(fs.existsSync).mockImplementation(pathToCheck => {
-    return normalized.includes(norm(pathToCheck as string))
-  })
-}
-
-describe('clientAliasResolver', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-    vi.spyOn(console, 'error').mockImplementation(() => {})
-  })
-
-  it('returns null if importer is not defined', () => {
-    expect(clientAliasResolver('@/components/Button', undefined)).toBeNull()
-  })
-
-  it('returns null if rootDir cannot be determined', () => {
-    const importer = path.join(ROOT, 'build', 'index.js')
-
-    expect(clientAliasResolver('@/components/Button', importer)).toBeNull()
-  })
-
-  it('resolves "@/manifest" relative to the client root directory', () => {
-    const importer = path.join(CLIENT_SRC, 'index.tsx')
-    const expected = path.join(CLIENT, 'manifest.ts')
-
-    mockExistsSync(expected)
-
-    const result = clientAliasResolver('@/manifest', importer)
-
-    expect(norm(result!)).toBe(norm(expected))
-  })
-
-  it('resolves "@/manifest.ts" when the extension is explicit', () => {
-    const importer = path.join(CLIENT_SRC, 'index.tsx')
-    const expected = path.join(CLIENT, 'manifest.ts')
-
-    mockExistsSync(expected)
-
-    const result = clientAliasResolver('@/manifest.ts', importer)
-
-    expect(norm(result!)).toBe(norm(expected))
-  })
-
-  it('resolves components relative to the client "src" directory', () => {
-    const importer = path.join(CLIENT_SRC, 'index.tsx')
-    const expected = path.join(CLIENT_SRC, 'components', 'Button.tsx')
-
-    mockExistsSync(expected)
-
-    const result = clientAliasResolver('@/components/Button', importer)
-
-    expect(norm(result!)).toBe(norm(expected))
-  })
-
-  it('resolves nested subpaths relative to the client "src" directory', () => {
-    const importer = path.join(CLIENT_SRC, 'index.tsx')
-    const expected = path.join(
-      CLIENT_SRC,
-      'core',
-      'providers',
-      'features',
-      'CoreFederationProvider.tsx'
-    )
-
-    mockExistsSync(expected)
-
-    const result = clientAliasResolver(
-      '@/core/providers/features/CoreFederationProvider',
-      importer
-    )
-
-    expect(norm(result!)).toBe(norm(expected))
-  })
-
-  it('resolves components for a "web" project root', () => {
-    const importer = path.join(WEB_SRC, 'index.tsx')
-    const expected = path.join(WEB_SRC, 'core', 'utils', 'workspaceAPI.ts')
-
-    mockExistsSync(expected)
-
-    const result = clientAliasResolver('@/core/utils/workspaceAPI', importer)
-
-    expect(norm(result!)).toBe(norm(expected))
-  })
-
-  it('returns the same normalized module ID as Vite for shared contexts', () => {
-    const importer = path.join(WEB_SRC, 'core', 'routing', 'Sidebar.tsx')
-    const expected = path.join(
-      WEB_SRC,
-      'core',
-      'providers',
-      'SettingsContext.ts'
-    )
-    mockExistsSync(expected)
+afterEach(() => {
+  assert.equal(path.dirname(path.resolve(root)), path.resolve(tmpdir()))
+  assert.ok(path.basename(root).startsWith('monolith-client-alias-'))
+  fs.rmSync(root, { recursive: true, force: true })
+  vi.restoreAllMocks()
+})
+describe('client source aliases', () => {
+  it.each([
+    ['modules/demo/client', '@/component', 'src/component.tsx'],
+    ['modules/demo/client', '@/data', 'src/data.json'],
+    ['modules/demo/client', '@/folder', 'src/folder/index.ts'],
+    ['modules/demo/client', '@/manifest', 'manifest.ts'],
+    ['modules/demo/client', '@/manifest.ts', 'manifest.ts'],
+    ['apps/web', '@/component', 'src/component.ts'],
+    ['packages/ui', '@/component', 'src/component.tsx']
+  ])('resolves %s %s through its own module', (directory, alias, file) => {
+    const expected = write(directory + '/' + file)
     expect(
-      clientAliasResolver('@/core/providers/SettingsContext', importer)
-    ).toBe(norm(expected))
+      clientAliasResolver(
+        alias,
+        path.join(root, directory, 'src/nested/entry.tsx')
+      )
+    ).toBe(expected)
   })
 
-  it('resolves a ".ts" file when no ".tsx" variant exists', () => {
-    const importer = path.join(CLIENT_SRC, 'index.tsx')
-    const expected = path.join(CLIENT_SRC, 'utils', 'math.ts')
-
-    mockExistsSync(expected)
-
-    const result = clientAliasResolver('@/utils/math', importer)
-
-    expect(norm(result!)).toBe(norm(expected))
+  it('normalizes Vite filesystem prefixes, query suffixes and directory entries', () => {
+    const directory = 'modules/demo/client'
+    const expected = write(directory + '/src/index.ts')
+    const importer = path
+      .join(root, directory, 'src/entry.tsx')
+      .replaceAll('\\', '/')
+    expect(clientAliasResolver('@', '/@fs/' + importer + '?v=one')).toBe(
+      expected
+    )
+    expect(clientAliasResolver('@', importer)).toBe(expected)
   })
 
-  it('resolves a ".json" file', () => {
-    const importer = path.join(CLIENT_SRC, 'index.tsx')
-    const expected = path.join(CLIENT_SRC, 'config', 'app.json')
-
-    mockExistsSync(expected)
-
-    const result = clientAliasResolver('@/config/app', importer)
-
-    expect(norm(result!)).toBe(norm(expected))
-  })
-
-  it('resolves index files when no file extension is specified', () => {
-    const importer = path.join(CLIENT_SRC, 'index.tsx')
-    const expected = path.join(CLIENT_SRC, 'components', 'Layout', 'index.tsx')
-
-    mockExistsSync(expected)
-
-    const result = clientAliasResolver('@/components/Layout', importer)
-
-    expect(norm(result!)).toBe(norm(expected))
-  })
-
-  it('resolves using standard package "src" directories', () => {
-    const importer = path.join(CORE_SRC, 'index.ts')
-    const expected = path.join(CORE_SRC, 'utils', 'math.ts')
-
-    mockExistsSync(expected)
-
-    const result = clientAliasResolver('@/utils/math', importer)
-
-    expect(norm(result!)).toBe(norm(expected))
-  })
-
-  it('handles the "@fs" prefix and normalizes paths', () => {
-    const importer = '/@fs/' + norm(path.join(CLIENT_SRC, 'index.tsx'))
-    const expected = path.join(CLIENT_SRC, 'utils.ts')
-
-    mockExistsSync(expected)
-
-    const result = clientAliasResolver('@/utils', importer)
-
-    expect(norm(result!)).toBe(norm(expected))
-  })
-
-  it('resolves the base import "@" to the src directory', () => {
-    const importer = path.join(CLIENT_SRC, 'index.tsx')
-
-    mockExistsSync(CLIENT_SRC)
-
-    const result = clientAliasResolver('@', importer)
-
-    expect(norm(result!)).toBe(norm(CLIENT_SRC))
-  })
-
-  it('logs an error and returns null if no candidates exist', () => {
-    const importer = path.join(CLIENT_SRC, 'index.tsx')
-    const consoleSpy = vi.spyOn(console, 'error')
-
-    mockExistsSync()
-
-    const result = clientAliasResolver('@/non-existent-file', importer)
-
-    expect(result).toBeNull()
-    expect(consoleSpy).toHaveBeenCalled()
+  it('leaves unrelated imports alone and rejects aliases escaping their source root', () => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const importer = path.join(root, 'modules/demo/client/src/entry.ts')
+    write('modules/demo/client/outside.ts')
+    expect(clientAliasResolver('@/../outside', importer)).toBeNull()
+    expect(clientAliasResolver('ordinary-package', importer)).toBeNull()
+    expect(clientAliasResolver('@/value', undefined)).toBeNull()
+    expect(
+      clientAliasResolver('@/value', path.join(root, 'build.ts'))
+    ).toBeNull()
+    expect(clientAliasResolver('@/missing', importer)).toBeNull()
+    expect(log).toHaveBeenCalledOnce()
   })
 })

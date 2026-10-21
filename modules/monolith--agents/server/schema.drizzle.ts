@@ -16,11 +16,6 @@ import {
 
 import { createModuleTable } from '@monolith/drizzle'
 
-import { entries as notes } from '../../monolith--notes/server/schema.drizzle'
-import {
-  tasks as projectTasks,
-  entries as projects
-} from '../../monolith--projects/server/schema.drizzle'
 import {
   documents,
   records
@@ -32,6 +27,18 @@ import type {
   Run,
   WorkItem
 } from '../shared'
+import {
+  columns as projectColumns,
+  tasks as projectTasks,
+  entries as projects
+} from './workSchema'
+
+// Export concrete tables for schema publication as well as runtime registration.
+export {
+  entries as workProjects,
+  columns as workColumns,
+  tasks as workTasks
+} from './workSchema'
 
 const table = createModuleTable('zillion_agents')
 const date = (name: string) =>
@@ -234,7 +241,7 @@ export const contextLinks = table(
     record_id: uuid('record_id').references(() => records.id, {
       onDelete: 'cascade'
     }),
-    note_id: uuid('note_id').references(() => notes.id, { onDelete: 'cascade' })
+    note_id: uuid('note_id')
   },
   t => [
     uniqueIndex('zillion_context_unique').on(t.task_id, t.page_key),
@@ -400,6 +407,9 @@ export const activity = table(
 )
 
 export const tables = {
+  workProjects: projects,
+  workColumns: projectColumns,
+  workTasks: projectTasks,
   principals,
   playbooks,
   playbookBindings,

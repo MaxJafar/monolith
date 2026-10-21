@@ -1,4 +1,13 @@
-import { memo, useRef, useState } from 'react'
+// SPDX-License-Identifier: 0BSD
+import {
+  type ComponentProps,
+  type InputHTMLAttributes,
+  type RefObject,
+  memo,
+  useId,
+  useRef,
+  useState
+} from 'react'
 
 import { usePromiseLoading } from '@monolith/api'
 
@@ -15,138 +24,126 @@ import { useInputLabel } from '../shared/hooks/useInputLabel'
 import type { InputVariants } from '../shared/types'
 import { TextInputBox } from './components/TextInputBox'
 
-export type TextInputProps = {
-  label?: string
-  icon?: string
-  placeholder: string
-  value: string
-  onChange: (value: string) => void
-  onRawChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
-  required?: boolean
-  disabled?: boolean
-  autoFocus?: boolean
-  isPassword?: boolean
-  inputMode?:
-    'text' | 'none' | 'tel' | 'url' | 'email' | 'numeric' | 'decimal' | 'search'
-  actionButtonProps?: React.ComponentProps<typeof Button>
-  className?: string
-  namespace?: string | false
-  errorMsg?: string
-  inputRef?: React.RefObject<HTMLInputElement | null>
-  onEnter?: () => void
-  wrapperProps?: InputWrapperPassthrough
-} & Omit<
-  React.InputHTMLAttributes<HTMLInputElement>,
-  'onChange' | 'size' | 'value'
+export type TextInputProps = Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  'size' | 'value' | 'onChange'
 > &
-  InputVariants<true>
+  InputVariants<true> & {
+    value: string
+    onChange: (value: string) => void
+    placeholder: string
+    label?: string
+    icon?: string
+    isPassword?: boolean
+    namespace?: string | false
+    errorMsg?: string
+    inputRef?: RefObject<HTMLInputElement | null>
+    onEnter?: () => void
+    onRawChange?: InputHTMLAttributes<HTMLInputElement>['onChange']
+    actionButtonProps?: ComponentProps<typeof Button>
+    wrapperProps?: InputWrapperPassthrough
+  }
 
-export function _TextInput({
-  variant = 'classic',
-  size = 'default',
-  label,
-  icon,
-  placeholder,
-  value,
-  onChange,
-  onRawChange,
-  required = false,
-  disabled = false,
-  isPassword = false,
-  inputMode = 'text',
-  actionButtonProps,
-  className,
-  namespace,
-  errorMsg,
-  autoFocus = false,
-  inputRef: externalInputRef,
-  onEnter,
-  wrapperProps,
-  ...inputProps
-}: TextInputProps) {
-  const [showPassword, setShowPassword] = useState(false)
-  const localInputRef = useRef<HTMLInputElement | null>(null)
-
-  const inputRef = externalInputRef || localInputRef
-
-  const inputLabel = useInputLabel({ namespace, label: label ?? '' })
-
-  const [actionButtonLoading, handleClick] = usePromiseLoading(
-    (actionButtonProps?.onClick as (() => Promise<void>) | undefined) ||
-      (async (): Promise<void> => {})
+export function _TextInput(props: TextInputProps) {
+  const {
+    label,
+    icon,
+    namespace,
+    errorMsg,
+    wrapperProps,
+    className,
+    inputRef,
+    isPassword,
+    actionButtonProps,
+    variant = 'classic',
+    size = 'default',
+    ...input
+  } = props
+  const generatedId = useId()
+  const localRef = useRef<HTMLInputElement>(null)
+  const ref = inputRef ?? localRef
+  const [revealed, setRevealed] = useState(false)
+  const translatedLabel = useInputLabel({ label: label ?? '', namespace })
+  const [busy, runAction] = usePromiseLoading(
+    async (event: React.MouseEvent<HTMLButtonElement>) => {
+      await actionButtonProps?.onClick?.(event)
+    }
   )
-
+  const id = input.id ?? generatedId
+  const errorId = generatedId + '-error'
   return (
     <InputWrapper
       {...wrapperProps}
-      className={className}
-      disabled={disabled}
-      errorMsg={errorMsg}
-      inputRef={inputRef}
-      size={size}
       variant={variant}
+      size={size}
+      className={className}
+      disabled={input.disabled}
+      inputRef={ref}
+      errorMsg={errorMsg}
+      errorId={errorId}
     >
       {variant === 'classic' && icon && (
         <InputIcon
-          active={!!value && String(value).length > 0}
-          hasError={!!errorMsg}
           icon={icon}
+          active={input.value.length > 0}
+          hasError={!!errorMsg}
         />
       )}
-      <Flex align="center" gap="sm" position="relative" width="100%">
+      <Flex
+        align="center"
+        position="relative"
+        gap="sm"
+        width="100%"
+        minWidth="0"
+      >
         {variant === 'classic' && label && (
           <InputLabel
-            active={!!value && String(value).length > 0}
+            htmlFor={id}
+            label={translatedLabel}
+            active={input.value.length > 0}
+            required={input.required}
             hasError={!!errorMsg}
-            label={inputLabel}
-            required={required === true}
           />
         )}
         <TextInputBox
-          aria-label={inputLabel || placeholder}
-          autoFocus={autoFocus}
-          disabled={disabled}
-          inputMode={inputMode}
-          inputRef={inputRef}
-          isPassword={isPassword}
-          placeholder={placeholder}
-          showPassword={showPassword}
-          size={size}
-          value={value}
+          {...input}
+          id={id}
+          inputRef={ref}
           variant={variant}
-          onChange={onChange}
-          onEnter={onEnter}
-          onRawChange={onRawChange}
-          {...inputProps}
+          size={size}
+          isPassword={isPassword}
+          showPassword={revealed}
+          aria-label={
+            input['aria-label'] ?? (translatedLabel || input.placeholder)
+          }
+          aria-invalid={input['aria-invalid'] ?? (!!errorMsg || undefined)}
+          aria-describedby={
+            [input['aria-describedby'], errorMsg ? errorId : undefined]
+              .filter(Boolean)
+              .join(' ') || undefined
+          }
         />
         {isPassword && (
           <Button
-            icon={showPassword ? 'tabler:eye' : 'tabler:eye-off'}
             variant="plain"
-            onMouseDown={() => {
-              setShowPassword(true)
-            }}
-            onMouseUp={() => {
-              setShowPassword(false)
-            }}
-            onTouchEnd={() => {
-              setShowPassword(false)
-            }}
-            onTouchStart={() => {
-              setShowPassword(true)
-            }}
+            icon={revealed ? 'tabler:eye-off' : 'tabler:eye'}
+            disabled={input.disabled}
+            aria-label={revealed ? 'Hide password' : 'Show password'}
+            aria-pressed={revealed}
+            onClick={() => setRevealed(value => !value)}
+            onBlur={() => setRevealed(false)}
           />
         )}
         {actionButtonProps && (
           <Button
             {...actionButtonProps}
-            loading={actionButtonLoading}
-            variant="plain"
-            onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-              e.preventDefault()
-              e.stopPropagation()
-
-              handleClick()
+            variant={actionButtonProps.variant ?? 'plain'}
+            disabled={input.disabled || actionButtonProps.disabled}
+            loading={busy || actionButtonProps.loading}
+            onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+              event.preventDefault()
+              event.stopPropagation()
+              return runAction(event)
             }}
           />
         )}
@@ -154,5 +151,4 @@ export function _TextInput({
     </InputWrapper>
   )
 }
-
 export const TextInput = memo(_TextInput)

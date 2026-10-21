@@ -1,141 +1,61 @@
-.stroke-\[2px\] > path {
-  stroke-width: 2.5px;
-}
-
-.loader {
-  width: 36px;
-  height: 36px;
-  border: 4px solid;
-  border-color: var(--color-bg-500);
-  border-bottom-color: transparent;
-  border-radius: 50%;
-  display: inline-block;
-  box-sizing: border-box;
-  animation: rotation 1s linear infinite;
-}
-
-@keyframes rotation {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-[data-rmiz],
-[data-rmiz-content] {
-  height: 100%;
-  width: 100%;
-}
-
-.__file-input {
-  & [data-rmiz],
-  & [data-rmiz-content] {
-    max-height: 24rem;
-    width: 100%;
-  }
-
-  & [data-rmiz-content] {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-  }
-}
-
-div[data-rmiz-modal-overlay] {
-  background-color: rgb(0 0 0 / 0.8);
-}
-
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-
+/* SPDX-License-Identifier: 0BSD */
+/* Compatibility selectors for existing extension content. */
 .no-scrollbar {
   scrollbar-width: none;
 }
-
-.no-overflow-x > div {
-  overflow-x: hidden !important;
+.no-scrollbar::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
-
+.no-overflow-x > div {
+  overflow-x: hidden;
+}
 .tabler-icon {
-  height: 1.5rem;
-  width: 1.5rem;
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
   flex-shrink: 0;
 }
-
-aside .sidebar-item .bg-bg-200\/50 > svg:first-child {
-  color: var(--color-custom-500) !important;
+.loader {
+  display: inline-block;
+  inline-size: 2.5rem;
+  aspect-ratio: 1;
+  border: 3px solid var(--color-bg-300);
+  border-inline-start-color: var(--color-custom-500);
+  border-radius: 50%;
+  animation: monolith-loading-turn 0.85s linear infinite;
 }
-
-:root {
-  --toastify-color-light: var(--color-custom-500);
+@keyframes monolith-loading-turn {
+  to {
+    rotate: 1turn;
+  }
 }
-
-.Toastify__progress-bar--default {
-  background: var(--color-bg-500);
-  opacity: 1 !important;
+:where([data-rmiz], [data-rmiz-content]) {
+  width: 100%;
+  height: 100%;
 }
-
+[data-rmiz-modal-overlay] {
+  background: #000c;
+}
+.Toastify__toast-container {
+  --toastify-toast-width: min(32rem, calc(100vw - 2rem));
+  font-family: inherit;
+}
+.Toastify__toast {
+  background: var(--bg-lifted, var(--color-bg-50));
+  color: var(--text-primary, var(--color-bg-800));
+  border: 1px solid var(--border-subtle, var(--color-bg-200));
+  border-radius: var(--radius-lg);
+  font-family: inherit;
+}
+.Toastify__progress-bar--default,
 .Toastify__progress-bar--controlled {
   background: var(--color-custom-500);
-  opacity: 1 !important;
 }
-
-.Toastify__toast-container {
-  width: 100% !important;
-  padding: 1rem;
-}
-
-@media (min-width: 640px) {
-  .Toastify__toast-container {
-    max-width: 32rem;
-  }
-}
-
-@media (min-width: 768px) {
-  .Toastify__toast-container {
-    max-width: 32rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .Toastify__toast-container {
-    max-width: 36rem;
-  }
-}
-
-@media (min-width: 1280px) {
-  .Toastify__toast-container {
-    max-width: 42rem;
-  }
-}
-
-.Toastify__toast-container * {
-  font-family: inherit !important;
-}
-
-.Toastify__toast {
-  background-color: var(--color-bg-50);
-  color: var(--color-bg-800);
-  width: 100% !important;
-}
-
 .dark .Toastify__toast {
-  background-color: var(--color-bg-800);
-  color: var(--color-bg-50);
+  background: var(--bg-lifted, var(--color-bg-800));
+  color: var(--text-primary, var(--color-bg-50));
 }
-
-.sidebar-opening {
-  transition:
-    left 0.3s ease,
-    z-index 0s linear 0s;
-}
-
+.sidebar-opening,
 .sidebar-closing {
-  transition:
-    left 0.3s ease,
-    z-index 0s linear 0.3s;
+  transition: left var(--motion-normal) var(--motion-ease);
 }

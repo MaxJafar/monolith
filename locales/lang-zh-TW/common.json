@@ -147,21 +147,29 @@
   "modals": {
     "confirmationFailed": "無法完成此操作，請重試。",
     "deleteConfirmation": {
-      "title": "您確定要刪除{{itemName}}嗎？",
-      "desc": "這將刪除{{itemName}}及其所有相關內容。此操作不可逆！",
+      "title": "永久刪除 {{itemName}}？",
+      "desc": "{{itemName}} 與其關聯內容將被移除，且無法復原。",
       "inputs": {
         "confirmation": {
-          "placeholder": "請輸入 \"{{text}}\" 以確認刪除",
+          "placeholder": "輸入 {{text}} 以確認刪除",
           "label": "確認刪除"
         }
       },
-      "error": "刪除項目時出錯。請再試一次。"
+      "error": "未能完成刪除。連線恢復後請重試。"
     },
     "searchFilters": "搜索過濾器",
     "datePicker": {
       "title": "選擇日期",
       "titleWithTime": "選擇日期時間",
-      "yearMonth": "選擇年月"
+      "yearMonth": "選擇年月",
+      "month": "月份",
+      "year": "年份",
+      "time": "時間（24 小時制）",
+      "clear": "清除日期",
+      "today": "今天",
+      "previousMonth": "上個月",
+      "nextMonth": "下個月",
+      "invalidSelection": "請選擇允許範圍內的有效本地日期和時間。"
     },
     "iconPicker": {
       "title": "選擇圖標",
@@ -172,9 +180,12 @@
       "empty": {
         "icon": {
           "title": "沒有圖標",
-          "description": "未找到圖標，請嘗試其他關鍵詞。"
+          "description": "試試較短的名稱或其他圖示關鍵字。"
         }
-      }
+      },
+      "allCollections": "所有圖示集",
+      "loadError": "圖示目錄暫時無法使用，請重試。",
+      "more": "載入更多圖示"
     },
     "imagePicker": {
       "title": "選擇文件",
@@ -202,22 +213,33 @@
       "empty": {
         "result": {
           "title": "沒有結果",
-          "description": "未找到圖片，請嘗試其他關鍵詞。"
+          "description": "沒有符合的圖片。更換搜尋內容再試試。"
         },
         "pixabay": {
           "title": "由Pixabay提供",
-          "description": "搜索超過1300萬張高質量免費圖片。"
+          "description": "搜尋 Pixabay 圖片素材庫。"
         },
         "noAPIKey": {
           "title": "Pixabay API密鑰未配置",
-          "description": "請在API密鑰庫中設置您的Pixabay API密鑰以使用此功能。"
+          "description": "先在 API 密鑰中儲存 Pixabay 憑證，再搜尋其圖片庫。"
         },
         "noOpenAIKey": {
           "title": "OpenAI API密鑰未配置",
-          "description": "請在API密鑰庫中設置您的OpenAI API密鑰以使用此功能。"
+          "description": "在 API 密鑰中儲存 OpenAI 憑證以產生圖片。"
         }
       },
-      "ai": "AI影像生成"
+      "ai": "AI影像生成",
+      "choose": "選擇檔案",
+      "unsupported": "不支援此檔案類型。",
+      "readError": "無法讀取檔案，請重新選擇。",
+      "reading": "正在讀取檔案…",
+      "drop": "將檔案拖到此處，或瀏覽裝置中的檔案",
+      "paste": "貼上圖片",
+      "clipboardError": "無法從剪貼簿讀取支援的圖片。",
+      "saveError": "無法儲存檔案。已保留您的選擇，請重試。",
+      "serviceError": "圖片服務暫時無法使用，請重試。",
+      "result": "圖片 {{id}}",
+      "promptHint": "描述您想產生的圖片。"
     },
     "colorPicker": {
       "title": "選擇顏色",
@@ -234,7 +256,13 @@
     },
     "imagePreview": "圖片預覽",
     "qrCodeScanner": "二維碼掃描器",
-    "viewImage": "查看圖片"
+    "viewImage": "查看圖片",
+    "scanner": {
+      "permission": "掃描需要相機權限。請在瀏覽器中允許存取後重試。",
+      "camera": "無法開啟相機。請檢查裝置是否連線且可用。",
+      "scan": "無法處理此代碼，請重新掃描。",
+      "processing": "正在處理掃描結果…"
+    }
   },
   "misc": {
     "alert": {
@@ -246,8 +274,8 @@
     },
     "search": "搜索{{item}}...",
     "notFound": {
-      "title": "糟糕！這裡什麼都沒有",
-      "description": "找不到您正在尋找的頁面。請檢查網址並重試。"
+      "title": "頁面無法使用",
+      "description": "此位址沒有可用頁面。請檢查連結或返回工作區。"
     },
     "tipsAndTricks": "提示與技巧",
     "loadingModule": "加載擴充套件中...",
@@ -276,17 +304,17 @@
       "empty": {
         "result": {
           "title": "沒有結果",
-          "description": "找不到圖片, 請嘗試其他關鍵字。"
+          "description": "沒有符合的圖片。請更換搜尋內容。"
         },
         "pixabay": {
           "title": "由 Pixabay 提供",
-          "description": "搜索超過1300萬張免費高質量圖片。"
+          "description": "瀏覽 Pixabay 提供的圖片結果。"
         }
       }
     },
     "dnd": {
       "dropHere": "將項目拖放到這裡",
-      "dragAndDropToUpload": "拖放或點擊上傳",
+      "dragAndDropToUpload": "拖入檔案，或選擇檔案",
       "or": "或",
       "buttons": {
         "pasteFromClipboard": "從剪貼簿貼上"
@@ -310,7 +338,7 @@
     "empty": {
       "apiStatus": {
         "title": "無法連結到API",
-        "description": "請檢查您的網絡連接並重試。如果您是開發人員，請檢查伺服器是否正常運行。"
+        "description": "Monolith 無法連接此伺服器。請檢查網路與伺服器位址後重試。"
       }
     },
     "iconPicker": {
@@ -321,12 +349,12 @@
       "empty": {
         "icon": {
           "title": "沒有圖標",
-          "description": "找不到圖標, 請嘗試其他關鍵字。"
+          "description": "更換名稱以尋找圖示。"
         }
       }
     },
     "locationDisabled": {
-      "description": "位置輸入目前不可用。請添加正確配置的Google Cloud API金鑰以啟用此功能。欲了解更多資訊，請參閱",
+      "description": "位置搜尋需要具備 Places 權限的 Google Cloud 憑證。請在 API 密鑰中設定。設定說明：",
       "title": "不適用"
     },
     "dates": {
@@ -356,10 +384,10 @@
     },
     "fieldRequired": "此欄位為必填。",
     "invalidField": "無效欄位。",
-    "invalidColor": "無效顏色。請輸入有效的十六進制值，格式為#RRGGBB。",
-    "invalidIcon": "無效圖標。必須是來自Iconify的有效圖標識別符，格式為<icon-set>:<icon-name>。",
+    "invalidColor": "請在 # 後輸入六位十六進位數，例如 #336699。",
+    "invalidIcon": "請輸入包含圖示集與名稱的識別碼，例如 tabler:calendar。",
     "loadingUserData": "正在加載用戶數據...",
-    "invalidSelection": "無效選擇。請從清單中選擇一個有效的值。",
+    "invalidSelection": "請選擇可用選項之一。",
     "fileInputSupportedFormat": "支持的格式：{{format}}",
     "viewMode": "顯示方式"
   },
@@ -379,37 +407,19 @@
       }
     },
     "openNavigation": "開啟導覽",
-    "collapseNavigation": "收起導覽"
+    "collapseNavigation": "收起導覽",
+    "itemAction": "{{name}}的操作",
+    "clearSelection": "清除選取",
+    "toggleSection": "展開或摺疊群組"
   },
   "fetch": {
-    "error": "從伺服器獲取數據失敗",
-    "success": "耶！成功{{action}}項目！",
-    "failure": "呃... {{action}}項目失敗。請再試一次。",
+    "error": "伺服器未傳回所需資料。",
+    "success": "已完成：{{action}}",
+    "failure": "無法完成 {{action}}。請重試。",
     "action": {
       "create": "創建",
       "update": "更新",
-      "delete": "刪除",
-      "rename": "重命名",
-      "pin": "置頂",
-      "unpin": "取消置頂",
-      "archive": "歸檔",
-      "unarchive": "取消歸檔",
-      "remove": "移除",
-      "add": "添加",
-      "save": "保存",
-      "public": "公開",
-      "private": "設為私人",
-      "replace": "替換",
-      "clearMedium": "清除",
-      "thumbnail": "更新縮略圖",
-      "generate": "生成",
-      "cleanedup": "清理",
-      "summarized": "總結",
-      "unlock": "解鎖",
-      "download": "下載",
-      "NASFilesReady": " 文件已準備好下載。前往您的NAS。",
-      "addedToFavourites": "添加到收藏夾",
-      "removedFromFavourites": "從收藏夾中移除"
+      "delete": "刪除"
     },
     "redirected": "已重定向",
     "redirecting": "重定向中...",
@@ -459,24 +469,24 @@
     },
     "validation": {
       "emailRequired": "電子郵件為必填項",
-      "emailInvalid": "請輸入有效的電子郵件地址",
+      "emailInvalid": "請輸入包含使用者名稱與網域的電子郵件地址。",
       "usernameRequired": "用戶名為必填項",
-      "usernameTooShort": "用戶名至少需要3個字元",
-      "usernameInvalid": "用戶名只能包含字母、數字和下劃線",
+      "usernameTooShort": "使用者名稱至少需要 3 個字元。",
+      "usernameInvalid": "使用者名稱可使用英文字母、數字或底線。",
       "nameRequired": "姓名為必填項",
       "passwordRequired": "密碼為必填項",
-      "passwordTooShort": "密碼至少需要8個字元",
+      "passwordTooShort": "密碼至少需要 8 個字元。",
       "passwordMismatch": "兩次輸入的密碼不一致"
     },
     "modals": {
       "twoFA": {
         "title": "雙因素身份驗證",
-        "description": "請在您之前註冊的身份驗證器應用程式中輸入提供的 OTP。",
+        "description": "輸入已連接驗證器目前顯示的登入代碼。",
         "buttons": {
           "useEmailOtp": "使用電子郵件OTP",
           "useAuthApp": "使用身份驗證應用程式"
         },
-        "emailDescription": "請輸入與您的帳戶相關聯的電子郵件地址。",
+        "emailDescription": "輸入此 Monolith 帳戶使用的電子郵件地址。",
         "inputs": {
           "email": "電子郵件地址"
         }
@@ -484,26 +494,26 @@
     },
     "orAuthenticateWith": "或以以下方式進行身份驗證",
     "messages": {
-      "otpSent": "如果該電子郵件地址與任何帳戶相關聯，您將收到一次性密碼。",
+      "otpSent": "如果此位址對應一個帳戶，您將收到包含登入代碼的電子郵件。",
       "welcomeBack": "歡迎回來，{{name}}!",
-      "invalidCredentials": "無效的電子郵件或密碼。請再試一次。",
-      "invalidFields": "無效欄位。請填寫有效的電子郵件地址和密碼。",
-      "quotaExceeded": "最大嘗試次數已達到。請稍後再試。",
-      "unknownError": "未知錯誤。請稍後再試。",
-      "invalidLoginAttempt": "無效的登入嘗試。請再試一次。",
+      "invalidCredentials": "登入資訊未被接受。",
+      "invalidFields": "請檢查電子郵件與密碼後再送出。",
+      "quotaExceeded": "登入暫時受限。請稍後再試。",
+      "unknownError": "未能完成登入。請稍後重試。",
+      "invalidLoginAttempt": "此登入要求已失效。請重新開始。",
       "userCreated": "帳戶創建成功！歡迎來到 monolith。",
       "otpLength": "請輸入驗證器中的六位驗證碼。",
       "invalidOTP": "無法驗證此驗證碼，請重試。"
     },
     "qrLogin": {
       "title": "掃碼登入",
-      "description": "使用其他設備登入您的帳戶。",
+      "description": "在另一台已登入的 Monolith 用戶端上核准此裝置。",
       "expired": "二維碼已過期",
       "clickToRefresh": "點擊刷新",
       "approved": "登入已批准！正在跳轉...",
       "waiting": "等待批准中...",
       "approvalTitle": "批准登入",
-      "approvalDescription": "一台裝置正在請求登入您的帳戶",
+      "approvalDescription": "允許存取帳戶前，請確認此裝置。",
       "browserInfo": "裝置資訊",
       "approve": "批准登入",
       "deny": "拒絕",
@@ -520,7 +530,7 @@
   "vault": {
     "vault": {
       "lockedMessage": "您的保險庫已鎖定",
-      "passwordRequired": "需要主密碼來解密您的保險庫。",
+      "passwordRequired": "輸入保險庫密碼以讀取加密內容。",
       "unlocked": "保險庫已解鎖",
       "failedToUnlock": "解鎖保險庫失敗",
       "buttons": {
@@ -529,7 +539,7 @@
       },
       "createPassword": {
         "title": "設置主密碼",
-        "desc": "請設置一個主密碼來保護您的保險庫。"
+        "desc": "設定用於加密保險庫資料的密碼。"
       },
       "inputs": {
         "newPassword": "新密碼",
@@ -537,8 +547,18 @@
         "masterPassword": "主密碼"
       },
       "confirmSetNewPassword": {
-        "title": "確保您記住您的主密碼！",
-        "desc": "此主密碼是不可更改的（目前）！如果您不小心忘記了密碼，您將失去一切。此密碼會被哈希並存儲在您的用戶資料中，且無法解密。它將用於加密和解密您存儲在保險庫中的數據。"
+        "title": "請妥善保管保險庫密碼",
+        "desc": "保險庫密碼目前無法變更或找回。Monolith 只儲存雜湊值，不儲存可讀取的密碼。遺失密碼將導致無法存取加密資料。"
+      },
+      "generate": "產生密碼",
+      "edit": "修改密碼",
+      "review": "檢查密碼",
+      "confirmCreate": "設定保險庫密碼",
+      "errors": {
+        "empty": "請輸入並確認密碼。",
+        "mismatch": "兩次密碼必須完全一致，包括空格。",
+        "random": "此瀏覽器無法安全產生密碼。",
+        "create": "無法儲存密碼，請重試。"
       }
     },
     "otp": {
@@ -549,10 +569,10 @@
         "authByQR": "通過 QR 碼驗證"
       },
       "messages": {
-        "success": "一次性密碼已發送！請檢查您的電子郵件。",
+        "success": "請查收電子郵件中的驗證碼。",
         "failed": "請求一次性密碼失敗",
         "invalid": "一次性密碼必須是6位數字",
-        "cooldown": "請求過於頻繁，請稍後再試",
+        "cooldown": "請稍等後再申請驗證碼。",
         "required": {
           "title": "需要一次性密碼來解鎖",
           "desc": "為了增加安全性，需要一次性密碼來解鎖此擴充套件。請點擊下面的按鈕來請求一次性密碼。"
@@ -561,7 +581,8 @@
           "success": "一次性密碼驗證成功",
           "failed": "一次性密碼驗證失敗"
         }
-      }
+      },
+      "codeLabel": "驗證碼"
     }
   },
   "recurring": {
@@ -660,6 +681,21 @@
       "week": "週",
       "month": "月份",
       "year": "年"
+    },
+    "editor": {
+      "rawDescription": "此行程包含進階重複設定。編輯其文字可保留所有規則。",
+      "raw": "重複規則",
+      "structured": "使用行程控制項",
+      "start": "開始時間",
+      "interval": "重複間隔",
+      "weekdays": "每週日期",
+      "pattern": "重複方式",
+      "monthDay": "每月日期（負數從月底計算）",
+      "position": "在月份中的順序",
+      "dayGroup": "日期或日期群組",
+      "count": "重複次數",
+      "until": "重複至",
+      "incomplete": "請填寫整數間隔、選擇日期，並設定有效的結束條件。"
     }
   },
   "blocks": {
@@ -879,7 +915,16 @@
     "clearIndex": "清除我的搜尋索引"
   },
   "inputs": {
-    "rangeValue": "數值"
+    "rangeValue": "數值",
+    "locationSearch": {
+      "searching": "正在尋找地點…",
+      "failed": "地點搜尋失敗，請重新搜尋。",
+      "empty": "沒有符合的地點。",
+      "checking": "正在檢查地點搜尋服務…",
+      "unconfigured": "管理員需要設定地圖服務才能搜尋地點。",
+      "serviceFailed": "無法檢查地點搜尋服務。"
+    },
+    "formSaveFailed": "無法儲存變更。您填寫的內容已保留，請重試。"
   },
   "desktop": {
     "welcome": "連結你的工作空間。",
@@ -1459,7 +1504,9 @@
     "addons": "擴充與小工具",
     "addonsHelp": "為工作區啟用專屬體驗。",
     "updates": "更新",
-    "updatesHelp": "管理應用程式與伺服器版本、自動下載及還原。"
+    "updatesHelp": "管理應用程式與伺服器版本、自動下載及還原。",
+    "resultCount_one": "{{count}} 個結果",
+    "resultCount_other": "{{count}} 個結果"
   },
   "urpg": {
     "addonDescription": "Your life, in progress. Turn meaningful work into quests and grow a character alongside you.",
@@ -2053,5 +2100,26 @@
     "editSeries": "標題和說明將套用至整個系列",
     "saveEvent": "儲存活動",
     "unscheduled": "未安排時間"
+  },
+  "journal": {
+    "title": "日記",
+    "description": "留一點空間，思考、回憶和書寫。",
+    "newEntry": "新增日記",
+    "entryTitle": "日記標題",
+    "date": "日期",
+    "close": "關閉",
+    "startWriting": "開始書寫",
+    "saveFailed": "無法建立日記。草稿已保留，請重試。",
+    "back": "返回日記",
+    "loading": "正在載入日記…",
+    "stale": "無法重新整理日記。請重試後再修改。",
+    "retry": "重試",
+    "search": "搜尋日記",
+    "month": "月份",
+    "allDates": "全部日期",
+    "entries_one": "{{count}} 篇日記",
+    "entries_other": "{{count}} 篇日記",
+    "empty": "留給新篇章的空間",
+    "emptyHint": "新增日記或調整搜尋條件。"
   }
 }

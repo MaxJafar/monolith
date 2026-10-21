@@ -1,17 +1,6 @@
-import { normalizeResponsiveProp } from '@/system/responsive'
+// SPDX-License-Identifier: 0BSD
+import type { TokenizedLayoutProps } from '../props/layout-props.css'
+import { expandAliases, layoutAliases } from '../registry'
 
-import type { TokenizedLayoutProps } from '../props'
-
-export function resolveLayoutSprinklesProps({
-  position,
-  overflow,
-  overflowX,
-  overflowY
-}: TokenizedLayoutProps) {
-  return {
-    position: normalizeResponsiveProp(position),
-    overflow: normalizeResponsiveProp(overflow),
-    overflowX: normalizeResponsiveProp(overflowX),
-    overflowY: normalizeResponsiveProp(overflowY)
-  }
-}
+export const resolveLayoutSprinklesProps = (props: TokenizedLayoutProps) =>
+  expandAliases(layoutAliases, props)

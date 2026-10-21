@@ -12,8 +12,8 @@ import {
 
 import { createModuleTable } from '@monolith/drizzle'
 
-import { tasks } from '../../monolith--projects/server/schema.drizzle'
 import { principals, runs } from '../../monolith--agents/server/schema.drizzle'
+import { tasks } from '../../monolith--agents/server/workSchema'
 import type { CoachConfig } from '../coachShared'
 import type { Routine, ScheduleItem } from '../shared'
 

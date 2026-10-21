@@ -1,109 +1,56 @@
-import { describe, expect, it } from 'vitest'
+// SPDX-License-Identifier: 0BSD
+import { expect, it, vi } from 'vitest'
 import { z } from 'zod'
 
 import { createDefaultValues } from './createDefaultValues'
 
-describe('createDefaultValues', () => {
-  it('should resolve string schema to empty string', () => {
-    const schema = z.string()
-
-    expect(createDefaultValues(schema)).toBe('')
+it('prepares nested editable values without executing output transforms', () => {
+  const transform = vi.fn((value: string) => value.length)
+  const shape = z.object({
+    title: z.string().min(1),
+    amount: z.number().positive(),
+    active: z.boolean(),
+    labels: z.array(z.string()),
+    status: z.enum(['planned', 'done']),
+    extra: z.string().optional(),
+    empty: z.string().nullable(),
+    date: z.date(),
+    nested: z.object({ text: z.string().transform(transform) }).readonly()
   })
-
-  it('should resolve number schema to 0', () => {
-    const schema = z.number()
-
-    expect(createDefaultValues(schema)).toBe(0)
+  expect(createDefaultValues(shape)).toEqual({
+    title: '',
+    amount: 0,
+    active: false,
+    labels: [],
+    status: 'planned',
+    extra: undefined,
+    empty: null,
+    date: undefined,
+    nested: { text: '' }
   })
-
-  it('should resolve boolean schema to false', () => {
-    const schema = z.boolean()
-
-    expect(createDefaultValues(schema)).toBe(false)
+  expect(transform).not.toHaveBeenCalled()
+})
+it('evaluates explicit defaults separately for each draft', () => {
+  const schema = z.object({
+    selected: z.array(z.string()).default(() => ['home'])
   })
-
-  it('should resolve array schema to empty array', () => {
-    const schema = z.array(z.string())
-
-    expect(createDefaultValues(schema)).toEqual([])
+  const first = createDefaultValues(schema)
+  first.selected.push('changed')
+  expect(createDefaultValues(schema)).toEqual({ selected: ['home'] })
+})
+it('terminates recursive schemas and resolves repeated nonrecursive fields', () => {
+  const recursive: z.ZodType = z.lazy(() => z.object({ self: recursive }))
+  expect(createDefaultValues(recursive)).toEqual({ self: undefined })
+  const child = z.object({ title: z.string() })
+  expect(createDefaultValues(z.object({ left: child, right: child }))).toEqual({
+    left: { title: '' },
+    right: { title: '' }
   })
-
-  it('should resolve object schema to an object with default values recursively', () => {
-    const schema = z.object({
-      name: z.string(),
-      age: z.number(),
-      active: z.boolean(),
-      tags: z.array(z.string()),
-      nested: z.object({
-        value: z.string()
-      })
-    })
-
-    expect(createDefaultValues(schema)).toEqual({
-      name: '',
-      age: 0,
-      active: false,
-      tags: [],
-      nested: {
-        value: ''
-      }
-    })
-  })
-
-  it('should resolve optional schema to undefined', () => {
-    const schema = z.string().optional()
-
-    expect(createDefaultValues(schema)).toBeUndefined()
-  })
-
-  it('should resolve nullable schema to null', () => {
-    const schema = z.string().nullable()
-
-    expect(createDefaultValues(schema)).toBeNull()
-  })
-
-  it('should resolve default schema to the specified default value', () => {
-    const schema1 = z.string().default('hello')
-
-    const schema2 = z.string().default(() => {
-      return 'dynamic-hello'
-    })
-
-    expect(createDefaultValues(schema1)).toBe('hello')
-    expect(createDefaultValues(schema2)).toBe('dynamic-hello')
-  })
-
-  it('should resolve readonly schema to its inner default value', () => {
-    const schema = z.string().readonly()
-
-    expect(createDefaultValues(schema)).toBe('')
-  })
-
-  it('should resolve lazy schema to its inner default value', () => {
-    const schema = z.lazy(() => {
-      return z.string()
-    })
-
-    expect(createDefaultValues(schema)).toBe('')
-  })
-
-  it('should resolve pipe/transform schema to its inner default value', () => {
-    const schema = z.string().transform(function (val) {
-      return val.length
-    })
-
-    expect(createDefaultValues(schema)).toBe('')
-  })
-
-  it('should resolve enum schema to its first option', () => {
-    const schema = z.enum(['active', 'inactive'])
-
-    expect(createDefaultValues(schema)).toBe('active')
-  })
-
-  it('should resolve unsupported schemas to undefined', () => {
-    const schema = z.date()
-
-    expect(createDefaultValues(schema)).toBeUndefined()
-  })
+})
+it('retains optional and nullable choices instead of introducing a default', () => {
+  expect(
+    createDefaultValues(z.string().default('text').optional())
+  ).toBeUndefined()
+  expect(createDefaultValues(z.string().default('text').nullable())).toBeNull()
+  expect(createDefaultValues(z.lazy(() => z.number().default(25)))).toBe(25)
 })

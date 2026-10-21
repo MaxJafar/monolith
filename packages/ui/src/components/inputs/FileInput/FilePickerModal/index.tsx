@@ -1,83 +1,129 @@
-import { useState } from 'react'
+// SPDX-License-Identifier: 0BSD
+import { useId, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
-import { usePromiseLoading } from '@monolith/api'
-
-import { Button, type FilePickerSourceConfig } from '@/components/inputs'
+import { Button } from '@/components/inputs/Button'
+import { Tabs } from '@/components/navigation/Tabs'
 import { ModalHeader } from '@/components/overlays'
-import { Box, Flex } from '@/components/primitives'
+import { Flex, Stack, Text } from '@/components/primitives'
 
-import { FilePickerContext } from './contexts/FilePickerContext'
-import { FILE_PICKET_TABS, useTabbedView } from './tabs'
+import { FilePreview } from '../Preview'
+import '../fileInput.css'
+import {
+  type FilePickerSourceConfig,
+  type FileSelection,
+  selectedName
+} from '../model'
+import { LocalSource } from './LocalSource'
+import { GeneratedSource, PixabaySource } from './RemoteSources'
+import { UrlSource } from './UrlSource'
 
 export function FilePickerModal({
-  data: { sources, mimeTypes, onSelect },
+  data,
   onClose
 }: {
   data: {
     sources: FilePickerSourceConfig
     mimeTypes?: Record<string, string[]>
-    onSelect: (file: string | File, preview: string | null) => Promise<void>
+    onSelect: (file: File | string, preview: string | null) => Promise<void>
   }
   onClose: () => void
 }) {
-  const [file, setFile] = useState<File | string | null>(null)
-  const [preview, setPreview] = useState<string | null>(null)
-  const TabbedView = useTabbedView(sources)
-
-  const [loading, onClick] = usePromiseLoading(() =>
-    onSelect(file as string | File, preview)
-      .catch(console.error)
-      .finally(() => {
-        onClose()
-      })
-  )
-
+  const { t } = useTranslation('common.modals'),
+    titleId = useId()
+  const [tab, setTab] = useState('local'),
+    [selection, setSelection] = useState<FileSelection | null>(null),
+    [busy, setBusy] = useState(false),
+    [error, setError] = useState('')
+  const items = [
+    { id: 'local', name: t('imagePicker.local') },
+    ...(data.sources.url ? [{ id: 'url', name: t('imagePicker.url') }] : []),
+    ...(data.sources.pixabay ? [{ id: 'pixabay', name: 'Pixabay' }] : []),
+    ...(data.sources.ai ? [{ id: 'ai', name: t('imagePicker.ai') }] : [])
+  ]
+  async function confirm() {
+    if (!selection || busy) return
+    setBusy(true)
+    setError('')
+    try {
+      await data.onSelect(selection.file, selection.preview)
+      onClose()
+    } catch {
+      setError(t('imagePicker.saveError'))
+    } finally {
+      setBusy(false)
+    }
+  }
+  const dismiss = () => {
+    if (!busy) onClose()
+  }
   return (
-    <Box minWidth="70vw">
+    <Stack
+      className="monolith-form-dialog"
+      role="dialog"
+      aria-labelledby={titleId}
+      aria-busy={busy}
+      width="560px"
+      maxWidth="100%"
+      gap="md"
+    >
       <ModalHeader
-        icon="tabler:photo"
+        titleId={titleId}
         title="imagePicker.title"
-        onClose={onClose}
+        icon="tabler:file"
+        onClose={dismiss}
       />
-      <FilePickerContext
-        value={{
-          acceptedMimeTypes: mimeTypes,
-          file,
-          preview,
-          setFile,
-          setPreview,
-          sources
-        }}
-      >
-        <TabbedView.Root onTabChange={() => setFile(null)}>
-          <TabbedView.Selector />
-          <Flex
-            direction="column"
-            height="100%"
-            my="lg"
-            style={{ minHeight: 0 }}
-            width="100%"
-          >
-            {Object.entries(FILE_PICKET_TABS).map(([tabId, { Component }]) => (
-              <TabbedView.When
-                key={tabId}
-                tabId={tabId as keyof typeof FILE_PICKET_TABS}
-              >
-                <Component />
-              </TabbedView.When>
-            ))}
-          </Flex>
-        </TabbedView.Root>
-      </FilePickerContext>
-      <Button
-        disabled={file === null}
-        icon="tabler:check"
-        loading={loading}
-        style={{ marginTop: '1rem', width: '100%' }}
-        onClick={onClick}
-      >
-        select
-      </Button>
-    </Box>
+      <Stack gap="md" inert={busy || undefined}>
+        {items.length > 1 && (
+          <Tabs
+            items={items}
+            enabled={items.map(item => item.id)}
+            currentTab={tab}
+            onTabChange={id => {
+              setTab(id)
+              setSelection(null)
+              setError('')
+            }}
+          />
+        )}
+        {tab === 'local' && (
+          <LocalSource types={data.mimeTypes} onSelect={setSelection} />
+        )}
+        {tab === 'url' && <UrlSource onSelect={setSelection} />}
+        {tab === 'pixabay' && (
+          <PixabaySource selected={selection} onSelect={setSelection} />
+        )}
+        {tab === 'ai' && data.sources.ai && (
+          <GeneratedSource
+            defaultPrompt={data.sources.ai.defaultPrompt}
+            onSelect={setSelection}
+          />
+        )}
+        {selection && (
+          <FilePreview
+            name={selectedName(selection.file)}
+            preview={selection.preview}
+          />
+        )}
+      </Stack>
+      {error && (
+        <Text color="dangerous" role="alert" size="sm">
+          {error}
+        </Text>
+      )}
+      <Flex gap="sm" justify="end">
+        <Button variant="plain" disabled={busy} onClick={dismiss}>
+          cancel
+        </Button>
+        <Button
+          disabled={!selection}
+          loading={busy}
+          icon="tabler:check"
+          onClick={confirm}
+        >
+          select
+        </Button>
+      </Flex>
+    </Stack>
   )
 }

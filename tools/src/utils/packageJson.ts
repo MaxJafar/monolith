@@ -1,167 +1,87 @@
-import { log } from '@clack/prompts'
-import fs from 'fs'
-import path from 'path'
+// SPDX-License-Identifier: 0BSD
+import { existsSync, mkdirSync } from 'node:fs'
+import { dirname, join } from 'node:path'
 
 import { ROOT_DIR } from '@/utils/constants'
 
-interface PackageJson {
+import { objectFile, replaceJSON } from './jsonFile'
+
+export type PackageJsonTarget = 'modules' | 'locales' | 'root'
+interface PackageJson extends Record<string, unknown> {
   name?: string
   version?: string
   dependencies?: Record<string, string>
-  [key: string]: unknown
 }
-
-export type PackageJsonTarget = 'modules' | 'locales' | 'root'
-
-const PACKAGE_JSON_PATHS: Record<PackageJsonTarget, string> = {
-  modules: path.join(ROOT_DIR, 'modules', 'package.json'),
-  locales: path.join(ROOT_DIR, 'locales', 'package.json'),
-  root: path.join(ROOT_DIR, 'package.json')
+export function getPackageJsonPath(target: PackageJsonTarget) {
+  return join(ROOT_DIR, ...(target === 'root' ? [] : [target]), 'package.json')
 }
-
-const DEFAULT_PACKAGE_JSON: Record<
-  Exclude<PackageJsonTarget, 'root'>,
-  PackageJson
-> = {
-  modules: {
-    name: '@monolith/modules',
-    private: true,
-    description: 'Monolith addons',
-    dependencies: {}
-  },
-  locales: {
-    name: '@monolith/locales',
-    private: true,
-    description: 'Monolith locale packages',
-    dependencies: {}
-  }
-}
-
-/**
- * Gets the package.json path for the specified target.
- */
-export function getPackageJsonPath(target: PackageJsonTarget): string {
-  return PACKAGE_JSON_PATHS[target]
-}
-
-/**
- * Ensures the package.json exists for the specified target.
- * Creates with default template if it doesn't exist (for apps and locales only).
- */
-function ensurePackageJsonExists(target: PackageJsonTarget): void {
-  const filePath = getPackageJsonPath(target)
-
-  if (fs.existsSync(filePath)) {
-    return
-  }
-
-  if (target === 'root') {
-    log.error('Root package.json not found')
-    process.exit(1)
-  }
-
-  const defaultContent = DEFAULT_PACKAGE_JSON[target]
-
-  fs.writeFileSync(filePath, JSON.stringify(defaultContent, null, 4) + '\n')
-}
-
-/**
- * Reads a package.json file from the specified target.
- * Creates the file with a default template if it doesn't exist (for apps and locales).
- */
 export function readPackageJson(target: PackageJsonTarget): PackageJson {
-  ensurePackageJsonExists(target)
-
-  const filePath = getPackageJsonPath(target)
-
-  return JSON.parse(fs.readFileSync(filePath, 'utf-8'))
+  const file = getPackageJsonPath(target)
+  if (!existsSync(file) && target !== 'root') {
+    mkdirSync(dirname(file), { recursive: true })
+    replaceJSON(file, {
+      name: '@monolith/' + target,
+      private: true,
+      description:
+        target === 'modules' ? 'Monolith addons' : 'Monolith locale packages',
+      dependencies: {}
+    })
+  }
+  return objectFile(file) as PackageJson
 }
-
-/**
- * Writes a package.json file to the specified target.
- */
 export function writePackageJson(
   target: PackageJsonTarget,
-  packageJson: PackageJson
-): void {
-  const filePath = getPackageJsonPath(target)
-
-  fs.writeFileSync(filePath, JSON.stringify(packageJson, null, 4) + '\n')
+  manifest: PackageJson
+) {
+  const file = getPackageJsonPath(target)
+  if (target !== 'root') mkdirSync(dirname(file), { recursive: true })
+  replaceJSON(file, manifest)
 }
-
-/**
- * Adds a dependency to the specified package.json.
- */
-export function addDependency(
-  packageName: string,
-  target: PackageJsonTarget = 'modules',
-  version = 'workspace:*'
-): void {
-  const packageJson = readPackageJson(target)
-
-  if (!packageJson.dependencies) {
-    packageJson.dependencies = {}
-  }
-
-  packageJson.dependencies[packageName] = version
-
-  writePackageJson(target, packageJson)
-}
-
-/**
- * Removes a dependency from the specified package.json.
- */
-export function removeDependency(
-  packageName: string,
+export function getDependencies(
   target: PackageJsonTarget = 'modules'
-): void {
-  const packageJson = readPackageJson(target)
-
-  if (packageJson.dependencies?.[packageName]) {
-    delete packageJson.dependencies[packageName]
-    writePackageJson(target, packageJson)
-  }
+): Record<string, string> {
+  const dependencies = readPackageJson(target).dependencies ?? {}
+  if (
+    !dependencies ||
+    typeof dependencies !== 'object' ||
+    Array.isArray(dependencies) ||
+    Object.values(dependencies).some(value => typeof value !== 'string')
+  )
+    throw Error('Package dependencies must map names to versions')
+  return dependencies
 }
-
-/**
- * Finds a package by name in the specified package.json dependencies.
- */
 export function findPackageName(
   name: string,
   target: PackageJsonTarget = 'modules'
 ): string | null {
-  const packageJson = readPackageJson(target)
-
-  const dependencies = packageJson.dependencies || {}
-
-  for (const dep of Object.keys(dependencies)) {
-    if (dep === name) {
-      return dep
-    }
-  }
-
-  return null
+  return Object.hasOwn(getDependencies(target), name) ? name : null
 }
-
-/**
- * Checks if a dependency exists in the specified package.json.
- */
 export function hasDependency(
-  packageName: string,
+  name: string,
   target: PackageJsonTarget = 'modules'
-): boolean {
-  const packageJson = readPackageJson(target)
-
-  return !!packageJson.dependencies?.[packageName]
+) {
+  return findPackageName(name, target) !== null
 }
-
-/**
- * Gets all dependencies from the specified package.json.
- */
-export function getDependencies(
+export function addDependency(
+  name: string,
+  target: PackageJsonTarget = 'modules',
+  version = 'workspace:*'
+) {
+  const manifest = readPackageJson(target)
+  writePackageJson(target, {
+    ...manifest,
+    dependencies: { ...getDependencies(target), [name]: version }
+  })
+}
+export function removeDependency(
+  name: string,
   target: PackageJsonTarget = 'modules'
-): Record<string, string> {
-  const packageJson = readPackageJson(target)
-
-  return packageJson.dependencies || {}
+) {
+  const manifest = readPackageJson(target),
+    dependencies = getDependencies(target)
+  if (!Object.hasOwn(dependencies, name)) return
+  const next = Object.fromEntries(
+    Object.entries(dependencies).filter(([key]) => key !== name)
+  )
+  writePackageJson(target, { ...manifest, dependencies: next })
 }

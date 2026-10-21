@@ -1,95 +1,57 @@
+// SPDX-License-Identifier: 0BSD
 import type { FileReference, ProxyTree } from '@monolith/api'
 
 import type { FileValue } from '@/components/inputs'
 
-function isFileReference(file: unknown): file is FileReference {
-  return typeof file === 'object' && file !== null && 'key' in file
-}
-
+/** Keep storage keys distinct from URLs and newly selected files. */
 export function getFormFileFieldInitialData(
-  workspaceAPI: ProxyTree<any>,
-  initialData: Record<string, unknown> | undefined,
-  file: File | string | FileReference | null | undefined
+  api: ProxyTree<any>,
+  _record: Record<string, unknown> | undefined,
+  input: File | string | FileReference | null | undefined
 ): FileValue {
-  if (!file) {
-    return {
-      type: 'empty'
-    }
-  }
-
-  if (file instanceof File) {
-    const preview = file.type.startsWith('image/')
-      ? URL.createObjectURL(file)
-      : undefined
-
+  if (typeof File !== 'undefined' && input instanceof File) {
     return {
       type: 'upload',
-      file,
-      preview
+      file: input,
+      preview: input.type.startsWith('image/')
+        ? URL.createObjectURL(input)
+        : undefined
     }
   }
-
-  if (isFileReference(file)) {
-    const preview = file.mimeType?.startsWith('image/')
-      ? workspaceAPI.getMedia({ key: file.key })
-      : undefined
-
-    return {
-      type: 'existing',
-      id: file.key,
-      filename: file.originalName ?? file.key.split('/').pop() ?? file.key,
-      preview
-    }
+  if (typeof input === 'string' && /^(https?|data|blob):/i.test(input)) {
+    return { type: 'url', url: input, preview: input }
   }
-
-  if (typeof file === 'string' && file.length > 0) {
-    if (/^(https?|data|blob):/i.test(file)) {
-      return {
-        type: 'url',
-        url: file,
-        preview: file
-      }
-    }
-
-    const api = workspaceAPI as unknown as {
-      getMedia: (params: { key: string }) => string
-    }
-
-    const preview = /\.(png|jpe?g|webp|gif)$/i.test(file)
-      ? api.getMedia({ key: file })
-      : undefined
-
-    return {
-      type: 'existing',
-      id: file,
-      filename: file.split('/').pop() ?? file,
-      preview
-    }
-  }
-
+  const stored =
+    typeof input === 'string'
+      ? { key: input }
+      : input && typeof input === 'object' && 'key' in input
+        ? input
+        : null
+  if (!stored || typeof stored.key !== 'string' || !stored.key)
+    return { type: 'empty' }
+  const reference = stored as FileReference
+  const image = reference.mimeType
+    ? reference.mimeType.startsWith('image/')
+    : /\.(png|jpe?g|webp|gif)$/i.test(stored.key)
   return {
-    type: 'empty'
+    type: 'existing',
+    id: stored.key,
+    filename:
+      reference.originalName ?? stored.key.split('/').at(-1) ?? stored.key,
+    preview: image ? api.getMedia({ key: stored.key }) : undefined
   }
 }
-
 export function convertFormFileFieldData(
-  value: FileValue | null | undefined
+  input: FileValue | null | undefined
 ): File | string | 'keep' | 'removed' {
-  if (!value || value.type === 'empty') {
-    return 'removed'
+  switch (input?.type) {
+    case 'upload':
+      return input.file
+    case 'url':
+      return input.url
+    case 'existing':
+      return 'keep'
+    default:
+      return 'removed'
   }
-
-  if (value.type === 'existing') {
-    return 'keep'
-  }
-
-  if (value.type === 'upload') {
-    return value.file
-  }
-
-  if (value.type === 'url') {
-    return value.url
-  }
-
-  return 'removed'
 }

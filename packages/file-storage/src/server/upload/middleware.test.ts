@@ -1,73 +1,104 @@
-import express from 'express'
-import { promises as fs } from 'node:fs'
+// SPDX-License-Identifier: 0BSD
+import express, { type ErrorRequestHandler } from 'express'
+import { readdir } from 'node:fs/promises'
 import { createServer } from 'node:http'
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
+import { join } from 'node:path'
+import { afterAll, afterEach, beforeAll, expect, it, vi } from 'vitest'
 
 import type { StagedFile } from '../../core/types'
-import fieldsUploadMiddleware from './middleware'
+import { sandbox } from '../../testing'
 
-const { TEST_ROOT } = vi.hoisted(() => ({
-  TEST_ROOT: `${process.cwd()}/temp_test_upload_middleware`
-}))
-
-vi.mock('@monolith/configs/node', () => ({
-  findProjectRoot: () => TEST_ROOT
-}))
-
-const PNG_BUFFER = Buffer.from(
-  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
-  'base64'
-)
-
-describe('fieldsUploadMiddleware', () => {
-  let server: ReturnType<typeof createServer>
-  let baseUrl = ''
-  let received: StagedFile | undefined
-
-  beforeAll(async () => {
-    await fs.rm(TEST_ROOT, { recursive: true, force: true })
-
-    const app = express()
-
-    app.post('/upload', fieldsUploadMiddleware({ file: 1 }), (req, res) => {
-      received = (req.files as unknown as Record<string, StagedFile[]>)
-        .file?.[0]
-
-      res.json({ ok: true })
-    })
-
-    server = createServer(app)
-
-    await new Promise<void>(resolve => server.listen(0, resolve))
-
-    const address = server.address()
-
-    baseUrl =
-      typeof address === 'object' && address
-        ? `http://127.0.0.1:${address.port}`
-        : ''
-  })
-
-  afterAll(async () => {
-    await new Promise<void>(resolve => server.close(() => resolve()))
-    await fs.rm(TEST_ROOT, { recursive: true, force: true })
-  })
-
-  it('stages the uploaded part into a StagedFile', async () => {
-    const form = new FormData()
-
-    form.append(
-      'file',
-      new File([PNG_BUFFER], 'pic.png', { type: 'image/png' })
-    )
-
-    const res = await fetch(`${baseUrl}/upload`, { method: 'POST', body: form })
-
-    expect(res.status).toBe(200)
-    expect(received?.__staged).toBe(true)
-    expect(received?.originalName).toBe('pic.png')
-    expect(received?.mimeType).toBe('image/png')
-    expect(received?.size).toBe(PNG_BUFFER.length)
-    expect((await fs.stat(received!.path)).isFile()).toBe(true)
-  })
+let area: Awaited<ReturnType<typeof sandbox>>,
+  server: ReturnType<typeof createServer>,
+  origin: string
+let staging: typeof import('./staging')
+let controllerCalls = 0
+beforeAll(async () => {
+  area = await sandbox()
+  vi.stubEnv('FILE_STORAGE_LOCAL_PATH', join(area.root, 'uploads'))
+  vi.stubEnv('FILE_UPLOAD_MAX_BYTES', '2048')
+  vi.resetModules()
+  staging = await import('./staging')
+  const { default: upload } = await import('./middleware')
+  const app = express()
+  app.post(
+    '/upload',
+    upload({ attachment: 1 }),
+    async (request, response, next) => {
+      try {
+        controllerCalls++
+        const file = (request.files as unknown as Record<string, StagedFile[]>)
+          .attachment[0]
+        const result = {
+          name: file.originalName,
+          size: file.size,
+          mime: file.mimeType,
+          content: (await file.read()).toString()
+        }
+        await staging.releaseStaged(file)
+        response.json(result)
+      } catch (error) {
+        next(error)
+      }
+    }
+  )
+  const errors: ErrorRequestHandler = (error, _request, response, _next) => {
+    response.status(400).json({ code: error.code ?? 'UPLOAD_FAILED' })
+  }
+  app.use(errors)
+  server = createServer(app)
+  await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve))
+  origin = 'http://127.0.0.1:' + (server.address() as { port: number }).port
+  await staging.ensureStagingDir()
 })
+afterEach(() => vi.stubEnv('FILE_UPLOAD_MAX_BYTES', '2048'))
+afterAll(async () => {
+  await new Promise<void>((resolve, reject) =>
+    server.close(error => (error ? reject(error) : resolve()))
+  )
+  vi.unstubAllEnvs()
+  await area.dispose()
+})
+async function send(fields: Array<[string, string]>) {
+  const body = new FormData()
+  for (const [key, text] of fields)
+    body.append(key, new File([text], 'note.txt', { type: 'text/plain' }))
+  return fetch(origin + '/upload', { method: 'POST', body })
+}
+it('delivers a readable staged file to the route', async () => {
+  const result = await send([['attachment', 'hello']])
+  expect(result.status).toBe(200)
+  expect(await result.json()).toEqual({
+    name: 'note.txt',
+    size: 5,
+    mime: 'text/plain',
+    content: 'hello'
+  })
+  expect(await readdir(staging.STAGING_DIR)).toEqual([])
+})
+it('forwards size-limit failures instead of calling the route with a partial upload', async () => {
+  vi.stubEnv('FILE_UPLOAD_MAX_BYTES', '8')
+  const before = controllerCalls
+  const result = await send([['attachment', 'content that exceeds the limit']])
+  expect(result.status).toBe(400)
+  expect(await result.json()).toEqual({ code: 'LIMIT_FILE_SIZE' })
+  expect(controllerCalls).toBe(before)
+  expect(await readdir(staging.STAGING_DIR)).toEqual([])
+})
+it.each([
+  [['unexpected', 'first']],
+  [
+    ['attachment', 'first'],
+    ['attachment', 'second']
+  ]
+] as Array<Array<[string, string]>>)(
+  'rejects unexpected/extra parts and releases previously staged content',
+  async (...fields) => {
+    const before = controllerCalls
+    const result = await send(fields)
+    expect(result.status).toBe(400)
+    expect(await result.json()).toEqual({ code: 'LIMIT_UNEXPECTED_FILE' })
+    expect(controllerCalls).toBe(before)
+    expect(await readdir(staging.STAGING_DIR)).toEqual([])
+  }
+)

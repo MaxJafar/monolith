@@ -9,7 +9,7 @@
     },
     "categories": {
       "title": "类别",
-      "description": "整理和重新排序侧边栏类别以自定义您的导航"
+      "description": "为扩展导航分组并设置顺序。"
     }
   },
   "buttons": {
@@ -30,7 +30,7 @@
   "empty": {
     "category": {
       "title": "未找到类别",
-      "description": "创建类别以开始"
+      "description": "添加第一个导航分组。"
     },
     "modules": {
       "title": "未安装扩展",
@@ -66,7 +66,7 @@
     "enable": "启用开发模式",
     "disable": "禁用开发模式",
     "enabled": "{{module}} 已进入开发模式",
-    "disabled": "{{module}} 已退出开发模式"
+    "disabled": "已停用 {{module}} 的开发源"
   },
   "misc": {
     "translations": "翻译"
@@ -75,7 +75,7 @@
     "label": "未构建"
   },
   "messages": {
-    "categoriesMissingTranslations": "{{count}} 个分类缺少翻译:"
+    "categoriesMissingTranslations": "需要翻译的分组：{{count}}"
   },
   "catalog": {
     "description": "定制这个工作空间，选择您需要的工具。",

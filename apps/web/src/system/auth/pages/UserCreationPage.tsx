@@ -1,179 +1,112 @@
+// SPDX-License-Identifier: 0BSD
 import { useMutation } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Button, Flex, Stack, Text, TextInput, toast } from '@monolith/ui'
+import { Button, Flex, Stack, Text, TextInput } from '@monolith/ui'
 
 import MonolithLogo from '@/core/components/MonolithLogo'
 import workspaceAPI from '@/core/utils/workspaceAPI'
 
-function UserCreationPage() {
+import { initialAccount, validateAccount } from '../utils/initialAccount'
+
+const fields = [
+  { key: 'name', icon: 'tabler:user', autocomplete: 'name' },
+  { key: 'username', icon: 'tabler:at', autocomplete: 'username' },
+  { key: 'email', icon: 'tabler:mail', autocomplete: 'email' },
+  { key: 'password', icon: 'tabler:lock', autocomplete: 'new-password' },
+  {
+    key: 'confirmPassword',
+    icon: 'tabler:lock-check',
+    autocomplete: 'new-password'
+  }
+] as const
+
+export default function UserCreationPage() {
   const { t } = useTranslation('common.auth')
-
-  const [formData, setFormData] = useState({
-    email: '',
-    username: '',
-    name: '',
-    password: '',
-    confirmPassword: ''
-  })
-
-  const [errors, setErrors] = useState<Record<string, string>>({})
-
-  const createUserMutation = useMutation(
-    workspaceAPI.user.auth.createFirstUser.mutationOptions({
-      onSuccess: () => {
-        toast.success(t('messages.userCreated'))
-        setTimeout(() => {
-          window.location.reload()
-        }, 1000)
-      },
-      onError: (error: Error) => {
-        toast.error(error.message)
-      }
-    })
+  const [draft, setDraft] = useState(initialAccount)
+  const [issues, setIssues] = useState<
+    Partial<Record<keyof typeof draft, string>>
+  >({})
+  const submitting = useRef(false)
+  const create = useMutation(
+    workspaceAPI.user.auth.createFirstUser.mutationOptions()
   )
-
-  const updateField = (field: string) => (value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-    setErrors(prev => ({ ...prev, [field]: '' }))
+  async function submit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (submitting.current) return
+    const validation = validateAccount(draft)
+    setIssues(validation.errors)
+    if (!validation.account) return
+    submitting.current = true
+    try {
+      await create.mutateAsync(validation.account)
+      window.location.reload()
+    } catch {
+      // The mutation state keeps the server error visible while the user edits or retries.
+    } finally {
+      submitting.current = false
+    }
   }
-
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {}
-
-    if (!formData.email.trim()) {
-      newErrors.email = t('validation.emailRequired')
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = t('validation.emailInvalid')
-    }
-
-    if (!formData.username.trim()) {
-      newErrors.username = t('validation.usernameRequired')
-    } else if (formData.username.length < 3) {
-      newErrors.username = t('validation.usernameTooShort')
-    } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
-      newErrors.username = t('validation.usernameInvalid')
-    }
-
-    if (!formData.name.trim()) {
-      newErrors.name = t('validation.nameRequired')
-    }
-
-    if (!formData.password) {
-      newErrors.password = t('validation.passwordRequired')
-    } else if (formData.password.length < 8) {
-      newErrors.password = t('validation.passwordTooShort')
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = t('validation.passwordMismatch')
-    }
-
-    setErrors(newErrors)
-
-    return Object.keys(newErrors).length === 0
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!validateForm()) return
-
-    createUserMutation.mutateAsync({
-      email: formData.email,
-      username: formData.username,
-      name: formData.name,
-      password: formData.password
-    })
-  }
-
   return (
-    <Flex centered direction="column" px="xl" width="100%">
-      <Flex asChild centered gap="sm" mb="xl">
-        <Text as="h1" size="3xl" weight="semibold" whiteSpace="nowrap">
-          <MonolithLogo size={40} />
-          <Text tracking="tight">monolith</Text>
+    <Stack
+      as="form"
+      onSubmit={submit}
+      noValidate
+      gap="md"
+      width="100%"
+      maxWidth="36rem"
+      p="lg"
+    >
+      <Flex align="center" justify="center" gap="sm">
+        <MonolithLogo size={36} />
+        <Text size="2xl" weight="semibold">
+          monolith
         </Text>
       </Flex>
-      <Text
-        align="center"
-        as="h2"
-        size={{ base: '4xl', sm: '5xl' }}
-        tracking="tight"
-        weight="semibold"
-      >
+      <Text as="h1" size="3xl" align="center" weight="semibold">
         {t('welcome.header')}
       </Text>
-      <Text
-        align="center"
-        as="p"
-        color="muted"
-        mt={{ base: 'sm', sm: 'md' }}
-        size={{ base: 'base', sm: 'xl' }}
-      >
+      <Text as="p" color="muted" align="center" mb="md">
         {t('welcome.desc')}
       </Text>
-      <Stack maxWidth="40rem" mt="2xl" width="100%">
+      {fields.map(field => (
         <TextInput
-          errorMsg={errors.email}
-          icon="tabler:mail"
-          inputMode="email"
-          label="email"
+          key={field.key}
+          name={field.key}
+          autoComplete={field.autocomplete}
+          label={field.key}
           namespace="common.auth"
-          placeholder={t('inputs.email.placeholder')}
-          value={formData.email}
-          onChange={updateField('email')}
+          icon={field.icon}
+          placeholder={t('inputs.' + field.key + '.placeholder')}
+          required
+          disabled={create.isPending}
+          type={field.key === 'email' ? 'email' : 'text'}
+          isPassword={field.autocomplete === 'new-password'}
+          value={draft[field.key]}
+          errorMsg={
+            issues[field.key] ? t('validation.' + issues[field.key]) : undefined
+          }
+          onChange={value => {
+            setDraft(previous => ({ ...previous, [field.key]: value }))
+            setIssues(previous => ({ ...previous, [field.key]: undefined }))
+          }}
         />
-        <TextInput
-          errorMsg={errors.username}
-          icon="tabler:at"
-          label="username"
-          namespace="common.auth"
-          placeholder={t('inputs.username.placeholder')}
-          value={formData.username}
-          onChange={updateField('username')}
-        />
-        <TextInput
-          errorMsg={errors.name}
-          icon="tabler:user"
-          label="name"
-          namespace="common.auth"
-          placeholder={t('inputs.name.placeholder')}
-          value={formData.name}
-          onChange={updateField('name')}
-        />
-        <TextInput
-          isPassword
-          errorMsg={errors.password}
-          icon="tabler:lock"
-          label="password"
-          namespace="common.auth"
-          placeholder={t('inputs.password.placeholder')}
-          value={formData.password}
-          onChange={updateField('password')}
-        />
-        <TextInput
-          isPassword
-          errorMsg={errors.confirmPassword}
-          icon="tabler:lock-check"
-          label="confirmPassword"
-          namespace="common.auth"
-          placeholder={t('inputs.confirmPassword.placeholder')}
-          value={formData.confirmPassword}
-          onChange={updateField('confirmPassword')}
-        />
-        <Button
-          icon="tabler:arrow-right"
-          iconPosition="end"
-          loading={createUserMutation.isPending}
-          mt="md"
-          onClick={handleSubmit}
-        >
-          {t('buttons.proceed')}
-        </Button>
-      </Stack>
-    </Flex>
+      ))}
+      {create.error && (
+        <Text role="alert" color="dangerous">
+          {create.error.message}
+        </Text>
+      )}
+      <Button
+        type="submit"
+        loading={create.isPending}
+        icon="tabler:arrow-right"
+        iconPosition="end"
+        namespace="common.auth"
+      >
+        {t('buttons.proceed')}
+      </Button>
+    </Stack>
   )
 }
-
-export default UserCreationPage

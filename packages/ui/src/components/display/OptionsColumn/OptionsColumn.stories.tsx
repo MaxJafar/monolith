@@ -1,169 +1,39 @@
+// SPDX-License-Identifier: 0BSD
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { useState } from 'react'
 
-import { IconTooltip } from '@/components/feedback/IconTooltip'
-import { SliderInput, Switch } from '@/components/inputs'
-import { Flex, Text } from '@/components/primitives'
+import { Switch } from '@/components/inputs'
 
 import { OptionsColumn } from './index'
 
 const meta = {
-  argTypes: {
-    children: {
-      control: false
-    },
-    tooltip: {
-      control: false
-    }
-  },
+  title: 'DataDisplay/OptionsColumn',
   component: OptionsColumn,
-  title: 'DataDisplay/OptionsColumn'
-} satisfies Meta<typeof OptionsColumn>
-
-export default meta
-
-type Story = StoryObj<typeof meta>
-
-/**
- * An options column with a switch control.
- */
-export const Default: Story = {
   args: {
-    children: <></>,
-    description: 'Receive notifications for important updates',
+    title: 'Workspace reminders',
+    description: 'Show notifications when a scheduled reminder is due.',
     icon: 'tabler:bell',
-    title: 'Enable Notifications'
-  },
-  render: args => {
-    const [enabled, setEnabled] = useState(false)
-
-    return (
-      <div style={{ width: '60vw' }}>
-        <OptionsColumn {...args}>
-          <Switch value={enabled} onChange={setEnabled} />
-        </OptionsColumn>
-      </div>
-    )
+    children: null
   }
-}
-
-/**
- * An options column with a tooltip.
- */
-export const WithTooltip: Story = {
-  args: {
-    children: <></>,
-    description: 'Automatically save changes as you work',
-    icon: 'tabler:device-floppy',
-    title: 'Auto Save',
-    tooltip: 'This feature will save your work every 5 minutes.'
-  },
-  render: args => {
+} satisfies Meta<typeof OptionsColumn>
+export default meta
+type Story = StoryObj<typeof meta>
+export const Editable: Story = {
+  render: function Editable(args) {
     const [enabled, setEnabled] = useState(true)
-
     return (
-      <div style={{ width: '60vw' }}>
-        <OptionsColumn {...args}>
-          <Switch value={enabled} onChange={setEnabled} />
-        </OptionsColumn>
-      </div>
+      <OptionsColumn {...args}>
+        <Switch
+          aria-label="Workspace reminders"
+          value={enabled}
+          onChange={setEnabled}
+        />
+      </OptionsColumn>
     )
   }
 }
-
-/**
- * A vertical options column.
- */
-export const Vertical: Story = {
-  args: {
-    children: <></>,
-    description: 'Customize the appearance of your workspace',
-    icon: 'tabler:palette',
-    orientation: 'vertical',
-    title: 'Theme Settings'
-  },
-  render: args => {
-    return (
-      <div style={{ width: '60vw' }}>
-        <OptionsColumn {...args}>
-          <SliderInput
-            label="Brightness"
-            max={100}
-            min={0}
-            value={70}
-            onChange={() => {}}
-          />
-        </OptionsColumn>
-      </div>
-    )
-  }
-}
-
-/**
- * Multiple options columns in a list.
- */
-export const MultipleColumns: Story = {
-  args: {
-    children: <></>,
-    description: '',
-    icon: '',
-    title: ''
-  },
-  render: () => {
-    const [notifications, setNotifications] = useState(true)
-    const [autoSave, setAutoSave] = useState(false)
-    const [darkMode, setDarkMode] = useState(true)
-
-    return (
-      <Flex direction="column" gap="md" style={{ width: '60vw' }}>
-        <OptionsColumn
-          description="Receive notifications for important updates"
-          icon="tabler:bell"
-          title="Enable Notifications"
-        >
-          <Switch value={notifications} onChange={setNotifications} />
-        </OptionsColumn>
-        <OptionsColumn
-          description="Automatically save changes as you work"
-          icon="tabler:device-floppy"
-          title="Auto Save"
-        >
-          <Switch value={autoSave} onChange={setAutoSave} />
-        </OptionsColumn>
-        <OptionsColumn
-          description="Use dark theme for better viewing at night"
-          icon="tabler:moon"
-          title="Dark Mode"
-        >
-          <Switch value={darkMode} onChange={setDarkMode} />
-        </OptionsColumn>
-      </Flex>
-    )
-  }
-}
-
-/**
- * An options column indicating a feature is not available.
- */
-export const NAColumn: Story = {
-  args: {
-    children: <></>,
-    description: 'Sync your data across all devices',
-    icon: 'tabler:cloud-data-connection',
-    title: 'Data Sync'
-  },
-  render: args => {
-    return (
-      <div style={{ width: '60vw' }}>
-        <OptionsColumn {...args}>
-          <Text color="muted">N/A</Text>
-          <IconTooltip icon="tabler:info-circle" id="data-sync-na">
-            Google Cloud API key (<code>gcloud</code>) is required for this
-            feature, but it is not found in your API key vault. <br />
-            Please add it to enable data sync.
-          </IconTooltip>
-        </OptionsColumn>
-      </div>
-    )
-  }
+export const Stacked: Story = { ...Editable, args: { orientation: 'vertical' } }
+export const Explained: Story = {
+  ...Editable,
+  args: { tooltip: 'You can choose a reminder time when creating an event.' }
 }

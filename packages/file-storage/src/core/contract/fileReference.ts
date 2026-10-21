@@ -1,21 +1,19 @@
-import z from 'zod'
+// SPDX-License-Identifier: 0BSD
+import { z } from 'zod'
 
-const thumbnailInfoSchema = z.object({
-  size: z.string(),
+// Stored property names are a compatibility boundary for existing databases.
+const thumbnail = z.object({
   key: z.string(),
+  size: z.string(),
   width: z.number(),
   height: z.number()
 })
-
 export const fileReferenceSchema = z.object({
-  key: z.string(),
   originalName: z.string(),
   mimeType: z.string(),
+  key: z.string(),
   size: z.number(),
-  thumbs: z.array(thumbnailInfoSchema)
+  thumbs: thumbnail.array()
 })
-
-export type ThumbnailInfo = z.infer<typeof thumbnailInfoSchema>
-
-/** Result of saving a file. Persisted in the `files` metadata table. */
 export type FileReference = z.infer<typeof fileReferenceSchema>
+export type ThumbnailInfo = z.infer<typeof thumbnail>

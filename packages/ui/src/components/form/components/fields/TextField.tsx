@@ -1,9 +1,5 @@
-import {
-  type Control,
-  type FieldPathByValue,
-  type FieldValues,
-  useController
-} from 'react-hook-form'
+// SPDX-License-Identifier: 0BSD
+import type { FieldValues } from 'react-hook-form'
 
 import {
   QRCodeScanner,
@@ -12,60 +8,30 @@ import {
 } from '@/components/inputs'
 import { useModalStore } from '@/providers'
 
-import { useNamespace } from '../FormModal'
+import { type FieldBinding, useFieldBinding } from './binding'
 
-type TextFieldProps<TFieldValues extends FieldValues> = {
-  control: Control<TFieldValues>
-  name: FieldPathByValue<TFieldValues, string | null | undefined>
-  qrScanner?: boolean
-} & Omit<TextInputProps, 'value' | 'onChange'>
-
-export function TextField<TFieldValues extends FieldValues>({
+export function TextField<Form extends FieldValues>({
   control,
   name,
-  qrScanner = false,
-  actionButtonProps,
-  namespace,
-  ...rest
-}: TextFieldProps<TFieldValues>) {
-  const { open } = useModalStore()
-
-  const { field, fieldState } = useController({
-    control,
-    name
-  })
-
-  const contextNamespace = useNamespace()
-
-  const activeNamespace = namespace ?? contextNamespace
-
-  function handleQRScanned(data: string) {
-    field.onChange(data)
-  }
-
-  function openQRScanner() {
-    open(QRCodeScanner, {
-      onScanned: handleQRScanned
-    })
-  }
-
-  const computedActionButtonProps = actionButtonProps
-    ? actionButtonProps
-    : qrScanner
-      ? {
-          icon: 'tabler:qrcode',
-          onClick: openQRScanner
-        }
-      : undefined
-
-  const textInputProps = {
-    ...rest,
-    actionButtonProps: computedActionButtonProps,
-    errorMsg: fieldState.error?.message,
-    namespace: activeNamespace,
-    value: field.value ?? '',
-    onChange: field.onChange
+  qrScanner,
+  ...input
+}: FieldBinding<Form, string> &
+  Omit<TextInputProps, 'value' | 'onChange'> & { qrScanner?: boolean }) {
+  const state = useFieldBinding(control, name, input.namespace)
+  const modals = useModalStore()
+  const scanner = qrScanner
+    ? {
+        icon: 'tabler:qrcode',
+        onClick: () => modals.open(QRCodeScanner, { onScanned: state.onChange })
+      }
+    : undefined
+  const presentation = {
+    ...input,
+    namespace: state.namespace,
+    errorMsg: input.errorMsg ?? state.errorMsg,
+    value: state.value ?? '',
+    onChange: state.onChange,
+    actionButtonProps: input.actionButtonProps ?? scanner
   } as TextInputProps
-
-  return <TextInput {...textInputProps} />
+  return <TextInput {...presentation} />
 }

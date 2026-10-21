@@ -1,102 +1,87 @@
+// SPDX-License-Identifier: 0BSD
 import {
+  type ReactNode,
   createContext,
   useCallback,
   useContext,
   useEffect,
   useMemo,
-  useState
+  useState,
+  useSyncExternalStore
 } from 'react'
 
-interface ISidebarState {
-  sidebarExpanded: boolean
-  toggleSidebar: () => void
+const storageKey = 'monolith.sidebar'
+function readDesktopPreference() {
+  try {
+    return localStorage.getItem(storageKey) !== 'collapsed'
+  } catch {
+    return true
+  }
 }
-
-const SidebarStateContext = createContext<ISidebarState | undefined>(undefined)
-
+function compactViewport() {
+  return typeof window !== 'undefined' && window.innerWidth <= 1000
+}
+function watchViewport(notify: () => void) {
+  window.addEventListener('resize', notify)
+  return () => window.removeEventListener('resize', notify)
+}
+const MainSidebar = createContext({
+  sidebarExpanded: true,
+  toggleSidebar: () => {}
+})
 export function MainSidebarStateProvider({
   children
 }: {
-  children: React.ReactNode
+  children: ReactNode
 }) {
-  const [sidebarExpanded, setSidebarExpanded] = useState(() => {
-    if (window.innerWidth <= 1000) return false
-    try {
-      return localStorage.getItem('monolith.sidebar') !== 'collapsed'
-    } catch {
-      return true
-    }
-  })
-
+  const compact = useSyncExternalStore(
+    watchViewport,
+    compactViewport,
+    () => false
+  )
+  const [desktopExpanded, setDesktopExpanded] = useState(readDesktopPreference)
+  const [mobileExpanded, setMobileExpanded] = useState(false)
   const toggleSidebar = useCallback(() => {
-    setSidebarExpanded(prev => !prev)
-  }, [])
+    if (compact) setMobileExpanded(current => !current)
+    else setDesktopExpanded(current => !current)
+  }, [compact])
   useEffect(() => {
-    const media = window.matchMedia('(max-width: 1000px)')
-    const update = () => {
-      if (media.matches) setSidebarExpanded(false)
-      else {
-        try {
-          setSidebarExpanded(
-            localStorage.getItem('monolith.sidebar') !== 'collapsed'
-          )
-        } catch {
-          setSidebarExpanded(true)
-        }
-      }
+    try {
+      localStorage.setItem(
+        storageKey,
+        desktopExpanded ? 'expanded' : 'collapsed'
+      )
+    } catch {
+      /* Optional device setting. */
     }
-    media.addEventListener('change', update)
-    return () => media.removeEventListener('change', update)
-  }, [])
-
+  }, [desktopExpanded])
   useEffect(() => {
-    if (window.innerWidth > 1000) {
-      try {
-        localStorage.setItem(
-          'monolith.sidebar',
-          sidebarExpanded ? 'expanded' : 'collapsed'
-        )
-      } catch {
-        /* Preferences are optional. */
-      }
-    }
-  }, [sidebarExpanded])
-
+    setMobileExpanded(false)
+  }, [compact])
   useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
+    function shortcut(event: KeyboardEvent) {
       if (
-        (event.metaKey || event.ctrlKey) &&
-        event.key === '\\' &&
-        !event.defaultPrevented &&
-        !event.isComposing
-      ) {
-        event.preventDefault()
-        toggleSidebar()
-      }
+        event.defaultPrevented ||
+        event.isComposing ||
+        !(event.ctrlKey || event.metaKey) ||
+        event.key !== '\\'
+      )
+        return
+      event.preventDefault()
+      toggleSidebar()
     }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
+    window.addEventListener('keydown', shortcut)
+    return () => window.removeEventListener('keydown', shortcut)
   }, [toggleSidebar])
-  const memoizedValue = useMemo(
+  const state = useMemo(
     () => ({
-      sidebarExpanded,
+      sidebarExpanded: compact ? mobileExpanded : desktopExpanded,
       toggleSidebar
     }),
-    [sidebarExpanded, toggleSidebar]
+    [compact, mobileExpanded, desktopExpanded, toggleSidebar]
   )
-
-  return (
-    <SidebarStateContext value={memoizedValue}>{children}</SidebarStateContext>
-  )
+  return <MainSidebar value={state}>{children}</MainSidebar>
 }
-
-export function useMainSidebarState(): ISidebarState {
-  const context = useContext(SidebarStateContext)
-
-  return (
-    context || {
-      sidebarExpanded: true,
-      toggleSidebar: () => {}
-    }
-  )
+export function useMainSidebarState() {
+  return useContext(MainSidebar)
 }

@@ -15,6 +15,19 @@ const route = (path: string, overrides: Partial<Route> = {}): Route => ({
   ...overrides
 })
 describe('agent catalog', () => {
+  it('uses native calendar and record routes after retiring the old addons', () => {
+    const databasePrefix = prefix.replace(/\/workspaces$/, '')
+    const catalog = buildAgentCatalog([
+      route(`${databasePrefix}/calendar/list`, { method: 'GET' }),
+      route(`${databasePrefix}/calendar/occurrence`),
+      route(`${databasePrefix}/workspaceDatabases/createRecord`)
+    ])
+    expect(catalog.tools.map(tool => [tool.name, tool.access])).toEqual([
+      ['monolith_records_create', 'write'],
+      ['monolith_events_list', 'read'],
+      ['monolith_events_occurrence', 'delete']
+    ])
+  })
   it('exposes only reviewed installed routes and preserves the live input schema', () => {
     const body = {
       allOf: [

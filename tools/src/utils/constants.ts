@@ -1,12 +1,7 @@
-import fs from 'fs'
-import path from 'path'
+// SPDX-License-Identifier: 0BSD
+import { join } from 'node:path'
 
 import { findProjectRoot } from '@monolith/configs/node'
 
 export const ROOT_DIR = findProjectRoot()
-
-export const LOCALES_DIR = path.join(ROOT_DIR, 'locales')
-
-if (!fs.existsSync(LOCALES_DIR)) {
-  fs.mkdirSync(LOCALES_DIR)
-}
+export const LOCALES_DIR = join(ROOT_DIR, 'locales')

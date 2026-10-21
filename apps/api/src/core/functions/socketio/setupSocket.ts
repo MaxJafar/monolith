@@ -1,100 +1,80 @@
-import { globalTaskPool } from '@functions/socketio/taskPool'
-import { Server } from 'socket.io'
+// SPDX-License-Identifier: 0BSD
+import type { Server, Socket } from 'socket.io'
 
 import { setupRoomsRealtime } from '../../../lib/rooms/realtime'
 import { listenDeviceRevocations } from '../../drizzle'
 import { verifyApplicationToken } from '../deviceSession'
+import { globalTaskPool } from './taskPool'
 
-export function setupSocket(io: Server) {
+const uuid = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i
+function qrConnection(socket: Socket): void {
+  socket.on('joinQRSession', (id: unknown) => {
+    if (typeof id !== 'string' || !uuid.test(id)) {
+      socket.emit('error', { message: 'Invalid session ID format' })
+      return
+    }
+    void socket.join('qr-session:' + id)
+    socket.emit('joinedQRSession', { sessionId: id })
+  })
+  socket.on('leaveQRSession', (id: unknown) => {
+    if (typeof id === 'string' && uuid.test(id))
+      void socket.leave('qr-session:' + id)
+  })
+}
+function protectedConnection(socket: Socket): void {
+  let ended = false
+  async function check(): Promise<boolean> {
+    if (ended) return false
+    try {
+      await verifyApplicationToken(socket.handshake.auth.token as string)
+      return !ended
+    } catch {
+      socket.disconnect(true)
+      return false
+    }
+  }
+  socket.use(async (_packet, next) => {
+    next((await check()) ? undefined : new Error('Authentication expired'))
+  })
+  const interval = setInterval(() => void check(), 15000)
+  const timeout = setTimeout(
+    () => socket.disconnect(true),
+    Math.max(0, Number(socket.data.expiresAt) - Date.now())
+  )
+  socket.once('disconnect', () => {
+    ended = true
+    clearInterval(interval)
+    clearTimeout(timeout)
+  })
+  for (const [taskId, task] of Object.entries(globalTaskPool))
+    socket.emit('taskPoolUpdate', { taskId, ...task })
+}
+
+export function setupSocket(io: Server): void {
   setupRoomsRealtime(io)
-  void listenDeviceRevocations(session => {
-    io.in(`device:${session}`).disconnectSockets(true)
-  }).catch(error => {
+  void listenDeviceRevocations(id =>
+    io.in('device:' + id).disconnectSockets(true)
+  ).catch(error => {
     console.error('Device revocation listener unavailable', error)
     io.disconnectSockets(true)
   })
-  // QR Login namespace - no authentication required
-  // This allows unauthenticated desktop clients to listen for login approval
-  const qrLoginNamespace = io.of('/qr-login')
-
-  qrLoginNamespace.on('connection', socket => {
-    // Join a QR session room
-    socket.on('joinQRSession', (sessionId: string) => {
-      // Validate sessionId format (UUID)
-      const uuidRegex =
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-
-      if (!uuidRegex.test(sessionId)) {
-        socket.emit('error', { message: 'Invalid session ID format' })
-
-        return
-      }
-
-      socket.join(`qr-session:${sessionId}`)
-      socket.emit('joinedQRSession', { sessionId })
-    })
-
-    // Leave a QR session room
-    socket.on('leaveQRSession', (sessionId: string) => {
-      socket.leave(`qr-session:${sessionId}`)
-    })
-  })
-
-  // Main namespace - authenticated connections only
+  io.of('/qr-login').on('connection', qrConnection)
   io.use(async (socket, next) => {
-    const bearerToken = socket.handshake.auth.token as string
-
-    if (!bearerToken) {
+    const token: unknown = socket.handshake.auth.token
+    if (typeof token !== 'string' || !token) {
       next(new Error('Authorization token is required'))
-
       return
     }
-
     try {
-      const identity = await verifyApplicationToken(bearerToken)
+      const identity = await verifyApplicationToken(token)
       socket.data.userId = identity.sub
       socket.data.deviceSessionId = identity.dsid
       socket.data.expiresAt = identity.exp! * 1000
-      if (identity.dsid) await socket.join(`device:${identity.dsid}`)
+      if (identity.dsid) await socket.join('device:' + identity.dsid)
       next()
     } catch {
       next(new Error('Invalid authorization credentials'))
     }
   })
-
-  io.on('connection', socket => {
-    const validate = async () => {
-      try {
-        await verifyApplicationToken(socket.handshake.auth.token as string)
-        return true
-      } catch {
-        socket.disconnect(true)
-        return false
-      }
-    }
-    socket.use(async (_packet, next) => {
-      if (await validate()) next()
-      else next(new Error('Authentication expired'))
-    })
-    // Notification loss and quiet sockets cannot retain an expired credential.
-    const revalidate = setInterval(() => {
-      void validate()
-    }, 15_000)
-    const expiry = setTimeout(
-      () => socket.disconnect(true),
-      Math.max(0, socket.data.expiresAt - Date.now())
-    )
-    socket.on('disconnect', () => {
-      clearInterval(revalidate)
-      clearTimeout(expiry)
-    })
-    for (const task in globalTaskPool) {
-      const taskData = globalTaskPool[task]
-
-      socket.emit('taskPoolUpdate', {
-        taskId: task,
-        ...taskData
-      })
-    }
-  })
+  io.on('connection', protectedConnection)
 }

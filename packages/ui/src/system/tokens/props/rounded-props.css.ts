@@ -1,28 +1,19 @@
+// SPDX-License-Identifier: 0BSD
 import { defineProperties } from '@vanilla-extract/sprinkles'
 
-import {
-  RESPONSIVE_CONDITIONS,
-  type RadiusToken,
-  type ResponsiveProp,
-  vars
-} from '../..'
+import { RESPONSIVE_CONDITIONS } from '../../responsive/constant'
+import type { ResponsiveProp } from '../../responsive/types'
+import type { themeTokens } from '../../token-values'
+import { roundingAliases, roundingValues } from '../registry'
 
-export interface TokenizedRoundedProps {
-  r?: ResponsiveProp<RadiusToken>
-  rtl?: ResponsiveProp<RadiusToken>
-  rtr?: ResponsiveProp<RadiusToken>
-  rbl?: ResponsiveProp<RadiusToken>
-  rbr?: ResponsiveProp<RadiusToken>
-}
-
+export type TokenizedRoundedProps = Partial<
+  Record<
+    keyof typeof roundingAliases,
+    ResponsiveProp<keyof typeof themeTokens.radii>
+  >
+>
 export const tokenizedRoundedProperties = defineProperties({
-  conditions: RESPONSIVE_CONDITIONS,
+  properties: roundingValues,
   defaultCondition: 'base',
-  properties: {
-    borderRadius: vars.radii,
-    borderTopLeftRadius: vars.radii,
-    borderTopRightRadius: vars.radii,
-    borderBottomLeftRadius: vars.radii,
-    borderBottomRightRadius: vars.radii
-  }
+  conditions: RESPONSIVE_CONDITIONS
 })

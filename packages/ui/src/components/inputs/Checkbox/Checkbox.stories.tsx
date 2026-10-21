@@ -1,53 +1,25 @@
+// SPDX-License-Identifier: 0BSD
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { useState } from 'react'
 
-import { Checkbox } from './index'
+import { Checkbox } from '.'
 
-const meta = {
-  component: Checkbox,
-  title: 'Inputs/Checkbox'
-} satisfies Meta<typeof Checkbox>
-
+const meta = { title: 'Inputs/Checkbox', component: Checkbox } satisfies Meta<
+  typeof Checkbox
+>
 export default meta
-
-type Story = StoryObj<typeof meta>
-
-export const Default: Story = {
-  args: {
-    checked: true,
-    disabled: false,
-    label: '',
-    onCheckedChange: () => {}
-  },
-  render: props => {
-    const [checked, setChecked] = useState(props.checked)
-
+export const Checklist: StoryObj<typeof meta> = {
+  render: () => {
+    const [checked, onCheckedChange] = useState(false)
     return (
-      <Checkbox {...props} checked={checked} onCheckedChange={setChecked} />
+      <Checkbox
+        label="Include completed actions"
+        checked={checked}
+        onCheckedChange={onCheckedChange}
+      />
     )
   }
 }
-
-export const WithLabel: Story = {
-  args: {
-    checked: true,
-    disabled: false,
-    label: 'Accept terms and conditions'
-  }
-}
-
-export const Unchecked: Story = {
-  args: {
-    checked: false,
-    disabled: false,
-    label: 'Accept terms and conditions'
-  }
-}
-
-export const Disabled: Story = {
-  args: {
-    checked: true,
-    disabled: true,
-    label: ''
-  }
+export const Unavailable: StoryObj<typeof meta> = {
+  args: { checked: true, disabled: true, label: 'Managed by your workspace' }
 }

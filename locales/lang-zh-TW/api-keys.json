@@ -2,7 +2,7 @@
   "title": "API 金鑰",
   "description": "管理所有擴充套件所需的 API 金鑰",
   "lockedMessage": "API 金鑰設定已鎖定",
-  "passwordRequired": "需要密碼來解密 API 金鑰",
+  "passwordRequired": "輸入保險庫密碼以解鎖已儲存的 API 憑證。",
   "missing": {
     "title": "缺少 API 金鑰",
     "description": "缺少一個或多個 API 金鑰。請開啟 API 金鑰設定進行配置。",
@@ -38,7 +38,7 @@
   "empty": {
     "apiKeys": {
       "title": "無 API 金鑰",
-      "description": "未找到 API 金鑰。單擊下面的按鈕創建新的 API 金鑰"
+      "description": "新增憑證以連接外部服務。"
     }
   },
   "misc": {

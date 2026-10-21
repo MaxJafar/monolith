@@ -3,7 +3,7 @@
   "private": true,
   "description": "Monolith workspace API",
   "version": "0.1.12",
-  "license": "CC BY-NC-SA 4.0",
+  "license": "0BSD",
   "author": "Monolith contributors",
   "homepage": "https://github.com/MaxJafar/monolith",
   "repository": {
@@ -67,6 +67,7 @@
     "web-push": "3.6.7"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.5.8",
     "@monolith/api": "workspace:*",
     "@monolith/blocks": "workspace:*",
     "@types/bcrypt": "^6.0.0",

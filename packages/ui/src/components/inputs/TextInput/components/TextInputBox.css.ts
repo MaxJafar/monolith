@@ -1,43 +1,25 @@
+// SPDX-License-Identifier: 0BSD
 import { recipe } from '@vanilla-extract/recipes'
-
-import { vars } from '@/system'
 
 export const textInputBoxRecipe = recipe({
   base: {
+    minWidth: 0,
     width: '100%',
-    backgroundColor: 'transparent',
-    letterSpacing: '0.05em',
-    outline: 'none'
+    background: 'transparent',
+    border: 0,
+    outline: 'none',
+    font: 'inherit',
+    color: 'inherit'
   },
   variants: {
     variant: {
       classic: {
-        marginTop: vars.space.md,
-        padding: vars.space.md,
-        paddingLeft: 0,
-        paddingBottom: vars.space.sm
+        padding: 'calc(var(--spacing) * 5) 0 calc(var(--spacing) * 1)',
+        minHeight: '3.25rem'
       },
-      plain: {
-        padding: 0,
-        height: '1.75rem'
-      }
+      plain: { padding: 0, minHeight: '1.75rem' }
     },
-    size: {
-      default: {},
-      small: {}
-    }
+    size: { default: {}, small: { fontSize: 'var(--text-sm)' } }
   },
-  compoundVariants: [
-    {
-      variants: { variant: 'plain', size: 'small' },
-      style: {
-        height: '1.25rem',
-        fontSize: 'var(--text-sm)'
-      }
-    }
-  ],
-  defaultVariants: {
-    variant: 'classic',
-    size: 'default'
-  }
+  defaultVariants: { variant: 'classic', size: 'default' }
 })

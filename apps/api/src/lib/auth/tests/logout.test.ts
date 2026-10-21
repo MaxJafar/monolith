@@ -1,115 +1,54 @@
-import { cleanupTestTokens, initAuthTests } from '@tests/e2e-setup'
-import { extractCookies, unwrap, workspaceAPI } from '@tests/utils'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+// SPDX-License-Identifier: 0BSD
+import { expect, it, vi } from 'vitest'
 
-let email = ''
-let password = ''
+import { logout } from '../routes/logout'
+import { refresh } from '../routes/refresh'
+import { database, invoke, signIn } from './fixture'
 
-beforeAll(async () => {
-  const creds = await initAuthTests()
-  email = creds.email
-  password = creds.password
+it('expires both cookie paths and prevents refreshing the logged-out session', async () => {
+  const cookie = (await signIn()).refresh
+  const ended = await invoke(logout, { cookie })
+  expect(ended).toMatchObject({ $status: 200, payload: true })
+  expect(
+    ended.cookies.map(({ name, options }) => [
+      name,
+      options.path,
+      options.maxAge
+    ])
+  ).toEqual([
+    ['access_token', '/', 0],
+    ['refresh_token', '/', 0],
+    ['refresh_token', '/auth', 0]
+  ])
+  expect((await invoke(refresh, { cookie })).$status).toBe(401)
+})
+it('ends the whole family without invalidating a separately signed-in browser', async () => {
+  const first = (await signIn()).refresh
+  const separate = (await signIn()).refresh
+  const successor = (await invoke(refresh, { cookie: first })).refresh
+  expect((await invoke(logout, { cookie: first })).$status).toBe(200)
+  expect((await invoke(refresh, { cookie: successor })).$status).toBe(401)
+  expect((await invoke(refresh, { cookie: separate })).$status).toBe(200)
+})
+it('clears stale cookies even when a session cannot be located', async () => {
+  for (const cookie of [undefined, {}, 'missing']) {
+    const ended = await invoke(logout, { cookie })
+    expect(ended.$status).toBe(401)
+    expect(ended.cookies).toHaveLength(3)
+    expect(
+      ended.cookies.every(
+        item => item.value === '' && item.options.maxAge === 0
+      )
+    ).toBe(true)
+  }
 })
 
-function creds() {
-  return { email, password }
-}
-
-function loginAndCookies() {
-  return workspaceAPI.auth.login
-    .mutateRaw(creds(), { raw: true })
-    .then(res => extractCookies(res.headers['set-cookie']))
-}
-
-afterAll(cleanupTestTokens)
-
-describe('POST /auth/logout', () => {
-  it('returns 200 with cleared cookie for valid session', async () => {
-    const cookies = await loginAndCookies()
-
-    const logout = await workspaceAPI.auth.logout.mutateRaw(undefined, {
-      raw: true,
-      headers: { Cookie: cookies }
-    })
-
-    expect(logout.status).toBe(200)
-    expect(unwrap(logout)).toBe(true)
-    expect(typeof extractCookies(logout.headers['set-cookie'])).toBe('string')
-  })
-
-  it('returns 401 when no cookie is sent', async () => {
-    const res = await workspaceAPI.auth.logout.mutateRaw(undefined, {
-      raw: true
-    })
-
-    expect(res.status).toBe(401)
-  })
-
-  it('returns 401 with invalid cookie', async () => {
-    const res = await workspaceAPI.auth.logout.mutateRaw(undefined, {
-      raw: true,
-      headers: { Cookie: 'refresh_token=somegarbage123456' }
-    })
-
-    expect(res.status).toBe(401)
-  })
-
-  it('logged-out cookie cannot be reused', async () => {
-    const cookies = await loginAndCookies()
-
-    await workspaceAPI.auth.logout.mutateRaw(undefined, {
-      raw: true,
-      headers: { Cookie: cookies }
-    })
-
-    const after = await workspaceAPI.auth.refresh.mutateRaw(undefined, {
-      raw: true,
-      headers: { Cookie: cookies }
-    })
-
-    expect(after.status).toBe(401)
-  })
-
-  it('all tokens in the family are invalidated after logout', async () => {
-    const cookies = await loginAndCookies()
-
-    const refreshRes = await workspaceAPI.auth.refresh.mutateRaw(undefined, {
-      raw: true,
-      headers: { Cookie: cookies }
-    })
-    const rotatedCookie = extractCookies(refreshRes.headers['set-cookie'])
-
-    await workspaceAPI.auth.logout.mutateRaw(undefined, {
-      raw: true,
-      headers: { Cookie: cookies }
-    })
-
-    const after1 = await workspaceAPI.auth.refresh.mutateRaw(undefined, {
-      raw: true,
-      headers: { Cookie: cookies }
-    })
-    const after2 = await workspaceAPI.auth.refresh.mutateRaw(undefined, {
-      raw: true,
-      headers: { Cookie: rotatedCookie }
-    })
-
-    expect(after1.status).toBe(401)
-    expect(after2.status).toBe(401)
-  })
-
-  it('double logout is safe', async () => {
-    const cookies = await loginAndCookies()
-
-    await workspaceAPI.auth.logout.mutateRaw(undefined, {
-      raw: true,
-      headers: { Cookie: cookies }
-    })
-
-    const again = await workspaceAPI.auth.logout.mutateRaw(undefined, {
-      raw: true,
-      headers: { Cookie: cookies }
-    })
-
-    expect(again.status).toBe(200)
-  })
+vi.hoisted(() => {
+  process.env.JWT_SIGNING_KEY = 'isolated-monolith-auth-fixture-key'
+  process.env.MASTER_KEY = 'isolated-monolith-auth-secret-key'
 })
+vi.mock('../../../core/drizzle', () => ({
+  get db() {
+    return database
+  }
+}))

@@ -1,99 +1,58 @@
-import express, { type Router } from 'express'
+// SPDX-License-Identifier: 0BSD
+import { Router } from 'express'
 
-import { type ModuleEntry } from '@monolith/configs'
+import type { ModuleEntry } from '@monolith/configs'
 
-import { createModuleLoader } from './createModuleLoader'
+import {
+  type ModuleLoaderOptions,
+  createModuleLoader
+} from './createModuleLoader'
 
-export interface ModuleRuntimeOptions {
-  /** Absolute path to the directory containing module folders. */
-  modulesDir: string
-  additionalDirectories?: () => Promise<Record<string, string>>
-  hostPackageFile?: string
-  bundledIds?: readonly string[]
-  /** Whether the server is running in production. */
-  isProduction: boolean
-  /** The express router the application mounts; the module sub-router is mounted here. */
+export interface ModuleRuntimeOptions extends ModuleLoaderOptions {
   outerRouter: Router
-  /** Builds (and returns) the full route tree from the module route trees. */
-  buildRouter: (appRoutes: Record<string, ModuleEntry>) => Router
+  buildRouter: (routes: Record<string, ModuleEntry>) => Router
 }
 
-/**
- * Owns the module request lifecycle: loading module route trees, mounting a
- * swappable sub-router on the application's router, reloading on changes, and
- * watching the modules directory.
- *
- * The sub-router is mounted **directly** (not behind a dispatch function) and
- * swapped in-place on reload, so the router stays introspectable (e.g. by
- * `traceRouteStack`).
- */
 export function createModuleRuntime({
-  modulesDir,
-  additionalDirectories,
-  hostPackageFile,
-  bundledIds,
-  isProduction,
   outerRouter,
-  buildRouter
+  buildRouter,
+  ...options
 }: ModuleRuntimeOptions) {
-  const loader = createModuleLoader({
-    modulesDir,
-    isProduction,
-    additionalDirectories,
-    bundledIds,
-    hostPackageFile
-  })
+  const loader = createModuleLoader(options)
+  const placeholder = Router()
+  outerRouter.use('/', placeholder)
+  const mount = outerRouter.stack.find(layer => layer.handle === placeholder)
+  let pending: Promise<void> | undefined
+  let disposed = false
 
-  // Mount a placeholder so the caller controls the outer stack order
-  // (e.g. static assets → module routes → 404).
-  let currentRouter: Router = express.Router()
-
-  outerRouter.use('/', currentRouter)
-
-  let reloadInFlight: Promise<void> | null = null
-
-  /**
-   * Rebuilds the module route tree and swaps it into the outer router.
-   * Concurrent calls are coalesced.
-   */
-  function reload(): Promise<void> {
-    if (reloadInFlight) {
-      return reloadInFlight
+  const reload = (): Promise<void> => {
+    if (disposed) return Promise.resolve()
+    if (!pending) {
+      pending = loader
+        .load()
+        .then(routes => {
+          if (disposed) return
+          const replacement = buildRouter(routes)
+          if (!mount || !outerRouter.stack.includes(mount))
+            throw new Error('The add-on router mount was removed')
+          // Build first; a failed build must leave the previous router serving.
+          mount.handle = replacement
+        })
+        .finally(() => {
+          pending = undefined
+        })
     }
-
-    reloadInFlight = loader
-      .load()
-      .then(appRoutes => {
-        const newRouter = buildRouter(appRoutes)
-
-        const layer = outerRouter.stack.find(
-          candidate => (candidate.handle as unknown) === currentRouter
-        )
-
-        if (layer) {
-          layer.handle = newRouter
-        }
-
-        currentRouter = newRouter
-      })
-      .finally(() => {
-        reloadInFlight = null
-      })
-
-    return reloadInFlight
+    return pending
   }
-
-  /** Watches the modules directory and reloads on changes. */
-  function watch(): void {
-    loader.watch(() => reload())
+  return {
+    reload,
+    watch() {
+      if (!disposed) loader.watch(reload)
+    },
+    dispose() {
+      disposed = true
+      loader.dispose()
+    }
   }
-
-  /** Stops watching for module changes. */
-  function dispose(): void {
-    loader.dispose()
-  }
-
-  return { reload, watch, dispose }
 }
-
 export type ModuleRuntime = ReturnType<typeof createModuleRuntime>

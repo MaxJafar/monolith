@@ -1,4 +1,6 @@
-import z from 'zod'
+// SPDX-License-Identifier: 0BSD
+import type { Request, Response } from 'express'
+import { z } from 'zod'
 
 import {
   addonWireName,
@@ -10,83 +12,61 @@ import { ModuleRegistry } from '@monolith/module-runtime/registry'
 
 import endpoints from '../endpoints'
 
+function wireNames(request: Request, response: Response) {
+  response.vary('X-Monolith-Package-Names')
+  const modern = request.get('X-Monolith-Package-Names') === '1'
+  return (name: string) => addonWireName(name, modern)
+}
+export const checkModuleAvailability = endpoints
+  .query({
+    description: 'Resolve an installed addon identity',
+    input: { query: z.object({ id: z.string().min(1) }) },
+    output: { OK: z.boolean() }
+  })
+  .callback(async context =>
+    context.response.ok(ModuleRegistry.isAvailable(context.query.id))
+  )
+
 export const manifest = endpoints
   .query({
-    description: 'Get installed modules manifest for runtime loading',
-    input: {},
-    output: {
-      OK: z.object({
-        modules: z.array(moduleManifestSchema)
-      })
-    }
+    description: 'Read the current addon loading manifest',
+    output: { OK: z.object({ modules: z.array(moduleManifestSchema) }) }
   })
-  .callback(async ({ req, res, response }) => {
-    res.vary('X-Monolith-Package-Names')
-    return response.ok({
-      modules: ModuleRegistry.manifests.map(entry => ({
-        ...entry,
-        name: addonWireName(
-          entry.name,
-          req.get('X-Monolith-Package-Names') === '1'
-        )
-      }))
-    })
+  .callback(async context => {
+    const name = wireNames(context.req, context.res)
+    const modules = ModuleRegistry.manifests.map(module => ({
+      ...module,
+      name: name(module.name)
+    }))
+    return context.response.ok({ modules })
   })
 
 export const list = endpoints
   .query({
-    description: 'List installed modules with metadata',
-    input: {},
-    output: {
-      OK: z.array(moduleSchema)
-    }
+    description: 'Inspect installed addon metadata',
+    output: { OK: z.array(moduleSchema) }
   })
-  .callback(async ({ req, res, response }) => {
-    res.vary('X-Monolith-Package-Names')
-    return response.ok(
-      ModuleRegistry.list.map(entry => ({
-        ...entry,
-        name: addonWireName(
-          entry.name,
-          req.get('X-Monolith-Package-Names') === '1'
-        )
+  .callback(async context => {
+    const name = wireNames(context.req, context.res)
+    return context.response.ok(
+      ModuleRegistry.list.map(module => ({
+        ...module,
+        name: name(module.name)
       }))
     )
   })
 
-export const checkModuleAvailability = endpoints
-  .query({
-    description: 'Check if a module is available (installed)',
-    input: {
-      query: z.object({
-        id: z.string().min(1)
-      })
-    },
-    output: {
-      OK: z.boolean()
-    }
-  })
-  .callback(async ({ query: { id }, response }) =>
-    response.ok(ModuleRegistry.isAvailable(id))
-  )
-
 export const widgets = endpoints
   .query({
-    description: 'Get all available widgets configuration',
-    input: {},
-    output: {
-      OK: z.array(moduleWidgetSchema)
-    }
+    description: 'Read widgets registered by available addons',
+    output: { OK: z.array(moduleWidgetSchema) }
   })
-  .callback(async ({ req, res, response }) => {
-    res.vary('X-Monolith-Package-Names')
-    return response.ok(
-      ModuleRegistry.widgets.map(entry => ({
-        ...entry,
-        moduleName: addonWireName(
-          entry.moduleName,
-          req.get('X-Monolith-Package-Names') === '1'
-        )
+  .callback(async context => {
+    const name = wireNames(context.req, context.res)
+    return context.response.ok(
+      ModuleRegistry.widgets.map(widget => ({
+        ...widget,
+        moduleName: name(widget.moduleName)
       }))
     )
   })

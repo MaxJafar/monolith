@@ -1,6 +1,6 @@
 {
   "title": "帳戶設定",
-  "description": "管理您所有帳戶詳細信息的地方",
+  "description": "管理身分資訊與登入設定。",
   "settings": {
     "title": {
       "profilePicture": "個人資料圖片",
@@ -13,14 +13,14 @@
       "oauth": "OAuth提供商"
     },
     "desc": {
-      "profilePicture": "上傳個人資料圖片以個性化您的帳戶。",
-      "username": "在平台上識別您的名稱。",
-      "displayName": "顯示給其他用戶的名稱。",
-      "email": "您用來登錄帳戶的電子郵件地址。",
-      "password": "設置一個強密碼以保護您的帳戶。",
-      "dateOfBirth": "設置您的出生日期，我們會給您一個驚喜！",
-      "twoFA": "在登錄系統时啟用雙重身份驗證。",
-      "oauth": "配置OAuth提供商以啟用第三方登入。"
+      "profilePicture": "選擇個人資料顯示的圖片。",
+      "username": "帳戶的唯一使用者名稱。",
+      "displayName": "設定工作區中顯示的姓名。",
+      "email": "管理用於登入的電子郵件地址。",
+      "password": "更新帳戶密碼。",
+      "dateOfBirth": "新增生日以接收生日問候。",
+      "twoFA": "登入時要求輸入驗證器代碼。",
+      "oauth": "連接外部身分提供者。"
     },
     "empty": "未設置"
   },
@@ -39,13 +39,13 @@
       "update": "更新出生日期"
     },
     "enable2FA": {
-      "title": "啟用雙重身份驗證",
-      "description": "請使用您選擇的身份驗證應用程式，例如 Google Authenticator，掃描下面的 QR 碼，然後點擊繼續。",
-      "confirmationDescription": "請在驗證器應用程式中輸入顯示的OTP以確認啟用2FA。"
+      "title": "設定驗證器",
+      "description": "使用驗證器掃描此 QR 碼，再繼續驗證產生的代碼。",
+      "confirmationDescription": "輸入剛連接的驗證器目前顯示的代碼。"
     },
     "disable2FA": {
-      "title": "停用雙重驗證",
-      "description": "您確定要禁用雙重身份驗證嗎？"
+      "title": "取消驗證器要求",
+      "description": "之後登入將不再需要驗證器代碼。是否繼續？"
     },
     "changePassword": {
       "title": "更改密碼"
@@ -84,15 +84,15 @@
   },
   "messages": {
     "twoFA": {
-      "enableSuccess": "雙重身份驗證成功啟用。",
-      "disableSuccess": "雙重身份驗證已成功禁用。",
+      "enableSuccess": "已啟用驗證器保護。",
+      "disableSuccess": "已關閉驗證器保護。",
       "disableFailed": "無法停用雙重驗證。",
       "setupFailed": "無法載入設定二維碼。",
       "verifyFailed": "驗證碼未被接受。請嘗試驗證器中目前顯示的驗證碼。"
     },
     "oauth": {
-      "changeConfirm": "您確定要更改OAuth憑證嗎？",
-      "changeAlert": "更新客戶端ID和密鑰將取代現有內容。此操作不可逆。",
+      "changeConfirm": "取代已儲存的提供者憑證？",
+      "changeAlert": "新的用戶端 ID 與密鑰將取代現有值。如需保留舊憑證，請自行備份。",
       "keepBlank": "留空即可保留已儲存的值。輸入新值將取代原值，儲存後將啟用此登入方式。",
       "saved": "登入方式已儲存。",
       "loadFailed": "無法取得登入方式狀態。",
@@ -109,7 +109,7 @@
   "misc": {
     "enabled": "已啟用",
     "disabled": "已禁用",
-    "oauthStatus": "{{confCount}}個已配置，{{enabledCount}}個已啟用",
+    "oauthStatus": "已設定：{{confCount}} · 已啟用：{{enabledCount}}",
     "lastUpdated": "最後更新："
   },
   "tabs": {

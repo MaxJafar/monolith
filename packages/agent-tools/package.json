@@ -3,7 +3,7 @@
   "version": "0.1.12",
   "description": "Monolith CLI and MCP bridge for coding agents",
   "author": "Monolith contributors",
-  "license": "CC-BY-NC-SA-4.0",
+  "license": "0BSD",
   "type": "module",
   "bin": {
     "monolith-agent": "dist/cli.js"

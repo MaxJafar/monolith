@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: 0BSD
 import { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import type { RouteObject } from 'react-router'
@@ -12,6 +13,9 @@ import LazyRouteLoader from '../components/LazyRouteLoader'
 import RouteLoadingScreen from '../components/RouteLoadingScreen'
 import { modulePath } from './navigation'
 
+export type RouteItem = ModuleGroup['items'][number] & {
+  rawModule?: FederatedModule
+}
 export interface RouteBuilderOptions {
   routes: ModuleConfig['routes']
   loadingMessage: string
@@ -25,88 +29,68 @@ export interface RouteBuilderOptions {
     clearQueryOnUnmount: boolean
   }
 }
-
-/**
- * Builds child routes for a module with proper error boundaries and loading states
- */
-export function buildChildRoutes({
-  routes,
-  APIKeyAccess,
-  loadingMessage = 'loadingModule',
-  config
-}: RouteBuilderOptions): RouteObject[] {
-  const childRoutes: RouteObject[] = Object.entries(routes).map(
-    ([path, Component]) => ({
-      path: path.startsWith('/') ? path.slice(1) : path,
+export function buildChildRoutes(options: RouteBuilderOptions): RouteObject[] {
+  const result: RouteObject[] = []
+  for (const [url, View] of Object.entries(options.routes)) {
+    const relative = url.replace(/^\/+/, '')
+    result.push({
+      path: relative,
       element: (
-        <APIKeyStatusProvider APIKeyAccess={APIKeyAccess}>
+        <ErrorBoundary
+          resetKeys={[relative]}
+          fallbackRender={({ error }) => (
+            <ErrorScreen
+              showRetryButton
+              message={
+                error instanceof Error
+                  ? error.message
+                  : 'This page could not be displayed.'
+              }
+            />
+          )}
+        >
           <Suspense
-            key={`route-${path.startsWith('/') ? path.slice(1) : path}`}
-            fallback={<RouteLoadingScreen message={loadingMessage} />}
+            fallback={<RouteLoadingScreen message={options.loadingMessage} />}
           >
-            <ErrorBoundary
-              fallbackRender={({ error }) => (
-                <ErrorScreen
-                  showRetryButton
-                  message={
-                    error instanceof Error
-                      ? error.message
-                      : 'An unexpected error occurred in this module.'
-                  }
-                />
-              )}
-              resetKeys={[path]}
-            >
-              <ModuleWrapper config={config}>
+            <APIKeyStatusProvider APIKeyAccess={options.APIKeyAccess}>
+              <ModuleWrapper config={options.config}>
                 <Box className="zillion-route-enter" display="contents">
-                  <Component />
+                  <View />
                 </Box>
               </ModuleWrapper>
-            </ErrorBoundary>
+            </APIKeyStatusProvider>
           </Suspense>
-        </APIKeyStatusProvider>
+        </ErrorBoundary>
       )
     })
-  )
-
-  childRoutes.push({
-    path: '*',
-    element: <NotFoundScreen />
-  })
-
-  return childRoutes
+  }
+  result.push({ path: '*', element: <NotFoundScreen /> })
+  return result
 }
-
-/**
- * Creates route configuration for a module with optional provider wrapper
- */
 export function createModuleRoute(
-  item: ModuleGroup['items'][number] & { rawModule?: FederatedModule },
+  item: RouteItem,
   loadingMessage: string
-): RouteObject | RouteObject[] {
-  if (!item.rawModule) {
-    const routeConfig = {
+): RouteObject {
+  const path = modulePath(item.name)
+  if (item.rawModule)
+    return {
+      path: path + '/*',
+      element: <LazyRouteLoader item={item} loadingMessage={loadingMessage} />
+    }
+  return {
+    path,
+    children: buildChildRoutes({
       routes: item.routes,
+      loadingMessage,
       APIKeyAccess: item.APIKeyAccess,
       config: {
-        canvas: item.name !== 'module-manager' && (item.canvas ?? true),
-        name: item.name || '',
+        name: item.name,
         title: item.name,
-        translationNamespace: `common.${item.name}`,
         icon: item.icon,
+        translationNamespace: 'common.' + item.name,
+        canvas: item.name !== 'module-manager' && (item.canvas ?? true),
         clearQueryOnUnmount: item.clearQueryOnUnmount ?? true
-      },
-      loadingMessage
-    }
-
-    return {
-      path: modulePath(item.name),
-      children: buildChildRoutes(routeConfig)
-    }
-  }
-
-  return {
-    path: `${modulePath(item.name)}/*`,
-    element: <LazyRouteLoader item={item} loadingMessage={loadingMessage} />
+      }
+    })
   }
 }

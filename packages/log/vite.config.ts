@@ -1,20 +1,16 @@
+// SPDX-License-Identifier: 0BSD
 import { defineConfig } from 'vite'
-
-import { externalDependencyRegex } from '@monolith/configs/vite'
 
 export default defineConfig({
   build: {
-    lib: {
-      entry: {
-        index: './src/index.ts'
-      },
-      formats: ['es']
-    },
-    outDir: 'dist',
     target: 'node22',
+    lib: { entry: 'src/index.ts', formats: ['es'], fileName: () => 'index.js' },
     rollupOptions: {
-      output: { entryFileNames: '[name].js' },
-      external: [externalDependencyRegex]
+      // Runtime dependencies remain installed packages, including Node built-ins.
+      external: id =>
+        !id.startsWith('.') &&
+        !id.startsWith('/') &&
+        !/^[A-Za-z]:[/\\\\]/.test(id)
     }
   }
 })

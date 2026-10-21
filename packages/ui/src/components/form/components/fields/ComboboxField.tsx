@@ -1,126 +1,64 @@
+// SPDX-License-Identifier: 0BSD
+import { isEqual } from 'lodash'
 import { useState } from 'react'
-import {
-  type Control,
-  type FieldPathByValue,
-  type FieldValues,
-  useController
-} from 'react-hook-form'
+import type { FieldValues } from 'react-hook-form'
 
 import { ComboboxInput, ComboboxOption } from '@/components/inputs'
 
-import { useNamespace } from '../FormModal'
+import { type FieldBinding, useFieldBinding } from './binding'
 
-export function ComboboxField<TFieldValues extends FieldValues, TOption>({
+export function ComboboxField<Form extends FieldValues, Value>({
   control,
   name,
-  icon,
-  label,
-  disabled = false,
-  namespace,
-  required = false,
   options,
-  autoFocus = false,
-  forcedActiveWhen,
-  className,
-  onEnter,
   displayValue,
-  onQueryChanged
-}: {
-  control: Control<TFieldValues>
-  name: FieldPathByValue<TFieldValues, TOption | null | undefined>
-  icon?: string
+  onQueryChanged,
+  ...input
+}: FieldBinding<Form, Value> & {
+  options: { value: Value; text: string; icon?: string; color?: string }[]
   label: string
+  icon?: string
   disabled?: boolean
   namespace?: string | false
   required?: boolean
-  options: {
-    value: TOption
-    text: string
-    icon?: string
-    color?: string
-  }[]
   autoFocus?: boolean
   forcedActiveWhen?: boolean
   className?: string
   onEnter?: () => void
-  displayValue?: (value: TOption) => string
+  displayValue?: (value: Value) => string
   onQueryChanged?: (query: string) => void
 }) {
-  const { field, fieldState } = useController({
-    control,
-    name
-  })
-
-  const contextNamespace = useNamespace()
-
-  const activeNamespace = namespace ?? contextNamespace
-
-  const [internalQuery, setInternalQuery] = useState('')
-
-  function handleQueryChange(q: string) {
-    setInternalQuery(q)
-
-    if (onQueryChanged) {
-      onQueryChanged(q)
-    }
-  }
-
-  function defaultDisplayValue(val: TOption) {
-    if (val === undefined || val === null) {
-      return ''
-    }
-
-    const target = options.find(opt => {
-      if (opt.value === val) return true
-
-      try {
-        return JSON.stringify(opt.value) === JSON.stringify(val)
-      } catch {
-        return false
-      }
-    })
-
-    return target?.text ?? ''
-  }
-
-  const activeDisplayValue = displayValue ?? defaultDisplayValue
-
-  const filteredOptions = onQueryChanged
+  const field = useFieldBinding(control, name, input.namespace)
+  const [search, setSearch] = useState('')
+  const visible = onQueryChanged
     ? options
-    : internalQuery === ''
-      ? options
-      : options.filter(opt =>
-          opt.text.toLowerCase().includes(internalQuery.toLowerCase())
-        )
-
-  function handleComboboxChange(val: TOption) {
-    field.onChange(val)
-  }
-
+    : options.filter(option =>
+        option.text.toLocaleLowerCase().includes(search.toLocaleLowerCase())
+      )
   return (
-    <ComboboxInput<TOption>
-      autoFocus={autoFocus}
-      className={className}
-      disabled={disabled}
-      displayValue={activeDisplayValue}
-      errorMsg={fieldState.error?.message}
-      forcedActiveWhen={forcedActiveWhen}
-      icon={icon}
-      label={label}
-      namespace={activeNamespace}
-      required={required}
+    <ComboboxInput<Value>
+      {...input}
+      namespace={field.namespace}
       value={field.value}
-      onChange={handleComboboxChange}
-      onEnter={onEnter}
-      onQueryChanged={handleQueryChange}
+      onChange={field.onChange}
+      errorMsg={field.errorMsg}
+      displayValue={
+        displayValue ??
+        (value =>
+          options.find(option => isEqual(option.value, value))?.text ?? '')
+      }
+      onQueryChanged={query => {
+        setSearch(query)
+        onQueryChanged?.(query)
+      }}
     >
-      {filteredOptions.map(option => (
+      {visible.map((option, index) => (
         <ComboboxOption
-          key={String(option.value)}
-          color={option.color}
-          icon={option.icon}
-          label={option.text}
+          key={index}
           value={option.value}
+          label={option.text}
+          icon={option.icon}
+          color={option.color}
         />
       ))}
     </ComboboxInput>

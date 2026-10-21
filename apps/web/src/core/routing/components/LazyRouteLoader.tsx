@@ -1,88 +1,76 @@
-import { useEffect, useState } from 'react'
+// SPDX-License-Identifier: 0BSD
+import { useEffect, useMemo, useState } from 'react'
 import { useRoutes } from 'react-router'
 
-import type { ModuleConfig, ModuleGroup } from '@monolith/configs'
-import {
-  type FederatedModule,
-  loadRemoteModuleConfig
-} from '@monolith/federation'
+import type { ModuleConfig } from '@monolith/configs'
+import { loadRemoteModuleConfig } from '@monolith/federation'
 import { ErrorScreen } from '@monolith/ui'
 
 import { devModeImports, devModePkgs } from '@/core/utils/devModeImports'
 
-import { buildChildRoutes } from '../utils/routeBuilder'
+import { type RouteItem, buildChildRoutes } from '../utils/routeBuilder'
 import RouteLoadingScreen from './RouteLoadingScreen'
 
+type Resolution =
+  { item: RouteItem; config: ModuleConfig } | { item: RouteItem; error: string }
 export default function LazyRouteLoader({
   item,
   loadingMessage,
   systemView = false
 }: {
-  item: ModuleGroup['items'][number] & { rawModule?: FederatedModule }
+  item: RouteItem
   loadingMessage: string
   systemView?: boolean
 }) {
-  const [resolvedRoutes, setResolvedRoutes] = useState<
-    ModuleConfig['routes'] | null
-  >(null)
-
-  const [error, setError] = useState<string | null>(null)
-  const [canvas, setCanvas] = useState(true)
-
+  const [result, setResult] = useState<Resolution | null>(null)
   useEffect(() => {
-    let active = true
-
-    async function load() {
-      if (!item.rawModule) return
-
-      try {
-        const unwrapped = await loadRemoteModuleConfig(
-          item.rawModule,
-          devModeImports,
-          devModePkgs
-        )
-
-        if (!active) return
-
-        setResolvedRoutes(unwrapped.routes)
-        setCanvas(unwrapped.canvas ?? true)
-      } catch (err) {
-        if (!active) return
-
-        setError(err instanceof Error ? err.message : 'Failed to load module')
+    let live = true
+    const work = item.rawModule
+      ? loadRemoteModuleConfig(item.rawModule, devModeImports, devModePkgs)
+      : Promise.resolve(item)
+    void work.then(
+      config => {
+        if (live) setResult({ item, config })
+      },
+      failure => {
+        if (live)
+          setResult({
+            item,
+            error:
+              failure instanceof Error
+                ? failure.message
+                : 'The addon could not be opened.'
+          })
       }
-    }
-    load()
-
+    )
     return () => {
-      active = false
+      live = false
     }
   }, [item])
-
-  const config = {
-    canvas: !systemView && canvas,
-    name: item.name || '',
-    title: item.name,
-    icon: item.icon,
-    clearQueryOnUnmount: item.clearQueryOnUnmount ?? true
-  }
-
-  const routesElement = useRoutes(
-    buildChildRoutes({
-      routes: resolvedRoutes || {},
-      APIKeyAccess: item.APIKeyAccess,
-      loadingMessage,
-      config
-    })
+  const current = result?.item === item ? result : null
+  const definitions = useMemo(
+    () =>
+      buildChildRoutes({
+        routes: current && 'config' in current ? current.config.routes : {},
+        APIKeyAccess: item.APIKeyAccess,
+        loadingMessage,
+        config: {
+          name: item.name,
+          title: item.name,
+          icon: item.icon,
+          canvas:
+            !systemView &&
+            (current && 'config' in current
+              ? (current.config.canvas ?? true)
+              : true),
+          clearQueryOnUnmount: item.clearQueryOnUnmount ?? true
+        }
+      }),
+    [current, item, loadingMessage, systemView]
   )
-
-  if (error) {
-    return <ErrorScreen message={error} />
-  }
-
-  if (!resolvedRoutes) {
-    return <RouteLoadingScreen message={loadingMessage} />
-  }
-
-  return routesElement
+  const page = useRoutes(definitions)
+  if (!current) return <RouteLoadingScreen message={loadingMessage} />
+  if ('error' in current)
+    return <ErrorScreen showRetryButton message={current.error} />
+  return page
 }

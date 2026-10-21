@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   addDashboardWidget,
   hasDashboardWidgets,
+  readDashboardLayout,
   shouldPersistDashboardLayout
 } from './layout'
 
@@ -73,4 +74,16 @@ describe('dashboard layout persistence', () => {
       true
     )
   })
+})
+
+it('separates widget positions from account appearance metadata', () => {
+  const saved = {
+    lg: [first, { i: 'broken', x: 0, y: 0, w: null, h: 4 }],
+    __appearance: { theme: 'dark' }
+  }
+  const parsed = readDashboardLayout(saved)
+  expect(parsed).toEqual({ lg: [first] })
+  parsed.lg![0]!.w = 8
+  expect(saved.lg[0]!.w).toBe(4)
+  expect(readDashboardLayout(null)).toEqual({})
 })

@@ -1,115 +1,73 @@
-import fs from 'node:fs'
+// SPDX-License-Identifier: 0BSD
+import { existsSync, readdirSync } from 'node:fs'
 import path from 'node:path'
 import { defineConfig } from 'vite'
 
 import { serverAliasResolver } from '../resolvers/mod-server-alias-resolver'
 
-/**
- * Collects the module's entity files (a single `entity.ts` plus any
- * `schemas/*.entity.ts`) so they are emitted as standalone output files
- * alongside `index.js`, rather than being inlined into it.
- */
-function getEntityInputs(serverDir: string): Record<string, string> {
-  const inputs: Record<string, string> = {}
-
-  const entityFile = path.join(serverDir, 'entity.ts')
-  if (fs.existsSync(entityFile)) {
-    inputs.entity = entityFile
+const rootEntries = {
+  index: 'index.ts',
+  entity: 'entity.ts',
+  schema: 'schema.drizzle.ts',
+  events: 'events.ts'
+}
+function serverEntries(root: string): Record<string, string> {
+  const entries: Record<string, string> = {}
+  for (const [name, relative] of Object.entries(rootEntries)) {
+    const filename = path.join(root, relative)
+    if (name === 'index' || existsSync(filename)) entries[name] = filename
   }
-
-  const schemasDir = path.join(serverDir, 'schemas')
-  if (fs.existsSync(schemasDir)) {
-    const schemaEntityFiles = fs
-      .readdirSync(schemasDir)
-      .filter(name => name.endsWith('.entity.ts'))
-      .sort()
-
-    for (const name of schemaEntityFiles) {
-      inputs[name.slice(0, -3)] = path.join(schemasDir, name)
+  const directory = path.join(root, 'schemas')
+  if (existsSync(directory)) {
+    for (const name of readdirSync(directory).sort()) {
+      if (name.endsWith('.entity.ts'))
+        entries[name.slice(0, -3)] = path.join(directory, name)
     }
   }
-
-  return inputs
+  return entries
 }
 
-/**
- * Resolves the module's drizzle schema file (`server/schema.drizzle.ts`) so it
- * is emitted as a standalone `schema.js` used by drizzle-kit for `db:push`.
- */
-function getSchemaInput(serverDir: string): string | null {
-  const schemaFile = path.join(serverDir, 'schema.drizzle.ts')
-
-  return fs.existsSync(schemaFile) ? schemaFile : null
-}
-
-/**
- * Creates a standard Vite configuration for module server-side builds.
- *
- * Auto-externalizes all npm/workspace packages (anything that doesn't
- * start with `./` or `../`) since modules run inside the core API server
- * process where all deps are already available in node_modules.
- */
 export function defineModuleServerConfig(dirname: string) {
-  const entityInputs = getEntityInputs(dirname)
-
-  const schemaInput = getSchemaInput(dirname)
-  const eventsInput = path.join(dirname, 'events.ts')
-
-  const input: Record<string, string> = {
-    index: path.join(dirname, 'index.ts'),
-    ...(schemaInput ? { schema: schemaInput } : {}),
-    ...(fs.existsSync(eventsInput) ? { events: eventsInput } : {}),
-    ...entityInputs
-  }
-
+  const portable = process.env.MONOLITH_ADDON_RELEASE === '1'
+  const shared = [
+    'server-utils',
+    'drizzle',
+    'blocks',
+    'configs',
+    'module-runtime',
+    'file-storage',
+    'log'
+  ].map(name => '@monolith/' + name)
   return defineConfig({
-    ssr:
-      process.env.MONOLITH_ADDON_RELEASE === '1'
-        ? {
-            noExternal: true,
-            external: [
-              '@monolith/server-utils',
-              '@monolith/drizzle',
-              '@monolith/blocks',
-              '@monolith/configs',
-              '@monolith/module-runtime',
-              '@monolith/file-storage',
-              '@monolith/log',
-              'drizzle-orm',
-              'zod',
-              'dayjs'
-            ]
-          }
-        : undefined,
+    plugins: [serverAliasResolver(dirname)],
     resolve: {
       alias: [
-        { find: /^@\/(.*)$/, replacement: `${dirname}/$1` },
-        { find: /^@$/, replacement: `${dirname}/index` }
+        { find: /^@\/(.*)$/, replacement: dirname + '/$1' },
+        { find: /^@$/, replacement: dirname + '/index' }
       ]
     },
-    plugins: [serverAliasResolver(dirname)],
+    ssr: portable
+      ? {
+          noExternal: true,
+          external: [...shared, 'drizzle-orm', 'zod', 'dayjs']
+        }
+      : undefined,
     build: {
-      minify: false,
       ssr: true,
-      outDir: path.join(dirname, 'dist'),
       target: 'node22',
+      minify: false,
+      outDir: path.join(dirname, 'dist'),
       rollupOptions: {
-        input,
+        input: serverEntries(dirname),
         output: {
-          banner(chunk) {
-            // `schema.js` is consumed by drizzle-kit (via jiti); keep it free
-            // of the `globalThis.require` shim so it loads cleanly.
-            if (chunk.name === 'schema') return ''
-
-            return "import { createRequire as __createRequire } from 'node:module'; globalThis.require = __createRequire(import.meta.url);"
-          },
-          entryFileNames(chunk) {
-            if (chunk.name === 'index') return 'index.js'
-            if (chunk.name === 'schema') return 'schema.js'
-            if (chunk.name === 'entity') return 'entity.js'
-            if (chunk.name === 'events') return 'events.js'
-            return `schemas/${chunk.name}.js`
-          }
+          entryFileNames: chunk =>
+            Object.hasOwn(rootEntries, chunk.name)
+              ? chunk.name + '.js'
+              : 'schemas/' + chunk.name + '.js',
+          banner: chunk =>
+            chunk.name === 'schema'
+              ? ''
+              : 'import { createRequire as requireForAddon } from "node:module"; globalThis.require = requireForAddon(import.meta.url);'
         }
       }
     }

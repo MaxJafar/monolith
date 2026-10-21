@@ -1,25 +1,21 @@
-import path from 'node:path'
+// SPDX-License-Identifier: 0BSD
+import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 
 import { externalDependencyRegex } from './src/constants/external-dependency-regex'
 
+const entry = Object.fromEntries(
+  ['index', 'vite', 'node', 'metadata'].map(name => [
+    name,
+    fileURLToPath(new URL('./src/' + name + '.ts', import.meta.url))
+  ])
+)
 export default defineConfig({
   build: {
-    lib: {
-      entry: {
-        index: path.resolve(__dirname, 'src/index.ts'),
-        vite: path.resolve(__dirname, 'src/vite.ts'),
-        node: path.resolve(__dirname, 'src/node.ts'),
-        metadata: path.resolve(__dirname, 'src/metadata.ts')
-      },
-      formats: ['es'],
-      fileName: '[name]'
-    },
-    rollupOptions: {
-      external: [/^node:/, externalDependencyRegex]
-    },
     outDir: 'dist',
     minify: false,
-    sourcemap: true
+    sourcemap: true,
+    lib: { entry, formats: ['es'], fileName: '[name]' },
+    rollupOptions: { external: [/^node:/, externalDependencyRegex] }
   }
 })

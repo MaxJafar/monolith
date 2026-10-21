@@ -1,41 +1,32 @@
-import { createContext, useContext, useState } from 'react'
+// SPDX-License-Identifier: 0BSD
+import {
+  type ReactNode,
+  createContext,
+  useContext,
+  useMemo,
+  useState
+} from 'react'
 
-const ModuleSidebarStateContext = createContext<
-  | {
-      isSidebarOpen: boolean
-      setIsSidebarOpen: (isOpen: boolean) => void
-    }
-  | undefined
->(undefined)
-
-export const ModuleSidebarStateProvider = ({
+interface SidebarState {
+  isSidebarOpen: boolean
+  setIsSidebarOpen: (value: boolean) => void
+}
+const Sidebar = createContext<SidebarState>({
+  isSidebarOpen: false,
+  setIsSidebarOpen: () => {}
+})
+export function ModuleSidebarStateProvider({
   children
 }: {
-  children: React.ReactNode
-}) => {
+  children: ReactNode
+}) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-
-  return (
-    <ModuleSidebarStateContext
-      value={{
-        isSidebarOpen,
-        setIsSidebarOpen
-      }}
-    >
-      {children}
-    </ModuleSidebarStateContext>
+  const state = useMemo(
+    () => ({ isSidebarOpen, setIsSidebarOpen }),
+    [isSidebarOpen]
   )
+  return <Sidebar value={state}>{children}</Sidebar>
 }
-
-export const useModuleSidebarState = () => {
-  const context = useContext(ModuleSidebarStateContext)
-
-  if (!context) {
-    return {
-      isSidebarOpen: false,
-      setIsSidebarOpen: () => {}
-    }
-  }
-
-  return context
+export function useModuleSidebarState() {
+  return useContext(Sidebar)
 }

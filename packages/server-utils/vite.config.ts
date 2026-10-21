@@ -1,18 +1,14 @@
+// SPDX-License-Identifier: 0BSD
+import { isAbsolute } from 'node:path'
 import { defineConfig } from 'vite'
-
-import { externalDependencyRegex } from '@monolith/configs/vite'
 
 export default defineConfig({
   build: {
-    lib: {
-      entry: './src/index.ts',
-      formats: ['es']
-    },
-    outDir: 'dist',
     target: 'node22',
+    lib: { entry: 'src/index.ts', formats: ['es'], fileName: () => 'index.js' },
     rollupOptions: {
-      output: { entryFileNames: 'index.js' },
-      external: [externalDependencyRegex]
+      external: name =>
+        !isAbsolute(name) && !name.startsWith('.') && !name.startsWith('\u0000')
     }
   }
 })

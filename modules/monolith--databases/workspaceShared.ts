@@ -1,23 +1,13 @@
 import z from 'zod'
 
 export const bundledAddonNames = [
-  'projects',
-  'notes',
-  'calendar',
-  'blog',
-  'todo-list',
   'agents',
   'databases',
   'atlas',
-  'wallet',
+  'automations',
+  'redraw',
   'gym',
-  'tech-lab',
-  'achievements',
-  'wishlist',
-  'code-time',
-  'flashcards',
-  'idea-box',
-  'pomodoro-timer'
+  'tech-lab'
 ] as const
 // Keep storage and package identifiers compatible with Monolith addons.
 export const workspaceModule = z
@@ -61,8 +51,7 @@ export const workspaceInput = z
 
 export function profileModules(profile: WorkspaceProfile): WorkspaceModule[] {
   if (profile === 'agents') return ['agents']
-  if (profile === 'collaborative')
-    return ['projects', 'notes', 'calendar', 'todo-list', 'databases']
+  if (profile === 'collaborative') return ['databases']
   return [...bundledAddonNames]
 }
 

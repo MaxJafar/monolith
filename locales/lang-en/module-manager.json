@@ -9,7 +9,7 @@
     },
     "categories": {
       "title": "Categories",
-      "description": "Organize and reorder sidebar categories to customize your navigation"
+      "description": "Group addon navigation and choose its order."
     }
   },
   "buttons": {
@@ -30,7 +30,7 @@
   "empty": {
     "category": {
       "title": "No categories found",
-      "description": "Create a category to get started"
+      "description": "Add your first navigation group."
     },
     "modules": {
       "title": "No addons installed",
@@ -66,7 +66,7 @@
     "enable": "Enable Dev Mode",
     "disable": "Disable Dev Mode",
     "enabled": "{{module}} is now in dev mode",
-    "disabled": "{{module}} is no longer in dev mode"
+    "disabled": "Development source disabled for {{module}}"
   },
   "notBuilt": {
     "label": "Not Built"
@@ -75,7 +75,7 @@
     "translations": "Translations"
   },
   "messages": {
-    "categoriesMissingTranslations": "{{count}} categories are missing translations:"
+    "categoriesMissingTranslations": "Groups needing translation: {{count}}"
   },
   "catalog": {
     "description": "Make this workspace your own. Choose the tools that belong here.",

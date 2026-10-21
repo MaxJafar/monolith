@@ -1,100 +1,135 @@
-import { cleanupTestTokens, initAuthTests } from '@tests/e2e-setup'
-import { expectNo2FA, extractCookies, unwrap, workspaceAPI } from '@tests/utils'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+// SPDX-License-Identifier: 0BSD
+import { eq } from 'drizzle-orm'
+import speakeasy from 'speakeasy'
+import { expect, it, vi } from 'vitest'
 
-import { setAccessToken } from '@monolith/api'
+import { users } from '../../user/schema.drizzle'
+import * as qr from '../routes/qrLogin'
+import * as totp from '../routes/twoFA'
+import { pending2FASessions, pendingTOTPSetups } from '../utils/2fa'
+import { sessions } from '../utils/qrLogin'
+import { verifyAccessToken } from '../utils/tokens'
+import { database, fixtureUser, invoke, otherIP, signIn } from './fixture'
 
-let email = ''
-let password = ''
-
-beforeAll(async () => {
-  const creds = await initAuthTests()
-  email = creds.email
-  password = creds.password
+it('supports authenticator enrollment, retry, sign-in and disabling with persisted encryption', async () => {
+  const setup = await invoke(totp.generate)
+  const { tid, link } = setup.payload as { tid: string; link: string }
+  const secret = new URL(link).searchParams.get('secret')!
+  expect(
+    (await invoke(totp.enable, { body: { tid, otp: 'bad' } })).$status
+  ).toBe(401)
+  expect(pendingTOTPSetups.has(tid)).toBe(true)
+  const otp = speakeasy.totp({ secret, encoding: 'base32' })
+  expect((await invoke(totp.enable, { body: { tid, otp } })).$status).toBe(204)
+  const account = await database.query.users.findFirst()
+  expect(account?.twoFASecret).not.toBe(secret)
+  const pending = (await signIn()).payload as { tid: string }
+  expect(
+    (await invoke(totp.verify, { body: { tid: pending.tid, otp: 'bad' } }))
+      .$status
+  ).toBe(401)
+  expect(pending2FASessions.has(pending.tid)).toBe(true)
+  const completed = await invoke(totp.verify, {
+    body: { tid: pending.tid, otp }
+  })
+  expect(completed.$status).toBe(200)
+  expect(completed.refresh).toBeTruthy()
+  expect(
+    (await invoke(totp.verify, { body: { tid: pending.tid, otp } })).$status
+  ).toBe(401)
+  expect((await invoke(totp.disable)).$status).toBe(204)
+  expect((await database.query.users.findFirst())?.twoFASecret).toBeNull()
+})
+it('binds authenticator setup to its owner and expires pending sign-ins', async () => {
+  const setup = (await invoke(totp.generate)).payload as {
+    tid: string
+    link: string
+  }
+  const secret = new URL(setup.link).searchParams.get('secret')!
+  const otp = speakeasy.totp({ secret, encoding: 'base32' })
+  expect(
+    (
+      await invoke(totp.enable, {
+        userId: 'another-user',
+        body: { tid: setup.tid, otp }
+      })
+    ).$status
+  ).toBe(401)
+  vi.useFakeTimers()
+  vi.setSystemTime(Date.now() + 301000)
+  expect(
+    (await invoke(totp.enable, { body: { tid: setup.tid, otp } })).$status
+  ).toBe(401)
+  vi.useRealTimers()
+})
+it('approves QR sign-in once, broadcasts it and binds the claimed session to the receiving browser', async () => {
+  const registered = await invoke(qr.register, {
+    body: { browserInfo: 'Fixture desktop' }
+  })
+  const { sessionId } = registered.payload as { sessionId: string }
+  expect(
+    (await invoke(qr.status, { query: { sessionId } })).payload
+  ).toMatchObject({ status: 'pending' })
+  const emit = vi.fn()
+  const io = { of: vi.fn(() => ({ to: vi.fn(() => ({ emit })) })) }
+  expect(
+    (await invoke(qr.approve, { body: { sessionId }, io })).payload
+  ).toEqual({ browserInfo: 'Fixture desktop' })
+  expect(emit).toHaveBeenCalledWith('sessionApproved', {
+    accessToken: expect.any(String)
+  })
+  expect((await invoke(qr.approve, { body: { sessionId } })).$status).toBe(400)
+  const approved = (await invoke(qr.status, { query: { sessionId } }))
+    .payload as { accessToken: string }
+  expect(verifyAccessToken(approved.accessToken).sub).toBe(fixtureUser.id)
+  const results = await Promise.all(
+    [0, 1].map(() => invoke(qr.claim, { body: { sessionId }, ip: otherIP }))
+  )
+  expect(results.map(item => item.$status).sort()).toEqual([200, 404])
+  expect(sessions.has(sessionId)).toBe(false)
+  expect(await database.query.authRefreshTokens.findMany()).toEqual([
+    expect.objectContaining({ userId: fixtureUser.id, bound_ip: otherIP })
+  ])
+})
+it('does not approve a QR session consumed or replaced during an asynchronous account lookup', async () => {
+  const registered = await invoke(qr.register, {
+    body: { browserInfo: 'Fixture' }
+  })
+  const { sessionId } = registered.payload as { sessionId: string }
+  const suspended = {
+    query: {
+      users: {
+        findFirst: async () => {
+          sessions.del(sessionId)
+          return fixtureUser
+        }
+      }
+    }
+  }
+  expect(
+    (await invoke(qr.approve, { body: { sessionId }, db: suspended })).$status
+  ).toBe(404)
+  expect(await database.query.authRefreshTokens.findMany()).toEqual([])
+})
+it('rejects a second-factor challenge when its account or stored secret is unavailable', async () => {
+  await database
+    .update(users)
+    .set({ twoFASecret: 'unreadable' })
+    .where(eq(users.id, fixtureUser.id))
+  const pending = (await signIn()).payload as { tid: string }
+  expect(
+    (await invoke(totp.verify, { body: { tid: pending.tid, otp: '123456' } }))
+      .$status
+  ).toBe(401)
+  expect(await database.query.authRefreshTokens.findMany()).toEqual([])
 })
 
-function creds() {
-  return { email, password }
-}
-
-afterAll(cleanupTestTokens)
-
-describe('Full lifecycle', () => {
-  it('login → me → refresh → me → logout → refresh fails', async () => {
-    const login = await workspaceAPI.auth.login.mutateRaw(creds(), {
-      raw: true
-    })
-
-    expect(login.status).toBe(200)
-
-    const accessToken1 = expectNo2FA(unwrap(login)).accessToken
-    const cookies1 = extractCookies(login.headers['set-cookie'])
-
-    setAccessToken(accessToken1)
-    const me1 = await workspaceAPI.user.me.queryRaw({ raw: true })
-
-    expect(me1.status).toBe(200)
-    expect(unwrap(me1).userData.email).toBe(email)
-
-    const refresh1 = await workspaceAPI.auth.refresh.mutateRaw(undefined, {
-      raw: true,
-      headers: { Cookie: cookies1 }
-    })
-
-    expect(refresh1.status).toBe(200)
-
-    const accessToken2 = unwrap(refresh1).accessToken
-    const cookies2 = extractCookies(refresh1.headers['set-cookie'])
-
-    setAccessToken(accessToken2)
-    const me2 = await workspaceAPI.user.me.queryRaw({ raw: true })
-
-    expect(me2.status).toBe(200)
-
-    const logout = await workspaceAPI.auth.logout.mutateRaw(undefined, {
-      raw: true,
-      headers: { Cookie: cookies2 }
-    })
-
-    expect(logout.status).toBe(200)
-
-    const refreshAfter = await workspaceAPI.auth.refresh.mutateRaw(undefined, {
-      raw: true,
-      headers: { Cookie: cookies2 }
-    })
-
-    expect(refreshAfter.status).toBe(401)
-
-    expect(accessToken1).not.toBe(accessToken2)
-  })
-
-  it('concurrent rapid requests do not crash the server', async () => {
-    const login = await workspaceAPI.auth.login.mutateRaw(creds(), {
-      raw: true
-    })
-    const cookies = extractCookies(login.headers['set-cookie'])
-
-    const results = await Promise.allSettled(
-      Array.from({ length: 5 }, () =>
-        workspaceAPI.auth.refresh.mutateRaw(undefined, {
-          raw: true,
-          headers: { Cookie: cookies }
-        })
-      )
-    )
-
-    const fulfilled = results.filter(
-      r => r.status === 'fulfilled'
-    ) as PromiseFulfilledResult<{ status: number }>[]
-
-    const okCount = fulfilled.filter(r => r.value.status === 200).length
-
-    expect(okCount).toBeGreaterThanOrEqual(1)
-
-    const noCrash = fulfilled.every(
-      r => r.value.status >= 200 && r.value.status < 600
-    )
-
-    expect(noCrash).toBe(true)
-  })
+vi.hoisted(() => {
+  process.env.JWT_SIGNING_KEY = 'isolated-monolith-auth-fixture-key'
+  process.env.MASTER_KEY = 'isolated-monolith-auth-secret-key'
 })
+vi.mock('../../../core/drizzle', () => ({
+  get db() {
+    return database
+  }
+}))

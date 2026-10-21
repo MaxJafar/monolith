@@ -1,28 +1,14 @@
-/**
- * Tracks the module id currently being imported. The loader sets this around
- * `await import(...)`, so anything the module executes at load time (schema
- * registration, route definitions) can resolve its own module id directly,
- * without fragile stack-trace parsing.
- *
- * Stored on `globalThis` so all instances of this package share it.
- */
-const LOADING_MODULE_KEY = Symbol.for('monolith.module-runtime.loading-module')
-
-export function setLoadingModuleId(id: string | undefined): void {
-  const globalObject = globalThis as unknown as Record<
-    symbol,
-    string | undefined
-  >
-
-  if (id === undefined) {
-    delete globalObject[LOADING_MODULE_KEY]
-  } else {
-    globalObject[LOADING_MODULE_KEY] = id
-  }
-}
+// SPDX-License-Identifier: 0BSD
+// Kept process-wide because an add-on and its host can resolve different bundles.
+const key = Symbol.for('monolith.module-runtime.loading-module')
+const context = globalThis as unknown as Record<symbol, unknown>
 
 export function getLoadingModuleId(): string | undefined {
-  return (globalThis as unknown as Record<symbol, string | undefined>)[
-    LOADING_MODULE_KEY
-  ]
+  const value = context[key]
+  return typeof value === 'string' ? value : undefined
+}
+
+export function setLoadingModuleId(id: string | undefined): void {
+  if (id !== undefined) context[key] = id
+  else Reflect.deleteProperty(context, key)
 }

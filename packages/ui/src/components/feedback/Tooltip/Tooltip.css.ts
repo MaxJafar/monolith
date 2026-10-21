@@ -1,7 +1,8 @@
-import { globalStyle, style } from '@vanilla-extract/css'
+// SPDX-License-Identifier: 0BSD
+import { style } from '@vanilla-extract/css'
 
-export const tooltip = style({})
-
-globalStyle(`${tooltip} .react-tooltip-content-wrapper`, {
-  padding: '0'
+export const tooltip = style({
+  padding: 0,
+  background: 'transparent',
+  color: 'inherit'
 })

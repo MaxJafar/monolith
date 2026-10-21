@@ -1,135 +1,105 @@
-import { useRef } from 'react'
+// SPDX-License-Identifier: 0BSD
+import { type ReactNode, type RefObject, useRef } from 'react'
 import { createPortal } from 'react-dom'
 
 import { Scrollbar } from '@/components/layout/Scrollbar'
 import { Flex } from '@/components/primitives'
-import { Transition } from '@/components/primitives/Transition'
 import {
   appearanceVariables,
   useAppearance
 } from '@/providers/AppearanceProvider'
 import { usePersonalization } from '@/providers/PersonalizationProvider'
 
-import * as styles from './ModalWrapper.css'
+import { overlay } from './ModalWrapper.css'
 import './modalMotion.css'
+import './modalSurface.css'
 import { useContextualForm } from './useContextualForm'
 
-export function ModalWrapper({
-  isOpen,
-  isTopmost = isOpen,
-  children,
-  className,
-  modalRef,
-  zIndex = 0,
-  onExited,
-  anchor,
-  invoker,
-  onClose
-}: {
+export interface ModalWrapperProps {
   isOpen: boolean
   isTopmost?: boolean
-  children: React.ReactNode
+  children: ReactNode
   minWidth?: string
   minHeight?: string
   maxWidth?: string
   className?: string
-  modalRef?: React.RefObject<HTMLDivElement | null>
+  modalRef?: RefObject<HTMLDivElement | null>
   zIndex?: number
-  onExited?: () => void
   anchor?: DOMRect
   invoker?: HTMLElement
   onClose?: () => void
-}) {
+  onExited?: () => void
+}
+export function ModalWrapper(props: ModalWrapperProps) {
   const { appearance } = useAppearance()
   const { derivedTheme } = usePersonalization()
   const surface = useRef<HTMLDivElement>(null)
-  useContextualForm(surface, { anchor, invoker, onClose, isOpen, isTopmost })
+  const active = props.isTopmost ?? props.isOpen
+  useContextualForm(surface, {
+    anchor: props.anchor,
+    invoker: props.invoker,
+    onClose: props.onClose,
+    isOpen: props.isOpen,
+    isTopmost: active
+  })
+  if (typeof document === 'undefined') return null
 
   return createPortal(
-    <Transition
-      property={
-        isOpen
-          ? { property: 'opacity', duration: '200ms', easing: 'ease-out' }
-          : [
-              {
-                property: 'z-index',
-                duration: '0.1s',
-                easing: 'linear',
-                delay: '0.2s'
-              },
-              { property: 'opacity', duration: '0.2s', easing: 'ease-out' }
-            ]
-      }
+    <Flex
+      ref={props.modalRef}
+      className={overlay({ topmost: active, open: props.isOpen })}
+      data-modal-overlay="true"
+      data-modal-topmost={active}
+      data-open={props.isOpen}
+      inert={!active}
+      position="fixed"
+      inset="0"
+      align="center"
+      justify="center"
+      width="100%"
+      height="100dvh"
+      minWidth="0"
+      zIndex={String(props.zIndex ?? 0)}
+      style={appearanceVariables(appearance, derivedTheme)}
+      onTransitionEnd={event => {
+        if (
+          event.currentTarget === event.target &&
+          event.propertyName === 'opacity' &&
+          !props.isOpen
+        )
+          props.onExited?.()
+      }}
     >
       <Flex
-        ref={modalRef}
-        align="center"
-        className={styles.overlay({ topmost: isTopmost })}
-        data-modal-overlay="true"
-        data-modal-topmost={isTopmost}
-        data-open={isOpen}
-        inert={!isTopmost}
-        height="100dvh"
-        justify="center"
-        left="0"
-        minWidth="0"
-        position="fixed"
-        style={{
-          ...appearanceVariables(appearance, derivedTheme),
-          overscrollBehavior: 'contain',
-          opacity: Number(isOpen)
-        }}
-        top="0"
-        width="100%"
-        zIndex={zIndex.toString()}
-        onTransitionEnd={event => {
-          if (
-            !isOpen &&
-            event.target === event.currentTarget &&
-            event.propertyName === 'opacity'
-          )
-            onExited?.()
-        }}
+        ref={surface}
+        direction="column"
+        overflow="hidden"
+        p="lg"
+        r="xl"
+        className={['monolith-modal-surface', props.className]
+          .filter(Boolean)
+          .join(' ')}
+        bg={{ base: 'bg-50', dark: 'bg-900' }}
+        width={{ base: '100%', lg: 'auto' }}
+        minWidth={props.minWidth ?? '0'}
+        minHeight={props.minHeight}
+        maxWidth={
+          props.maxWidth ?? {
+            base: 'calc(100vw - 4rem)',
+            sm: 'calc(100vw - 8rem)'
+          }
+        }
+        maxHeight="calc(100dvh - 8rem)"
       >
-        <Transition easing="ease-out" property="transform">
-          <Flex
-            ref={surface}
-            bg={{ base: 'bg-50', dark: 'bg-900' }}
-            className={`monolith-modal-surface ${className ?? ''}`}
-            direction="column"
-            maxHeight="calc(100dvh - 8rem)"
-            maxWidth={{
-              base: 'calc(100vw - 4rem)',
-              sm: 'calc(100vw - 8rem)'
-            }}
-            minWidth="0"
-            overflow="hidden"
-            p="lg"
-            r="xl"
-            style={{
-              transform: !isOpen
-                ? 'scale(.97, .95)'
-                : isTopmost
-                  ? 'none'
-                  : 'scale(.97)',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
-            }}
-            width={{
-              lg: 'auto',
-              base: '100%'
-            }}
-          >
-            <Scrollbar
-              autoHeight
-              hideHorizontal
-              autoHeightMax="calc(100dvh - 11rem)"
-            >
-              {children}
-            </Scrollbar>
-          </Flex>
-        </Transition>
+        <Scrollbar
+          autoHeight
+          hideHorizontal
+          autoHeightMax="calc(100dvh - 11rem)"
+        >
+          {props.children}
+        </Scrollbar>
       </Flex>
-    </Transition>,
-    document.getElementById('app') || document.body
+    </Flex>,
+    document.getElementById('app') ?? document.body
   )
 }

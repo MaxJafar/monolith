@@ -1,48 +1,53 @@
+// SPDX-License-Identifier: 0BSD
+import { resolve } from 'node:path'
+import { pathToFileURL } from 'node:url'
 import { afterEach, describe, expect, it } from 'vitest'
 
+import { ModuleRegistry } from './ModuleRegistry'
 import { setLoadingModuleId } from './loadingModule'
 import { deriveModuleNamespace, resolveCallerModuleId } from './moduleNamespace'
 
-describe('deriveModuleNamespace', () => {
-  it('strips the npm scope before deriving', () => {
-    expect(deriveModuleNamespace('@monolith/achievements')).toBe(
-      'achievements'
-    )
-    expect(deriveModuleNamespace('@monolith/calendar')).toBe(
-      'calendar'
-    )
-    expect(deriveModuleNamespace('@monolith/monolith--owntracks')).toBe(
-      'owntracks'
-    )
-  })
-
-  it('prefixes non-official authors with a triple underscore', () => {
-    expect(
-      deriveModuleNamespace('@monolith/example-author--truckers-log')
-    ).toBe('example-author___truckers_log')
-    expect(deriveModuleNamespace('example-author--invoice-maker')).toBe(
-      'example-author___invoice_maker'
-    )
-  })
-
-  it('handles unscoped ids', () => {
-    expect(deriveModuleNamespace('monolith--app')).toBe('app')
-    expect(deriveModuleNamespace('dashboard')).toBe('dashboard')
-  })
+afterEach(() => {
+  setLoadingModuleId(undefined)
 })
 
-describe('resolveCallerModuleId', () => {
-  afterEach(() => {
+describe('durable table namespaces', () => {
+  it.each([
+    ['@monolith/calendar', 'calendar'],
+    ['@monolith/monolith--idea-box', 'idea_box'],
+    ['workspace', 'workspace'],
+    ['guest--account-book', 'guest___account_book'],
+    ['@monolith/guest--account-book', 'guest___account_book']
+  ])('%s keeps the installed namespace %s', (id, expected) => {
+    expect(deriveModuleNamespace(id)).toBe(expected)
+  })
+
+  it('uses the active import owner before inspecting call frames', () => {
+    setLoadingModuleId('monolith--active-probe')
+    expect(
+      resolveCallerModuleId('Error\n at ignored (file:///outside.ts:1:2)')
+    ).toBe('monolith--active-probe')
     setLoadingModuleId(undefined)
+    expect(
+      resolveCallerModuleId('Error\n at ignored (file:///outside.ts:1:2)')
+    ).toBeUndefined()
   })
 
-  it('returns the id the loader is currently importing', () => {
-    setLoadingModuleId('monolith--calendar')
-
-    expect(resolveCallerModuleId()).toBe('monolith--calendar')
-  })
-
-  it('returns undefined when nothing is being imported', () => {
-    expect(resolveCallerModuleId()).toBeUndefined()
+  it('resolves registered file URLs with spaces and Windows call frames', () => {
+    const managed = resolve('workspace with spaces/managed')
+    ModuleRegistry.registerPath(managed, 'url-probe')
+    ModuleRegistry.registerPath('C:/workspace/modules/probe', 'windows-probe')
+    expect(
+      resolveCallerModuleId(
+        'Error\n at load (' +
+          pathToFileURL(resolve(managed, 'index.ts')).href +
+          ':8:9)'
+      )
+    ).toBe('url-probe')
+    expect(
+      resolveCallerModuleId(
+        'Error\n at C:\\workspace\\modules\\probe\\index.ts:8:9'
+      )
+    ).toBe('windows-probe')
   })
 })

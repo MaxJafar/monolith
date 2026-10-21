@@ -51,13 +51,13 @@ Run it on your own infrastructure, connect browser and desktop clients, and exte
 
 ## Make your workspace your own
 
-Start with seven native sections: **Calendar, Projects, Actions, Rooms, Docs, Dashboard and Databases**. Reorder navigation, choose light or dark appearance and add the tools you need.
+Start with eight native sections: **Calendar, Projects, Actions, Rooms, Docs, Journal, Dashboard and Databases**. Reorder navigation, choose light or dark appearance and add the tools you need.
 
 | Layer | What it brings | Examples |
 | --- | --- | --- |
 | Native features | The shared workspace foundation | Pages, projects, calendar, databases |
-| Addons | Optional tools with their own workspace surfaces | Atlas, Automations, Agents, Journal, Wallet, Gym |
-| Widgets | Compact views with configuration overlays | Achievements, Code Time, Flashcards, Pomodoro, Idea Box |
+| Addons | Optional tools with their own workspace surfaces | Atlas, Automations, Agents, Redraw, Gym, Tech Lab |
+| Widgets | Compact views with configuration overlays | Calendar, Action agenda, Project focus, Training pulse |
 
 **[Addons and Widgets](https://monolith-site-maxjafars-projects.vercel.app/addons)** separates installing a package on the host from enabling it in a workspace. Filter the shop by type, category and installation state; configure widgets in an overlay, add them to the dashboard or pin supported widgets to the sidebar.
 
@@ -217,6 +217,8 @@ Addons execute trusted application code; they are not sandboxed. See [addon inst
 
 ## License and attribution
 
-Maintained by **Monolith contributors**. See [LICENSE](LICENSE) and the licenses and notices shipped with each package. [Source and license information](https://monolith-site-maxjafars-projects.vercel.app/docs/availability#source-and-licenses) is included in the documentation.
+Monolith’s first-party code is open source under the [Zero-Clause BSD license (0BSD)](LICENSE). You can use, modify and redistribute it, including commercially. Maintained by **Monolith contributors**.
+
+Third-party components retain their own licenses. See [third-party notices](THIRD_PARTY_NOTICES.md), [source provenance](legal/source-provenance.json), and [source and license information](https://monolith-site-maxjafars-projects.vercel.app/docs/availability#source-and-licenses).
 
 BlockSuite, Yjs and other dependencies retain their own notices. The Monolith mark and cover are original project assets.

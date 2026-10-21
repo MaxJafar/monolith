@@ -1,0 +1,17 @@
+/* SPDX-License-Identifier: 0BSD */
+.monolith-statement-print-wrapper {
+  width: 100%;
+}
+@media print {
+  .monolith-statement-print-wrapper {
+    display: block !important;
+    color: #000 !important;
+    background: #fff !important;
+    --custom-font-scale: 1 !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .monolith-statement-print-wrapper > * {
+    height: auto !important;
+  }
+}

@@ -1,132 +1,33 @@
+// SPDX-License-Identifier: 0BSD
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { useState } from 'react'
 
-import { type Location, LocationInput } from './index'
+import { type Location, LocationInput } from '.'
 
 const meta = {
-  argTypes: {
-    onChange: {
-      control: false
-    },
-    value: {
-      control: false
-    }
-  },
+  title: 'Inputs/LocationInput',
   component: LocationInput,
-  title: 'Inputs/LocationInput'
+  args: {
+    value: null,
+    onChange: () => {},
+    label: 'Meeting place',
+    namespace: false
+  }
 } satisfies Meta<typeof LocationInput>
-
 export default meta
-
-type Story = StoryObj<typeof meta>
-
-export const Default: Story = {
-  args: {
-    icon: 'tabler:map-pin',
-    label: 'Location',
-
-    onChange: () => {},
-    value: null
-  },
+export const Search: StoryObj<typeof meta> = {
   render: args => {
-    const [location, setLocation] = useState<Location | null>(null)
-
-    return <LocationInput {...args} value={location} onChange={setLocation} />
+    const [value, onChange] = useState<Location | null>(null)
+    return <LocationInput {...args} value={value} onChange={onChange} />
   }
 }
-
-export const Required: Story = {
-  args: {
-    icon: 'tabler:map-pin',
-    label: 'Location',
-
-    onChange: () => {},
-    required: true,
-    value: null
-  },
-  render: args => {
-    const [location, setLocation] = useState<Location | null>(null)
-
-    return <LocationInput {...args} value={location} onChange={setLocation} />
-  }
-}
-
-export const Disabled: Story = {
+export const PreservedSelection: StoryObj<typeof meta> = {
   args: {
     disabled: true,
-    icon: 'tabler:map-pin',
-    label: 'Location',
-
-    onChange: () => {},
-    value: null
-  },
-  render: args => {
-    const [location, setLocation] = useState<Location | null>(null)
-
-    return <LocationInput {...args} value={location} onChange={setLocation} />
-  }
-}
-
-export const WithErrorMessage: Story = {
-  args: {
-    errorMsg: 'Invalid location',
-    icon: 'tabler:map-pin',
-    label: 'Location',
-
-    onChange: () => {},
-    value: null
-  },
-  render: args => {
-    const [location, setLocation] = useState<Location | null>(null)
-
-    return <LocationInput {...args} value={location} onChange={setLocation} />
-  }
-}
-
-export const DisabledWithErrorMessage: Story = {
-  args: {
-    disabled: true,
-    errorMsg: 'Invalid location',
-    icon: 'tabler:map-pin',
-    label: 'Location',
-
-    onChange: () => {},
-    value: null
-  },
-  render: args => {
-    const [location, setLocation] = useState<Location | null>(null)
-
-    return <LocationInput {...args} value={location} onChange={setLocation} />
-  }
-}
-
-export const PlainVariant: Story = {
-  args: {
-    icon: 'tabler:map-pin',
-    label: 'Location',
-    onChange: () => {},
-    value: null,
-    variant: 'plain'
-  },
-  render: args => {
-    const [location, setLocation] = useState<Location | null>(null)
-
-    return <LocationInput {...args} value={location} onChange={setLocation} />
-  }
-}
-
-export const PlainVariantWithErrorMessage: Story = {
-  args: {
-    errorMsg: 'Invalid location',
-    icon: 'tabler:map-pin',
-    label: 'Location',
-    onChange: () => {},
-    value: null,
-    variant: 'plain'
-  },
-  render: args => {
-    const [location, setLocation] = useState<Location | null>(null)
-
-    return <LocationInput {...args} value={location} onChange={setLocation} />
+    value: {
+      name: 'Baku',
+      formattedAddress: 'Baku, Azerbaijan',
+      location: { latitude: 40.4093, longitude: 49.8671 }
+    }
   }
 }

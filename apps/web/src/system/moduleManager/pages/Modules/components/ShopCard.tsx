@@ -117,7 +117,7 @@ export default function ShopCard({ item }: { item: ShopEntry }) {
             variant="plain"
             justify="start"
             icon="lucide:arrow-up-right"
-            to={`/${item.slug === 'blog' ? 'journal' : item.slug}?workspace=${shop.active?.id ?? ''}`}
+            to={`/${item.slug}?workspace=${shop.active?.id ?? ''}`}
           >
             {t('catalog.open')}
           </Button>

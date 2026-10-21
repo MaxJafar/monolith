@@ -1,7 +1,9 @@
+// SPDX-License-Identifier: 0BSD
 import * as ts from '@typescript/typescript6'
 import { readFileSync, statSync } from 'node:fs'
-import { dirname, join, resolve } from 'node:path'
+import { dirname, join, relative, resolve, sep } from 'node:path'
 
+import { navigationSectionSchema } from '../interfaces/module.types'
 import type { WidgetConfig } from '../interfaces/widget.types'
 import resolveExpressionMap, {
   findNode,
@@ -21,78 +23,116 @@ export interface ParsedWidget {
 }
 export interface ParsedManifest {
   hasProvider: boolean
-  hidden?: boolean
-  subsection?: ParsedSubsection[]
   widgets: ParsedWidget[]
+  subsection?: ParsedSubsection[]
+  hidden?: boolean
 }
 
-function widgetSource(
-  importName: string,
-  directory: string
-): string | undefined {
-  const candidate = importName.startsWith('@/')
-    ? join(directory, 'src', importName.slice(2))
-    : resolve(directory, importName)
-  return [
-    candidate,
-    candidate + '.tsx',
-    candidate + '.ts',
-    join(candidate, 'index.tsx'),
-    join(candidate, 'index.ts')
-  ].find(file => {
-    try {
-      return statSync(file).isFile()
-    } catch {
-      return false
+function definition(
+  source: ts.SourceFile
+): ts.ObjectLiteralExpression | undefined {
+  const declarations = new Map<string, ts.Expression>()
+  let exported: ts.Expression | undefined
+  for (const statement of source.statements) {
+    if (ts.isExportAssignment(statement) && !statement.isExportEquals)
+      exported = statement.expression
+    if (ts.isVariableStatement(statement)) {
+      for (const item of statement.declarationList.declarations) {
+        if (ts.isIdentifier(item.name) && item.initializer)
+          declarations.set(item.name.text, item.initializer)
+        else if (ts.isObjectBindingPattern(item.name) && item.initializer) {
+          for (const binding of item.name.elements) {
+            if (binding.dotDotDotToken && ts.isIdentifier(binding.name))
+              declarations.set(binding.name.text, item.initializer)
+          }
+        }
+      }
     }
+  }
+  const seen = new Set<string>()
+  const chase = (input?: ts.Expression): ts.Expression | undefined => {
+    if (!input) return
+    const expression = unwrapExpression(input)
+    if (!ts.isIdentifier(expression)) return expression
+    if (seen.has(expression.text)) return
+    seen.add(expression.text)
+    return chase(declarations.get(expression.text))
+  }
+  const call = chase(exported)
+  if (
+    !call ||
+    !ts.isCallExpression(call) ||
+    !ts.isIdentifier(call.expression) ||
+    call.expression.text !== 'defineAddon'
+  )
+    return
+  const argument = chase(call.arguments[0])
+  return argument && ts.isObjectLiteralExpression(argument)
+    ? argument
+    : undefined
+}
+
+function widgetFile(root: string, specifier: string): string | undefined {
+  if (!specifier.startsWith('@/') && !specifier.startsWith('.')) return
+  const base = resolve(
+    root,
+    specifier.startsWith('@/') ? 'src/' + specifier.slice(2) : specifier
+  )
+  const local = relative(resolve(root), base)
+  if (local === '..' || local.startsWith('..' + sep)) return
+  for (const candidate of [
+    base,
+    base + '.tsx',
+    base + '.ts',
+    join(base, 'index.tsx'),
+    join(base, 'index.ts')
+  ]) {
+    try {
+      if (statSync(candidate).isFile()) return candidate
+    } catch {
+      /* Try the next extension. */
+    }
+  }
+}
+
+function readWidgets(
+  expression: ts.Expression | undefined,
+  root: string
+): ParsedWidget[] {
+  if (!expression || !ts.isArrayLiteralExpression(expression)) return []
+  return expression.elements.flatMap(element => {
+    const node = findNode(
+      element,
+      item =>
+        ts.isCallExpression(item) &&
+        item.expression.kind === ts.SyntaxKind.ImportKeyword
+    )
+    if (!node || !ts.isCallExpression(node)) return []
+    const requested = node.arguments[0]
+    if (!requested || !ts.isStringLiteralLike(requested)) return []
+    const filePath = widgetFile(root, requested.text)
+    const config = filePath ? parseWidgetConfig(filePath) : null
+    return filePath && config ? [{ filePath, config }] : []
   })
 }
 
-function widgets(
-  expression: ts.Expression | undefined,
-  directory: string
-): ParsedWidget[] {
-  if (!expression || !ts.isArrayLiteralExpression(expression)) return []
-  const result: ParsedWidget[] = []
-  for (const element of expression.elements) {
-    const call = findNode(
-      element,
-      node =>
-        ts.isCallExpression(node) &&
-        node.expression.kind === ts.SyntaxKind.ImportKeyword
-    ) as ts.CallExpression | null
-    const argument = call?.arguments[0]
-    if (!argument || !ts.isStringLiteralLike(argument)) continue
-    const filePath = widgetSource(argument.text, directory)
-    const config = filePath && parseWidgetConfig(filePath)
-    if (filePath && config) result.push({ filePath, config })
-  }
-  return result
-}
-
-function sections(
+function readSections(
   expression: ts.Expression | undefined
 ): ParsedSubsection[] | undefined {
-  if (!expression || !ts.isArrayLiteralExpression(expression)) return undefined
-  const result: ParsedSubsection[] = []
-  for (const element of expression.elements) {
+  if (!expression || !ts.isArrayLiteralExpression(expression)) return
+  const sections = expression.elements.flatMap(element => {
     const value = unwrapExpression(element)
-    if (!ts.isObjectLiteralExpression(value)) continue
-    const { label, icon, path } = resolveExpressionMap(
-      parseObjectLiteral(value)
+    if (!ts.isObjectLiteralExpression(value)) return []
+    const section = navigationSectionSchema.safeParse(
+      resolveExpressionMap(parseObjectLiteral(value))
     )
-    if (
-      typeof label === 'string' &&
-      typeof icon === 'string' &&
-      typeof path === 'string'
-    )
-      result.push({ label, icon, path })
-  }
-  return result.length ? result : undefined
+    return section.success ? [section.data] : []
+  })
+  return sections.length ? sections : undefined
 }
 
 export default function parseManifest(filePath: string): ParsedManifest {
-  const empty = (): ParsedManifest => ({ hasProvider: false, widgets: [] })
+  const empty = { hasProvider: false, widgets: [] }
   try {
     const source = ts.createSourceFile(
       filePath,
@@ -101,26 +141,19 @@ export default function parseManifest(filePath: string): ParsedManifest {
       true,
       ts.ScriptKind.TSX
     )
-    const call = findNode(
-      source,
-      node =>
-        ts.isCallExpression(node) &&
-        ts.isIdentifier(node.expression) &&
-        node.expression.text === 'defineAddon'
-    ) as ts.CallExpression | null
-    const argument = call?.arguments[0] && unwrapExpression(call.arguments[0])
-    if (!argument || !ts.isObjectLiteralExpression(argument)) return empty()
-    const properties = parseObjectLiteral(argument)
-    const { hidden } = resolveExpressionMap(properties)
+    const object = definition(source)
+    if (!object) return empty
+    const expressions = parseObjectLiteral(object)
+    const values = resolveExpressionMap(expressions)
     return {
-      hasProvider: Object.hasOwn(properties, 'provider'),
-      hidden: typeof hidden === 'boolean' ? hidden : undefined,
-      subsection: sections(properties.subsection),
-      widgets: widgets(properties.widgets, dirname(filePath))
+      hasProvider: Object.hasOwn(expressions, 'provider'),
+      hidden: typeof values.hidden === 'boolean' ? values.hidden : undefined,
+      subsection: readSections(expressions.subsection),
+      widgets: readWidgets(expressions.widgets, dirname(filePath))
     }
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== 'ENOENT')
-      console.error('Cannot read addon manifest', filePath, error)
-    return empty()
+      console.error('Add-on metadata could not be read', { filePath, error })
+    return empty
   }
 }

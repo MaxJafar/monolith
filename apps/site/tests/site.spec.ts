@@ -83,14 +83,14 @@ test('collection combines type, category and text filters and can reset', async 
   page
 }) => {
   await page.goto('/addons')
-  await expect(page.locator('[data-addon-card]:visible')).toHaveCount(14)
-  await page.getByRole('button', { name: 'Widgets', exact: true }).click()
-  await expect(page.locator('[data-addon-card]:visible')).toHaveCount(5)
+  await expect(page.locator('[data-addon-card]:visible')).toHaveCount(6)
+  await page.getByRole('button', { name: 'Addons', exact: true }).click()
+  await expect(page.locator('[data-addon-card]:visible')).toHaveCount(6)
   await page.getByLabel('Filter by category').selectOption('Productivity')
-  await expect(page.locator('[data-addon-card]:visible')).toHaveCount(2)
+  await expect(page.locator('[data-addon-card]:visible')).toHaveCount(3)
   await page
     .getByRole('searchbox', { name: 'Search addons and widgets' })
-    .fill('Pomodoro')
+    .fill('Automations')
   await expect(page.locator('[data-addon-card]:visible')).toHaveCount(1)
   await expect(page.locator('[data-addon-count]')).toHaveText(
     '1 tool in the collection'
@@ -98,7 +98,7 @@ test('collection combines type, category and text filters and can reset', async 
   await page.getByRole('searchbox').fill('not-a-tool')
   await expect(page.locator('[data-addon-empty]')).toBeVisible()
   await page.getByRole('button', { name: 'Clear filters' }).click()
-  await expect(page.locator('[data-addon-card]:visible')).toHaveCount(14)
+  await expect(page.locator('[data-addon-card]:visible')).toHaveCount(6)
   await page
     .locator('[data-addon-card]')
     .filter({ has: page.getByRole('heading', { name: 'Atlas', exact: true }) })

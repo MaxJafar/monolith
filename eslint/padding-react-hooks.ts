@@ -1,152 +1,109 @@
-import type { TSESTree } from '@typescript-eslint/utils'
-import type { Rule } from 'eslint'
+// SPDX-License-Identifier: 0BSD
+import type { AST, Rule } from 'eslint'
 
+type Statement = AST.Program['body'][number]
+type Expression = Extract<
+  Statement,
+  { type: 'ExpressionStatement' }
+>['expression']
+function hook(expression: Expression | null | undefined): boolean {
+  if (expression?.type !== 'CallExpression') return false
+  const target = expression.callee
+  const name =
+    target.type === 'Identifier'
+      ? target.name
+      : target.type === 'MemberExpression' &&
+          !target.computed &&
+          target.property.type === 'Identifier'
+        ? target.property.name
+        : ''
+  return /^use[A-Z]/.test(name)
+}
+function category(statement: Statement) {
+  const simple =
+    statement.type === 'VariableDeclaration' ||
+    statement.type === 'ExpressionStatement'
+  const invokes =
+    statement.type === 'ExpressionStatement'
+      ? hook(statement.expression)
+      : statement.type === 'VariableDeclaration' &&
+        statement.declarations.some(item => hook(item.init))
+  return {
+    hook: invokes && statement.loc?.start.line === statement.loc?.end.line,
+    adjacent:
+      simple &&
+      (statement.type !== 'VariableDeclaration' || statement.kind === 'const')
+  }
+}
 const rule: Rule.RuleModule = {
   meta: {
     type: 'layout',
     docs: {
-      description: 'Enforce padding lines between and around React hook calls.',
-      category: 'Stylistic Issues'
+      description:
+        'Group adjacent one-line hooks and separate them from other declarations.'
     },
-    fixable: 'whitespace',
     schema: [],
+    fixable: 'whitespace',
     messages: {
-      noBlankLineBetweenHooks: 'Expected no blank line between hook calls.',
-      blankLineRequiredAfterHook: 'Expected blank line after hook calls.',
-      blankLineRequiredBeforeHook: 'Expected blank line before hook calls.'
+      group: 'Keep consecutive one-line hooks together.',
+      separate: 'Separate hooks from neighboring statements with a blank line.'
     }
   },
   create(context) {
-    const sourceCode = context.sourceCode
-
-    function isHookCall(node: any): boolean {
-      if (!node || node.type !== 'CallExpression') return false
-
-      const callee = node.callee
-
-      if (callee.type === 'Identifier') {
-        return /^use[A-Z]/.test(callee.name)
-      }
-
-      if (
-        callee.type === 'MemberExpression' &&
-        callee.property.type === 'Identifier'
-      ) {
-        return /^use[A-Z]/.test(callee.property.name)
-      }
-
-      return false
-    }
-
-    function isHookStatement(statement: TSESTree.Statement): boolean {
-      if (statement.type === 'ExpressionStatement') {
-        return isHookCall(statement.expression)
-      }
-
-      if (statement.type === 'VariableDeclaration') {
-        return statement.declarations.some(decl => isHookCall(decl.init))
-      }
-
-      return false
-    }
-
-    function isSingleLineHookStatement(statement: TSESTree.Statement): boolean {
-      return (
-        isHookStatement(statement) &&
-        statement.loc?.start.line === statement.loc?.end.line
-      )
-    }
-
-    function isConstDeclaration(statement: TSESTree.Statement): boolean {
-      return (
-        statement.type === 'VariableDeclaration' && statement.kind === 'const'
-      )
-    }
-
-    function hasBlankLineBetween(startLine: number, endLine: number): boolean {
-      for (let line = startLine + 1; line < endLine; line++) {
-        const lineText = sourceCode.lines[line - 1]
-
-        if (lineText.trim() === '') {
-          return true
-        }
-      }
-
-      return false
-    }
-
-    function checkStatements(statements: TSESTree.Statement[]) {
-      for (let i = 0; i < statements.length - 1; i++) {
-        const current = statements[i]
-        const next = statements[i + 1]
-
-        const currentIsHook = isSingleLineHookStatement(current)
-        const nextIsHook = isSingleLineHookStatement(next)
-
-        const currentIsConst = isConstDeclaration(current)
-        const nextIsConst = isConstDeclaration(next)
-
-        const currentIsExpr = current.type === 'ExpressionStatement'
-        const nextIsExpr = next.type === 'ExpressionStatement'
-
-        const currentEndLine = current.loc?.end.line
-        const nextStartLine = next.loc?.start.line
-
-        if (currentEndLine === undefined || nextStartLine === undefined)
-          continue
-
-        if (currentIsHook && nextIsHook) {
-          if (hasBlankLineBetween(currentEndLine, nextStartLine)) {
-            context.report({
-              node: next,
-              messageId: 'noBlankLineBetweenHooks',
-              fix(fixer) {
-                const rangeStart = current.range?.[1]
-                const rangeEnd = next.range?.[0]
-
-                if (rangeStart === undefined || rangeEnd === undefined)
-                  return null
-
-                const textBetween = sourceCode.text.slice(rangeStart, rangeEnd)
-                const fixedText = textBetween.replace(/\r?\n\s*\r?\n/g, '\n')
-
-                return fixer.replaceTextRange([rangeStart, rangeEnd], fixedText)
-              }
-            })
+    const source = context.sourceCode
+    function inspect(statements: Statement[]) {
+      for (let index = 1; index < statements.length; index++) {
+        const first = statements[index - 1]!,
+          second = statements[index]!,
+          before = category(first),
+          after = category(second)
+        if (!first.range || !second.range || !first.loc || !second.loc) continue
+        const group = before.hook && after.hook,
+          apart =
+            !group &&
+            ((before.hook && after.adjacent) || (before.adjacent && after.hook))
+        if (!group && !apart) continue
+        const blank = source.lines
+          .slice(first.loc.end.line, second.loc.start.line - 1)
+          .some(line => !line.trim())
+        if (group === !blank) continue
+        const range: [number, number] = [first.range[1], second.range[0]],
+          gap = source.text.slice(...range)
+        context.report({
+          node: second,
+          messageId: group ? 'group' : 'separate',
+          fix(fixer) {
+            if (group)
+              return fixer.replaceTextRange(
+                range,
+                gap.replace(/(\r?\n)[ \t]*(?=\r?\n)/g, '')
+              )
+            const newline = source.text.includes('\r\n') ? '\r\n' : '\n',
+              indent =
+                source.lines[second.loc!.start.line - 1]!.match(
+                  /^[ \t]*/
+                )?.[0] ?? ''
+            return fixer.replaceTextRange(
+              range,
+              gap.replace(/[ \t]*$/, '') +
+                (first.loc!.end.line === second.loc!.start.line
+                  ? newline
+                  : '') +
+                newline +
+                indent
+            )
           }
-        } else if (currentIsHook && (nextIsConst || nextIsExpr)) {
-          if (!hasBlankLineBetween(currentEndLine, nextStartLine)) {
-            context.report({
-              node: next,
-              messageId: 'blankLineRequiredAfterHook',
-              fix(fixer) {
-                return fixer.insertTextBefore(next, '\n')
-              }
-            })
-          }
-        } else if ((currentIsConst || currentIsExpr) && nextIsHook) {
-          if (!hasBlankLineBetween(currentEndLine, nextStartLine)) {
-            context.report({
-              node: next,
-              messageId: 'blankLineRequiredBeforeHook',
-              fix(fixer) {
-                return fixer.insertTextBefore(next, '\n')
-              }
-            })
-          }
-        }
+        })
       }
     }
-
     return {
-      BlockStatement(node: any) {
-        checkStatements(node.body)
+      Program(node) {
+        inspect(node.body)
       },
-      Program(node: any) {
-        checkStatements(node.body)
+      BlockStatement(node) {
+        inspect(node.body)
       }
     }
   }
 }
-
 export default rule

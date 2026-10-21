@@ -16,5 +16,6 @@
   "author": "Monolith contributors",
   "monolithBuilds": {
     "build": "tsc"
-  }
+  },
+  "license": "0BSD"
 }

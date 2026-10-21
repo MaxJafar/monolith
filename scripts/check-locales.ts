@@ -1,122 +1,120 @@
-import fs from 'node:fs'
-import path from 'node:path'
+// SPDX-License-Identifier: 0BSD
+import { readFileSync, readdirSync } from 'node:fs'
+import { join, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-const LOCALES_DIR = path.resolve(import.meta.dirname, '..', 'locales')
-const REF_LANG = 'lang-en'
-
-function flattenKeys(obj: Record<string, unknown>, prefix = ''): string[] {
-  const keys: string[] = []
-
-  for (const [key, value] of Object.entries(obj)) {
-    const fullKey = prefix ? `${prefix}.${key}` : key
-
-    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-      keys.push(...flattenKeys(value as Record<string, unknown>, fullKey))
-    } else {
-      keys.push(fullKey)
+export type LocaleIssue = {
+  file: string
+  kind:
+    'missing-file' | 'extra-file' | 'missing-keys' | 'extra-keys' | 'invalid'
+  keys?: string[]
+  detail?: string
+}
+function leafKeys(value: unknown) {
+  if (!value || typeof value !== 'object' || Array.isArray(value))
+    throw Error('A locale file must contain a JSON object')
+  const pending: [string, unknown][] = [['', value]],
+    keys: string[] = []
+  while (pending.length) {
+    const [prefix, current] = pending.pop()!
+    if (current && typeof current === 'object' && !Array.isArray(current)) {
+      for (const key of Object.keys(current))
+        pending.push([
+          prefix ? prefix + '.' + key : key,
+          (current as Record<string, unknown>)[key]
+        ])
+    } else keys.push(prefix)
+  }
+  return new Set(keys)
+}
+export function inspectLocales(
+  directory: string,
+  reference = 'lang-en'
+): LocaleIssue[] {
+  const issues: LocaleIssue[] = []
+  function files(folder: string) {
+    return readdirSync(folder, { withFileTypes: true })
+      .filter(
+        item =>
+          item.isFile() &&
+          item.name.endsWith('.json') &&
+          item.name !== 'package.json'
+      )
+      .map(item => item.name)
+      .sort()
+  }
+  function read(folder: string, file: string) {
+    try {
+      return leafKeys(
+        JSON.parse(readFileSync(join(directory, folder, file), 'utf8'))
+      )
+    } catch (error) {
+      issues.push({
+        file: folder + '/' + file,
+        kind: 'invalid',
+        detail: error instanceof Error ? error.message : String(error)
+      })
+      return null
     }
   }
-
-  return keys
-}
-
-function readJSON(filePath: string): Record<string, unknown> | null {
   try {
-    return JSON.parse(fs.readFileSync(filePath, 'utf-8'))
-  } catch {
-    return null
+    const expected = files(join(directory, reference)),
+      names = readdirSync(directory, { withFileTypes: true })
+        .filter(
+          item =>
+            item.isDirectory() &&
+            item.name.startsWith('lang-') &&
+            item.name !== reference
+        )
+        .map(item => item.name)
+        .sort()
+    const baseline = new Map(
+      expected.map(file => [file, read(reference, file)])
+    )
+    for (const name of names) {
+      const available = new Set(files(join(directory, name)))
+      for (const file of expected) {
+        const relative = name + '/' + file
+        if (!available.has(file)) {
+          issues.push({ file: relative, kind: 'missing-file' })
+          continue
+        }
+        available.delete(file)
+        const actual = read(name, file),
+          original = baseline.get(file)
+        if (!actual || !original) continue
+        const missing = [...original].filter(key => !actual.has(key)).sort(),
+          extra = [...actual].filter(key => !original.has(key)).sort()
+        if (missing.length)
+          issues.push({ file: relative, kind: 'missing-keys', keys: missing })
+        if (extra.length)
+          issues.push({ file: relative, kind: 'extra-keys', keys: extra })
+      }
+      for (const file of available)
+        issues.push({ file: name + '/' + file, kind: 'extra-file' })
+    }
+  } catch (error) {
+    issues.push({
+      file: directory,
+      kind: 'invalid',
+      detail: error instanceof Error ? error.message : String(error)
+    })
   }
+  return issues
 }
-
-const refDir = path.join(LOCALES_DIR, REF_LANG)
-
-if (!fs.existsSync(refDir)) {
-  console.error(`Reference language directory not found: ${refDir}`)
-  process.exit(1)
-}
-
-const langDirs = fs
-  .readdirSync(LOCALES_DIR)
-  .filter(d => d.startsWith('lang-') && d !== REF_LANG)
-
-let totalMissing = 0
-let totalExtra = 0
-
-for (const file of fs.readdirSync(refDir)) {
-  if (!file.endsWith('.json')) continue
-
-  const refPath = path.join(refDir, file)
-  const refData = readJSON(refPath)
-
-  if (!refData) {
-    console.warn(`[WARN] Could not read ${refPath}`)
-    continue
-  }
-
-  const refKeys = new Set(flattenKeys(refData))
-
-  for (const langDir of langDirs) {
-    const targetPath = path.join(LOCALES_DIR, langDir, file)
-
-    if (!fs.existsSync(targetPath)) {
-      console.log(`[MISSING FILE] ${langDir}/${file}`)
-      continue
-    }
-
-    const targetData = readJSON(targetPath)
-
-    if (!targetData) {
-      console.warn(`[WARN] Could not read ${targetPath}`)
-      continue
-    }
-
-    const targetKeys = new Set(flattenKeys(targetData))
-
-    const missing: string[] = []
-
-    for (const key of refKeys) {
-      if (!targetKeys.has(key)) {
-        missing.push(key)
-      }
-    }
-
-    const extra: string[] = []
-
-    for (const key of targetKeys) {
-      if (!refKeys.has(key)) {
-        extra.push(key)
-      }
-    }
-
-    if (missing.length > 0) {
-      console.log(`\n${langDir}/${file} - ${missing.length} missing key(s):`)
-
-      for (const key of missing) {
-        console.log(`  - ${key}`)
-      }
-      totalMissing += missing.length
-    }
-
-    if (extra.length > 0) {
-      console.log(`\n${langDir}/${file} - ${extra.length} extra key(s):`)
-
-      for (const key of extra) {
-        console.log(`  + ${key}`)
-      }
-      totalExtra += extra.length
-    }
-  }
-}
-
-if (totalMissing === 0 && totalExtra === 0) {
-  console.log('\nAll language packs are complete.')
-} else {
-  if (totalMissing > 0) {
-    console.log(`\n${totalMissing} total missing key(s) across all languages.`)
-  }
-
-  if (totalExtra > 0) {
-    console.log(`${totalExtra} total extra key(s) across all languages.`)
-  }
-  process.exit(1)
+if (
+  process.argv[1] &&
+  resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+) {
+  const issues = inspectLocales(resolve(import.meta.dirname, '../locales'))
+  for (const issue of issues)
+    console.error(
+      [issue.kind, issue.file, issue.detail, ...(issue.keys ?? [])]
+        .filter(Boolean)
+        .join(' · ')
+    )
+  if (issues.length) {
+    console.error(issues.length + ' locale consistency issue(s).')
+    process.exitCode = 1
+  } else console.log('Locale keys and files match the English reference.')
 }

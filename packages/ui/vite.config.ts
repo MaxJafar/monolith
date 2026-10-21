@@ -1,45 +1,38 @@
+// SPDX-License-Identifier: 0BSD
 import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin'
 import react from '@vitejs/plugin-react'
-import { resolve } from 'path'
+import { fileURLToPath } from 'node:url'
 import { defineConfig, esmExternalRequirePlugin } from 'vite'
 import dts from 'vite-plugin-dts'
 
 import { externalDependencyRegex } from '@monolith/configs/vite'
 
-export default defineConfig({
+const source = fileURLToPath(new URL('./src/', import.meta.url))
+export default defineConfig(() => ({
+  resolve: { alias: { '@': source } },
   plugins: [
     react(),
-    vanillaExtractPlugin(),
-    dts({
-      entryRoot: resolve(__dirname, 'src')
+    vanillaExtractPlugin({
+      unstable_pluginFilter: ({ name }) =>
+        ['monolith-blocksuite-syntax', 'vite-tsconfig-paths'].includes(name)
     }),
+    dts({ entryRoot: source }),
     esmExternalRequirePlugin({
       skipDuplicateCheck: true,
       external: [externalDependencyRegex]
     })
   ],
-  resolve: {
-    alias: {
-      '@': resolve(__dirname, 'src')
-    }
-  },
   build: {
     lib: {
-      entry: resolve(__dirname, 'src/index.ts'),
+      entry: fileURLToPath(new URL('./src/index.ts', import.meta.url)),
       formats: ['es', 'cjs'],
-      fileName: format => `index.${format === 'es' ? 'mjs' : 'js'}`
+      fileName: format => (format === 'es' ? 'index.mjs' : 'index.js')
     },
     rollupOptions: {
       external: [externalDependencyRegex],
-      output: {
-        globals: {
-          react: 'React',
-          'react-dom': 'ReactDOM'
-        },
-        assetFileNames: 'index.[ext]'
-      }
+      output: { assetFileNames: 'index.[ext]' }
     },
-    sourcemap: false,
-    minify: true
+    minify: true,
+    sourcemap: false
   }
-})
+}))

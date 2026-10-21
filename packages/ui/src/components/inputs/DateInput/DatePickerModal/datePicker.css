@@ -1,0 +1,47 @@
+/* SPDX-License-Identifier: 0BSD */
+.monolith-date-grid {
+  width: 100%;
+}
+.monolith-date-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 3px;
+  margin-bottom: 3px;
+}
+.monolith-date-week [role='columnheader'] {
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: 11px;
+  padding-block: 5px;
+}
+.monolith-date-week button {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 13px;
+  cursor: pointer;
+}
+.monolith-date-week button:hover:not(:disabled) {
+  background: var(--bg-lifted);
+}
+.monolith-date-week button[data-outside] {
+  color: var(--text-tertiary);
+}
+.monolith-date-week button:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+.monolith-date-week button[aria-current='date'] {
+  border-color: var(--border-medium);
+}
+.monolith-date-week [aria-selected='true'] button {
+  background: var(--interactive-primary);
+  color: var(--interactive-on-primary);
+}
+.monolith-date-week button:focus-visible {
+  outline: 2px solid var(--selection-color);
+  outline-offset: 1px;
+}

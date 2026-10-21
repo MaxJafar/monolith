@@ -1,33 +1,41 @@
+// SPDX-License-Identifier: 0BSD
 import { registerHooks } from 'node:module'
-import { fileURLToPath, pathToFileURL } from 'node:url'
+import { resolve } from 'node:path'
+import { pathToFileURL } from 'node:url'
 
-let roots: string[] = []
-let host: string | undefined
-let registered = false
+let config: { roots: URL[]; host?: string } = { roots: [] }
+let installed = false
 
-/** Managed bundles resolve shared dependencies from the installed host. */
 export function registerManagedResolver(
   directories: string[],
   packageFile?: string
 ) {
-  roots = directories.map(value => value.replace(/\\/g, '/') + '/')
-  host = packageFile ? pathToFileURL(packageFile).href : undefined
-  if (registered || !host) return
+  config = {
+    roots: directories.map(path => {
+      const url = pathToFileURL(resolve(path))
+      url.pathname = url.pathname.replace(/\/$/, '') + '/'
+      return url
+    }),
+    host: packageFile ? pathToFileURL(resolve(packageFile)).href : undefined
+  }
+  if (installed || !config.host) return
   registerHooks({
-    resolve(specifier, context, nextResolve) {
-      if (
-        host &&
-        context.parentURL?.startsWith('file:') &&
-        !specifier.startsWith('.') &&
-        !specifier.startsWith('/') &&
-        !specifier.includes(':')
-      ) {
-        const parent = fileURLToPath(context.parentURL).replace(/\\/g, '/')
-        if (roots.some(root => parent.startsWith(root)))
-          return nextResolve(specifier, { ...context, parentURL: host })
+    resolve(specifier, context, next) {
+      const bare = !/^(?:[./#]|[^/]*:)/.test(specifier)
+      if (bare && config.host && context.parentURL?.startsWith('file:')) {
+        const parent = new URL(context.parentURL)
+        if (
+          config.roots.some(
+            root =>
+              root.host === parent.host &&
+              parent.pathname.startsWith(root.pathname)
+          )
+        ) {
+          return next(specifier, { ...context, parentURL: config.host })
+        }
       }
-      return nextResolve(specifier, context)
+      return next(specifier, context)
     }
   })
-  registered = true
+  installed = true
 }

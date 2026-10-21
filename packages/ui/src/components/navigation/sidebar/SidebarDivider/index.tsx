@@ -1,18 +1,17 @@
+// SPDX-License-Identifier: 0BSD
 import { Box } from '@/components/primitives'
 
-/**
- * A divider component used to separate sections within the sidebar.
- */
 export function SidebarDivider({ noMargin = false }: { noMargin?: boolean }) {
   return (
     <Box
-      bg={{
-        base: 'bg-200',
-        dark: 'bg-800'
-      }}
-      flexShrink="0"
+      as="li"
+      role="separator"
+      aria-orientation="horizontal"
       height="1px"
-      my={!noMargin ? 'md' : 'none'}
+      bg={{ base: 'bg-200', dark: 'bg-800' }}
+      my={noMargin ? 'none' : 'sm'}
+      mx="md"
+      flexShrink="0"
     />
   )
 }

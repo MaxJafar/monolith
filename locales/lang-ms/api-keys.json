@@ -2,7 +2,7 @@
   "title": "Kunci API",
   "description": "Urus semua kunci API yang diperlukan untuk addon",
   "lockedMessage": "Tetapan kunci API dikunci",
-  "passwordRequired": "Kata laluan diperlukan untuk menyahsulit kunci API",
+  "passwordRequired": "Buka kelayakan API tersimpan dengan kata laluan peti simpanan.",
   "missing": {
     "title": "Kunci API Hilang",
     "description": "Satu atau lebih kunci API tiada. Buka tetapan kunci API untuk mengkonfigurasikannya.",
@@ -38,7 +38,7 @@
   "empty": {
     "apiKeys": {
       "title": "Tiada Kunci API",
-      "description": "Tiada kunci API dijumpai. Klik butang di bawah untuk mencipta kunci API baru"
+      "description": "Tambah kelayakan untuk menyambungkan perkhidmatan luaran."
     }
   },
   "misc": {

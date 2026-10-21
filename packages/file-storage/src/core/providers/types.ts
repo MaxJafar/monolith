@@ -1,25 +1,15 @@
+// SPDX-License-Identifier: 0BSD
 import type { Readable } from 'node:stream'
 
-export interface FileStream {
-  stream: Readable
-  mimeType: string
-  size: number
-}
-
-export interface ProviderSaveOptions {
-  mimeType?: string
-}
-
-export interface StorageGetOptions {
-  thumb?: string
-}
-
-export interface StorageProvider {
+export type FileStream = { stream: Readable; size: number; mimeType: string }
+export type StorageGetOptions = { thumb?: string }
+export type ProviderSaveOptions = { mimeType?: string }
+export type StorageProvider = {
+  get(key: string, options?: StorageGetOptions): Promise<FileStream | null>
   save(
     key: string,
-    data: Readable,
+    source: Readable,
     options?: ProviderSaveOptions
   ): Promise<void>
-  get(key: string, options?: StorageGetOptions): Promise<FileStream | null>
   delete(key: string): Promise<void>
 }

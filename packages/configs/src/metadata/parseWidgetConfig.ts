@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: 0BSD
 import * as ts from '@typescript/typescript6'
 import { readFileSync } from 'node:fs'
 
@@ -5,7 +6,10 @@ import {
   type WidgetConfig,
   widgetConfigSchema
 } from '../interfaces/widget.types'
-import resolveExpressionMap, { findVariableDeclaration } from './ast-utils'
+import resolveExpressionMap, {
+  parseObjectLiteral,
+  unwrapExpression
+} from './ast-utils'
 
 export default function parseWidgetConfig(
   filePath: string
@@ -18,15 +22,26 @@ export default function parseWidgetConfig(
       true,
       ts.ScriptKind.TSX
     )
-    const properties = findVariableDeclaration(source, 'config')
-    if (!properties) return null
-    const result = widgetConfigSchema.safeParse(
-      resolveExpressionMap(properties)
-    )
-    return result.success ? result.data : null
+    for (const statement of source.statements) {
+      if (!ts.isVariableStatement(statement)) continue
+      for (const declaration of statement.declarationList.declarations) {
+        if (
+          !ts.isIdentifier(declaration.name) ||
+          declaration.name.text !== 'config' ||
+          !declaration.initializer
+        )
+          continue
+        const expression = unwrapExpression(declaration.initializer)
+        if (!ts.isObjectLiteralExpression(expression)) return null
+        const parsed = widgetConfigSchema.safeParse(
+          resolveExpressionMap(parseObjectLiteral(expression))
+        )
+        return parsed.success ? parsed.data : null
+      }
+    }
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== 'ENOENT')
-      console.error('Cannot read widget metadata', filePath, error)
-    return null
+      console.error('Widget metadata could not be read', { filePath, error })
   }
+  return null
 }

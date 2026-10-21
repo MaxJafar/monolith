@@ -1,7 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import clsx from 'clsx'
-import _ from 'lodash'
-import React, { type CSSProperties, type ElementType } from 'react'
+// SPDX-License-Identifier: 0BSD
+import type { CSSProperties, ElementType, MouseEvent, ReactNode } from 'react'
 
 import { useModuleTranslation } from '@monolith/localization'
 
@@ -9,195 +7,150 @@ import {
   Box,
   Flex,
   type FlexProps,
+  Icon,
   type IconProps,
   Text,
-  type TextProps,
-  Transition
+  type TextProps
 } from '@/components/primitives'
 import { settleElement } from '@/utils/elasticMotion'
 
-import { buttonRecipe } from './Button.css'
-import { ButtonIcon } from './components/ButtonIcon'
-import { useButtonStyleProps } from './hooks/useButtonStyleProps'
+import './button.css'
 
-type ButtonOwnProps = {
-  /** The content to display inside the button. Can be text or any valid React node. */
-  children?: React.ReactNode
-  /** The icon to display in the button. Should be a valid icon name from Iconify in the format `<icon-library>:<icon-name>`. */
+type ButtonOptions = {
+  children?: ReactNode
   icon?: string
-  /** The position of the icon within the button. Defaults to 'start'. */
   iconPosition?: 'start' | 'end'
-  /** Additional CSS styles to apply to the icon. */
   iconProps?: Omit<IconProps, 'icon'>
-  /** Additional props to apply to the text content. */
   textProps?: Omit<TextProps, 'children'>
-  /** Callback function called when the button is clicked. */
-  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void | Promise<void>
-  /** Whether the button is in a loading state. When true, displays a spinner and disables interactions. */
+  onClick?: (event: MouseEvent<HTMLButtonElement>) => void | Promise<void>
   loading?: boolean
-  /** Whether the button is disabled and non-interactive. */
   disabled?: boolean
-  /** Additional plain CSS class names to apply to the button. */
-  className?: string
-  /** The visual style variant of the button. Defaults to 'primary'. */
   variant?: 'primary' | 'secondary' | 'tertiary' | 'plain'
-  /** Whether the button should be styled as dangerous/destructive with a red background. */
   dangerous?: boolean
-  /** The i18n namespace for internationalization. See the [main documentation](https://github.com/MaxJafar/monolith/tree/main/docs) for more details. */
   namespace?: string | false
-  /** Additional properties for the translation function. Used for dynamic translations. See the [i18n documentation](https://github.com/MaxJafar/monolith/tree/main/docs) for more details. */
   tProps?: Record<string, unknown>
   style?: CSSProperties
 }
+export type ButtonProps<T extends ElementType = 'button'> = Omit<
+  FlexProps<T>,
+  keyof ButtonOptions
+> &
+  ButtonOptions
 
-type ButtonProps<T extends ElementType = 'button'> = ButtonOwnProps &
-  Omit<React.ComponentPropsWithoutRef<T>, keyof ButtonOwnProps> &
-  FlexProps<T> & {
-    /** Ref for the button element. */
-    ref?: React.Ref<Element>
-  }
+function translationKeys(value: string, namespace: string) {
+  const parts =
+    value.replace(/([a-z0-9])([A-Z])/g, '$1 $2').match(/[\p{L}\p{N}]+/gu) ?? []
+  const camel = parts
+    .map((part, i) =>
+      i
+        ? part[0].toUpperCase() + part.slice(1).toLowerCase()
+        : part.toLowerCase()
+    )
+    .join('')
+  return [
+    `buttons.${camel}`,
+    camel,
+    value,
+    ...['buttons.' + camel, camel, value].map(key => namespace + ':' + key),
+    `common.buttons:buttons.${camel}`,
+    `common.buttons:${camel}`,
+    `common.buttons:${value}`
+  ]
+}
 
-/**
- * A button component for user interactions. Should be used consistently throughout the application. When designing pages, custom defined button should be avoided as much as possible.
- */
 export function Button<T extends ElementType = 'button'>({
-  ref,
-  as,
   children,
   icon,
-  onClick,
   iconPosition = 'start',
+  iconProps,
+  textProps,
+  onClick,
   loading = false,
   disabled = false,
-  className,
   variant = 'primary',
   dangerous = false,
   namespace = 'common.buttons',
-  iconProps,
-  textProps,
   tProps,
-  style,
-  ...props
+  className,
+  as,
+  ...rest
 }: ButtonProps<T>) {
-  const recipeClassName = buttonRecipe({
-    variant,
-    dangerous
-  })
-
-  const { buttonStyle, restProps } = useButtonStyleProps({
-    variant,
-    style,
-    props: props as any
-  })
-
   const { t } = useModuleTranslation(namespace === false ? [] : [namespace])
-
+  const blocked = loading || disabled
+  const native = !as || as === 'button'
+  const hasIcon = Boolean(icon)
+  const label =
+    typeof children === 'string' && namespace !== false
+      ? t(translationKeys(children, namespace), {
+          ...tProps,
+          defaultValue: children
+        })
+      : children
+  const glyph = hasIcon ? (
+    <Icon
+      {...iconProps}
+      icon={loading ? 'svg-spinners:ring-resize' : icon!}
+      aria-hidden
+      color={iconProps?.color ?? 'inherit'}
+    />
+  ) : null
   return (
-    <Transition
-      duration="var(--motion-fast, 140ms)"
-      easing="var(--motion-ease, ease)"
-      property={[
-        'color',
-        'background-color',
-        'border-color',
-        'border-radius',
-        'box-shadow',
-        'opacity',
-        'transform'
-      ]}
+    <Flex<ElementType>
+      as={as ?? 'button'}
+      align="center"
+      justify="center"
+      gap="sm"
+      flexShrink="0"
+      minHeight={{ base: '44px', md: '34px' }}
+      minWidth="0"
+      position="relative"
+      r="md"
+      px={rest.p === undefined ? 'md' : undefined}
+      py={rest.p === undefined ? 'sm' : undefined}
+      {...rest}
+      type={native ? (rest.type ?? 'button') : rest.type}
+      disabled={native ? blocked : undefined}
+      tabIndex={!native && blocked ? -1 : rest.tabIndex}
+      className={['monolith-button', className].filter(Boolean).join(' ')}
+      aria-busy={loading || undefined}
+      aria-disabled={blocked || undefined}
+      data-variant={variant}
+      data-dangerous={dangerous || undefined}
+      data-icon-only={(hasIcon && !children) || undefined}
+      data-loading-without-icon={(loading && !hasIcon) || undefined}
+      onClick={(event: MouseEvent<HTMLButtonElement>) => {
+        if (blocked) {
+          event.preventDefault()
+          event.stopPropagation()
+          return
+        }
+        if (event.currentTarget instanceof HTMLElement)
+          settleElement(event.currentTarget, 0.65)
+        return onClick?.(event)
+      }}
     >
-      <Text asChild tracking="normal" weight="medium" whiteSpace="nowrap">
-        <Flex<ElementType>
-          ref={ref}
-          align="center"
-          as={as ?? ('button' as ElementType)}
-          className={clsx(recipeClassName, className)}
-          disabled={loading || disabled}
-          flexShrink="0"
-          gap="sm"
-          justify="center"
-          minHeight={{ base: '44px', md: '34px' }}
-          minWidth="0"
-          position="relative"
-          px={props.p === undefined ? 'md' : undefined}
-          py={props.p === undefined ? 'sm' : undefined}
-          r="md"
-          style={buttonStyle}
-          type="button"
-          {...(restProps as any)}
-          aria-busy={loading || undefined}
-          data-variant={variant}
-          data-dangerous={dangerous || undefined}
-          data-icon-only={icon && !children ? true : undefined}
-          aria-disabled={loading || disabled || undefined}
-          data-loading-without-icon={loading && !icon ? true : undefined}
-          onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-            if (loading || disabled) {
-              event.preventDefault()
-              event.stopPropagation()
-
-              return
-            }
-
-            settleElement(event.currentTarget, 0.65)
-            return onClick?.(event)
-          }}
+      {loading && !hasIcon && (
+        <Flex
+          centered
+          position="absolute"
+          inset="0"
+          aria-hidden
+          data-loading-indicator="true"
         >
-          {loading && !icon && (
-            <Flex
-              centered
-              aria-hidden="true"
-              data-loading-indicator="true"
-              inset="0"
-              position="absolute"
-            >
-              <ButtonIcon loading icon="svg-spinners:ring-resize" />
-            </Flex>
-          )}
-          {icon && iconPosition === 'start' && (
-            <ButtonIcon
-              disabled={disabled}
-              hasChildren={Boolean(children)}
-              icon={icon}
-              loading={loading}
-              {...iconProps}
-            />
-          )}
-          {children && typeof children === 'string' ? (
-            <Box asChild minWidth="0">
-              <Text truncate {...textProps}>
-                {namespace === false
-                  ? children
-                  : t(
-                      [
-                        `buttons.${_.camelCase(children)}`,
-                        `${_.camelCase(children)}`,
-                        children,
-                        `${namespace}:buttons.${_.camelCase(children)}`,
-                        `${namespace}:${_.camelCase(children)}`,
-                        `${namespace}:${children}`,
-                        `common.buttons:buttons.${_.camelCase(children)}`,
-                        `common.buttons:${_.camelCase(children)}`,
-                        `common.buttons:${children}`
-                      ],
-                      { ...tProps, defaultValue: children }
-                    )}
-              </Text>
-            </Box>
-          ) : (
-            children
-          )}
-          {icon && iconPosition === 'end' && (
-            <ButtonIcon
-              disabled={disabled}
-              hasChildren={Boolean(children)}
-              icon={icon}
-              loading={loading}
-              {...iconProps}
-            />
-          )}
+          <Icon icon="svg-spinners:ring-resize" aria-hidden />
         </Flex>
-      </Text>
-    </Transition>
+      )}
+      {iconPosition === 'start' && glyph}
+      {typeof label === 'string' ? (
+        <Box asChild minWidth="0">
+          <Text as="span" truncate {...textProps}>
+            {label}
+          </Text>
+        </Box>
+      ) : (
+        label
+      )}
+      {iconPosition === 'end' && glyph}
+    </Flex>
   )
 }

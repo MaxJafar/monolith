@@ -25,12 +25,6 @@ import {
   relations,
   tables
 } from '../../../../modules/monolith--databases/server/schema.drizzle'
-import * as noteRoutes from '../../../../modules/monolith--notes/server/routes/entries'
-import {
-  entries,
-  subjects,
-  workspaces
-} from '../../../../modules/monolith--notes/server/schema.drizzle'
 
 const enabled = process.env.ZILLION_INTEGRATION === '1'
 const connection = process.env.DATABASE_URL ?? ''
@@ -157,7 +151,6 @@ afterAll(async () => {
       await owned(user, async tx => {
         await tx.delete(documents).where(eq(documents.owner_id, user))
         await tx.delete(bases).where(eq(bases.owner_id, user))
-        await tx.delete(workspaces).where(eq(workspaces.owner_id, user))
         await tx.execute(
           sql`delete from monolith_native_changes where owner_id=${user}`
         )
@@ -167,71 +160,6 @@ afterAll(async () => {
 })
 
 describe.skipIf(!enabled)('documents and second-brain relationships', () => {
-  it('saves stable references in notes and rejects competing note revisions', async () => {
-    const target = await create('Note link destination')
-    const subjectId = await owned(owner, async tx => {
-      const [workspace] = await tx
-        .insert(workspaces)
-        .values({
-          owner_id: owner,
-          name: 'Note revision test',
-          icon: 'tabler:note'
-        })
-        .returning()
-      const [subject] = await tx
-        .insert(subjects)
-        .values({
-          owner_id: owner,
-          workspace_id: workspace!.id,
-          title: 'Note revisions',
-          description: '',
-          icon: ''
-        })
-        .returning()
-
-      return subject!.id
-    })
-    const input = {
-      name: 'Revision note',
-      type: 'note',
-      content: blocks('[[Note link destination]]'),
-      subject_id: subjectId,
-      parent_id: null
-    }
-    const note = await invoke<{ id: string; updated: string; content: string }>(
-      noteRoutes.create,
-      owner,
-      input
-    )
-    expect(extractReferences(note.content)[0]).toMatchObject({
-      kind: 'document',
-      id: target.id
-    })
-    const outcomes = await Promise.allSettled(
-      ['First edit', 'Competing edit'].map(name =>
-        invoke(
-          noteRoutes.update,
-          owner,
-          { ...input, name, expected_updated: note.updated },
-          { id: note.id }
-        )
-      )
-    )
-    expect(
-      outcomes.filter(result => result.status === 'fulfilled')
-    ).toHaveLength(1)
-    const rejected = outcomes.find(
-      result => result.status === 'rejected'
-    ) as PromiseRejectedResult
-    expect(String(rejected.reason)).toContain('changed elsewhere')
-    const rows = await invoke<
-      Array<{ id: string; name: string; content: string; updated: string }>
-    >(noteRoutes.list, owner)
-    const persisted = rows.find(row => row.id === note.id)!
-    expect(['First edit', 'Competing edit']).toContain(persisted.name)
-    expect(persisted.updated).not.toBe(note.updated)
-    expect(extractReferences(persisted.content)[0]?.id).toBe(target.id)
-  })
   it('saves blocks and stable wiki links, deriving backlinks after target renames', async () => {
     const target = await create('Unique launch plan')
     const source = await create(
@@ -389,7 +317,7 @@ describe.skipIf(!enabled)('documents and second-brain relationships', () => {
       1
     )
   })
-  it('connects notes, records and documents symmetrically and cascades manual edges', async () => {
+  it('connects native pages, records and documents symmetrically and cascades manual edges', async () => {
     const doc = await create('Cross-module document')
     const base = await invoke<{ id: string }>(databases.createBase, owner, {
       name: 'Knowledge test base'
@@ -398,34 +326,7 @@ describe.skipIf(!enabled)('documents and second-brain relationships', () => {
       base_id: base.id,
       title: 'Cross-module record'
     })
-    const note = await owned(owner, async tx => {
-      const [workspace] = await tx
-        .insert(workspaces)
-        .values({ owner_id: owner, name: 'Graph notes', icon: 'tabler:note' })
-        .returning()
-      const [subject] = await tx
-        .insert(subjects)
-        .values({
-          owner_id: owner,
-          workspace_id: workspace!.id,
-          title: 'Test subject',
-          description: '',
-          icon: ''
-        })
-        .returning()
-      const [entry] = await tx
-        .insert(entries)
-        .values({
-          owner_id: owner,
-          subject_id: subject!.id,
-          name: 'Graph note',
-          type: 'note',
-          content: blocks('[[Cross-module document]]')
-        })
-        .returning()
-
-      return entry!
-    })
+    const note = await create('Graph note', blocks('[[Cross-module document]]'))
     const source = { kind: 'document' as const, id: doc.id },
       target = { kind: 'record' as const, id: record.id }
     await Promise.all([
@@ -449,7 +350,7 @@ describe.skipIf(!enabled)('documents and second-brain relationships', () => {
       snapshot.edges.some(
         edge =>
           edge.kind === 'mention' &&
-          edge.source === `note:${note.id}` &&
+          edge.source === `document:${note.id}` &&
           edge.target === pageKey(source)
       )
     ).toBe(true)

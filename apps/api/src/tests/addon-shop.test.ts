@@ -365,3 +365,38 @@ describe('addon activation and recovery', () => {
     await expect(tampered.getCatalog()).rejects.toThrow('signature')
   })
 })
+
+describe('retired addons', () => {
+  it('filters old catalogs and deactivates retired installed packages', async () => {
+    const { root, catalogFile, release } = await setup()
+    await fs.writeFile(
+      catalogFile,
+      JSON.stringify({
+        format: 1,
+        releases: [
+          release,
+          { ...release, id: 'monolith--calendar' },
+          { ...release, id: 'monolith--wallet' }
+        ]
+      })
+    )
+    const directory = path.join(root, 'storage', 'addons')
+    await fs.mkdir(directory, { recursive: true })
+    await fs.writeFile(
+      path.join(directory, 'installed.json'),
+      JSON.stringify({
+        'monolith--wallet': { slot: '1.1.0-abcdef012345', version: '1.1.0' }
+      })
+    )
+    const shop = new AddonShop({ root, catalogFile, hostVersion: '1.0.0' })
+    shop.setReload(async () => {})
+    expect((await shop.getCatalog()).releases.map(row => row.id)).toEqual([
+      'monolith--sample'
+    ])
+    expect(await shop.directories()).toEqual({})
+    await expect(shop.start('monolith--calendar')).rejects.toThrow(
+      'no published package'
+    )
+    expect((await shop.snapshot()).managed).toEqual([])
+  })
+})

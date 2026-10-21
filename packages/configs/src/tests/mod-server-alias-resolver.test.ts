@@ -1,312 +1,127 @@
+// SPDX-License-Identifier: 0BSD
+import assert from 'node:assert/strict'
 import fs from 'node:fs'
+import { tmpdir } from 'node:os'
 import path from 'node:path'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { serverAliasResolver } from '../resolvers/mod-server-alias-resolver'
 
-const mockRequire = vi.hoisted(() => ({
-  resolve: vi.fn()
-}))
-
-vi.mock('node:module', async importOriginal => {
-  const actual = await importOriginal<typeof import('node:module')>()
-
-  return {
-    ...actual,
-    createRequire: () => mockRequire
-  }
-})
-
-vi.mock('node:fs', async importOriginal => {
-  const actual = await importOriginal<any>()
-
-  return {
-    default: {
-      ...actual.default,
-      existsSync: vi.fn(),
-      readFileSync: vi.fn()
-    }
-  }
-})
-
-/** Normalizes a path to forward slashes for cross-platform comparisons. */
-function norm(p: string): string {
-  return p.replace(/\\/g, '/')
+let root: string
+let plugin: any
+function write(file: string, contents: string) {
+  const target = path.join(root, file)
+  fs.mkdirSync(path.dirname(target), { recursive: true })
+  fs.writeFileSync(target, contents)
 }
-
-describe('serverAliasResolver', () => {
-  const dirname = path.resolve('/test/dir')
-
-  let plugin: any
-
-  beforeEach(async () => {
-    vi.clearAllMocks()
-    const actualFs = await vi.importActual<typeof import('node:fs')>('node:fs')
-
-    // Mock file system check and read for apps/api/package.json, fall back to actual fs
-    vi.mocked(fs.existsSync).mockImplementation(filePath => {
-      if (norm(filePath as string).endsWith('apps/api/package.json')) {
-        return true
-      }
-
-      return actualFs.existsSync(filePath)
+beforeEach(() => {
+  root = fs.mkdtempSync(path.join(tmpdir(), 'monolith-server-alias-'))
+  vi.stubEnv('ROOT_DIR', root)
+  write('pnpm-workspace.yaml', 'packages: []')
+  write(
+    'apps/api/package.json',
+    JSON.stringify({
+      dependencies: { 'shared-helper': '1', 'mapped-helper': '1' }
     })
-
-    vi.mocked(fs.readFileSync).mockImplementation((filePath, options) => {
-      if (norm(filePath as string).endsWith('apps/api/package.json')) {
-        return JSON.stringify({
-          dependencies: {
-            zod: 'workspace:*',
-            dayjs: '^1.11.0',
-            express: '^4.18.0',
-            lodash: '^4.17.0'
-          },
-          devDependencies: {}
-        })
-      }
-
-      return actualFs.readFileSync(filePath, options)
-    })
-
-    plugin = serverAliasResolver(dirname)
-  })
-
-  it('has the correct plugin properties', () => {
-    expect(plugin.name).toBe('externalize-node-modules')
-    expect(plugin.enforce).toBe('pre')
-  })
-
-  it('ignores relative imports', () => {
-    expect(plugin.resolveId('./some-file')).toBeNull()
-    expect(plugin.resolveId('../parent-file')).toBeNull()
-  })
-
-  it('ignores absolute imports', () => {
-    expect(plugin.resolveId('/absolute/path')).toBeNull()
-  })
-
-  it('ignores Vite virtual modules', () => {
-    expect(plugin.resolveId('\0virtual:module')).toBeNull()
-    expect(plugin.resolveId('virtual:other-module')).toBeNull()
-  })
-
-  it('unconditionally externalizes native Node built-in imports', () => {
-    expect(plugin.resolveId('node:fs')).toEqual({
-      id: 'node:fs',
-      external: true
-    })
-    expect(plugin.resolveId('node:fs/promises')).toEqual({
-      id: 'node:fs/promises',
-      external: true
-    })
-  })
-
-  it('ignores standard config aliases', () => {
-    const config = {
-      resolve: {
-        alias: [
-          { find: /^@\/(.*)$/, replacement: `${dirname}/$1` },
-          { find: /^@$/, replacement: `${dirname}/index` }
-        ]
-      }
-    }
-    plugin.configResolved(config)
-
-    expect(plugin.resolveId('@/routes/events')).toBeNull()
-    expect(plugin.resolveId('@')).toBeNull()
-  })
-
-  it('ignores custom aliases configured by developer', () => {
-    const config = {
-      resolve: {
-        alias: [
-          { find: '@something', replacement: '/custom/path' },
-          { find: '@components', replacement: '/components/path' }
-        ]
-      }
-    }
-    plugin.configResolved(config)
-
-    expect(plugin.resolveId('@something/someInternalModule')).toBeNull()
-    expect(plugin.resolveId('@components/Button')).toBeNull()
-  })
-
-  it('externalizes core bare packages as-is', () => {
-    expect(plugin.resolveId('zod')).toEqual({ id: 'zod', external: true })
-    expect(plugin.resolveId('@monolith/server-utils')).toEqual({
-      id: '@monolith/server-utils',
-      external: true
-    })
-  })
-
-  it('bundles module-specific packages', () => {
-    expect(plugin.resolveId('rrule')).toBeNull()
-    expect(plugin.resolveId('node-ical')).toBeNull()
-    expect(plugin.resolveId('react-markdown')).toBeNull()
-  })
-
-  it('externalizes Node built-ins written without the node: prefix', () => {
-    expect(plugin.resolveId('path')).toEqual({ id: 'path', external: true })
-    expect(plugin.resolveId('fs/promises')).toEqual({
-      id: 'fs/promises',
-      external: true
-    })
-  })
-
-  it('ignores global and empty bare specifiers', () => {
-    expect(plugin.resolveId('')).toBeNull()
-  })
-
-  it('bundles non-core scoped packages', () => {
-    expect(plugin.resolveId('@custom/ui')).toBeNull()
-  })
-
-  it('resolves and appends file extension for core subpath imports', () => {
-    mockRequire.resolve.mockReturnValue(
-      '/test/dir/node_modules/dayjs/plugin/utc.js'
-    )
-
-    expect(plugin.resolveId('dayjs/plugin/utc')).toEqual({
-      id: 'dayjs/plugin/utc.js',
-      external: true
-    })
-    expect(mockRequire.resolve).toHaveBeenCalledWith('dayjs/plugin/utc', {
-      paths: [dirname]
-    })
-  })
-
-  it('preserves query parameters and hashes during resolution for core subpaths', () => {
-    mockRequire.resolve.mockReturnValue(
-      '/test/dir/node_modules/dayjs/plugin/utc.js'
-    )
-
-    expect(plugin.resolveId('dayjs/plugin/utc?url#hash')).toEqual({
-      id: 'dayjs/plugin/utc.js?url#hash',
-      external: true
-    })
-    expect(mockRequire.resolve).toHaveBeenCalledWith('dayjs/plugin/utc', {
-      paths: [dirname]
-    })
-  })
-
-  it('resolves directory index files correctly for core dependencies', () => {
-    mockRequire.resolve.mockReturnValue(
-      '/test/dir/node_modules/@monolith/server-utils/subfolder/index.js'
-    )
-
-    expect(plugin.resolveId('@monolith/server-utils/subfolder')).toEqual({
-      id: '@monolith/server-utils/subfolder/index.js',
-      external: true
-    })
-  })
-
-  it('normalizes Windows backslashes in resolved paths for core dependencies', () => {
-    mockRequire.resolve.mockReturnValue(
-      'C:\\test\\dir\\node_modules\\dayjs\\plugin\\utc.js'
-    )
-
-    expect(plugin.resolveId('dayjs/plugin/utc')).toEqual({
-      id: 'dayjs/plugin/utc.js',
-      external: true
-    })
-  })
-
-  it('does not double-append extension if already present', () => {
-    mockRequire.resolve.mockReturnValue(
-      '/test/dir/node_modules/dayjs/plugin/utc.js'
-    )
-
-    expect(plugin.resolveId('dayjs/plugin/utc.js')).toEqual({
-      id: 'dayjs/plugin/utc.js',
-      external: true
-    })
-  })
-
-  it.each(['registry', 'loader'])(
-    'preserves the exported module-runtime %s name instead of exposing its index file',
-    subpath => {
-      const manifest =
-        '/test/dir/node_modules/@monolith/module-runtime/package.json'
-      mockRequire.resolve.mockReturnValue(
-        `/test/dir/node_modules/@monolith/module-runtime/dist/${subpath}/index.js`
-      )
-      vi.mocked(fs.existsSync).mockImplementation(
-        file => norm(String(file)) === manifest
-      )
-      vi.mocked(fs.readFileSync).mockReturnValue(
-        JSON.stringify({
-          name: '@monolith/module-runtime',
-          exports: {
-            './registry': {
-              import: './dist/registry/index.js',
-              require: './dist/registry/index.js'
-            },
-            './loader': {
-              import: './dist/loader/index.js',
-              require: './dist/loader/index.js'
-            }
-          }
-        })
-      )
-
-      expect(plugin.resolveId(`@monolith/module-runtime/${subpath}`)).toEqual({
-        id: `@monolith/module-runtime/${subpath}`,
-        external: true
-      })
-      expect(
-        vi
-          .mocked(fs.readFileSync)
-          .mock.calls.map(([file, encoding]) => [norm(String(file)), encoding])
-      ).toContainEqual([manifest, 'utf8'])
-    }
   )
+  write(
+    'node_modules/shared-helper/package.json',
+    JSON.stringify({ name: 'shared-helper', main: 'index.js' })
+  )
+  write('node_modules/shared-helper/index.js', 'module.exports = {}')
+  write('node_modules/shared-helper/plugins/clock.js', 'module.exports = {}')
+  write('node_modules/shared-helper/subfolder/index.js', 'module.exports = {}')
+  write(
+    'node_modules/mapped-helper/package.json',
+    JSON.stringify({
+      name: 'mapped-helper',
+      exports: {
+        './tool': './internal/implementation.js',
+        './*': './internal/*-compiled.js'
+      }
+    })
+  )
+  write(
+    'node_modules/mapped-helper/internal/implementation.js',
+    'module.exports = {}'
+  )
+  write(
+    'node_modules/mapped-helper/internal/worker-compiled.js',
+    'module.exports = {}'
+  )
+  plugin = serverAliasResolver(path.join(root, 'modules/demo/server'))
+})
+afterEach(() => {
+  vi.unstubAllEnvs()
+  assert.equal(path.dirname(path.resolve(root)), path.resolve(tmpdir()))
+  assert.ok(path.basename(root).startsWith('monolith-server-alias-'))
+  fs.rmSync(root, { recursive: true, force: true })
+})
 
-  it('preserves wildcard export-map subpaths and query/hash suffixes when backing files have different names', () => {
-    const manifest = '/test/dir/node_modules/@monolith/runtime/package.json'
-    mockRequire.resolve.mockReturnValue(
-      '/test/dir/node_modules/@monolith/runtime/dist/worker-compiled.js'
-    )
-    vi.mocked(fs.existsSync).mockImplementation(
-      file => norm(String(file)) === manifest
-    )
-    vi.mocked(fs.readFileSync).mockReturnValue(
-      JSON.stringify({
-        name: '@monolith/runtime',
-        exports: { './*': './dist/*-compiled.js' }
-      })
-    )
-
-    expect(plugin.resolveId('@monolith/runtime/worker?url#hash')).toEqual({
-      id: '@monolith/runtime/worker?url#hash',
+describe('server dependency boundaries', () => {
+  it.each([
+    './local',
+    '../local',
+    '/absolute/source',
+    'C:/absolute/source',
+    '\0virtual:probe',
+    'virtual:probe',
+    '@',
+    '@/local',
+    '',
+    'private-addon-library',
+    'https://example.test/code.js'
+  ])('keeps %s out of the host dependency list', source => {
+    expect(plugin.resolveId(source)).toBeNull()
+  })
+  it.each([
+    'node:fs',
+    'node:fs/promises',
+    'fs/promises',
+    'path',
+    '@monolith/server-utils',
+    'shared-helper'
+  ])('keeps shared dependency %s external', source => {
+    expect(plugin.resolveId(source)).toEqual({ id: source, external: true })
+  })
+  it('honors configured aliases including stateful regular expressions on repeated lookups', () => {
+    plugin.configResolved({
+      resolve: {
+        alias: [
+          { find: /^shared-helper/g, replacement: '/source' },
+          { find: '@monolith/server-utils', replacement: '/sdk' }
+        ]
+      }
+    })
+    expect(plugin.resolveId('shared-helper/subpath')).toBeNull()
+    expect(plugin.resolveId('shared-helper/subpath')).toBeNull()
+    expect(plugin.resolveId('@monolith/server-utils')).toBeNull()
+  })
+  it('resolves file and directory subpaths with suffixes while preserving export maps', () => {
+    expect(plugin.resolveId('shared-helper/plugins/clock?raw#one')).toEqual({
+      id: 'shared-helper/plugins/clock.js?raw#one',
+      external: true
+    })
+    expect(plugin.resolveId('shared-helper/subfolder')).toEqual({
+      id: 'shared-helper/subfolder/index.js',
+      external: true
+    })
+    expect(plugin.resolveId('shared-helper/plugins/clock.js')).toEqual({
+      id: 'shared-helper/plugins/clock.js',
+      external: true
+    })
+    expect(plugin.resolveId('mapped-helper/tool')).toEqual({
+      id: 'mapped-helper/tool',
+      external: true
+    })
+    expect(plugin.resolveId('mapped-helper/worker?raw#one')).toEqual({
+      id: 'mapped-helper/worker?raw#one',
       external: true
     })
   })
-
-  it('keeps extension resolution for a legacy Day.js package without an exports map', () => {
-    const manifest = '/test/dir/node_modules/dayjs/package.json'
-    mockRequire.resolve.mockReturnValue(
-      '/test/dir/node_modules/dayjs/plugin/utc.js'
-    )
-    vi.mocked(fs.existsSync).mockImplementation(
-      file => norm(String(file)) === manifest
-    )
-    vi.mocked(fs.readFileSync).mockReturnValue(
-      JSON.stringify({ name: 'dayjs', main: 'dayjs.min.js' })
-    )
-
-    expect(plugin.resolveId('dayjs/plugin/utc')).toEqual({
-      id: 'dayjs/plugin/utc.js',
-      external: true
-    })
-  })
-
-  it('falls back to bare specifier if resolution fails for core dependencies', () => {
-    mockRequire.resolve.mockImplementation(() => {
-      throw new Error('Module not found')
-    })
-
-    expect(plugin.resolveId('dayjs/plugin/utc')).toEqual({
-      id: 'dayjs/plugin/utc',
+  it('lets Node diagnose unavailable shared subpaths at runtime', () => {
+    expect(plugin.resolveId('shared-helper/missing')).toEqual({
+      id: 'shared-helper/missing',
       external: true
     })
   })

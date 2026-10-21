@@ -1,70 +1,35 @@
-export type ThemeConditionPropName =
-  | 'base'
-  | 'dark'
-  | 'hover'
-  | 'darkHover'
-  | 'hasBgImage'
-  | 'darkHasBgImage'
-  | 'hasBgImageHover'
-  | 'hasBgImageDarkHover'
-  | 'print'
+// SPDX-License-Identifier: 0BSD
+type Condition = {
+  suffix: string
+  varSuffix: string
+  selectorTemplate: string
+  media?: string
+}
+const rule = (
+  suffix: string,
+  selectorTemplate: string,
+  media?: string
+): Condition => ({
+  suffix,
+  varSuffix: suffix,
+  selectorTemplate,
+  ...(media ? { media } : {})
+})
 
-export type ThemeConditionProp<T> =
-  T | Partial<Record<ThemeConditionPropName, T>>
-
+const dark = '.dark'
+const image = '.has-bg-image'
+const both = `:is(${dark}${image}, ${dark} ${image}, ${image} ${dark})`
 export const THEME_CONDITIONS = {
-  base: {
-    suffix: '',
-    varSuffix: '',
-    selectorTemplate: '.{cls}'
-  },
-  dark: {
-    suffix: '-dark',
-    varSuffix: '-dark',
-    selectorTemplate: '.dark .{cls}'
-  },
-  hover: {
-    suffix: '-hover',
-    varSuffix: '-hover',
-    selectorTemplate: '.{cls}:hover'
-  },
-  darkHover: {
-    suffix: '-dark-hover',
-    varSuffix: '-dark-hover',
-    selectorTemplate: '.dark .{cls}:hover'
-  },
-  hasBgImage: {
-    suffix: '-has-bg-image',
-    varSuffix: '-has-bg-image',
-    selectorTemplate: '.has-bg-image .{cls}'
-  },
-  darkHasBgImage: {
-    suffix: '-dark-has-bg-image',
-    varSuffix: '-dark-has-bg-image',
-    selectorTemplate: '.dark .has-bg-image .{cls}'
-  },
-  hasBgImageHover: {
-    suffix: '-has-bg-image-hover',
-    varSuffix: '-has-bg-image-hover',
-    selectorTemplate: '.has-bg-image .{cls}:hover'
-  },
-  hasBgImageDarkHover: {
-    suffix: '-has-bg-image-dark-hover',
-    varSuffix: '-has-bg-image-dark-hover',
-    selectorTemplate: '.dark .has-bg-image .{cls}:hover'
-  },
-  print: {
-    suffix: '-print',
-    varSuffix: '-print',
-    selectorTemplate: '.{cls}',
-    media: 'print'
-  }
-} as const satisfies Record<
-  ThemeConditionPropName,
-  {
-    suffix: string
-    varSuffix: string
-    selectorTemplate: string
-    media?: string
-  }
->
+  base: rule('', '.{cls}'),
+  dark: rule('-dark', `${dark} .{cls}`),
+  hover: rule('-hover', '.{cls}:hover'),
+  darkHover: rule('-dark-hover', `${dark} .{cls}:hover`),
+  hasBgImage: rule('-has-bg-image', `${image} .{cls}`),
+  darkHasBgImage: rule('-dark-has-bg-image', `${both} .{cls}`),
+  hasBgImageHover: rule('-has-bg-image-hover', `${image} .{cls}:hover`),
+  hasBgImageDarkHover: rule('-has-bg-image-dark-hover', `${both} .{cls}:hover`),
+  print: rule('-print', '.{cls}', 'print')
+} satisfies Record<string, Condition>
+export type ThemeConditionPropName = keyof typeof THEME_CONDITIONS
+export type ThemeConditionProp<Value> =
+  Value | Partial<Record<ThemeConditionPropName, Value>>

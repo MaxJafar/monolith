@@ -1,102 +1,79 @@
-import { useEffect, useMemo, useState } from 'react'
+// SPDX-License-Identifier: 0BSD
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Box, Flex, Text } from '@/components/primitives'
+import { Flex, Text } from '@/components/primitives'
 
+import { Button } from '../Button'
 import { DateInput } from '../DateInput'
 import { ListboxInput } from '../ListboxInput'
 import { ListboxOption } from '../ListboxInput/components/ListboxOption'
 import { NumberInput } from '../NumberInput'
-import { DailyForm } from './components/DailyForm'
-import { HourlyForm } from './components/HourlyForm'
-import { MonthlyForm } from './components/MonthlyForm'
-import { WeeklyForm } from './components/WeeklyForm'
-import { YearlyForm } from './components/YearlyForm'
-import { fromRRULEString, getRRULEString } from './utils/getRRuleString'
+import { TextAreaInput } from '../TextAreaInput'
+import {
+  type FrequencyName,
+  days,
+  durationUnits,
+  frequencies,
+  positions
+} from './model'
+import { useRepeatDraft } from './useRepeatDraft'
 
-type BaseParams<K extends keyof FreqSpecificParams> = {
-  freq: K
-  end: {
-    type: 'never' | 'after' | 'on'
-    after: number
-    on: Date | null
-  }
+export type { FreqSpecificParams, RRuleParams } from './types'
+
+function Choice<Value extends string | number>({
+  label,
+  value,
+  options,
+  onChange
+}: {
+  label: string
+  value: Value
+  options: { value: Value; label: string }[]
+  onChange: (next: Value) => void
+}) {
+  return (
+    <ListboxInput
+      label={label}
+      namespace={false}
+      value={value}
+      onChange={onChange}
+      renderContent={() =>
+        options.find(item => item.value === value)?.label ?? String(value)
+      }
+    >
+      {options.map(item => (
+        <ListboxOption key={item.value} value={item.value} label={item.label} />
+      ))}
+    </ListboxInput>
+  )
 }
-
-export type FreqSpecificParams = {
-  hourly: {
-    every: number
-  }
-  daily: {
-    every: number
-  }
-  weekly: {
-    every: number
-    onDays: ('mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun')[]
-  }
-  monthly: {
-    type: 'exactDate' | 'relativeDay'
-    every: number
-    onDate: number
-    onThe: string
-    onTheDay: string
-  }
-  yearly: {
-    type: 'exactDate' | 'relativeDay'
-    month: number
-    date: number
-    onThe: string
-    onTheDay: string
-    onTheDayOfMonth: number
-  }
+function Count({
+  label,
+  value,
+  onChange,
+  min = 1,
+  max
+}: {
+  label: string
+  value: number
+  onChange: (next: number) => void
+  min?: number
+  max?: number
+}) {
+  return (
+    <NumberInput
+      required
+      label={label}
+      namespace={false}
+      icon="tabler:number"
+      value={value}
+      min={min}
+      max={max}
+      onChange={onChange}
+    />
+  )
 }
-
-export type RRuleParams = {
-  [K in keyof FreqSpecificParams]: BaseParams<K> & {
-    data: FreqSpecificParams[K]
-  }
-}[keyof FreqSpecificParams]
-
-const DEFAULT_FREQ_SPECIFIC_PARAMS: FreqSpecificParams = {
-  hourly: {
-    every: 1
-  },
-  daily: {
-    every: 1
-  },
-  weekly: {
-    every: 1,
-    onDays: ['mon']
-  },
-  monthly: {
-    type: 'exactDate',
-    every: 1,
-    onDate: 1,
-    onThe: 'first',
-    onTheDay: 'mon'
-  },
-  yearly: {
-    type: 'exactDate',
-    month: 1,
-    date: 1,
-    onThe: 'first',
-    onTheDay: 'mon',
-    onTheDayOfMonth: 1
-  }
-}
-
-function createRRuleParams<K extends keyof FreqSpecificParams>(
-  freq: K,
-  end: RRuleParams['end'],
-  data: FreqSpecificParams[K] = DEFAULT_FREQ_SPECIFIC_PARAMS[freq]
-): RRuleParams {
-  return {
-    freq,
-    end,
-    data
-  } as RRuleParams
-}
-
 export function RRuleInput<HasDuration extends boolean = boolean>({
   value,
   onChange,
@@ -106,268 +83,232 @@ export function RRuleInput<HasDuration extends boolean = boolean>({
   onChange: (value: string) => void
   hasDuration: HasDuration
 }) {
-  const { t } = useTranslation('common.recurring')
-  const valueParsed = useMemo(() => fromRRULEString(value), [value])
-
-  const [start, setStart] = useState<Date | null>(
-    valueParsed ? valueParsed.start : null
+  const { t, i18n } = useTranslation('common.recurring')
+  const { draft, structured, change } = useRepeatDraft(
+    value,
+    onChange,
+    hasDuration
   )
-  const [duration, setDuration] = useState<{
-    amount: number
-    unit: 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'
-  }>({
-    amount: valueParsed ? (valueParsed.duration?.duration_amt ?? 1) : 1,
-    unit: valueParsed ? (valueParsed.duration?.duration_unit ?? 'hour') : 'hour'
-  })
-  const [rruleParams, setRRuleParams] = useState<RRuleParams>(
-    valueParsed
-      ? createRRuleParams(
-          valueParsed.rrule.freq,
-          valueParsed.rrule.end,
-          valueParsed.rrule.data
-        )
-      : createRRuleParams('yearly', {
-          type: 'never',
-          after: 1,
-          on: null
-        })
-  )
-
-  const forms = {
-    yearly: (
-      <YearlyForm
-        data={rruleParams.data as FreqSpecificParams['yearly']}
-        setData={data =>
-          setRRuleParams({
-            freq: 'yearly',
-            data,
-            end: rruleParams.end
-          })
-        }
-      />
-    ),
-    monthly: (
-      <MonthlyForm
-        data={rruleParams.data as FreqSpecificParams['monthly']}
-        setData={data =>
-          setRRuleParams({
-            freq: 'monthly',
-            data,
-            end: rruleParams.end
-          })
-        }
-      />
-    ),
-    weekly: (
-      <WeeklyForm
-        data={rruleParams.data as FreqSpecificParams['weekly']}
-        setData={data =>
-          setRRuleParams({
-            freq: 'weekly',
-            data,
-            end: rruleParams.end
-          })
-        }
-      />
-    ),
-    daily: (
-      <DailyForm
-        data={rruleParams.data as FreqSpecificParams['daily']}
-        setData={data =>
-          setRRuleParams({
-            freq: 'daily',
-            data,
-            end: rruleParams.end
-          })
-        }
-      />
-    ),
-    hourly: (
-      <HourlyForm
-        data={rruleParams.data as FreqSpecificParams['hourly']}
-        setData={data =>
-          setRRuleParams({
-            freq: 'hourly',
-            data,
-            end: rruleParams.end
-          })
-        }
-      />
+  const [manual, setManual] = useState(false)
+  if (!structured || manual)
+    return (
+      <Flex direction="column" gap="sm">
+        <Text size="sm" color="muted">
+          {t('editor.rawDescription')}
+        </Text>
+        <TextAreaInput
+          label={t('editor.raw')}
+          placeholder="RRULE:FREQ=DAILY"
+          namespace={false}
+          value={value}
+          onChange={text => {
+            setManual(true)
+            onChange(text)
+          }}
+        />
+        {structured && (
+          <Button
+            variant="plain"
+            namespace={false}
+            onClick={() => setManual(false)}
+          >
+            {t('editor.structured')}
+          </Button>
+        )}
+      </Flex>
     )
+  const longPeriod =
+    draft.frequency === 'monthly' || draft.frequency === 'yearly'
+  const language = i18n.resolvedLanguage || 'en'
+  const weekdayNames = days.map((day, index) => ({
+    value: day,
+    label: new Intl.DateTimeFormat(language, {
+      weekday: 'long',
+      timeZone: 'UTC'
+    }).format(new Date(Date.UTC(2026, 0, 5 + index)))
+  }))
+  const monthNames = Array.from({ length: 12 }, (_, index) => ({
+    value: index + 1,
+    label: new Intl.DateTimeFormat(language, {
+      month: 'long',
+      timeZone: 'UTC'
+    }).format(new Date(Date.UTC(2026, index, 1)))
+  }))
+  const duration = draft.duration ?? {
+    duration_amt: 1,
+    duration_unit: 'hour' as const
   }
-
-  useEffect(() => {
-    let rrule = getRRULEString({
-      start,
-      params: rruleParams
-    })
-
-    if (hasDuration) {
-      rrule += `||duration_amt=${duration.amount};duration_unit=${duration.unit}`
-    }
-
-    onChange(rrule)
-  }, [start, rruleParams, duration])
-
   return (
-    <Flex direction="column" gap="sm" width="100%">
+    <Flex direction="column" gap="md" width="100%">
       <DateInput
         hasTime
         required
-        icon="tabler:clock"
-        label="Start Time"
-        namespace="common.recurring"
-        value={start}
-        onChange={setStart}
+        label={t('editor.start')}
+        namespace={false}
+        icon="tabler:calendar"
+        value={draft.start}
+        onChange={start => change({ start })}
       />
-      <ListboxInput
-        required
-        icon="tabler:repeat"
-        label="frequency"
-        namespace="common.recurring"
-        renderContent={() => <>{t(`freqs.${rruleParams.freq}`)}</>}
-        value={rruleParams.freq}
-        onChange={freq => {
-          setRRuleParams(createRRuleParams(freq, rruleParams.end))
-
-          if (freq === 'hourly') {
-            setDuration({
-              amount: 1,
-              unit: 'hour'
-            })
-          }
-        }}
-      >
-        {['hourly', 'daily', 'weekly', 'monthly', 'yearly'].map(freq => (
-          <ListboxOption key={freq} label={t(`freqs.${freq}`)} value={freq} />
-        ))}
-      </ListboxInput>
-      <Flex direction="column" gap="sm" width="100%">
-        {forms[rruleParams.freq]}
-      </Flex>
-      <Flex align="center" gap="sm" width="100%" wrap="wrap">
-        <Box flex="1">
-          <ListboxInput
-            required
-            icon="tabler:calendar"
-            label="endType"
-            namespace="common.recurring"
-            renderContent={() => <>{t(`endTypes.${rruleParams.end.type}`)}</>}
-            value={rruleParams.end.type}
-            onChange={type => {
-              setRRuleParams({
-                ...rruleParams,
-                end: {
-                  ...rruleParams.end,
-                  type
-                }
-              })
-            }}
-          >
-            {['never', 'after', 'on'].map(type => (
-              <ListboxOption
-                key={type}
-                label={t(`endTypes.${type}`)}
-                value={type}
-              />
-            ))}
-          </ListboxInput>
-        </Box>
-        {rruleParams.end.type !== 'never' && (
-          <Flex align="center" flex="1" gap="md">
-            {rruleParams.end.type === 'after' && (
-              <>
-                <Box flex="1">
-                  <NumberInput
-                    required
-                    icon="tabler:repeat"
-                    label="after"
-                    namespace="common.recurring"
-                    value={rruleParams.end.after}
-                    onChange={value => {
-                      setRRuleParams({
-                        ...rruleParams,
-                        end: {
-                          ...rruleParams.end,
-                          after: value
-                        }
-                      })
-                    }}
-                  />
-                </Box>
-                <Text color="muted">{t('inputs.executions')}</Text>
-              </>
-            )}
-            {rruleParams.end.type === 'on' && (
-              <Box flex="1">
-                <DateInput
-                  required
-                  icon="tabler:calendar"
-                  label="on"
-                  namespace="common.recurring"
-                  value={rruleParams.end.on}
-                  onChange={date => {
-                    setRRuleParams({
-                      ...rruleParams,
-                      end: {
-                        ...rruleParams.end,
-                        on: date
-                      }
-                    })
-                  }}
-                />
-              </Box>
-            )}
-          </Flex>
-        )}
-      </Flex>
-      {hasDuration && (
+      <Choice
+        label={t('inputs.frequency')}
+        value={draft.frequency}
+        options={(Object.keys(frequencies) as FrequencyName[]).map(freq => ({
+          value: freq,
+          label: t('freqs.' + freq)
+        }))}
+        onChange={frequency =>
+          change({
+            frequency,
+            interval: frequency === 'yearly' ? 1 : draft.interval
+          })
+        }
+      />
+      {draft.frequency !== 'yearly' && (
+        <Count
+          label={t('editor.interval')}
+          value={draft.interval}
+          onChange={interval => change({ interval })}
+        />
+      )}
+      {draft.frequency === 'weekly' && (
         <Flex
-          direction={{ base: 'column', sm: 'row' }}
-          gap="sm"
-          width="100%"
           wrap="wrap"
+          gap="xs"
+          role="group"
+          aria-label={t('editor.weekdays')}
         >
-          <Box flex="1" minWidth="12rem">
-            <NumberInput
-              required
-              icon="tabler:clock"
-              label="durationAmount"
-              namespace="common.recurring"
-              value={duration.amount}
-              onChange={amt => {
-                setDuration({
-                  ...duration,
-                  amount: amt
+          {weekdayNames.map(day => (
+            <Button
+              key={day.value}
+              variant={draft.days.includes(day.value) ? 'primary' : 'secondary'}
+              namespace={false}
+              aria-pressed={draft.days.includes(day.value)}
+              onClick={() =>
+                change({
+                  days: draft.days.includes(day.value)
+                    ? draft.days.filter(value => value !== day.value)
+                    : [...draft.days, day.value]
                 })
-              }}
-            />
-          </Box>
-          <Box flex="1" minWidth="12rem">
-            <ListboxInput
-              required
-              icon="tabler:clock"
-              label="durationUnit"
-              namespace="common.recurring"
-              renderContent={() => <>{t(`durationUnits.${duration.unit}`)}</>}
-              value={duration.unit}
-              onChange={unit => {
-                setDuration({
-                  ...duration,
-                  unit
-                })
-              }}
+              }
             >
-              {['minute', 'hour', 'day', 'week', 'month', 'year'].map(unit => (
-                <ListboxOption
-                  key={unit}
-                  label={t(`durationUnits.${unit}`)}
-                  value={unit}
-                />
-              ))}
-            </ListboxInput>
-          </Box>
+              {day.label}
+            </Button>
+          ))}
         </Flex>
+      )}
+      {longPeriod && (
+        <>
+          <Choice
+            label={t('editor.pattern')}
+            value={draft.pattern}
+            options={(['exactDate', 'relativeDay'] as const).map(pattern => ({
+              value: pattern,
+              label: t('inputs.monthly.' + pattern + '.title')
+            }))}
+            onChange={pattern => change({ pattern })}
+          />
+          {draft.frequency === 'yearly' && (
+            <Choice
+              label={t('inputs.yearly.exactDate.inputs.month')}
+              value={draft.month}
+              options={monthNames}
+              onChange={month => change({ month })}
+            />
+          )}
+          {draft.pattern === 'exactDate' ? (
+            <Count
+              label={t('editor.monthDay')}
+              value={draft.monthDay}
+              min={-31}
+              max={31}
+              onChange={monthDay => change({ monthDay })}
+            />
+          ) : (
+            <>
+              <Choice
+                label={t('editor.position')}
+                value={draft.position}
+                options={(
+                  Object.keys(positions) as (keyof typeof positions)[]
+                ).map(position => ({
+                  value: position,
+                  label: t('onThe.' + position)
+                }))}
+                onChange={position => change({ position })}
+              />
+              <Choice
+                label={t('editor.dayGroup')}
+                value={draft.dayGroup}
+                options={[
+                  ...weekdayNames,
+                  ...(['day', 'weekday', 'weekendDay'] as const).map(group => ({
+                    value: group,
+                    label: t('onTheDay.' + group)
+                  }))
+                ]}
+                onChange={dayGroup => change({ dayGroup })}
+              />
+            </>
+          )}
+        </>
+      )}
+      <Choice
+        label={t('inputs.endType')}
+        value={draft.ending}
+        options={(['never', 'after', 'on'] as const).map(ending => ({
+          value: ending,
+          label: t('endTypes.' + ending)
+        }))}
+        onChange={ending => change({ ending })}
+      />
+      {draft.ending === 'after' && (
+        <Count
+          label={t('editor.count')}
+          value={draft.count}
+          onChange={count => change({ count })}
+        />
+      )}
+      {draft.ending === 'on' && (
+        <DateInput
+          label={t('editor.until')}
+          namespace={false}
+          required
+          icon="tabler:calendar"
+          value={draft.until}
+          startDate={draft.start ?? undefined}
+          onChange={date => {
+            const until = date ? new Date(date) : null
+            until?.setHours(23, 59, 59, 0)
+            change({ until })
+          }}
+        />
+      )}
+      {hasDuration && (
+        <>
+          <Count
+            label={t('inputs.durationAmount')}
+            value={duration.duration_amt}
+            onChange={duration_amt =>
+              change({ duration: { ...duration, duration_amt } })
+            }
+          />
+          <Choice
+            label={t('inputs.durationUnit')}
+            value={duration.duration_unit}
+            options={durationUnits.map(unit => ({
+              value: unit,
+              label: t('durationUnits.' + unit)
+            }))}
+            onChange={duration_unit =>
+              change({ duration: { ...duration, duration_unit } })
+            }
+          />
+        </>
+      )}
+      {draft.start && !value && (
+        <Text role="status" size="sm" color="dangerous">
+          {t('editor.incomplete')}
+        </Text>
       )}
     </Flex>
   )

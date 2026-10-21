@@ -30,5 +30,6 @@
   "author": "Monolith contributors",
   "monolithBuilds": {
     "build": "vite build && tsc --project tsconfig.json"
-  }
+  },
+  "license": "0BSD"
 }

@@ -59,22 +59,13 @@ function SearchScreen({ actor }: { actor: string }) {
     staleTime: 30_000
   })
   const modules = [
-    'achievements',
     'agents',
-    'blog',
-    'calendar',
-    'code-time',
+    'atlas',
+    'automations',
     'databases',
-    'flashcards',
     'gym',
-    'idea-box',
-    'notes',
-    'pomodoro-timer',
-    'projects',
-    'tech-lab',
-    'todo-list',
-    'wallet',
-    'wishlist'
+    'redraw',
+    'tech-lab'
   ]
   useEffect(
     () => () => {

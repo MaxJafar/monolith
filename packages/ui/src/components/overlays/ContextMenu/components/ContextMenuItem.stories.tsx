@@ -1,110 +1,34 @@
+// SPDX-License-Identifier: 0BSD
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
 import { ContextMenu } from '..'
 import { ContextMenuItem } from './ContextMenuItem'
 
 const meta = {
+  title: 'Overlays/ContextMenu/ContextMenuItem',
   component: ContextMenuItem,
-  title: 'Overlays/ContextMenu/ContextMenuItem'
+  args: {
+    label: 'Open project',
+    namespace: false,
+    icon: 'tabler:external-link',
+    onClick: () => {}
+  },
+  render: args => (
+    <ContextMenu>
+      <ContextMenuItem {...args} />
+    </ContextMenu>
+  )
 } satisfies Meta<typeof ContextMenuItem>
-
 export default meta
-
 type Story = StoryObj<typeof meta>
-
-export const Default: Story = {
-  args: {
-    icon: 'tabler:pencil',
-    label: 'Edit',
-    onClick: () => {}
-  },
-  render: props => (
-    <ContextMenu>
-      <ContextMenuItem {...props} />
-    </ContextMenu>
-  )
+export const Default: Story = {}
+export const Unavailable: Story = {
+  args: { disabled: true, label: 'Read-only workspace' }
 }
-
-export const Dangerous: Story = {
-  args: {
-    dangerous: true,
-    icon: 'tabler:trash',
-    label: 'Delete',
-    onClick: () => {}
-  },
-  render: props => (
-    <ContextMenu>
-      <ContextMenuItem {...props} />
-    </ContextMenu>
-  )
+export const Pending: Story = { args: { loading: true, label: 'Exporting' } }
+export const Selected: Story = {
+  args: { checked: true, label: 'Gallery view', shouldCloseMenuOnClick: false }
 }
-
-export const Loading: Story = {
-  args: {
-    icon: 'tabler:pencil',
-    label: 'Processing',
-    loading: true,
-    onClick: () => {}
-  },
-  render: props => (
-    <ContextMenu>
-      <ContextMenuItem {...props} />
-    </ContextMenu>
-  )
-}
-
-export const Disabled: Story = {
-  args: {
-    disabled: true,
-    icon: 'tabler:mood-angry',
-    label: 'DO NOT CLICK ME',
-    onClick: () => {}
-  },
-  render: props => (
-    <ContextMenu>
-      <ContextMenuItem {...props} />
-      <ContextMenuItem
-        icon="tabler:mood-happy"
-        label="Yay"
-        onClick={() => {}}
-      />
-    </ContextMenu>
-  )
-}
-
-export const Togglable: Story = {
-  args: {
-    icon: 'tabler:category',
-    label: 'Option',
-    onClick: () => {}
-  },
-  render: props => (
-    <ContextMenu>
-      {Array(3)
-        .fill(null)
-        .map((_, i) => (
-          <ContextMenuItem
-            key={i}
-            checked={i === 1}
-            icon={props.icon}
-            label={`${props.label} ${i + 1}`}
-            onClick={props.onClick}
-          />
-        ))}
-    </ContextMenu>
-  )
-}
-
-export const RemainsOpenOnClick: Story = {
-  args: {
-    icon: 'tabler:pointer',
-    label: 'Do Something',
-    onClick: () => {},
-    shouldCloseMenuOnClick: false
-  },
-  render: props => (
-    <ContextMenu>
-      <ContextMenuItem {...props} />
-    </ContextMenu>
-  )
+export const Destructive: Story = {
+  args: { dangerous: true, label: 'Delete draft', icon: 'tabler:trash' }
 }

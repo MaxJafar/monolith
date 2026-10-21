@@ -1,11 +1,9 @@
-import { execSync } from 'node:child_process'
+// SPDX-License-Identifier: 0BSD
+import executeCommand, { runProcess } from '../commands'
 
-/** Runs a shell command synchronously and returns trimmed stdout. */
-export function run(command: string, cwd?: string): string {
-  return execSync(command, { cwd, encoding: 'utf-8' }).trim()
+export function run(command: string, cwd?: string) {
+  return executeCommand(command, { cwd })
 }
-
-/** Calls the GitHub API via the `gh` CLI and parses the JSON response. */
 export function ghApi<T = unknown>(endpoint: string): T {
-  return JSON.parse(run(`gh api ${endpoint}`)) as T
+  return JSON.parse(runProcess('gh', ['api', endpoint])) as T
 }

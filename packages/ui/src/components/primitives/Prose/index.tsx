@@ -1,12 +1,12 @@
-import { clsx } from 'clsx'
-
+// SPDX-License-Identifier: 0BSD
 import { Box, type BoxProps } from '../Box'
-import * as styles from './Prose.css'
+import './prose.css'
 
-export function Prose({ className, children, ...rest }: BoxProps) {
+export function Prose({ className, ...content }: BoxProps) {
   return (
-    <Box {...rest} className={clsx(styles.root, className)}>
-      {children}
-    </Box>
+    <Box
+      {...content}
+      className={['monolith-prose', className].filter(Boolean).join(' ')}
+    />
   )
 }

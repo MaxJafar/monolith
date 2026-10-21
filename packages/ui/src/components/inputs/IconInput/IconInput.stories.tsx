@@ -1,128 +1,30 @@
+// SPDX-License-Identifier: 0BSD
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { useState } from 'react'
 
 import { IconInput } from './index'
 
 const meta = {
+  title: 'Inputs/IconInput',
   component: IconInput,
-  title: 'Inputs/IconInput'
+  args: {
+    value: 'lucide:folder',
+    onChange: () => {},
+    label: 'Project icon',
+    namespace: false
+  }
 } satisfies Meta<typeof IconInput>
-
 export default meta
-
 type Story = StoryObj<typeof meta>
-
-export const Default: Story = {
-  args: {
-    label: 'Icon of Something',
-
-    onChange: () => {},
-    value: ''
-  },
-  render: args => {
-    const [icon, setIcon] = useState('')
-
-    return <IconInput {...args} value={icon} onChange={setIcon} />
+export const Editable: Story = {
+  render: function Editable(args) {
+    const [value, setValue] = useState(args.value)
+    return <IconInput {...args} value={value} onChange={setValue} />
   }
 }
-
-export const Required: Story = {
-  args: {
-    label: 'Icon of Something',
-
-    onChange: () => {},
-    required: true,
-    value: 'tabler:cube'
-  },
-
-  render: args => {
-    const [icon, setIcon] = useState(args.value)
-
-    return <IconInput {...args} value={icon} onChange={setIcon} />
-  }
-}
-
-export const Disabled: Story = {
-  args: {
-    disabled: true,
-    label: 'Icon of Something',
-
-    onChange: () => {},
-    value: ''
-  },
-
-  render: args => {
-    const [icon, setIcon] = useState('')
-
-    return <IconInput {...args} value={icon} onChange={setIcon} />
-  }
-}
-
-export const WithErrorMessage: Story = {
-  args: {
-    errorMsg:
-      'Invalid icon identifier provided. It should be a valid icon identifier format from Iconify. ',
-    label: 'Icon of Something',
-
-    onChange: () => {},
-    value: ''
-  },
-
-  render: args => {
-    const [icon, setIcon] = useState('')
-
-    return <IconInput {...args} value={icon} onChange={setIcon} />
-  }
-}
-
-export const DisabledWithErrorMessage: Story = {
-  args: {
-    disabled: true,
-    errorMsg:
-      'Invalid icon identifier provided. It should be a valid icon identifier format from Iconify. ',
-    label: 'Icon of Something',
-
-    onChange: () => {},
-    value: ''
-  },
-
-  render: args => {
-    const [icon, setIcon] = useState('')
-
-    return <IconInput {...args} value={icon} onChange={setIcon} />
-  }
-}
-
-export const PlainVariant: Story = {
-  args: {
-    label: 'Icon of Something',
-
-    onChange: () => {},
-    value: '',
-    variant: 'plain'
-  },
-
-  render: args => {
-    const [icon, setIcon] = useState('')
-
-    return <IconInput {...args} value={icon} onChange={setIcon} />
-  }
-}
-
-export const PlainVariantWithErrorMessage: Story = {
-  args: {
-    errorMsg:
-      'Invalid icon identifier provided. It should be a valid icon identifier format from Iconify. ',
-    label: 'Icon of Something',
-
-    onChange: () => {},
-    value: '',
-    variant: 'plain'
-  },
-
-  render: args => {
-    const [icon, setIcon] = useState('')
-
-    return <IconInput {...args} value={icon} onChange={setIcon} />
-  }
+export const Compact: Story = { ...Editable, args: { variant: 'plain' } }
+export const Disabled: Story = { args: { disabled: true } }
+export const Invalid: Story = {
+  ...Editable,
+  args: { value: 'unknown', errorMsg: 'Choose an icon from the catalog.' }
 }

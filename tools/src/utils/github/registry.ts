@@ -1,92 +1,76 @@
-import fs from 'node:fs'
-import os from 'node:os'
-import path from 'node:path'
+// SPDX-License-Identifier: 0BSD
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 
-import { ghApi, run } from './cli'
+import { runProcess } from '../commands'
+import { ghApi } from './cli'
 import { registryConfig } from './registryConfig'
 
-/**
- * The GitHub repo that hosts the static module/locale index.
- */
-/** Fetches and parses JSON from a URL. */
 export async function fetchJson<T>(url: string): Promise<T> {
-  const response = await fetch(url)
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch ${url}: ${response.status}`)
-  }
-
+  const response = await fetch(url, { signal: AbortSignal.timeout(30000) })
+  if (!response.ok)
+    throw Error('Registry request returned HTTP ' + response.status)
   return (await response.json()) as T
 }
-
-/** URL of a file in the registry index repo (raw). */
-export function rawRegistryUrl(file: string): string {
+export function rawRegistryUrl(file: string) {
+  if (file.split('/').some(part => !part || part === '..'))
+    throw Error('Invalid registry file')
   const { repo, ref } = registryConfig()
-  return `https://raw.githubusercontent.com/${repo}/${ref}/${file}`
+  return (
+    'https://raw.githubusercontent.com/' +
+    repo +
+    '/' +
+    encodeURIComponent(ref) +
+    '/' +
+    file.split('/').map(encodeURIComponent).join('/')
+  )
 }
-
-/**
- * Adds/updates an entry in the GitHub-hosted index (`modules.json`/`locales.json`)
- * for the published version, mapping it to the release commit SHA.
- */
 export function updateRegistryIndex(
   kind: 'modules' | 'locales',
   entry: { id: string; repo: string; version: string; commitSha: string }
-): void {
-  const { repo, ref } = registryConfig()
-  const file = `${kind}.json`
-
-  const existing = ghApi<{ content: string; sha: string }>(
-    `repos/${repo}/contents/${file}?ref=${encodeURIComponent(ref)}`
+) {
+  const { repo, ref } = registryConfig(),
+    endpoint = 'repos/' + repo + '/contents/' + kind + '.json'
+  const current = ghApi<{ sha: string; content: string }>(
+    endpoint + '?ref=' + encodeURIComponent(ref)
   )
-
-  const list = JSON.parse(
-    Buffer.from(existing.content, 'base64').toString('utf-8')
-  ) as Array<{
+  const records = JSON.parse(
+    Buffer.from(current.content, 'base64').toString()
+  ) as {
     id: string
     repo: string
     latest: string
     versions: Record<string, string>
-  }>
-
-  const index = list.findIndex(item => item.id === entry.id)
-  const previous = index >= 0 ? list[index] : undefined
-
-  const merged = {
+  }[]
+  if (!Array.isArray(records)) throw Error('Registry index must be an array')
+  const prior = records.find(row => row.id === entry.id)
+  const item = {
     id: entry.id,
     repo: entry.repo,
     latest: entry.version,
-    versions: {
-      ...(previous?.versions ?? {}),
-      [entry.version]: entry.commitSha
-    }
+    versions: { ...prior?.versions, [entry.version]: entry.commitSha }
   }
-
-  if (index >= 0) {
-    list[index] = merged
-  } else {
-    list.push(merged)
-  }
-
-  const content = Buffer.from(JSON.stringify(list, null, 2) + '\n').toString(
-    'base64'
-  )
-
-  const bodyFile = path.join(os.tmpdir(), `monolith-index-${Date.now()}.json`)
-
-  fs.writeFileSync(
-    bodyFile,
-    JSON.stringify({
-      message: `chore: index ${kind}/${entry.id}@${entry.version}`,
-      content,
-      branch: ref,
-      sha: existing.sha
-    })
-  )
-
+  const next = records
+    .filter(row => row.id !== entry.id)
+    .concat(item)
+    .sort((a, b) => a.id.localeCompare(b.id))
+  const folder = mkdtempSync(join(tmpdir(), 'monolith-publish-'))
   try {
-    run(`gh api -X PUT repos/${repo}/contents/${file} --input "${bodyFile}"`)
+    const file = join(folder, 'request.json')
+    writeFileSync(
+      file,
+      JSON.stringify({
+        message: 'Publish ' + entry.id + ' ' + entry.version,
+        branch: ref,
+        sha: current.sha,
+        content: Buffer.from(JSON.stringify(next, null, 2) + '\n').toString(
+          'base64'
+        )
+      })
+    )
+    runProcess('gh', ['api', '--method', 'PUT', endpoint, '--input', file])
   } finally {
-    fs.rmSync(bodyFile, { force: true })
+    rmSync(folder, { recursive: true, force: true })
   }
 }

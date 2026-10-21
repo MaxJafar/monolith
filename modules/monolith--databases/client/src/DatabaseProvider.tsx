@@ -261,8 +261,14 @@ export function DatabaseProvider({
     if (page.kind === 'document') {
       if (workspace) navigate(`/page/${page.id}?workspace=${workspace}`)
       else setParams({ section: 'documents', document: page.id })
-    } else if (page.kind === 'note') navigate(`/notes?entry=${page.id}`)
-    else {
+    } else if (page.kind === 'note') {
+      const alias = knowledgeIndex.nodesByKey.get('note:' + page.id)?.aliasOf
+      const target = alias?.startsWith('record:')
+        ? index.recordsById.get(alias.slice('record:'.length))
+        : undefined
+      if (target) openRecord(target)
+      else setError('Linked page is unavailable')
+    } else {
       const target = index.recordsById.get(page.id)
 
       if (target) openRecord(target)

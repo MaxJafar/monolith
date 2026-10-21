@@ -1,29 +1,29 @@
-import { clsx } from 'clsx'
-import { type CSSProperties, type ReactNode } from 'react'
+// SPDX-License-Identifier: 0BSD
+import type { CSSProperties, ReactNode } from 'react'
 
 import { Slot } from '@/components/primitives'
 
 import { placeholderRecipe } from './Placeholder.css'
 
-interface PlaceholderProps {
-  color?: 'transparent' | 'default'
-  focusColor?: 'transparent' | 'default'
-  className?: string
-  style?: CSSProperties
-  children: ReactNode
-}
-
 export function Placeholder({
+  children,
   color = 'default',
   focusColor = 'default',
   className,
-  style,
-  children
-}: PlaceholderProps) {
+  style
+}: {
+  children: ReactNode
+  color?: 'default' | 'transparent'
+  focusColor?: 'default' | 'transparent'
+  className?: string
+  style?: CSSProperties
+}) {
   return (
     <Slot
-      className={clsx(placeholderRecipe({ color, focusColor }), className)}
       style={style}
+      className={[placeholderRecipe({ color, focusColor }), className]
+        .filter(Boolean)
+        .join(' ')}
     >
       {children}
     </Slot>

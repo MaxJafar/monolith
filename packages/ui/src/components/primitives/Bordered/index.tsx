@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: 0BSD
 import type { CSSProperties, ElementType } from 'react'
 
 import {
@@ -8,14 +9,15 @@ import {
   resolveColorProp
 } from '@/system'
 
-import { Box, type BoxProps } from '../Box'
-import type { SurfaceOwnProps, SurfaceProps } from '../surface'
+import {
+  type SurfaceOwnProps,
+  type SurfaceProps,
+  renderSurface
+} from '../surface'
 
 export type BorderSide =
   'all' | 'top' | 'right' | 'bottom' | 'left' | 'x' | 'y' | 'none'
-
 export type BorderStyleValue = 'solid' | 'dashed' | 'dotted' | 'double' | 'none'
-
 export interface BorderedOwnProps<
   T extends ElementType = 'div'
 > extends SurfaceOwnProps<
@@ -28,54 +30,44 @@ export interface BorderedOwnProps<
   borderSide?: BorderSide
   borderWidth?: string
 }
-
 export type BorderedProps<T extends ElementType = 'div'> = SurfaceProps<
   T,
   BorderedOwnProps<T>
 >
-
-const edges: Record<BorderSide, string[]> = {
-  all: ['Top', 'Right', 'Bottom', 'Left'],
-  top: ['Top'],
-  right: ['Right'],
-  bottom: ['Bottom'],
-  left: ['Left'],
-  x: ['Right', 'Left'],
-  y: ['Top', 'Bottom'],
-  none: []
+const masks: Record<BorderSide, number> = {
+  none: 0,
+  top: 8,
+  right: 4,
+  bottom: 2,
+  left: 1,
+  x: 5,
+  y: 10,
+  all: 15
 }
-
 export function computeBorderStyles(
   side: BorderSide,
   width: string,
   style: BorderStyleValue
 ): CSSProperties {
-  if (side === 'all') return { borderWidth: width, borderStyle: style }
-
+  const mask = masks[side]
   return {
-    borderStyle: 'none',
-    ...Object.fromEntries(
-      edges[side].flatMap(edge => [
-        ['border' + edge + 'Width', width],
-        ['border' + edge + 'Style', style]
-      ])
-    )
+    borderStyle: style,
+    borderWidth: [8, 4, 2, 1].map(bit => (mask & bit ? width : '0px')).join(' ')
   }
 }
-
 export function Bordered<T extends ElementType = 'div'>({
-  borderSide = 'all',
-  borderWidth = '1px',
-  borderStyle = 'solid',
-  borderColor = { base: 'bg-300', dark: colorWithOpacity('bg-700', '50%') },
   color,
-  className,
+  borderColor = { base: 'bg-300', dark: colorWithOpacity('bg-700', '50%') },
+  borderStyle = 'solid',
+  borderWidth = '1px',
+  borderSide = 'all',
   style,
-  ...surface
+  className,
+  ...content
 }: BorderedProps<T>) {
-  const resolved = mergeStyle(
-    resolveColorProp('borderColor', borderColor),
+  const decoration = mergeStyle(
     resolveColorProp('color', color),
+    resolveColorProp('borderColor', borderColor),
     {
       className: className ?? '',
       style: {
@@ -84,8 +76,5 @@ export function Bordered<T extends ElementType = 'div'>({
       }
     }
   )
-
-  // Rest destructuring loses the element-specific prop relation in TypeScript 7.
-
-  return <Box<T> {...(surface as BoxProps<T>)} {...resolved} />
+  return renderSurface({ ...content, ...decoration }, 'box')
 }

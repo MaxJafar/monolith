@@ -1,28 +1,25 @@
+// SPDX-License-Identifier: 0BSD
 import { recipe } from '@vanilla-extract/recipes'
 
-import { COLORS } from '@/system'
+const tint = {
+  default: 'var(--text-muted, var(--color-bg-500))',
+  transparent: 'transparent'
+}
+const variants = (selector: string) =>
+  Object.fromEntries(
+    Object.entries(tint).map(([name, color]) => [
+      name,
+      { selectors: { [selector]: { color, opacity: 1 } } }
+    ])
+  ) as Record<
+    keyof typeof tint,
+    { selectors: Record<string, { color: string; opacity: number }> }
+  >
 
 export const placeholderRecipe = recipe({
   variants: {
-    color: {
-      transparent: {
-        selectors: { '&::placeholder': { color: 'transparent' } }
-      },
-      default: {
-        selectors: { '&::placeholder': { color: COLORS['bg-500'] } }
-      }
-    },
-    focusColor: {
-      transparent: {
-        selectors: { '&:focus::placeholder': { color: 'transparent' } }
-      },
-      default: {
-        selectors: { '&:focus::placeholder': { color: COLORS['bg-500'] } }
-      }
-    }
+    color: variants('&::placeholder'),
+    focusColor: variants('&:focus::placeholder')
   },
-  defaultVariants: {
-    color: 'default',
-    focusColor: 'default'
-  }
+  defaultVariants: { color: 'default', focusColor: 'default' }
 })

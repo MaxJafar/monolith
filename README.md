@@ -10,7 +10,7 @@
 
 Your pages, projects and everyday tools in one self-hosted workspace.<br />Use the web, Windows or macOS. Connect your agents. Add the tools that fit your day.
 
-[![Unsigned release](https://img.shields.io/badge/release-0.1.9_unsigned-555555?style=flat)](https://github.com/MaxJafar/monolith/releases/tag/v0.1.9) [![Self-hosted](https://img.shields.io/badge/hosting-self--hosted-222222?style=flat)](https://monolith-site-maxjafars-projects.vercel.app/docs/self-hosting) [![MCP and CLI](https://img.shields.io/badge/agents-MCP_%2B_CLI-555555?style=flat)](https://monolith-site-maxjafars-projects.vercel.app/docs/agents)
+[![Unsigned release](https://img.shields.io/badge/release-0.1.13_unsigned-555555?style=flat)](https://github.com/MaxJafar/monolith/releases/tag/v0.1.13) [![Self-hosted](https://img.shields.io/badge/hosting-self--hosted-222222?style=flat)](https://monolith-site-maxjafars-projects.vercel.app/docs/self-hosting) [![MCP and CLI](https://img.shields.io/badge/agents-MCP_%2B_CLI-555555?style=flat)](https://monolith-site-maxjafars-projects.vercel.app/docs/agents)
 
 **[Website](https://monolith-site-maxjafars-projects.vercel.app)** · **[Documentation](https://monolith-site-maxjafars-projects.vercel.app/docs)** · **[Quickstart](https://monolith-site-maxjafars-projects.vercel.app/docs/quickstart)** · **[Addons and Widgets](https://monolith-site-maxjafars-projects.vercel.app/addons)** · **[Releases](https://github.com/MaxJafar/monolith/releases)**
 
@@ -53,11 +53,11 @@ Run it on your own infrastructure, connect browser and desktop clients, and exte
 
 Start with eight native sections: **Calendar, Projects, Actions, Rooms, Docs, Journal, Dashboard and Databases**. Reorder navigation, choose light or dark appearance and add the tools you need.
 
-| Layer | What it brings | Examples |
-| --- | --- | --- |
-| Native features | The shared workspace foundation | Pages, projects, calendar, databases |
-| Addons | Optional tools with their own workspace surfaces | Atlas, Automations, Agents, Redraw, Gym, Tech Lab |
-| Widgets | Compact views with configuration overlays | Calendar, Action agenda, Project focus, Training pulse |
+| Layer           | What it brings                                   | Examples                                               |
+| --------------- | ------------------------------------------------ | ------------------------------------------------------ |
+| Native features | The shared workspace foundation                  | Pages, projects, calendar, databases                   |
+| Addons          | Optional tools with their own workspace surfaces | Atlas, Automations, Agents, Redraw, Gym, Tech Lab      |
+| Widgets         | Compact views with configuration overlays        | Calendar, Action agenda, Project focus, Training pulse |
 
 **[Addons and Widgets](https://monolith-site-maxjafars-projects.vercel.app/addons)** separates installing a package on the host from enabling it in a workspace. Filter the shop by type, category and installation state; configure widgets in an overlay, add them to the dashboard or pin supported widgets to the sidebar.
 
@@ -73,14 +73,14 @@ Connect **Codex, Claude Code, OpenClaw, Cursor** or another stdio MCP client to 
 
 The bridge starts in read mode. Enable writes deliberately; your account permissions and document revision checks still apply. The separate **Agents addon** organizes worker-backed assignments and is not required to use MCP.
 
-| Client | Configuration generator |
-| --- | --- |
-| Codex | `pnpm --silent agent config --client codex` |
-| Claude Code / Claude Desktop | `pnpm --silent agent config --client claude` |
-| OpenClaw | `pnpm --silent agent config --client openclaw` |
-| Cursor | `pnpm --silent agent config --client cursor` |
-| VS Code | `pnpm --silent agent config --client vscode` |
-| Other stdio MCP clients | `pnpm --silent agent config --client generic` |
+| Client                       | Configuration generator                        |
+| ---------------------------- | ---------------------------------------------- |
+| Codex                        | `pnpm --silent agent config --client codex`    |
+| Claude Code / Claude Desktop | `pnpm --silent agent config --client claude`   |
+| OpenClaw                     | `pnpm --silent agent config --client openclaw` |
+| Cursor                       | `pnpm --silent agent config --client cursor`   |
+| VS Code                      | `pnpm --silent agent config --client vscode`   |
+| Other stdio MCP clients      | `pnpm --silent agent config --client generic`  |
 
 Build and sign in before generating configuration. Follow the **[MCP and CLI guide](https://monolith-site-maxjafars-projects.vercel.app/docs/agents)** for authentication, permissions and client setup.
 
@@ -89,10 +89,10 @@ Build and sign in before generating configuration. Follow the **[MCP and CLI gui
 ## Get started
 
 - **Browser** — Run a local development workspace or connect to your configured host.
-- **Desktop** — Download the [Windows x64 installer](https://github.com/MaxJafar/monolith/releases/download/v0.1.9/monolith-0.1.9-windows-amd64.exe) or [universal macOS disk image](https://github.com/MaxJafar/monolith/releases/download/v0.1.9/monolith-0.1.9-darwin-universal.dmg).
-- **Self-host** — Download a Linux server image and the [setup kit](https://github.com/MaxJafar/monolith/releases/download/v0.1.9/monolith-0.1.9-server-kit.zip) from the [release](https://github.com/MaxJafar/monolith/releases/tag/v0.1.9), then follow the [installation guide](release/INSTALL.md).
+- **Desktop** — Download the [Windows x64 installer](https://github.com/MaxJafar/monolith/releases/download/v0.1.13/monolith-0.1.13-windows-amd64.exe) or [universal macOS disk image](https://github.com/MaxJafar/monolith/releases/download/v0.1.13/monolith-0.1.13-darwin-universal.dmg).
+- **Self-host** — Download a Linux server image and the [setup kit](https://github.com/MaxJafar/monolith/releases/download/v0.1.13/monolith-0.1.13-server-kit.zip) from the [release](https://github.com/MaxJafar/monolith/releases/tag/v0.1.13), then follow the [installation guide](release/INSTALL.md).
 
-> **[Download 0.1.9](https://github.com/MaxJafar/monolith/releases/tag/v0.1.9):** Windows, macOS, Linux x64/ARM64, 14 addon and widget packages, and the CLI/MCP bridge. This release adds a polished calendar event popover and consistent controls, improves download progress, and fixes Windows rollback when installation paths are redirected. Automatic updates use authenticated downloads, progress and rollback. Windows installers remain unsigned and macOS is not notarized. Clients from 0.1.3 and preview builds need this installer once; 0.1.7 and 0.1.8 clients update automatically. Servers upgrading from before 0.1.8 need the [calendar schema migration](docs/CALENDAR.md) first. See [installation instructions](release/INSTALL.md) and [checksums](https://github.com/MaxJafar/monolith/releases/download/v0.1.9/SHA256SUMS).
+> **[Download 0.1.13](https://github.com/MaxJafar/monolith/releases/tag/v0.1.13):** Windows, macOS, Linux x64/ARM64, six custom addon packages and the CLI/MCP bridge. First-party Monolith code is now licensed under **0BSD**. Calendar, Journal and Projects are native features; the inherited addon packages have been retired. Automatic updates include authenticated downloads, progress and runtime rollback. Windows installers remain unsigned and macOS is not notarized. This server upgrade requires a backed-up, planned schema migration. See [installation instructions](release/INSTALL.md), [updates](docs/UPDATES.md) and [checksums](https://github.com/MaxJafar/monolith/releases/download/v0.1.13/SHA256SUMS).
 
 <details>
 <summary><strong>Run the development workspace from source</strong></summary>
@@ -133,17 +133,17 @@ Automatic downloads and installation are enabled by default in updater-enabled c
 
 ## Documentation
 
-| I want to… | Start here |
-| --- | --- |
-| Understand the product | [Meet Monolith](https://monolith-site-maxjafars-projects.vercel.app/docs/introduction) |
-| Set up my first workspace | [Installation](https://monolith-site-maxjafars-projects.vercel.app/docs/installation) · [Quickstart](https://monolith-site-maxjafars-projects.vercel.app/docs/quickstart) |
-| Write and connect knowledge | [Pages](https://monolith-site-maxjafars-projects.vercel.app/docs/pages) · [Databases](https://monolith-site-maxjafars-projects.vercel.app/docs/databases) · [Atlas](https://monolith-site-maxjafars-projects.vercel.app/docs/atlas) |
-| Plan my day | [Projects and Calendar](https://monolith-site-maxjafars-projects.vercel.app/docs/projects-calendar) · [Widgets](https://monolith-site-maxjafars-projects.vercel.app/docs/widgets) |
-| Extend the workspace | [Addon installation](https://monolith-site-maxjafars-projects.vercel.app/docs/addons) · [Collection](https://monolith-site-maxjafars-projects.vercel.app/addons) |
-| Connect AI tools | [MCP and CLI](https://monolith-site-maxjafars-projects.vercel.app/docs/agents) · [Agents addon](https://monolith-site-maxjafars-projects.vercel.app/docs/agents-addon) |
-| Run and update a host | [Self-hosting](https://monolith-site-maxjafars-projects.vercel.app/docs/self-hosting) · [Updates and recovery](https://monolith-site-maxjafars-projects.vercel.app/docs/updates) |
-| Understand the implementation | [Architecture](https://monolith-site-maxjafars-projects.vercel.app/docs/architecture) · [Development](https://monolith-site-maxjafars-projects.vercel.app/docs/development) |
-| Resolve a problem | [Troubleshooting](https://monolith-site-maxjafars-projects.vercel.app/docs/troubleshooting) · [FAQ](https://monolith-site-maxjafars-projects.vercel.app/docs/faq) |
+| I want to…                    | Start here                                                                                                                                                                                                                          |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Understand the product        | [Meet Monolith](https://monolith-site-maxjafars-projects.vercel.app/docs/introduction)                                                                                                                                              |
+| Set up my first workspace     | [Installation](https://monolith-site-maxjafars-projects.vercel.app/docs/installation) · [Quickstart](https://monolith-site-maxjafars-projects.vercel.app/docs/quickstart)                                                           |
+| Write and connect knowledge   | [Pages](https://monolith-site-maxjafars-projects.vercel.app/docs/pages) · [Databases](https://monolith-site-maxjafars-projects.vercel.app/docs/databases) · [Atlas](https://monolith-site-maxjafars-projects.vercel.app/docs/atlas) |
+| Plan my day                   | [Projects and Calendar](https://monolith-site-maxjafars-projects.vercel.app/docs/projects-calendar) · [Widgets](https://monolith-site-maxjafars-projects.vercel.app/docs/widgets)                                                   |
+| Extend the workspace          | [Addon installation](https://monolith-site-maxjafars-projects.vercel.app/docs/addons) · [Collection](https://monolith-site-maxjafars-projects.vercel.app/addons)                                                                    |
+| Connect AI tools              | [MCP and CLI](https://monolith-site-maxjafars-projects.vercel.app/docs/agents) · [Agents addon](https://monolith-site-maxjafars-projects.vercel.app/docs/agents-addon)                                                              |
+| Run and update a host         | [Self-hosting](https://monolith-site-maxjafars-projects.vercel.app/docs/self-hosting) · [Updates and recovery](https://monolith-site-maxjafars-projects.vercel.app/docs/updates)                                                    |
+| Understand the implementation | [Architecture](https://monolith-site-maxjafars-projects.vercel.app/docs/architecture) · [Development](https://monolith-site-maxjafars-projects.vercel.app/docs/development)                                                         |
+| Resolve a problem             | [Troubleshooting](https://monolith-site-maxjafars-projects.vercel.app/docs/troubleshooting) · [FAQ](https://monolith-site-maxjafars-projects.vercel.app/docs/faq)                                                                   |
 
 The workspace maintains English, Malay, Simplified Chinese and Traditional Chinese locale packs. The public docs are currently in English.
 
@@ -162,16 +162,16 @@ The workspace maintains English, Malay, Simplified Chinese and Traditional Chine
                      PostgreSQL
 ```
 
-| Layer | Implementation |
-| --- | --- |
-| Workspace | React 19, shared Monolith UI and API contracts |
-| Documents | BlockSuite and Yjs, persisted through revision-checked gateway operations |
-| Windows | Tauri and WebView2 |
-| macOS | AppKit and WKWebView |
-| Host | Public Go gateway and private TypeScript domain API |
-| Storage | PostgreSQL 17 and persistent uploaded files |
-| Extensions | Independently versioned addons and registered widgets |
-| Product website | Static Astro site deployed to Vercel |
+| Layer           | Implementation                                                            |
+| --------------- | ------------------------------------------------------------------------- |
+| Workspace       | React 19, shared Monolith UI and API contracts                            |
+| Documents       | BlockSuite and Yjs, persisted through revision-checked gateway operations |
+| Windows         | Tauri and WebView2                                                        |
+| macOS           | AppKit and WKWebView                                                      |
+| Host            | Public Go gateway and private TypeScript domain API                       |
+| Storage         | PostgreSQL 17 and persistent uploaded files                               |
+| Extensions      | Independently versioned addons and registered widgets                     |
+| Product website | Static Astro site deployed to Vercel                                      |
 
 See **[Architecture](https://monolith-site-maxjafars-projects.vercel.app/docs/architecture)** for repository paths and the boundaries between clients, host services and optional workers.
 

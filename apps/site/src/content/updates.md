@@ -17,7 +17,7 @@ Checks run at supervisor startup and every six hours, with a manual check availa
 
 ## Control download and installation separately
 
-Automatic downloads are enabled by default once signing is configured. Automatic installation starts **on** for new updater-enabled installations and can be disabled separately for each desktop client and the hosted server. Existing configured preferences are preserved.
+Automatic downloads are enabled by default in official releases, including unsigned installers. The separate update manifest signature authenticates downloads. Automatic installation starts **on** for new updater-enabled installations and can be disabled separately for each desktop client and the hosted server. Existing configured preferences are preserved.
 
 - **Desktop:** automatic installation waits for the app to be in the background and idle for two minutes. Save and persisted-draft guards must pass.
 - **Server:** installation uses the chosen one-hour UTC maintenance window. Host administrators can also install immediately.
@@ -45,4 +45,4 @@ Maintainers configure the release signing key in the release workflow. Windows p
 
 The repository’s `docs/UPDATES.md` contains the exact signing variables, supervisor service configuration and platform rollout checks. The supervisor runs outside the containers and currently targets one Linux Docker host, not Kubernetes or a multi-host deployment.
 
-Before a first public release, rehearse signed upgrades and rollback on the actual supported platforms. See [development and releases](/docs/development).
+Maintainers rehearse authenticated upgrades and rollback on the supported platforms before publishing. See [development and releases](/docs/development).

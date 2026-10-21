@@ -15,7 +15,7 @@ Use [Installation](/docs/installation) to set up a development host, then follow
 
 ## Where do I download the desktop clients?
 
-Download the Windows x64 installer or universal macOS disk image from [release downloads](/docs/availability). Version **0.1.0-preview.1** is a manual-install preview: Windows is unsigned, and macOS is ad-hoc signed and not notarized. Both clients connect to a separately hosted Monolith server. You can also build the public source.
+Download the Windows x64 installer or universal macOS disk image from [release downloads](/docs/availability). Version **0.1.13** supports automatic updates: Windows is unsigned, and macOS is ad-hoc signed and not notarized. Both clients connect to a separately hosted Monolith server. You can also build the public source.
 
 ## Do I need every addon?
 
@@ -44,6 +44,10 @@ Monolith has native draft and conflict recovery, but does not currently promise 
 ## What languages are supported?
 
 The workspace maintains English, Malay, Simplified Chinese and Traditional Chinese locale packs. This public documentation site is currently in English.
+
+## Is Monolith open source?
+
+Yes. Starting with 0.1.13, first-party Monolith code is under the **Zero-Clause BSD (0BSD)** license. You can use, modify and redistribute it, including commercially. Third-party dependencies retain their own licenses; older releases retain their original terms. See [source and licenses](/docs/availability#source-and-licenses).
 
 ## How can I contribute?
 

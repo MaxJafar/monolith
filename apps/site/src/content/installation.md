@@ -1,17 +1,17 @@
 ---
 title: Installation
-description: Download a preview installer or build from source and open your first Monolith workspace.
+description: Download an installer or build from source and open your first Monolith workspace.
 section: Start here
 order: 2
 ---
 
-Download **0.1.0-preview.1** from [release downloads](/docs/availability), or build the public source using the steps below.
+Download **0.1.13** from [release downloads](/docs/availability), or build the public source using the steps below.
 
-## Install the preview
+## Install Monolith
 
 Windows and macOS installers connect to your Monolith host. To create a host, download the Linux image for your server architecture and the server setup kit from the same release. The kit includes Compose configuration, a private environment template and step-by-step instructions.
 
-Follow the [preview installation guide](https://github.com/MaxJafar/monolith/blob/main/release/INSTALL.md) to load the image, configure your secrets and HTTPS proxy, and create your first account. The browser client is served by that host. This preview is installed manually; review its [signing and update limits](/docs/availability).
+Follow the [installation guide](https://github.com/MaxJafar/monolith/blob/main/release/INSTALL.md) to load the image, configure your secrets and HTTPS proxy, and create your first account. The browser client is served by that host. The first installation is manual; later compatible releases download and install automatically according to your [update settings](/docs/updates). Installers remain unsigned.
 
 For building a shared host from source, use the [container setup](/docs/self-hosting).
 
@@ -26,7 +26,7 @@ Set `POSTGRES_BIN` to the PostgreSQL `bin` directory if it is not discovered. Ty
 
 ## Get the source
 
-The maintained Monolith source is public. Clone it without a GitHub account, or choose a published preview from [GitHub Releases](https://github.com/MaxJafar/monolith/releases). See [release availability](/docs/availability) for platform and signing details.
+The maintained Monolith source is public. Clone it without a GitHub account, or choose a published release from [GitHub Releases](https://github.com/MaxJafar/monolith/releases). See [release availability](/docs/availability) for platform and signing details.
 
 ```sh
 git clone https://github.com/MaxJafar/monolith.git

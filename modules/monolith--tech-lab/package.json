@@ -1,7 +1,7 @@
 {
   "name": "@monolith/tech-lab",
   "displayName": "Tech Lab",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "type": "module",
   "author": "Monolith contributors",
   "description": "Native devices, hosted services, game servers and observed health.",

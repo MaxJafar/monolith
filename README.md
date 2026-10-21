@@ -10,7 +10,7 @@
 
 Your pages, projects and everyday tools in one self-hosted workspace.<br />Use the web, Windows or macOS. Connect your agents. Add the tools that fit your day.
 
-[![Unsigned release](https://img.shields.io/badge/release-0.1.13_unsigned-555555?style=flat)](https://github.com/MaxJafar/monolith/releases/tag/v0.1.13) [![Self-hosted](https://img.shields.io/badge/hosting-self--hosted-222222?style=flat)](https://monolith-site-maxjafars-projects.vercel.app/docs/self-hosting) [![MCP and CLI](https://img.shields.io/badge/agents-MCP_%2B_CLI-555555?style=flat)](https://monolith-site-maxjafars-projects.vercel.app/docs/agents)
+[![Unsigned release](https://img.shields.io/badge/release-0.1.14_unsigned-555555?style=flat)](https://github.com/MaxJafar/monolith/releases/tag/v0.1.14) [![Self-hosted](https://img.shields.io/badge/hosting-self--hosted-222222?style=flat)](https://monolith-site-maxjafars-projects.vercel.app/docs/self-hosting) [![MCP and CLI](https://img.shields.io/badge/agents-MCP_%2B_CLI-555555?style=flat)](https://monolith-site-maxjafars-projects.vercel.app/docs/agents)
 
 **[Website](https://monolith-site-maxjafars-projects.vercel.app)** · **[Documentation](https://monolith-site-maxjafars-projects.vercel.app/docs)** · **[Quickstart](https://monolith-site-maxjafars-projects.vercel.app/docs/quickstart)** · **[Addons and Widgets](https://monolith-site-maxjafars-projects.vercel.app/addons)** · **[Releases](https://github.com/MaxJafar/monolith/releases)**
 
@@ -89,10 +89,10 @@ Build and sign in before generating configuration. Follow the **[MCP and CLI gui
 ## Get started
 
 - **Browser** — Run a local development workspace or connect to your configured host.
-- **Desktop** — Download the [Windows x64 installer](https://github.com/MaxJafar/monolith/releases/download/v0.1.13/monolith-0.1.13-windows-amd64.exe) or [universal macOS disk image](https://github.com/MaxJafar/monolith/releases/download/v0.1.13/monolith-0.1.13-darwin-universal.dmg).
-- **Self-host** — Download a Linux server image and the [setup kit](https://github.com/MaxJafar/monolith/releases/download/v0.1.13/monolith-0.1.13-server-kit.zip) from the [release](https://github.com/MaxJafar/monolith/releases/tag/v0.1.13), then follow the [installation guide](release/INSTALL.md).
+- **Desktop** — Download the [Windows x64 installer](https://github.com/MaxJafar/monolith/releases/download/v0.1.14/monolith-0.1.14-windows-amd64.exe) or [universal macOS disk image](https://github.com/MaxJafar/monolith/releases/download/v0.1.14/monolith-0.1.14-darwin-universal.dmg).
+- **Self-host** — Download a Linux server image and the [setup kit](https://github.com/MaxJafar/monolith/releases/download/v0.1.14/monolith-0.1.14-server-kit.zip) from the [release](https://github.com/MaxJafar/monolith/releases/tag/v0.1.14), then follow the [installation guide](release/INSTALL.md).
 
-> **[Download 0.1.13](https://github.com/MaxJafar/monolith/releases/tag/v0.1.13):** Windows, macOS, Linux x64/ARM64, six custom addon packages and the CLI/MCP bridge. First-party Monolith code is now licensed under **0BSD**. Calendar, Journal and Projects are native features; the inherited addon packages have been retired. Automatic updates include authenticated downloads, progress and runtime rollback. Windows installers remain unsigned and macOS is not notarized. This server upgrade requires a backed-up, planned schema migration. See [installation instructions](release/INSTALL.md), [updates](docs/UPDATES.md) and [checksums](https://github.com/MaxJafar/monolith/releases/download/v0.1.13/SHA256SUMS).
+> **[Download 0.1.14](https://github.com/MaxJafar/monolith/releases/tag/v0.1.14):** Windows, macOS, Linux x64/ARM64, six custom addon packages and the CLI/MCP bridge. First-party Monolith code is now licensed under **0BSD**. Calendar, Journal and Projects are native features; the inherited addon packages have been retired. Automatic updates include authenticated downloads, progress and runtime rollback. Windows installers remain unsigned and macOS is not notarized. This server upgrade requires a backed-up, planned schema migration. See [installation instructions](release/INSTALL.md), [updates](docs/UPDATES.md) and [checksums](https://github.com/MaxJafar/monolith/releases/download/v0.1.14/SHA256SUMS).
 
 <details>
 <summary><strong>Run the development workspace from source</strong></summary>

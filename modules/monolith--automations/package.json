@@ -1,7 +1,7 @@
 {
   "name": "@monolith/automations",
   "displayName": "Automations",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "type": "module",
   "author": "Monolith contributors",
   "description": "Connect triggers, data and actions in visual workflows.",

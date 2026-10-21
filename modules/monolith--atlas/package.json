@@ -1,7 +1,7 @@
 {
   "name": "@monolith/atlas",
   "displayName": "Atlas",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "type": "module",
   "description": "A connected knowledge space for Monolith: maps, backlinks and discovery.",
   "author": "Monolith contributors",

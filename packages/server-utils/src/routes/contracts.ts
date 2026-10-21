@@ -27,6 +27,8 @@ import type { MediaConfig } from '../typescript/standalone/media.types'
 
 export interface EndpointOptions<S extends ModuleSchema = ModuleSchema> {
   schema?: S
+  /** Only this addon publishes these tables; consumers retain query aliases. */
+  schemaOwnerId?: string
   moduleId?: string
   modulePathAlias?: string
 }
@@ -135,7 +137,14 @@ export function defineEndpoints<
       settings.schema.relations as any,
       owner
     )
-    if (owner) ModuleRegistry.registerSchemaPart(owner, schema)
+    if (owner) {
+      ModuleRegistry.registerSchemaPart(
+        owner,
+        settings.schemaOwnerId && settings.schemaOwnerId !== owner
+          ? { ...schema, tables: {}, relations: () => ({}) }
+          : schema
+      )
+    }
   }
   return factory<
     O['schema'] extends ModuleSchema ? BuiltModuleSchema<O['schema']> : R,

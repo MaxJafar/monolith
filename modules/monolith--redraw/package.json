@@ -1,7 +1,7 @@
 {
   "name": "@monolith/redraw",
   "displayName": "Redraw",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "type": "module",
   "author": "Monolith contributors",
   "description": "A visual studio for designs, whiteboards and connected ideas.",

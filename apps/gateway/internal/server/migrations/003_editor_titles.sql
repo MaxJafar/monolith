@@ -30,6 +30,8 @@ do $$ declare item text[]; begin
   ['zillion_databases__workspace_pages','page','title'],['zillion_databases__documents','page','title'],
   ['zillion_databases__records','record','title'],['notes__entries','note','name']
  ] loop
-  execute format('create trigger monolith_editor_title after update of %I on %I for each row execute function monolith_editor_source_title(%L,%L)',item[3],item[1],item[2],item[3]);
+  if to_regclass(item[1]) is not null then
+   execute format('create trigger monolith_editor_title after update of %I on %I for each row execute function monolith_editor_source_title(%L,%L)',item[3],item[1],item[2],item[3]);
+  end if;
  end loop;
 end $$;

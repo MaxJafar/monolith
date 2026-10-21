@@ -11,6 +11,8 @@ do $$ declare item text[]; begin
   ['zillion_databases__workspace_pages','page'],['zillion_databases__documents','page'],
   ['zillion_databases__records','record'],['notes__entries','note']
  ] loop
-  execute format('create trigger monolith_editor_delete after delete on %I for each row execute function monolith_delete_editor_source(%L)',item[1],item[2]);
+  if to_regclass(item[1]) is not null then
+   execute format('create trigger monolith_editor_delete after delete on %I for each row execute function monolith_delete_editor_source(%L)',item[1],item[2]);
+  end if;
  end loop;
 end $$;

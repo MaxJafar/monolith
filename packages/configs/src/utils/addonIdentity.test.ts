@@ -53,7 +53,7 @@ describe('Monolith addon identities', () => {
   it('rejects identity drift and unsafe IDs before an addon can register', () => {
     expect(() =>
       resolveAddonIdentity({
-        name: '@monolith/calendar',
+        name: '@monolith/atlas',
         monolith: { id: 'other' }
       })
     ).toThrow('persisted identity')

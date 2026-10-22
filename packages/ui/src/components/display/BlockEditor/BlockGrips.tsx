@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next'
 
 import { startBlockDrag } from '@/utils/blockDrag'
 
+import { draggingBlock } from './extensions'
+
 function blocks(editor: Editor) {
   const result: Array<{
     id: string
@@ -95,6 +97,16 @@ export function BlockGrips({ editor }: { editor: Editor }) {
               click: () => {
                 editor.commands.setNodeSelection(source.pos)
                 button.focus()
+              },
+              mark: dragging => {
+                if (editor.isDestroyed) return
+
+                const pos = dragging
+                  ? blocks(editor).find(block => block.id === item.id)?.pos
+                  : undefined
+                editor.view.dispatch(
+                  editor.state.tr.setMeta(draggingBlock, pos ?? null)
+                )
               }
             })
           }}

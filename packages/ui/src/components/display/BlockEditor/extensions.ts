@@ -1,5 +1,6 @@
 import { Extension, Node, mergeAttributes } from '@tiptap/core'
-import { Plugin } from '@tiptap/pm/state'
+import { Plugin, PluginKey } from '@tiptap/pm/state'
+import { Decoration, DecorationSet } from '@tiptap/pm/view'
 
 import type { PageTarget } from '@monolith/blocks'
 
@@ -64,6 +65,42 @@ export const BlockIds = Extension.create({
 
           return transaction.docChanged ? transaction : null
         }
+      })
+    ]
+  }
+})
+
+export const draggingBlock = new PluginKey<DecorationSet>('draggingBlock')
+
+/** ProseMirror redraws a block whose DOM is mutated directly, which would
+ * detach a lifted block mid-drag. Mark it with a decoration instead. */
+export const BlockDragging = Extension.create({
+  name: 'blockDragging',
+  addProseMirrorPlugins() {
+    return [
+      new Plugin<DecorationSet>({
+        key: draggingBlock,
+        state: {
+          init: () => DecorationSet.empty,
+          apply(transaction, decorations) {
+            const pos = transaction.getMeta(draggingBlock) as
+              number | null | undefined
+
+            if (pos === undefined)
+              return decorations.map(transaction.mapping, transaction.doc)
+
+            const node = pos === null ? null : transaction.doc.nodeAt(pos)
+
+            if (pos === null || !node) return DecorationSet.empty
+
+            return DecorationSet.create(transaction.doc, [
+              Decoration.node(pos, pos + node.nodeSize, {
+                'data-dragging': 'true'
+              })
+            ])
+          }
+        },
+        props: { decorations: state => draggingBlock.getState(state) }
       })
     ]
   }

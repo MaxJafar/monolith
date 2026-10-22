@@ -30,7 +30,7 @@ import {
   pageBlockExtension
 } from './EmbeddedBlocks'
 import './editor.css'
-import { BlockIds, pageLinkExtension } from './extensions'
+import { BlockDragging, BlockIds, pageLinkExtension } from './extensions'
 
 export type BlockEditorProps = {
   value: string
@@ -146,6 +146,7 @@ export function BlockEditor({
       TaskList,
       TaskItem.configure({ nested: true }),
       BlockIds,
+      BlockDragging,
       LinkedDatabaseBlock,
       CalloutBlock,
       pageBlockExtension(page => callbacks.current.onOpenPage?.(page)),

@@ -103,6 +103,9 @@ export function startBlockDrag(
     targets: () => Target[]
     commit: (id: string, before: boolean) => void
     click?: () => void
+    /** Marks the lifted source; renderer-owned DOM such as ProseMirror's must
+     * be marked through its own state, not by mutating the element. */
+    mark?: (dragging: boolean) => void
   }
 ) {
   if (event.button !== 0) return () => {}
@@ -120,12 +123,20 @@ export function startBlockDrag(
     frame = 0
   let ghost: HTMLElement | undefined, indicator: HTMLElement | undefined
   let target: (Target & { before: boolean }) | undefined
+  let marked = false
+  const mark = (dragging: boolean) => {
+    if (marked === dragging) return
+    marked = dragging
+    if (options.mark) options.mark(dragging)
+    else if (dragging) source.dataset.dragging = 'true'
+    else delete source.dataset.dragging
+  }
   const cleanup = () => {
     abort.abort()
     cancelAnimationFrame(frame)
     ghost?.remove()
     indicator?.remove()
-    delete source.dataset.dragging
+    mark(false)
   }
   const draw = () => {
     if (!source.isConnected) return cleanup()
@@ -199,7 +210,7 @@ export function startBlockDrag(
         indicator.style.setProperty('--selection-color', accent)
         document.body.append(ghost, indicator)
         snapshot.restoreScroll()
-        source.dataset.dragging = 'true'
+        mark(true)
         pose.reset(x, y)
         draw()
       }

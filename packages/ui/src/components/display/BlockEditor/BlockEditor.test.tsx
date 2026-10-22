@@ -346,3 +346,49 @@ describe('Block editor cursor and read-only behavior', () => {
     expect(editor.state.doc.child(1).textContent).toBe('Keep this paragraph')
   })
 })
+
+function pointer(type: string, target: EventTarget, x: number, y: number) {
+  const event = new MouseEvent(type, {
+    bubbles: true,
+    cancelable: true,
+    button: 0,
+    clientX: x,
+    clientY: y
+  })
+  Object.defineProperty(event, 'pointerId', { value: 1 })
+  target.dispatchEvent(event)
+}
+
+describe('Block editor grips', () => {
+  it('drags a paragraph although ProseMirror redraws blocks whose DOM changes mid-drag', async () => {
+    const onChange = vi.fn()
+    const editor = await mount('Alpha\nBravo\nCharlie', false, onChange)
+    await settle()
+    const grip = container.querySelector<HTMLButtonElement>(
+      '.monolith-block-grips button'
+    )!
+    const source = editor.view.nodeDOM(0) as HTMLElement
+
+    await act(async () => pointer('pointerdown', grip, 10, 10))
+
+    // Real input yields between moves, so ProseMirror's DOM observer runs.
+    for (const y of [30, 60, 100]) {
+      await act(async () => pointer('pointermove', window, 10, y))
+      await settle()
+    }
+
+    expect(source.isConnected).toBe(true)
+    expect(source.dataset.dragging).toBe('true')
+
+    await act(async () => pointer('pointerup', window, 10, 100))
+    await settle()
+
+    expect(
+      Array.from({ length: editor.state.doc.childCount }, (_, index) =>
+        editor.state.doc.child(index).textContent
+      )
+    ).toEqual(['Bravo', 'Alpha', 'Charlie'])
+    expect(container.querySelector('[data-dragging]')).toBeNull()
+    expect(onChange).toHaveBeenCalled()
+  })
+})

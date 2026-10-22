@@ -1,4 +1,4 @@
-import { serviceResponse } from '@functions/external/serviceRequest'
+import { publicResponse } from '@functions/external/publicRequest'
 import { z } from 'zod'
 
 import { createMonolith } from '@monolith/server-utils'
@@ -19,11 +19,9 @@ export default createMonolith({ moduleId: 'cors_anywhere' })
   })
   .callback(async ({ query, response }) => {
     try {
-      const remote = await serviceResponse('Remote content', query.url, {
-        headers: {
-          'User-Agent': 'Monolith/1.0',
-          Accept: 'application/json, text/plain, text/html;q=0.9, */*;q=0.5'
-        }
+      const remote = await publicResponse('Remote content', query.url, {
+        'User-Agent': 'Monolith/1.0',
+        Accept: 'application/json, text/plain, text/html;q=0.9, */*;q=0.5'
       })
       const mediaType = remote.contentType.split(';')[0]?.trim().toLowerCase()
 

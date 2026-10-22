@@ -79,12 +79,6 @@
   background: #0005;
   backdrop-filter: blur(3px);
 }
-.monolith-desktop-updates {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 100;
-}
 @media (prefers-reduced-motion: reduce) {
   .monolith-update-card progress::-webkit-progress-value {
     transition: none;

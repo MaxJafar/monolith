@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { getDesktopUpdater } from '@monolith/api'
-import { Button, Flex, Text } from '@monolith/ui'
+import { Box, Button, Flex, Text } from '@monolith/ui'
 
 import UpdateCard from './UpdateCard'
 import { useDesktopUpdates } from './useDesktopUpdates'
@@ -18,18 +18,19 @@ export default function DesktopUpdateControls() {
 
   return (
     <>
-      <Button
-        className="monolith-desktop-updates"
-        icon="lucide:download"
-        namespace={false}
-        variant="secondary"
-        onClick={() => dialog.current?.showModal()}
-      >
-        {t('updates.title')}
-        {['available', 'ready'].includes(controller.state?.phase ?? '')
-          ? ' •'
-          : ''}
-      </Button>
+      <Box bottom="20px" position="fixed" right="20px" zIndex="100">
+        <Button
+          icon="lucide:download"
+          namespace={false}
+          variant="secondary"
+          onClick={() => dialog.current?.showModal()}
+        >
+          {t('updates.title')}
+          {['available', 'ready'].includes(controller.state?.phase ?? '')
+            ? ' •'
+            : ''}
+        </Button>
+      </Box>
       <dialog
         ref={dialog}
         aria-label={t('updates.title')}

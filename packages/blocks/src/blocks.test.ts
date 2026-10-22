@@ -138,6 +138,32 @@ describe('durable block content', () => {
       doc.content[0].content![0].marks = [{ type: 'link', attrs: { href } }]
       expect(() => serializeDocument(doc)).toThrow('Unsafe')
     }
+
+    for (const title of [{ toString: () => 'x' }, 'x'.repeat(256)]) {
+      const doc = textDoc('link')
+      doc.content[0].content![0].marks = [
+        { type: 'link', attrs: { href: 'https://site.test', title } }
+      ]
+      expect(() => serializeDocument(doc)).toThrow('Unsafe')
+    }
+  })
+  it('accepts links exactly as the editor emits them', () => {
+    for (const title of [null, 'Project site']) {
+      const doc = textDoc('link')
+      doc.content[0].content![0].marks = [
+        {
+          type: 'link',
+          attrs: {
+            href: 'https://example.com',
+            target: '_blank',
+            rel: 'noopener noreferrer',
+            class: null,
+            title
+          }
+        }
+      ]
+      expect(parseContent(serializeDocument(doc))).toEqual(doc)
+    }
   })
   it('excludes references in code and respects wiki aliases', () => {
     expect(

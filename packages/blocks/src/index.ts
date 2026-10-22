@@ -262,11 +262,14 @@ export function validateDocument(
             !object(mark.attrs) ||
             !safeHref(mark.attrs.href) ||
             Object.keys(mark.attrs).some(
-              key => !['href', 'target', 'rel', 'class'].includes(key)
+              key => !['href', 'target', 'rel', 'class', 'title'].includes(key)
             ) ||
             (mark.attrs.target != null &&
               !['_blank', '_self'].includes(String(mark.attrs.target))) ||
-            mark.attrs.class != null
+            mark.attrs.class != null ||
+            (mark.attrs.title != null &&
+              (typeof mark.attrs.title !== 'string' ||
+                mark.attrs.title.length > 255))
           )
             throw new Error('Unsafe link')
         } else if (

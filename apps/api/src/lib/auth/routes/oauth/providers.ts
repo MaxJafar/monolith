@@ -8,6 +8,7 @@ import {
 } from '../../constants/oauth_providers'
 import endpoints from '../../endpoints'
 import { authOAuthProviders as providers } from '../../schema.drizzle'
+import { canManageSignIn } from '../../utils/signInAdmins'
 
 const identity = z.object({ id: z.string().min(1) })
 const providerLabel = z.object({
@@ -88,7 +89,8 @@ export const upsert = endpoints
     },
     output: { NO_CONTENT: true }
   })
-  .callback(async ({ db, query, body, response }) => {
+  .callback(async ({ db, query, body, res, response }) => {
+    if (!canManageSignIn(res.locals.userId)) return response.forbidden()
     if (!oauthProvider(query.provider))
       return response.badRequest('Unsupported provider')
 
@@ -130,7 +132,9 @@ export const toggle = endpoints
     input: { query: identity },
     output: { NO_CONTENT: true }
   })
-  .callback(async ({ db, query, response }) => {
+  .callback(async ({ db, query, res, response }) => {
+    if (!canManageSignIn(res.locals.userId)) return response.forbidden()
+
     const row = await db.query.authOAuthProviders.findFirst({
       where: { id: query.id }
     })
@@ -160,7 +164,9 @@ export const remove = endpoints
     input: { query: identity },
     output: { NO_CONTENT: true }
   })
-  .callback(async ({ db, query, response }) => {
+  .callback(async ({ db, query, res, response }) => {
+    if (!canManageSignIn(res.locals.userId)) return response.forbidden()
+
     const removed = await db
       .delete(providers)
       .where(eq(providers.id, query.id))

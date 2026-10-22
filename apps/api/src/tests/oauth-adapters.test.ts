@@ -1,9 +1,72 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { oauthProvider } from '../lib/auth/constants/oauth_providers'
+import { remove, toggle, upsert } from '../lib/auth/routes/oauth/providers'
 import { createOAuthChallenges } from '../lib/auth/utils/oauthState'
+import { canManageSignIn } from '../lib/auth/utils/signInAdmins'
 
-afterEach(() => vi.unstubAllGlobals())
+afterEach(() => {
+  vi.unstubAllGlobals()
+  vi.unstubAllEnvs()
+})
+
+type Context = Parameters<ReturnType<typeof remove.getValue>['callback']>[0]
+
+const call = (
+  route: typeof remove,
+  userId: string,
+  db: unknown,
+  query: Record<string, string>,
+  body?: unknown
+) =>
+  route.getValue().callback({
+    db,
+    query,
+    body,
+    res: { locals: { userId } }
+  } as unknown as Context)
+
+describe('sign-in provider administration', () => {
+  const untouched = new Proxy(
+    {},
+    {
+      get: () => {
+        throw new Error('Rejected requests must not reach the database')
+      }
+    }
+  )
+
+  it('fails closed until host administrators are configured', () => {
+    expect(canManageSignIn('owner')).toBe(false)
+    vi.stubEnv('MONOLITH_AUTH_ADMIN_IDS', ' first , owner ')
+    expect(canManageSignIn('owner')).toBe(true)
+    expect(canManageSignIn('')).toBe(false)
+  })
+
+  it('forbids every change by an account outside the administrator list', async () => {
+    vi.stubEnv('MONOLITH_AUTH_ADMIN_IDS', 'owner')
+    for (const [route, query, body] of [
+      [upsert, { provider: 'google' }, { clientId: 'id', clientSecret: 'x' }],
+      [toggle, { id: 'provider' }],
+      [remove, { id: 'provider' }]
+    ] as const)
+      expect(
+        (await call(route, 'viewer', untouched, query, body)).$status
+      ).toBe(403)
+  })
+
+  it('lets a listed administrator remove a provider', async () => {
+    vi.stubEnv('MONOLITH_AUTH_ADMIN_IDS', 'owner')
+    const db = {
+      delete: () => ({
+        where: () => ({ returning: async () => [{ id: 'provider' }] })
+      })
+    }
+    expect((await call(remove, 'owner', db, { id: 'provider' })).$status).toBe(
+      204
+    )
+  })
+})
 
 describe('OAuth challenge binding', () => {
   it('binds state to its provider and origin and consumes it once', () => {

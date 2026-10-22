@@ -9,24 +9,24 @@ Monolith's current source is public on [GitHub](https://github.com/MaxJafar/mono
 
 ## Current release
 
-Version **0.1.14** is available from [GitHub Releases](https://github.com/MaxJafar/monolith/releases/tag/v0.1.14). This is the recommended release of the replacement Monolith source under 0BSD, including the shared addon schema fix.
+Version **0.1.15** is available from [GitHub Releases](https://github.com/MaxJafar/monolith/releases/tag/v0.1.15). This is the recommended release, with page editing and security fixes for the replacement Monolith source under 0BSD.
 
 | Download                                                                                                                                  | Platform or purpose                                                        |
 | ----------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| [Windows installer](https://github.com/MaxJafar/monolith/releases/download/v0.1.14/monolith-0.1.14-windows-amd64.exe)   | Windows x64, Tauri and WebView2.                                           |
-| [macOS disk image](https://github.com/MaxJafar/monolith/releases/download/v0.1.14/monolith-0.1.14-darwin-universal.dmg) | Universal application for Apple Silicon and Intel.                         |
-| [Linux x64 image](https://github.com/MaxJafar/monolith/releases/download/v0.1.14/monolith-0.1.14-linux-amd64.tar.gz)    | Docker server image for amd64 hosts.                                       |
-| [Linux ARM64 image](https://github.com/MaxJafar/monolith/releases/download/v0.1.14/monolith-0.1.14-linux-arm64.tar.gz)  | Docker server image for arm64 hosts.                                       |
-| [Server setup kit](https://github.com/MaxJafar/monolith/releases/download/v0.1.14/monolith-0.1.14-server-kit.zip)       | Compose configuration, environment template and installation instructions. |
-| [MCP and CLI package](https://github.com/MaxJafar/monolith/releases/download/v0.1.14/monolith-agent-tools-0.1.14.tgz)   | Node.js bridge for external agent clients.                                 |
-| [Addons and widgets](https://github.com/MaxJafar/monolith/releases/tag/v0.1.14)                                                  | Six optional addon packages with a signed catalog.                 |
-| [SHA256SUMS](https://github.com/MaxJafar/monolith/releases/download/v0.1.14/SHA256SUMS)                                          | Checksums for the complete download set.                                   |
+| [Windows installer](https://github.com/MaxJafar/monolith/releases/download/v0.1.15/monolith-0.1.15-windows-amd64.exe)   | Windows x64, Tauri and WebView2.                                           |
+| [macOS disk image](https://github.com/MaxJafar/monolith/releases/download/v0.1.15/monolith-0.1.15-darwin-universal.dmg) | Universal application for Apple Silicon and Intel.                         |
+| [Linux x64 image](https://github.com/MaxJafar/monolith/releases/download/v0.1.15/monolith-0.1.15-linux-amd64.tar.gz)    | Docker server image for amd64 hosts.                                       |
+| [Linux ARM64 image](https://github.com/MaxJafar/monolith/releases/download/v0.1.15/monolith-0.1.15-linux-arm64.tar.gz)  | Docker server image for arm64 hosts.                                       |
+| [Server setup kit](https://github.com/MaxJafar/monolith/releases/download/v0.1.15/monolith-0.1.15-server-kit.zip)       | Compose configuration, environment template and installation instructions. |
+| [MCP and CLI package](https://github.com/MaxJafar/monolith/releases/download/v0.1.15/monolith-agent-tools-0.1.15.tgz)   | Node.js bridge for external agent clients.                                 |
+| [Addons and widgets](https://github.com/MaxJafar/monolith/releases/tag/v0.1.15)                                                  | Six optional addon packages with a signed catalog.                 |
+| [SHA256SUMS](https://github.com/MaxJafar/monolith/releases/download/v0.1.15/SHA256SUMS)                                          | Checksums for the complete download set.                                   |
 
 This release supports **automatic updates with unsigned installers**. Windows installers are unsigned; macOS applications have an ad-hoc signature and are not notarized. Operating systems may block these downloads. Desktop clients require a separately hosted server. The browser client is included in the server image. See the [installation instructions](https://github.com/MaxJafar/monolith/blob/main/release/INSTALL.md).
 
 Automatic downloads, notifications, installation and rollback use authenticated GitHub release archives. Existing 0.1.3 and preview desktop clients need this installer once to receive the trusted update key. Hosted servers need the external update supervisor. OS publisher signing can be added later using the same update feed.
 
-Version 0.1.14 replaces the inherited core and retires inherited addon packages. Calendar, Journal and Projects are native features. Atlas, Automations, Agents, Redraw, Gym and Tech Lab remain optional addons; Rooms remains native. Existing desktop clients can update automatically. Server upgrades require a database backup and planned migration because the schema fingerprint changes. Runtime rollback does not undo that migration. See [updates and recovery](/docs/updates).
+Version 0.1.15 fixes dragging text on pages and saving pages with links, restricts sign-in provider changes to host administrators listed in `MONOLITH_AUTH_ADMIN_IDS`, blocks remote requests to private networks and keeps large uploads from timing out. It keeps the 0.1.14 schema fingerprint, so servers on 0.1.14 update automatically. Version 0.1.14 replaced the inherited core and retired inherited addon packages; upgrading a server from an earlier release still requires a database backup and the 0.1.14 planned migration. Runtime rollback does not undo that migration. See [updates and recovery](/docs/updates).
 
 ## Optional services
 

@@ -53,7 +53,8 @@ export function canvasKey(value: unknown): value is string {
   return (
     typeof value === 'string' &&
     value.length <= 200 &&
-    /^\/(?:[a-zA-Z0-9_-]+\/?)*$/.test(value)
+    // Each repeated segment must end at a slash, so rejection stays linear.
+    /^\/(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-]*$/.test(value)
   )
 }
 

@@ -49,14 +49,25 @@ describe('Durable workspace pages', () => {
     expect(canvasLink(url)).toBe(false)
   })
   it.each([
+    '/',
     '/dashboard',
+    '/dashboard/',
     '/tech-lab',
     '/page/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
   ])('accepts owned routing key %s', key => expect(canvasKey(key)).toBe(true))
-  it.each(['//outside', '/page?owner=other', '/__proto__/../../', '/bad path'])(
-    'rejects invalid page key %s',
-    key => expect(canvasKey(key)).toBe(false)
-  )
+  it.each([
+    '//outside',
+    '/page//double',
+    '/page?owner=other',
+    '/__proto__/../../',
+    '/bad path'
+  ])('rejects invalid page key %s', key => expect(canvasKey(key)).toBe(false))
+  it('rejects a long near-miss key without catastrophic backtracking', () => {
+    const started = performance.now()
+    expect(canvasKey(`/${'a'.repeat(198)}!`)).toBe(false)
+    expect(canvasLink(`/workspace/${'a'.repeat(60)}?tab=a`)).toBe(false)
+    expect(performance.now() - started).toBeLessThan(50)
+  })
   it('rejects duplicate block identities', () => {
     const value = page()
     value.blocks[1].id = value.blocks[0].id

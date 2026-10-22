@@ -193,10 +193,11 @@ func (s *Server) routes() {
 	if err != nil {
 		panic(err)
 	}
-	proxy := httputil.NewSingleHostReverseProxy(private)
-	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
+	backend := httputil.NewSingleHostReverseProxy(private)
+	backend.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
 		respond(w, 502, Problem{"backend_unavailable", "The application service is unavailable"})
 	}
+	proxy := allowUploads(backend)
 	s.mux.Handle("/api/", http.StripPrefix("/api", proxy))
 	s.mux.Handle("/socket.io/", proxy)
 	s.mux.Handle("/files/", proxy)
@@ -213,6 +214,19 @@ func (s *Server) routes() {
 		}
 		http.FileServer(http.Dir(s.cfg.WebRoot)).ServeHTTP(w, r)
 	}))
+}
+
+// UploadReadTimeout bounds a proxied multipart upload, which arrives as one
+// request body; the server-wide ReadTimeout would cut it off mid-transfer.
+const UploadReadTimeout = time.Hour
+
+func allowUploads(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.ContentLength != 0 && strings.HasPrefix(strings.ToLower(r.Header.Get("Content-Type")), "multipart/form-data") {
+			_ = http.NewResponseController(w).SetReadDeadline(time.Now().Add(UploadReadTimeout))
+		}
+		next.ServeHTTP(w, r)
+	})
 }
 func MigrateSchema(ctx context.Context, cfg Config) error {
 	if cfg.AdminURL == "" {

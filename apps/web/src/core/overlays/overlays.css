@@ -18,7 +18,9 @@
   height: min(740px, calc(100dvh - 120px));
   color: var(--text-primary);
 }
-.workspace-settings-nav {
+/* Stack applies a width utility; the parent selector keeps the nav from
+   taking the full dialog width whichever stylesheet loads last. */
+.workspace-settings > .workspace-settings-nav {
   width: 226px;
   flex-shrink: 0;
   background: color-mix(in srgb, var(--bg-sidebar) 75%, transparent);
@@ -224,7 +226,7 @@
   .workspace-search-preview {
     display: none;
   }
-  .workspace-settings-nav {
+  .workspace-settings > .workspace-settings-nav {
     width: 165px;
     padding: 12px;
   }
@@ -246,7 +248,7 @@
   .workspace-settings-content {
     width: 100%;
   }
-  .workspace-settings-nav {
+  .workspace-settings > .workspace-settings-nav {
     width: 100%;
     max-height: 170px;
     border-right: 0;

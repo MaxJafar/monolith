@@ -1,4 +1,6 @@
+import type { Appearance } from '@monolith/blocks'
 import type { Meta, StoryObj } from '@storybook/react-vite'
+import { useState } from 'react'
 
 import { Box } from '@/components/primitives'
 import {
@@ -36,6 +38,33 @@ export const EditableCover: Story = {
       <AppearanceCover />
     </AppearanceContext>
   )
+}
+
+function InlineExample() {
+  const [appearance, setAppearance] = useState<Appearance>({
+    icon: 'lucide:rocket',
+    cover: { type: 'color', value: '#b7bce0' }
+  })
+
+  return (
+    <AppearanceContext
+      value={{
+        appearance,
+        openEditor: () => undefined,
+        changeCover: async cover =>
+          setAppearance(current => ({ ...current, cover })),
+        changeIcon: async icon =>
+          setAppearance(current => ({ ...current, icon }))
+      }}
+    >
+      <AppearanceCover />
+    </AppearanceContext>
+  )
+}
+
+/** Pages that save inline open the icon and cover popover. */
+export const InlineIconAndCover: Story = {
+  render: () => <InlineExample />
 }
 
 export const DarkBackground: Story = {

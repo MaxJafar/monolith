@@ -30,6 +30,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
 import { Button } from '@/components/inputs'
+import { useAppearancePopover } from '@/components/layout/AppearanceCover'
 import { CanonicalWidgetBoard } from '@/components/layout/WorkspaceCanvas/CanonicalWidgetBoard'
 import { useCanvasWidgets } from '@/components/layout/WorkspaceCanvas/CanvasWidgets'
 import { InlineDatabasePicker } from '@/components/layout/WorkspaceCanvas/InlineDatabasePicker'
@@ -388,6 +389,7 @@ function ActiveDocument({
   const setDocument = chrome?.setDocument
   const chromeOwner = useRef(Symbol())
   const { appearance, openEditor } = useAppearance()
+  const customize = useAppearancePopover()
   const [initial, setInitial] = useState(snapshot)
   const [generation, setGeneration] = useState(0)
   const currentGeneration = useRef(0)
@@ -531,7 +533,7 @@ function ActiveDocument({
               }}
               namespace={false}
               variant="plain"
-              onClick={() => openEditor('page')}
+              onClick={event => customize.toggle(event.currentTarget)}
             />
           ) : (
             <Icon
@@ -540,6 +542,7 @@ function ActiveDocument({
               size="28px"
             />
           )}
+          {customize.popover}
           {!chrome && openEditor && !readOnly && (
             <Button
               icon="lucide:palette"

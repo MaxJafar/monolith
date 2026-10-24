@@ -31,7 +31,7 @@ import { useAppearance } from '@/providers/AppearanceProvider'
 import { usePageChrome } from '@/providers/PageChromeProvider'
 import { workspaceAPI } from '@/utils/workspaceAPI'
 
-import { AppearanceCover } from '../AppearanceCover'
+import { AppearanceCover, useAppearancePopover } from '../AppearanceCover'
 import { CanvasBlockContent } from './BlockContent'
 import { CanvasBlockFrame } from './BlockFrame'
 import { useCanvasWidgets } from './CanvasWidgets'
@@ -100,6 +100,7 @@ function LegacyWorkspaceCanvas({
   const { t: moduleT, i18n, ns } = useModuleTranslation()
   const cache = useQueryClient()
   const { appearance, openEditor } = useAppearance()
+  const customize = useAppearancePopover()
   const chrome = usePageChrome()
   const setDocument = chrome?.setDocument
   const chromeOwner = useRef(Symbol())
@@ -424,7 +425,7 @@ function LegacyWorkspaceCanvas({
             width="fit-content"
             bg="transparent"
             p="none"
-            onClick={() => openEditor('page')}
+            onClick={event => customize.toggle(event.currentTarget)}
           >
             <Icon
               aria-hidden="true"
@@ -443,6 +444,7 @@ function LegacyWorkspaceCanvas({
             size="36px"
           />
         )}
+        {customize.popover}
         {editing ? (
           <Box
             aria-label={t('pageTitle')}

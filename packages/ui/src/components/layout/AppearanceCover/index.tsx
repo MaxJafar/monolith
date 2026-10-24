@@ -5,14 +5,16 @@ import { Box, Flex } from '@/components/primitives'
 import { useAppearance } from '@/providers/AppearanceProvider'
 import { workspaceAPI } from '@/utils/workspaceAPI'
 
+import { useAppearancePopover } from './AppearancePopover'
 import './cover.css'
-import { useCoverPicker } from './CoverPicker'
+
+export { useAppearancePopover } from './AppearancePopover'
 
 export { CoverPicker, useCoverPicker } from './CoverPicker'
 
 export function AppearanceCover() {
-  const { appearance, openEditor, changeCover, readOnly } = useAppearance()
-  const pickCover = useCoverPicker()
+  const { appearance, openEditor, readOnly } = useAppearance()
+  const customize = useAppearancePopover()
   const { t } = useTranslation('common.appearance')
   const cover = appearance.cover
   if (!cover) return null
@@ -52,12 +54,13 @@ export function AppearanceCover() {
             className="appearance-cover-action"
             icon="lucide:image"
             variant="secondary"
-            onClick={() => changeCover ? pickCover(cover, changeCover) : openEditor('page')}
+            onClick={event => customize.toggle(event.currentTarget)}
           >
             {t('changeCover')}
           </Button>
         </Flex>
       )}
+      {customize.popover}
     </Box>
   )
 }

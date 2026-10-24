@@ -195,6 +195,13 @@ export function PageAppearanceSurface({ children }: { children: ReactNode }) {
         changeCover: async cover => {
           await state.save('page', {...state.pages[state.pageKey],cover},state.workspaceRevision)
         },
+        changeIcon: async icon => {
+          await state.save(
+            'page',
+            { ...state.pages[state.pageKey], icon },
+            state.workspaceRevision
+          )
+        },
         readOnly: !state.canEdit
       }}
     >

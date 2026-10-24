@@ -10,7 +10,7 @@ import { workspaceAPI } from '@/utils/workspaceAPI'
 import './cover.css'
 
 type Cover = Appearance['cover']
-const colors = [
+export const coverColors = [
   '#d8dfd0',
   '#b9c8be',
   '#628582',
@@ -24,6 +24,18 @@ const colors = [
   '#777fab',
   '#3c4165'
 ]
+const coverFileTypes = ['image/png', 'image/jpeg', 'image/webp', 'image/gif']
+
+/** Uploads an accepted cover image; undefined means the file type or size was rejected. */
+export async function uploadCoverFile(file: File): Promise<Cover | undefined> {
+  if (!coverFileTypes.includes(file.type) || file.size > 5_000_000) return
+
+  const image = await workspaceAPI.user.personalization.uploadCover.mutate({
+    file
+  })
+  return { type: 'image', value: '', fileKey: image.key, position: 50 }
+}
+
 export function CoverPicker({
   value,
   onChange,
@@ -61,7 +73,7 @@ export function CoverPicker({
       </Flex>
       {tab === 'gallery' && (
         <Grid templateCols={4} gap="sm">
-          {colors.map(color => (
+          {coverColors.map(color => (
             <button
               key={color}
               type="button"
@@ -85,31 +97,12 @@ export function CoverPicker({
             onChange={async event => {
               const file = event.target.files?.[0]
               if (!file) return
-              if (
-                ![
-                  'image/png',
-                  'image/jpeg',
-                  'image/webp',
-                  'image/gif'
-                ].includes(file.type) ||
-                file.size > 5_000_000
-              ) {
-                setError(t('uploadLimit'))
-                return
-              }
               setUploading(true)
               setError('')
               try {
-                const image =
-                  await workspaceAPI.user.personalization.uploadCover.mutate({
-                    file
-                  })
-                onChange({
-                  type: 'image',
-                  value: '',
-                  fileKey: image.key,
-                  position: 50
-                })
+                const cover = await uploadCoverFile(file)
+                if (cover) onChange(cover)
+                else setError(t('uploadLimit'))
               } catch (cause) {
                 setError(String(cause))
               } finally {
@@ -172,7 +165,7 @@ export function CoverPicker({
           if (id === 'none') onChange(null)
           else if (id === 'inherit') onChange(undefined)
           else if (id === 'color')
-            onChange({ type: 'color', value: colors[0]! })
+            onChange({ type: 'color', value: coverColors[0]! })
           else setTab('link')
         }}
         disabled={disabled}

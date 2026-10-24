@@ -6,6 +6,7 @@ export type AppearanceContextValue = {
   appearance: Appearance
   openEditor?: (scope?: AppearanceScope) => void
   changeCover?: (cover: Appearance['cover']) => Promise<void>
+  changeIcon?: (icon: Appearance['icon']) => Promise<void>
   readOnly?: boolean
 }
 

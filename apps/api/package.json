@@ -2,7 +2,7 @@
   "name": "@monolith/server",
   "private": true,
   "description": "Monolith workspace API",
-  "version": "0.1.16",
+  "version": "0.1.17",
   "license": "0BSD",
   "author": "Monolith contributors",
   "homepage": "https://github.com/MaxJafar/monolith",

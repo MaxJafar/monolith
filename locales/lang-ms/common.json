@@ -1091,7 +1091,28 @@
     "shareAddonHelp": "Pack mencipta arkib dalam dist/addons. Semak dan kongsi melalui repositori anda. Pasang kod dalam modules/ dan ikut README. Gunakan kod yang dipercayai sahaja. Kedai komuniti belum tersedia.",
     "atlas": "Atlas",
     "urpg": "uRPG",
-    "rooms": "Rooms"
+    "rooms": "Rooms",
+    "favorites": {
+      "title": "Kegemaran",
+      "add": "Tambah kegemaran",
+      "addItem": "Tambah ke kegemaran",
+      "removeItem": "Buang daripada kegemaran",
+      "remove": "Buang {{name}} daripada kegemaran",
+      "empty": "Simpan paparan, halaman, addon dan widget yang paling kerap digunakan di sini.",
+      "search": "Cari paparan, halaman dan widget…",
+      "noMatches": "Tiada padanan",
+      "allAdded": "Semua item sudah ada dalam kegemaran.",
+      "full": "Kegemaran memuatkan sehingga {{count}} item. Buang satu untuk menambah yang lain.",
+      "widgetLimit": "Sehingga {{count}} widget boleh menjadi kegemaran.",
+      "added": "{{name}} ditambah ke kegemaran",
+      "removed": "{{name}} dibuang daripada kegemaran",
+      "groups": {
+        "views": "Paparan ruang kerja",
+        "pages": "Halaman",
+        "addons": "Addon",
+        "widgets": "Widget"
+      }
+    }
   },
   "systemViews": {
     "titles": {

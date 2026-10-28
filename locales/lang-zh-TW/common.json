@@ -1091,7 +1091,28 @@
     "shareAddonHelp": "Pack 於 dist/addons 產生封存檔。檢查後透過自己的儲存庫或發布頁分享。將可信原始碼放入 modules/ 並依 README 安裝。社群商店尚未推出。",
     "atlas": "Atlas",
     "urpg": "uRPG",
-    "rooms": "聊天室"
+    "rooms": "聊天室",
+    "favorites": {
+      "title": "我的最愛",
+      "add": "新增最愛",
+      "addItem": "加入我的最愛",
+      "removeItem": "從我的最愛移除",
+      "remove": "從我的最愛移除 {{name}}",
+      "empty": "將最常用的檢視、頁面、擴充套件和小工具放在這裡。",
+      "search": "搜尋檢視、頁面與小工具…",
+      "noMatches": "沒有符合項目",
+      "allAdded": "所有項目都已在我的最愛中。",
+      "full": "我的最愛最多可容納 {{count}} 項。請先移除一項再新增。",
+      "widgetLimit": "最多可將 {{count}} 個小工具加入我的最愛。",
+      "added": "已將 {{name}} 加入我的最愛",
+      "removed": "已從我的最愛移除 {{name}}",
+      "groups": {
+        "views": "工作區檢視",
+        "pages": "頁面",
+        "addons": "擴充套件",
+        "widgets": "小工具"
+      }
+    }
   },
   "systemViews": {
     "titles": {

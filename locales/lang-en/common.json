@@ -1090,7 +1090,28 @@
     "shareAddonHelp": "Pack creates a portable archive in dist/addons. Review it and share it through your own repository or release. Install shared source under modules/ and follow its README. Only install addon code you trust. A community shop is planned, not available yet.",
     "atlas": "Atlas",
     "urpg": "uRPG",
-    "rooms": "Rooms"
+    "rooms": "Rooms",
+    "favorites": {
+      "title": "Favourites",
+      "add": "Add favourite",
+      "addItem": "Add to favourites",
+      "removeItem": "Remove from favourites",
+      "remove": "Remove {{name}} from favourites",
+      "empty": "Keep the views, pages, addons and widgets you use most within reach.",
+      "search": "Search views, pages and widgets…",
+      "noMatches": "No matches",
+      "allAdded": "Everything is already in your favourites.",
+      "full": "Favourites hold up to {{count}} items. Remove one to add another.",
+      "widgetLimit": "Up to {{count}} widgets can be favourites.",
+      "added": "{{name}} added to favourites",
+      "removed": "{{name}} removed from favourites",
+      "groups": {
+        "views": "Workspace views",
+        "pages": "Pages",
+        "addons": "Addons",
+        "widgets": "Widgets"
+      }
+    }
   },
   "systemViews": {
     "titles": {

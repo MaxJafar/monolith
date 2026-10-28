@@ -19,18 +19,3 @@ export function systemOrder(value: unknown): SystemArea[] {
     : []
   return [...new Set([...saved, ...(Object.keys(systemAreas) as SystemArea[])])]
 }
-export function moveSystemArea(
-  order: SystemArea[],
-  from: string,
-  to: string
-): SystemArea[] {
-  if (
-    from === to ||
-    !order.includes(from as SystemArea) ||
-    !order.includes(to as SystemArea)
-  )
-    return order
-  const result = order.filter(id => id !== from)
-  result.splice(order.indexOf(to as SystemArea), 0, from as SystemArea)
-  return result
-}

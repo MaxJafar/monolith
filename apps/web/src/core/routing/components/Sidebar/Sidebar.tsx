@@ -18,11 +18,10 @@ import { sidebarShouldCloseOnEscape } from '@/core/routing/utils/navigation'
 import NavigationTree from './NavigationTree'
 import SidebarBottomBar from './SidebarBottomBar'
 import SidebarEventBanner from './SidebarEventBanner'
+import SidebarFavorites from './SidebarFavorites'
 import SidebarHeader from './SidebarHeader'
 import { useSidebarPreferences } from './SidebarPreferences'
 import SidebarResize from './SidebarResize'
-import SidebarWidgets from './SidebarWidgets'
-import SystemNavigation from './SystemNavigation'
 import './sidebar.css'
 
 function Sidebar() {
@@ -174,8 +173,7 @@ function Sidebar() {
           }
         >
           <Stack gap="none">
-            <SystemNavigation />
-            <SidebarWidgets />
+            <SidebarFavorites />
             <NavigationTree />
           </Stack>
         </Box>

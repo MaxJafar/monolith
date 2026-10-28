@@ -23,6 +23,8 @@ import { useAppAppearance } from '@/core/appearance/AppearanceContext'
 
 import NavigationEditor from './NavigationEditor'
 import { type NavigationItem, useNavigation } from './NavigationProvider'
+import { useSidebarPreferences } from './SidebarPreferences'
+import { canAddFavorite, hasFavorite, toggleFavorite } from './favorites'
 
 const dragType = 'application/x-monolith-navigation'
 
@@ -130,9 +132,12 @@ function NavigationRow({
 
   const appearance = useAppAppearance()
   const { t: ui } = useTranslation('common.workspaceUI')
+  const { preferences, update } = useSidebarPreferences()
   const childrenId = useId()
   const rowAnchor = useRef<HTMLDivElement>(null)
 
+  const favorite = { type: item.kind, id: item.id }
+  const favorited = hasFavorite(preferences.favorites, favorite)
   const pageAppearance = appearance.pages[item.href.split('?')[0] ?? '/']
   const itemStyle = nav.config.items.find(value => value.key === item.key)
   const [editing, setEditing] = useState(false),
@@ -270,6 +275,19 @@ function NavigationRow({
             }
           }}
         >
+          <ContextMenuItem
+            disabled={
+              !favorited && !canAddFavorite(preferences.favorites, item.kind)
+            }
+            icon={favorited ? 'lucide:x' : 'lucide:star'}
+            label={t(favorited ? 'favorites.removeItem' : 'favorites.addItem')}
+            namespace={false}
+            onClick={() =>
+              update(current => ({
+                favorites: toggleFavorite(current.favorites, favorite)
+              }))
+            }
+          />
           {item.kind === 'page' && (
             <ContextMenuItem
               icon="lucide:file-plus"

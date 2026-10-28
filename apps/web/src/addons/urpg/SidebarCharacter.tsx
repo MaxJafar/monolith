@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
 import { useSidebarPreferences } from '@/core/routing/components/Sidebar/SidebarPreferences'
+import { hasFavorite } from '@/core/routing/components/Sidebar/favorites'
 import { useWorkspace } from '@/core/workspaces/WorkspaceProvider'
 
 import {
@@ -18,7 +19,7 @@ export default function SidebarCharacter() {
   const { preferences } = useSidebarPreferences()
   if (
     !active?.enabled_modules.includes('urpg') ||
-    !preferences.widgets.some(widget => widget.id === 'rpgProfile')
+    !hasFavorite(preferences.favorites, { type: 'widget', id: 'rpgProfile' })
   )
     return null
   return <PinnedCharacter key={active.id} />

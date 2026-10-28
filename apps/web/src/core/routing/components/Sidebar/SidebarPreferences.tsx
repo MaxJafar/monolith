@@ -10,29 +10,25 @@ import { useAuth } from '@monolith/api'
 
 import { useWorkspace } from '@/core/workspaces/WorkspaceProvider'
 
-import { type SystemArea, systemOrder } from './systemAreas'
+import { type Favorite, migrateFavorites } from './favorites'
 
 export type SidebarPreferences = {
   width: number
   compact: boolean
-  hiddenAreas: string[]
-  areaOrder: SystemArea[]
-  widgets: { id: string; collapsed: boolean; filter: string }[]
+  /** Areas, pages, addons and widgets shown at the top of the sidebar. */
+  favorites: Favorite[]
 }
 
 const defaults: SidebarPreferences = {
   width: 264,
   compact: false,
-  hiddenAreas: [],
-  areaOrder: systemOrder(null),
-  widgets: []
+  favorites: migrateFavorites({})
 }
 
 export function parseSidebarPreferences(value: unknown): SidebarPreferences {
   if (!value || typeof value !== 'object') return defaults
 
   const data = value as Record<string, unknown>
-  const widgets: unknown[] = Array.isArray(data.widgets) ? data.widgets : []
 
   return {
     width:
@@ -40,39 +36,16 @@ export function parseSidebarPreferences(value: unknown): SidebarPreferences {
         ? Math.round(Math.min(420, Math.max(220, data.width)))
         : 264,
     compact: data.compact === true,
-    areaOrder: systemOrder(data.areaOrder),
-    hiddenAreas: Array.isArray(data.hiddenAreas)
-      ? data.hiddenAreas
-          .filter((id): id is string => typeof id === 'string')
-          .slice(0, 7)
-      : [],
-    widgets: widgets
-      .filter(
-        (item): item is { id: string; collapsed?: unknown; filter?: unknown } =>
-          !!item &&
-          typeof item === 'object' &&
-          'id' in item &&
-          typeof item.id === 'string' &&
-          item.id.length > 0 &&
-          item.id.length < 100
-      )
-      .filter(
-        (item, index, all) =>
-          all.findIndex(other => other.id === item.id) === index
-      )
-      .slice(0, 8)
-      .map(item => ({
-        id: item.id,
-        collapsed: item.collapsed === true,
-        filter:
-          typeof item.filter === 'string' ? item.filter.slice(0, 2000) : ''
-      }))
+    favorites: migrateFavorites(data)
   }
 }
 
+type Patch = Partial<SidebarPreferences>
+
 type State = {
   preferences: SidebarPreferences
-  update: (patch: Partial<SidebarPreferences>) => void
+  /** A function patch reads the latest saved preferences. */
+  update: (patch: Patch | ((current: SidebarPreferences) => Patch)) => void
   error: string
 }
 
@@ -104,15 +77,17 @@ function ScopedPreferences({
               urpg
                 ? {
                     ...defaults,
-                    widgets: [
-                      'rpgProfile',
-                      'habitTracker',
-                      'calendarWidget'
-                    ].map(id => ({
-                      id,
-                      collapsed: id === 'calendarWidget',
-                      filter: ''
-                    }))
+                    favorites: [
+                      ...defaults.favorites,
+                      ...['rpgProfile', 'habitTracker', 'calendarWidget'].map(
+                        id => ({
+                          type: 'widget',
+                          id,
+                          collapsed: id === 'calendarWidget',
+                          filter: ''
+                        })
+                      )
+                    ]
                   }
                 : null
             )
@@ -126,8 +101,11 @@ function ScopedPreferences({
   const current = useRef(preferences)
   const [error, setError] = useState('')
 
-  function update(patch: Partial<SidebarPreferences>) {
-    const next = parseSidebarPreferences({ ...current.current, ...patch })
+  function update(patch: Patch | ((current: SidebarPreferences) => Patch)) {
+    const next = parseSidebarPreferences({
+      ...current.current,
+      ...(typeof patch === 'function' ? patch(current.current) : patch)
+    })
     current.current = next
     setPreferences(next)
 

@@ -1091,7 +1091,28 @@
     "shareAddonHelp": "Pack 在 dist/addons 中生成压缩包。检查后通过自己的仓库或发布页分享。将可信源码放入 modules/ 并按 README 安装。社区商店尚未推出。",
     "atlas": "Atlas",
     "urpg": "uRPG",
-    "rooms": "聊天室"
+    "rooms": "聊天室",
+    "favorites": {
+      "title": "收藏",
+      "add": "添加收藏",
+      "addItem": "添加到收藏",
+      "removeItem": "从收藏中移除",
+      "remove": "从收藏中移除 {{name}}",
+      "empty": "将最常用的视图、页面、扩展和组件放在这里。",
+      "search": "搜索视图、页面和组件…",
+      "noMatches": "没有匹配结果",
+      "allAdded": "所有项目都已在收藏中。",
+      "full": "收藏最多可容纳 {{count}} 项。请先移除一项再添加。",
+      "widgetLimit": "最多可收藏 {{count}} 个组件。",
+      "added": "已将 {{name}} 添加到收藏",
+      "removed": "已从收藏中移除 {{name}}",
+      "groups": {
+        "views": "工作区视图",
+        "pages": "页面",
+        "addons": "扩展",
+        "widgets": "组件"
+      }
+    }
   },
   "systemViews": {
     "titles": {

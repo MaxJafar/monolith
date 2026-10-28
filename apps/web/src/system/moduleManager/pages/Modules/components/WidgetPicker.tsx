@@ -13,6 +13,14 @@ import {
 
 import WidgetOptions from '@/core/overlays/WidgetOptions'
 import { useSidebarPreferences } from '@/core/routing/components/Sidebar/SidebarPreferences'
+import {
+  addFavorite,
+  canAddFavorite,
+  favoriteKey,
+  findWidgetFavorite,
+  removeFavorite,
+  updateWidgetFavorite
+} from '@/core/routing/components/Sidebar/favorites'
 import { useWorkspace } from '@/core/workspaces/WorkspaceProvider'
 
 import { addonSlug } from '../filters'
@@ -40,7 +48,7 @@ export default function WidgetPicker({
   )
   const id = selected || widgets[0]?.[0],
     widget = id ? catalog.widgets[id] : undefined
-  const placed = preferences.widgets.some(value => value.id === id)
+  const placed = id ? findWidgetFavorite(preferences.favorites, id) : undefined
   const editable = !!active && active.role !== 'viewer'
   return (
     <>
@@ -49,9 +57,7 @@ export default function WidgetPicker({
         variant="secondary"
         icon="lucide:sliders-horizontal"
         onClick={event => {
-          setFilter(
-            preferences.widgets.find(value => value.id === id)?.filter ?? ''
-          )
+          setFilter(placed?.filter ?? '')
           setAnchor(event.currentTarget)
         }}
         disabled={!widgets.length}
@@ -124,18 +130,20 @@ export default function WidgetPicker({
                 namespace={false}
                 variant="secondary"
                 icon="lucide:panel-left"
-                disabled={!placed && preferences.widgets.length >= 8}
+                disabled={
+                  !placed && !canAddFavorite(preferences.favorites, 'widget')
+                }
                 onClick={() => {
-                  update({
-                    widgets: placed
-                      ? preferences.widgets.map(value =>
-                          value.id === id ? { ...value, filter } : value
-                        )
-                      : [
-                          ...preferences.widgets,
-                          { id, collapsed: false, filter }
-                        ]
-                  })
+                  update(current => ({
+                    favorites: findWidgetFavorite(current.favorites, id)
+                      ? updateWidgetFavorite(current.favorites, id, { filter })
+                      : addFavorite(current.favorites, {
+                          type: 'widget',
+                          id,
+                          collapsed: false,
+                          filter
+                        })
+                  }))
                   setAnchor(null)
                 }}
               >
@@ -147,11 +155,12 @@ export default function WidgetPicker({
                 namespace={false}
                 variant="plain"
                 onClick={() => {
-                  update({
-                    widgets: preferences.widgets.filter(
-                      value => value.id !== id
+                  update(current => ({
+                    favorites: removeFavorite(
+                      current.favorites,
+                      favoriteKey({ type: 'widget', id })
                     )
-                  })
+                  }))
                   setAnchor(null)
                 }}
               >

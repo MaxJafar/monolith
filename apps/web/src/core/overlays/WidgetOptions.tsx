@@ -22,11 +22,17 @@ export default function WidgetOptions({
     return (
       <ChoiceSelect
         label={t('calendarView')}
-        value={config.mode ?? 'month'}
-        options={['week', 'month', 'agenda'].map(value => ({
+        options={['day', 'week', 'month'].map(value => ({
           value,
           label: t(value)
         }))}
+        value={
+          config.mode === 'agenda'
+            ? 'week'
+            : ['day', 'week'].includes(config.mode ?? '')
+              ? config.mode!
+              : 'month'
+        }
         onChange={mode => onChange(JSON.stringify({ ...config, mode }))}
       />
     )

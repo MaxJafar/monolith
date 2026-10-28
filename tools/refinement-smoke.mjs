@@ -279,13 +279,13 @@ try {
     'overlay'
   )
   await recordSurface
-    .getByRole('button', { name: 'Choose cover', exact: true })
+    .getByRole('button', { name: 'Add cover', exact: true })
     .click()
-  const cover = page.getByRole('dialog', { name: 'Change cover', exact: true })
+  const cover = page.getByRole('dialog', { name: 'Customize', exact: true })
   await cover
     .getByRole('button', { name: 'Cover color #d8dfd0', exact: true })
     .click()
-  await cover.getByRole('button', { name: 'Apply', exact: true }).click()
+  await page.keyboard.press('Escape')
   await recordSurface
     .getByRole('button', { name: 'Save page', exact: true })
     .click()

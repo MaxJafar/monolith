@@ -1,4 +1,9 @@
-import { type ReactNode, useLayoutEffect, useRef } from 'react'
+import {
+  type PointerEventHandler,
+  type ReactNode,
+  useLayoutEffect,
+  useRef
+} from 'react'
 import { createPortal } from 'react-dom'
 
 import { Box } from '@/components/primitives'
@@ -28,6 +33,9 @@ export type FloatingPopoverProps = {
   /** Slash menus keep the text caret in the editor. */
   autoFocus?: boolean
   role?: 'dialog' | 'listbox'
+  /** Hover cards keep themselves open while the pointer rests on them. */
+  onPointerEnter?: PointerEventHandler<HTMLDivElement>
+  onPointerLeave?: PointerEventHandler<HTMLDivElement>
 }
 
 /** A non-modal surface: no backdrop, no document reflow, one Escape per layer. */
@@ -41,7 +49,9 @@ export function FloatingPopover({
   align = 'start',
   className = '',
   autoFocus = true,
-  role = 'dialog'
+  role = 'dialog',
+  onPointerEnter,
+  onPointerLeave
 }: FloatingPopoverProps) {
   const ref = useRef<HTMLDivElement>(null)
   usePopoverExit(ref)
@@ -237,6 +247,8 @@ export function FloatingPopover({
         width,
         visibility: 'hidden'
       }}
+      onPointerEnter={onPointerEnter}
+      onPointerLeave={onPointerLeave}
     >
       {children}
     </Box>,

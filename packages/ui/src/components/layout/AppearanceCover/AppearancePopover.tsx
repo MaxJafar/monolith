@@ -9,7 +9,7 @@ import { Flex, Grid, Stack, Text } from '@/components/primitives'
 import { useAppearance } from '@/providers/AppearanceProvider'
 import { useModalStore } from '@/providers/ModalProvider'
 
-import { coverColors, uploadCoverFile } from './CoverPicker'
+import { coverColors, uploadCoverFile, useCoverPicker } from './CoverPicker'
 import './cover.css'
 
 const quickIcons = [
@@ -38,6 +38,7 @@ function AppearancePopover({
   const { appearance, changeIcon, changeCover } = useAppearance()
   const { t } = useTranslation('common.appearance')
   const { open } = useModalStore()
+  const pickCover = useCoverPicker()
   const file = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -154,6 +155,18 @@ function AppearancePopover({
               onClick={() => file.current?.click()}
             >
               {t('uploadCover')}
+            </Button>
+            <Button
+              disabled={busy}
+              icon="lucide:link"
+              namespace={false}
+              variant="plain"
+              onClick={() => {
+                onClose()
+                pickCover(appearance.cover, cover => changeCover?.(cover))
+              }}
+            >
+              {t('moreCoverOptions')}
             </Button>
             {appearance.cover && (
               <Button

@@ -10,10 +10,13 @@ import './cover.css'
 
 export { useAppearancePopover } from './AppearancePopover'
 
+export { PageIdentity } from './PageIdentity'
+
 export { CoverPicker, useCoverPicker } from './CoverPicker'
 
 export function AppearanceCover() {
-  const { appearance, openEditor, readOnly } = useAppearance()
+  const { appearance, openEditor, changeIcon, changeCover, readOnly } =
+    useAppearance()
   const customize = useAppearancePopover()
   const { t } = useTranslation('common.appearance')
   const cover = appearance.cover
@@ -47,7 +50,7 @@ export function AppearanceCover() {
           style={{ objectPosition: `center ${cover.position}%` }}
         />
       )}
-      {openEditor && !readOnly && (
+      {(openEditor || (changeIcon && changeCover)) && !readOnly && (
         <Flex position="absolute" right="12px" bottom="12px">
           <Button
             namespace={false}

@@ -34,11 +34,17 @@ export function ProjectCard({
   const pickCover = useCoverPicker()
 
   const progress = projectProgress(project.id, data.records)
+  const next = progress.actions
+    .filter(action => !action.done && action.status !== 'done')
+    .slice(0, 2)
+  const icon = project.appearance?.icon
+  const status = systemStatus(project)
 
   return (
     <Box
       as="article"
       className="work-project-card"
+      data-icon={!!icon || undefined}
       draggable={!readOnly && !busy}
       onDragStart={event => {
         setInternalDragData(
@@ -69,31 +75,21 @@ export function ProjectCard({
           </AppearanceContext>
         ) : (
           <Box className="work-cover-placeholder">
-            <Icon icon="lucide:layers-2" size="36px" />
-            <Text>{project.title.slice(0, 1).toUpperCase()}</Text>
+            {!icon && <Text>{project.title.slice(0, 1).toUpperCase()}</Text>}
           </Box>
         )}
-        {progress.actions.some(
-          action => !action.done && action.status !== 'done'
-        ) && (
-          <Stack className="work-project-peek" gap="xs">
-            <Text color="muted" size="xs">
-              {t('nextActions')}
-            </Text>
-            {progress.actions
-              .filter(action => !action.done && action.status !== 'done')
-              .slice(0, 2)
-              .map(action => (
-                <Text key={action.id} truncate size="sm">
-                  {action.title}
-                </Text>
-              ))}
-          </Stack>
-        )}
-        <Text className="work-project-open">{t('open')}</Text>
+        <Flex align="center" className="work-project-open" gap="xs">
+          {t('open')}
+          <Icon icon="lucide:arrow-up-right" size="13px" />
+        </Flex>
       </Box>
-      <Stack gap="sm" p="md">
-        <Flex align="center" gap="sm" justify="between">
+      {icon && (
+        <Box aria-hidden className="work-project-icon">
+          <Icon preserveStyle icon={icon} size="26px" />
+        </Box>
+      )}
+      <Stack className="work-project-body" gap="sm">
+        <Flex align="start" gap="sm" justify="between">
           <Box
             as="button"
             className="work-title-link"
@@ -101,7 +97,7 @@ export function ProjectCard({
           >
             {project.title}
           </Box>
-          <Box width="120px">
+          <Box className="work-project-status" data-status={status}>
             <ChoiceSelect
               disabled={readOnly || busy}
               label={t('status')}
@@ -109,7 +105,7 @@ export function ProjectCard({
                 value,
                 label: t(`statuses.${value}`)
               }))}
-              value={systemStatus(project)}
+              value={status}
               onChange={value => {
                 void run(() =>
                   api.updateRecord.input({ id: project.id }).mutate({
@@ -125,34 +121,64 @@ export function ProjectCard({
         <Text className="work-project-description" color="muted" size="sm">
           {project.description || t('projectDescription')}
         </Text>
-        <Flex align="center" justify="between">
-          <Text color="muted" size="xs">
-            {t('taskCount', {
-              completed: progress.completed,
-              total: progress.total
-            })}
-          </Text>
-          <Text size="xs">{progress.percent}%</Text>
-        </Flex>
-        <Box
-          aria-label={t('progress')}
-          aria-valuemax={100}
-          aria-valuemin={0}
-          aria-valuenow={progress.percent}
-          className="work-progress"
-          role="progressbar"
-        >
-          <Box style={{ width: `${progress.percent}%` }} />
-        </Box>
-        <Flex align="center" gap="sm" justify="between">
-          <Text color="muted" size="xs">
-            {project.date
-              ? dayjs(project.date).format('MMM D, YYYY')
-              : t('noDueDate')}
-          </Text>
-          <Text color="muted" size="xs">
-            {t(`priorities.${project.priority ?? 'normal'}`)}
-          </Text>
+        {next.length > 0 && (
+          <Stack className="work-project-next" gap="xs">
+            <Text color="muted" size="xs" weight="medium">
+              {t('nextActions')}
+            </Text>
+            {next.map(action => (
+              <Flex key={action.id} align="center" gap="sm" minWidth="0">
+                <Icon color="muted" icon="lucide:circle" size="12px" />
+                <Text truncate size="sm">
+                  {action.title}
+                </Text>
+              </Flex>
+            ))}
+          </Stack>
+        )}
+        <Stack gap="xs">
+          <Flex align="center" justify="between">
+            <Text color="muted" size="xs">
+              {t('taskCount', {
+                completed: progress.completed,
+                total: progress.total
+              })}
+            </Text>
+            <Text color="muted" size="xs">
+              {progress.percent}%
+            </Text>
+          </Flex>
+          <Box
+            aria-label={t('progress')}
+            aria-valuemax={100}
+            aria-valuemin={0}
+            aria-valuenow={progress.percent}
+            className="work-progress"
+            role="progressbar"
+          >
+            <Box style={{ width: `${progress.percent}%` }} />
+          </Box>
+        </Stack>
+        <Flex align="center" gap="md" justify="between">
+          <Flex align="center" gap="xs" minWidth="0">
+            <Icon color="muted" icon="lucide:calendar" size="13px" />
+            <Text color="muted" size="xs">
+              {project.date
+                ? dayjs(project.date).format('MMM D, YYYY')
+                : t('noDueDate')}
+            </Text>
+          </Flex>
+          <Flex align="center" gap="xs">
+            <Icon color="muted" icon="lucide:flag" size="13px" />
+            <Text
+              className="work-priority"
+              color="muted"
+              data-priority={project.priority ?? 'normal'}
+              size="xs"
+            >
+              {t(`priorities.${project.priority ?? 'normal'}`)}
+            </Text>
+          </Flex>
         </Flex>
         <Flex className="work-project-details" gap="sm" justify="between">
           <Button

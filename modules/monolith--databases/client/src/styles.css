@@ -449,9 +449,6 @@ h2.monolith-library-title {
   color: var(--text-primary);
   font: inherit;
 }
-.database-page-decoration > :first-child {
-  max-width: 210px;
-}
 .database-page-properties {
   padding-block: 16px;
   border-block: 1px solid var(--border-subtle);
@@ -559,21 +556,6 @@ h2.monolith-library-title {
   max-width: 920px;
   margin-inline: auto;
   padding-top: 70px;
-}
-.database-page-decoration {
-  opacity: 0;
-  transition: opacity 120ms ease;
-  min-height: 28px;
-}
-.database-record-page:hover .database-page-decoration,
-.database-page-decoration:focus-within {
-  opacity: 1;
-}
-.database-page-decoration button {
-  min-height: 26px;
-  padding: 4px;
-  font-size: 12px;
-  color: var(--text-muted);
 }
 .database-page-content .monolith-document-title,
 .database-page-title {

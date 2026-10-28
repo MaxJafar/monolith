@@ -432,7 +432,7 @@ function LegacyWorkspaceCanvas({
               className="canvas-page-icon"
               icon={appearance.icon ?? page.icon}
               preserveStyle={!!appearance.icon}
-              size="36px"
+              size="56px"
             />
           </Box>
         ) : (
@@ -441,7 +441,7 @@ function LegacyWorkspaceCanvas({
             className="canvas-page-icon"
             icon={appearance.icon ?? page.icon}
             preserveStyle={!!appearance.icon}
-            size="36px"
+            size="56px"
           />
         )}
         {customize.popover}

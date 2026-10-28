@@ -9,6 +9,81 @@
 .appearance-cover-action {
   background: var(--bg-surface);
   color: var(--text-primary);
+  opacity: 0;
+  transition: opacity var(--motion-fast) var(--motion-ease);
+}
+.appearance-cover:hover .appearance-cover-action,
+.appearance-cover-action:focus-visible {
+  opacity: 1;
+}
+.page-identity {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+.page-identity-icon {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  padding: 4px;
+  margin-left: -4px;
+  border: 0;
+  border-radius: var(--radius-lg, 8px);
+  background: transparent;
+  color: var(--appearance-icon-color, var(--text-primary));
+  line-height: 1;
+}
+button.page-identity-icon {
+  cursor: pointer;
+  transition: background var(--motion-fast) var(--motion-ease);
+}
+button.page-identity-icon:hover {
+  background: color-mix(in srgb, var(--text-primary) 7%, transparent);
+}
+/* Directly after a cover, the icon rests on the cover's lower edge. */
+.appearance-cover + .page-identity[data-icon] > .page-identity-icon,
+.appearance-cover
+  + *
+  > .page-identity[data-icon]:first-child
+  > .page-identity-icon {
+  margin-top: -60px;
+}
+.page-identity-actions {
+  min-height: 28px;
+  margin-left: -6px;
+  opacity: 0;
+  transition: opacity var(--motion-fast) var(--motion-ease);
+}
+:hover > .page-identity .page-identity-actions,
+.page-identity:hover .page-identity-actions,
+.page-identity-actions:focus-within {
+  opacity: 1;
+}
+.page-identity-actions .monolith-button {
+  min-height: 28px;
+  padding: 4px 6px;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 450;
+}
+.page-identity-actions .monolith-button:hover {
+  color: var(--text-primary);
+}
+@media (hover: none) {
+  .page-identity-actions,
+  .appearance-cover-action {
+    opacity: 1;
+  }
+}
+@media (max-width: 720px) {
+  .appearance-cover + .page-identity[data-icon] > .page-identity-icon,
+  .appearance-cover
+    + *
+    > .page-identity[data-icon]:first-child
+    > .page-identity-icon {
+    margin-top: -44px;
+  }
 }
 .cover-dialog {
   width: min(480px, calc(100vw - 48px));

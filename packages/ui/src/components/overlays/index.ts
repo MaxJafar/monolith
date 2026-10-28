@@ -1,6 +1,9 @@
 export * from './ContextMenu'
 
 export * from './FloatingPopover'
+
+export * from './HoverCard'
+
 export * from './PopoverButton'
 
 export * from './ContextMenu/components/ContextMenuItem'

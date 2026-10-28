@@ -42,6 +42,7 @@
     "../../packages/federation/package.json",
     "../../packages/localization/package.json",
     "../../modules/monolith--databases/client/contract.ts",
+    "../../modules/monolith--databases/calendarShared.ts",
     "../../modules/monolith--databases/navigationShared.ts",
     "../../modules/monolith--databases/client/src/utils/systemViews.ts",
     "../../modules/monolith--databases/shared.ts",

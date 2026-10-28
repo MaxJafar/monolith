@@ -103,9 +103,4 @@
     transform: none;
   }
 }
-.workspace-calendar-day { position: relative; min-height: 29px; padding: 4px 0; border-radius: 4px; }
-.workspace-calendar-day[aria-pressed='true'] { background: color-mix(in srgb, var(--selection-color) 12%, transparent); }
-.workspace-calendar-day[data-outside='true'] { opacity: .4; }
-.workspace-calendar-day[data-today='true'] { color: var(--selection-color); font-weight: 600; }
-.workspace-calendar-dot { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: var(--selection-color); bottom: 2px; }
 .workspace-widget-quote { border-bottom: 1px solid var(--border-subtle); }

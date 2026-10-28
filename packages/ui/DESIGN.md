@@ -34,9 +34,13 @@ Use contract-derived query options and invalidation keys. Include account/worksp
 
 `FloatingPopover` is the default for contextual editors such as event details, names, icons, and properties. Anchor it to the invoking object, keep the page layout stable, constrain it to the viewport, and allow nested controls to work.
 
+`HoverCard` with `useHoverCard` previews an item on hover or keyboard focus without moving focus, for example a calendar day or event. It opens after a short delay, follows the pointer between neighbouring triggers, stays open while the pointer rests on it, and leaves touch taps to the trigger's own action. Never put the only route to an action inside a hover card.
+
 `ContextMenu` handles action menus. A `contextTarget` supports right-click and Shift+F10. Search and settings use the shared modal stack. Escape closes the foremost surface, focus stays inside modal dialogs, and dismissal restores focus to the opener. Keep an accessible close action on every modal surface.
 
 Use the compact icon/color palette for ordinary page and folder editing. Prefer a local popover over a full-screen picker. Shared confirmation behavior must preserve drafts when the user cancels.
+
+Page headers use `PageIdentity`: the page icon is shown large above the title and rests on the cover's lower edge when a cover is present. Add icon and Add cover appear only while the page is hovered or focused, and only for what is missing.
 
 ## Documents and databases
 

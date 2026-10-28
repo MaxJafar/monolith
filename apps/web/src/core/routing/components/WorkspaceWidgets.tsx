@@ -8,7 +8,6 @@ import {
   Text
 } from '@monolith/ui'
 import { useQueryClient } from '@tanstack/react-query'
-import dayjs from 'dayjs'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
@@ -29,6 +28,7 @@ import { WeatherWidget } from './WeatherWidget'
 import { CalendarWidget } from './CalendarWidget'
 import { HabitWidget } from './HabitWidget'
 import { MarketWidget } from './MarketWidget'
+import { UpcomingEventsWidget } from './UpcomingEventsWidget'
 import './workspaceWidgets.css'
 
 export const coreWidgets = {
@@ -63,7 +63,6 @@ export function WorkspaceWidget({
   retry: () => void
 }) {
   const { t, i18n } = useTranslation('common.widgets')
-  const { t: ui } = useTranslation('common.workspaceUI')
   const cache = useQueryClient()
 
   const [filter, setFilter] = useState('today'),
@@ -152,60 +151,23 @@ export function WorkspaceWidget({
     )
 
   if (id === 'calendarWidget')
-    return <CalendarWidget records={records} workspaceId={workspaceId} configuration={configuration} />
-
-  if (id === 'upcomingEvents') {
-    const upcoming = records
-      .filter(
-        item =>
-          belongsToSystem(item, 'calendar') &&
-          item.date &&
-          !dayjs(item.date).isBefore(dayjs(), 'day')
-      )
-      .sort((a, b) => (a.date ?? '').localeCompare(b.date ?? ''))
-      .slice(0, 4)
-
     return (
-      <Stack gap="xs">
-        {upcoming.map(item => (
-          <Button
-            key={item.id}
-            as={Link}
-            justify="start"
-            namespace={false}
-            p="xs"
-            to={recordHref(item)}
-            variant="plain"
-          >
-            <Stack gap="xs" minWidth="0">
-              <Text truncate size="sm">
-                {item.title}
-              </Text>
-              <Text color="muted" size="xs">
-                {dayjs(item.date).format('ddd, MMM D · HH:mm')}
-              </Text>
-            </Stack>
-          </Button>
-        ))}
-        {!upcoming.length && (
-          <Text color="muted" size="sm">
-            {ui('noEvents')}
-          </Text>
-        )}
-        <Button
-          as={Link}
-          icon="lucide:arrow-up-right"
-          justify="start"
-          namespace={false}
-          p="xs"
-          to={href('calendar')}
-          variant="plain"
-        >
-          {ui('viewCalendar')}
-        </Button>
-      </Stack>
+      <CalendarWidget
+        configuration={configuration}
+        fields={data?.fields ?? []}
+        records={records}
+        workspaceId={workspaceId}
+      />
     )
-  }
+
+  if (id === 'upcomingEvents')
+    return (
+      <UpcomingEventsWidget
+        fields={data?.fields ?? []}
+        records={records}
+        workspaceId={workspaceId}
+      />
+    )
 
   if (id === 'workspacePulse') {
     const done = actions.filter(item => systemStatus(item) === 'done').length

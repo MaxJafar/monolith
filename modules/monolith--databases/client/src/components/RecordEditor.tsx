@@ -14,13 +14,11 @@ import {
   Flex,
   FloatingPopover,
   Icon,
-  IconPickerModal,
+  PageIdentity,
   PopoverButton,
   Stack,
   Text,
-  useAnimatedClose,
-  useCoverPicker,
-  useModalStore
+  useAnimatedClose
 } from '@monolith/ui'
 
 import { useDatabases } from '@/DatabaseProvider'
@@ -86,8 +84,6 @@ export function RecordEditor({
   const [templateName, setTemplateName] = useState('')
   const [templateEditor, setTemplateEditor] = useState(false)
   const [templateSaved, setTemplateSaved] = useState(false)
-  const pickCover = useCoverPicker()
-  const { open: openModal } = useModalStore()
 
   const [kind, setKind] = useState<ItemType>(() =>
     itemType.parse(
@@ -762,38 +758,19 @@ export function RecordEditor({
             }}
           />
         )}
-        <AppearanceContext value={{ appearance, readOnly: true }}>
+        <AppearanceContext
+          value={{
+            appearance,
+            readOnly,
+            changeIcon: async icon =>
+              setAppearance(current => ({ ...current, icon })),
+            changeCover: async cover =>
+              setAppearance(current => ({ ...current, cover }))
+          }}
+        >
           <AppearanceCover />
+          <PageIdentity />
         </AppearanceContext>
-        <Flex align="center" className="database-page-decoration" gap="sm">
-          <Button
-            disabled={readOnly}
-            icon={appearance.icon ?? 'lucide:smile'}
-            namespace={false}
-            variant="plain"
-            onClick={() =>
-              openModal(IconPickerModal, {
-                setSelectedIcon: icon =>
-                  setAppearance(current => ({ ...current, icon }))
-              })
-            }
-          >
-            {t('pageIcon')}
-          </Button>
-          <Button
-            disabled={readOnly}
-            icon="lucide:image"
-            namespace={false}
-            variant="plain"
-            onClick={() =>
-              pickCover(appearance.cover, cover =>
-                setAppearance(current => ({ ...current, cover }))
-              )
-            }
-          >
-            {t('pageCover')}
-          </Button>
-        </Flex>
         {description && (
           <textarea
             aria-label={t('pageDescription')}

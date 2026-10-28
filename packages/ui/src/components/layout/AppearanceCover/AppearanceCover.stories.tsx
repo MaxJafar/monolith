@@ -8,7 +8,7 @@ import {
   appearanceVariables
 } from '@/providers/AppearanceProvider'
 
-import { AppearanceCover } from './index'
+import { AppearanceCover, PageIdentity } from './index'
 
 const meta = {
   component: AppearanceCover,
@@ -65,6 +65,42 @@ function InlineExample() {
 /** Pages that save inline open the icon and cover popover. */
 export const InlineIconAndCover: Story = {
   render: () => <InlineExample />
+}
+
+function PageHeaderExample({ initial }: { initial: Appearance }) {
+  const [appearance, setAppearance] = useState<Appearance>(initial)
+
+  return (
+    <AppearanceContext
+      value={{
+        appearance,
+        changeCover: async cover =>
+          setAppearance(current => ({ ...current, cover })),
+        changeIcon: async icon =>
+          setAppearance(current => ({ ...current, icon }))
+      }}
+    >
+      <AppearanceCover />
+      <PageIdentity />
+      <h1>Launch plan</h1>
+    </AppearanceContext>
+  )
+}
+
+/** The large icon rests on the cover's edge; hover shows Add icon and Add cover. */
+export const PageHeader: Story = {
+  render: () => (
+    <PageHeaderExample
+      initial={{
+        cover: { type: 'color', value: '#b7bce0' },
+        icon: 'lucide:rocket'
+      }}
+    />
+  )
+}
+
+export const PageHeaderWithoutIcon: Story = {
+  render: () => <PageHeaderExample initial={{}} />
 }
 
 export const DarkBackground: Story = {

@@ -30,13 +30,16 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
 import { Button } from '@/components/inputs'
-import { useAppearancePopover } from '@/components/layout/AppearanceCover'
+import { PageIdentity } from '@/components/layout/AppearanceCover'
 import { CanonicalWidgetBoard } from '@/components/layout/WorkspaceCanvas/CanonicalWidgetBoard'
 import { useCanvasWidgets } from '@/components/layout/WorkspaceCanvas/CanvasWidgets'
 import { InlineDatabasePicker } from '@/components/layout/WorkspaceCanvas/InlineDatabasePicker'
 import { FloatingPopover } from '@/components/overlays/FloatingPopover'
-import { Flex, Icon, Stack, Text } from '@/components/primitives'
-import { useAppearance } from '@/providers/AppearanceProvider'
+import { Flex, Stack, Text } from '@/components/primitives'
+import {
+  AppearanceContext,
+  useAppearance
+} from '@/providers/AppearanceProvider'
 import { usePageChrome } from '@/providers/PageChromeProvider'
 
 import {
@@ -388,8 +391,7 @@ function ActiveDocument({
   const chrome = usePageChrome()
   const setDocument = chrome?.setDocument
   const chromeOwner = useRef(Symbol())
-  const { appearance, openEditor } = useAppearance()
-  const customize = useAppearancePopover()
+  const appearanceContext = useAppearance()
   const [initial, setInitial] = useState(snapshot)
   const [generation, setGeneration] = useState(0)
   const currentGeneration = useRef(0)
@@ -512,48 +514,34 @@ function ActiveDocument({
     <Stack
       gap="md"
       maxWidth={
-        widgetScope || appearance.contentWidth === 'full' ? 'none' : '920px'
+        widgetScope || appearanceContext.appearance.contentWidth === 'full'
+          ? 'none'
+          : '920px'
       }
       minWidth="0"
       style={{ marginInline: 'auto' }}
       width="100%"
     >
       {!afterTitle && (
-        <Flex align="center" gap="sm" justify="between">
-          {openEditor && !readOnly ? (
-            <Button
-              aria-label={t('appearance.changeIcon')}
-              icon={appearance.icon ?? 'lucide:file-text'}
-              iconProps={{
-                preserveStyle: !!appearance.icon,
-                style: {
-                  color: 'var(--appearance-icon-color, var(--accent-primary))'
-                },
-                size: '28px'
-              }}
-              namespace={false}
-              variant="plain"
-              onClick={event => customize.toggle(event.currentTarget)}
-            />
-          ) : (
-            <Icon
-              icon={appearance.icon ?? 'lucide:file-text'}
-              preserveStyle={!!appearance.icon}
-              size="28px"
-            />
-          )}
-          {customize.popover}
-          {!chrome && openEditor && !readOnly && (
-            <Button
-              icon="lucide:palette"
-              namespace={false}
-              variant="plain"
-              onClick={() => openEditor('page')}
-            >
-              {t('appearance.customize')}
-            </Button>
-          )}
-        </Flex>
+        <AppearanceContext
+          value={{
+            ...appearanceContext,
+            readOnly: readOnly || appearanceContext.readOnly
+          }}
+        >
+          <PageIdentity>
+            {!chrome && appearanceContext.openEditor && !readOnly && (
+              <Button
+                icon="lucide:palette"
+                namespace={false}
+                variant="plain"
+                onClick={() => appearanceContext.openEditor?.('page')}
+              >
+                {t('appearance.customize')}
+              </Button>
+            )}
+          </PageIdentity>
+        </AppearanceContext>
       )}
       {(!chrome || ['offline', 'expired'].includes(state.status)) && (
         <Flex align="center" gap="sm" justify="between" wrap="wrap">

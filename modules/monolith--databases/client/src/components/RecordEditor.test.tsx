@@ -153,6 +153,7 @@ vi.mock('@monolith/ui', () => {
     IconPickerModal: () => null,
     AppearanceContext: primitive,
     AppearanceCover: () => null,
+    PageIdentity: () => null,
     IconInput: () => null,
     Icon: () => null,
     FloatingPopover: primitive,

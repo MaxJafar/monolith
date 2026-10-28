@@ -425,6 +425,102 @@
   outline: 2px solid var(--selection-color);
   outline-offset: 1px;
 }
+.monolith-schedule .monolith-calendar-field input,
+.monolith-schedule .monolith-choice-select {
+  min-height: 36px;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md, 6px);
+  background: var(--bg-surface);
+  font-size: 13px;
+  color-scheme: inherit;
+}
+.monolith-schedule [data-inline] {
+  align-self: end;
+}
+.monolith-schedule-section {
+  padding: 14px 16px 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl, 12px);
+  background: color-mix(in srgb, var(--text-primary) 2%, var(--bg-surface));
+}
+.monolith-schedule-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+.monolith-schedule-heading > svg {
+  color: var(--text-muted);
+}
+.monolith-schedule-toggle {
+  min-height: 36px;
+  padding: 6px 10px 6px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md, 6px);
+  background: var(--bg-surface);
+  cursor: pointer;
+  transition: border-color var(--motion-fast) var(--motion-ease);
+}
+.monolith-schedule-toggle:hover:not([data-disabled]) {
+  border-color: var(--border-medium);
+}
+.monolith-schedule-toggle[data-disabled] {
+  cursor: default;
+}
+.monolith-schedule-toggle[data-disabled] > :first-child {
+  opacity: 0.6;
+}
+.monolith-schedule .monolith-schedule-chip {
+  min-height: 30px;
+  padding: 4px 11px;
+  font-size: 13px;
+  font-weight: 450;
+  color: var(--text-muted);
+}
+.monolith-schedule .monolith-schedule-chip[aria-pressed='true'] {
+  border-color: color-mix(in srgb, var(--selection-color) 55%, transparent);
+  background: color-mix(in srgb, var(--selection-color) 14%, var(--bg-surface));
+  color: var(--text-primary);
+}
+.monolith-schedule-guest {
+  min-height: 36px;
+  padding: 4px 8px;
+  margin-inline: -8px;
+  border-radius: var(--radius-md, 6px);
+  transition: background var(--motion-fast) var(--motion-ease);
+}
+.monolith-schedule-guest:hover {
+  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
+}
+.monolith-schedule-rsvp {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--bg-lifted);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.monolith-schedule-rsvp[data-status='accepted'] {
+  color: var(--semantic-success, #3f9b6f);
+  background: color-mix(
+    in srgb,
+    var(--semantic-success, #3f9b6f) 14%,
+    transparent
+  );
+}
+.monolith-schedule-rsvp[data-status='declined'] {
+  color: var(--accent-red);
+  background: color-mix(in srgb, var(--accent-red) 12%, transparent);
+}
+.monolith-schedule-footer {
+  padding-top: 2px;
+}
+@media (pointer: coarse) {
+  .monolith-schedule .monolith-schedule-chip {
+    min-height: 44px;
+  }
+}
 .monolith-calendar-month {
   border: 1px solid color-mix(in srgb, currentColor 12%, transparent);
   border-radius: var(--radius-md, 6px);

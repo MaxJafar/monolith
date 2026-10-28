@@ -198,5 +198,56 @@
   "addDevice": "新增裝置",
   "editDevice": "編輯裝置",
   "addService": "新增服務",
-  "editService": "編輯服務"
+  "editService": "編輯服務",
+  "widgets": {
+    "techLabUptime": {
+      "title": "運作時間"
+    },
+    "techLabFleet": {
+      "title": "裝置"
+    }
+  },
+  "live": {
+    "machine": {
+      "up": "線上",
+      "down": "離線",
+      "off": "無遙測",
+      "pending": "正在連線"
+    },
+    "cpu": "CPU",
+    "ram": "記憶體",
+    "cpuHistory": "最近幾分鐘的 CPU",
+    "ramHistory": "最近幾分鐘的記憶體",
+    "load": "負載 {{values}}",
+    "memoryOf": "{{used}} / {{total}}",
+    "disks": "磁碟",
+    "processes": "主要處理程序",
+    "process": "處理程序",
+    "uptime": "已運作 {{value}}",
+    "unreachable": "Glances 沒有回應。裝置可能處於睡眠狀態，或 Glances 已停止或遭防火牆封鎖。",
+    "dayAvailability": "24 小時 {{value}}",
+    "bucket": "{{time}} · {{up}} 次通過，{{failed}} 次失敗",
+    "noChecks": "{{time}} · 沒有檢查",
+    "timeline": "{{name}}，最近 24 小時",
+    "open": "開啟 {{name}}",
+    "ungrouped": "其他",
+    "upOf": "{{total}} 個中 {{up}} 個正常",
+    "link": "連結",
+    "noMonitors": "尚未設定監控。請為服務開啟監控，或在此小工具的篩選中填入 Uptime Kuma 狀態頁 URL。",
+    "lastDay": "最近 24 小時",
+    "beat": "{{time}} · {{status}}{{ping}}",
+    "kuma": {
+      "up": "正常",
+      "down": "故障",
+      "pending": "等待中",
+      "maintenance": "維護中",
+      "unknown": "無資料"
+    },
+    "machinesOnline": "線上裝置",
+    "servicesUp": "正常服務",
+    "availability": "24 小時可用性",
+    "attention": "需要注意",
+    "ofTotal": "{{total}} 個中 {{count}} 個",
+    "allClear": "一切正常"
+  }
 }

@@ -47,8 +47,9 @@ export const dashboardTemplates = {
     ['weather', 'half']
   ],
   homelab: [
-    ['techLabHealth', 'half'],
-    ['weather', 'half'],
+    ['techLabHealth', 'full'],
+    ['techLabUptime', 'half'],
+    ['techLabFleet', 'half'],
     ['techLabServices', 'full'],
     ['techLabDevice', 'half'],
     ['actionAgenda', 'half']

@@ -331,7 +331,9 @@ function Bridge({ children }: { children: React.ReactNode }) {
                 filterable: [
                   'projectOverview',
                   'techLabServices',
-                  'techLabDevice'
+                  'techLabDevice',
+                  'techLabUptime',
+                  'techLabFleet'
                 ].includes(id)
               }
             ])

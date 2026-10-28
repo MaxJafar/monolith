@@ -198,5 +198,56 @@
   "addDevice": "Add device",
   "editDevice": "Edit device",
   "addService": "Add service",
-  "editService": "Edit service"
+  "editService": "Edit service",
+  "widgets": {
+    "techLabUptime": {
+      "title": "Uptime"
+    },
+    "techLabFleet": {
+      "title": "Machines"
+    }
+  },
+  "live": {
+    "machine": {
+      "up": "Online",
+      "down": "Offline",
+      "off": "No telemetry",
+      "pending": "Connecting"
+    },
+    "cpu": "CPU",
+    "ram": "RAM",
+    "cpuHistory": "CPU over the last few minutes",
+    "ramHistory": "RAM over the last few minutes",
+    "load": "Load {{values}}",
+    "memoryOf": "{{used}} of {{total}}",
+    "disks": "Disks",
+    "processes": "Top processes",
+    "process": "Process",
+    "uptime": "Up {{value}}",
+    "unreachable": "Glances is not answering. The machine may be asleep, or Glances may be stopped or blocked by a firewall.",
+    "dayAvailability": "{{value}} in 24 h",
+    "bucket": "{{time}} · {{up}} passed, {{failed}} failed",
+    "noChecks": "{{time}} · no checks",
+    "timeline": "{{name}}, last 24 hours",
+    "open": "Open {{name}}",
+    "ungrouped": "Other",
+    "upOf": "{{up}} of {{total}} up",
+    "link": "Link",
+    "noMonitors": "No monitors yet. Turn on monitoring for a service, or put an Uptime Kuma status page URL in this widget’s filter.",
+    "lastDay": "Last 24 hours",
+    "beat": "{{time}} · {{status}}{{ping}}",
+    "kuma": {
+      "up": "Up",
+      "down": "Down",
+      "pending": "Pending",
+      "maintenance": "Maintenance",
+      "unknown": "No data"
+    },
+    "machinesOnline": "Machines online",
+    "servicesUp": "Services up",
+    "availability": "24-hour availability",
+    "attention": "Needs attention",
+    "ofTotal": "{{count}} of {{total}}",
+    "allClear": "All clear"
+  }
 }

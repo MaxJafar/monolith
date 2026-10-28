@@ -78,7 +78,58 @@ export function normalizeGlances(
   }
 }
 
-/** Read only the metric plugins; process command lines and credentials are never requested. */
+function text(value: unknown, limit: number): string | null {
+  return typeof value === 'string' && value.trim()
+    ? value.trim().slice(0, limit)
+    : null
+}
+
+export function normalizeGlancesDetails(
+  system: unknown,
+  load: unknown,
+  quicklook: unknown,
+  processes: unknown
+): Pick<DeviceTelemetry, 'system' | 'cpu_name' | 'load' | 'processes'> {
+  const host = object(system)
+  const name = text(host.hr_name, 500) ?? text(host.os_name, 500)
+  const average = object(load)
+  const min1 = number(average.min1),
+    min5 = number(average.min5),
+    min15 = number(average.min15)
+  const cores = number(average.cpucore)
+
+  return {
+    system: name
+      ? { hostname: text(host.hostname, 255) ?? '', name }
+      : null,
+    cpu_name: text(object(quicklook).cpu_name, 500),
+    load:
+      min1 !== null && min5 !== null && min15 !== null
+        ? {
+            min1,
+            min5,
+            min15,
+            cores: cores !== null && Number.isInteger(cores) ? cores : null
+          }
+        : null,
+    // Only the name and usage leave the server; command lines, users and
+    // environment details in the Glances process list are dropped here.
+    processes: Array.isArray(processes)
+      ? processes.slice(0, 10).flatMap(raw => {
+          const entry = object(raw)
+          const label = text(entry.name, 255)
+          const cpu = number(entry.cpu_percent)
+          const memory = number(entry.memory_percent)
+
+          return label && cpu !== null && memory !== null && memory <= 100
+            ? [{ name: label, cpu_percent: cpu, memory_percent: memory }]
+            : []
+        })
+      : []
+  }
+}
+
+/** Read the metric plugins and the top five processes by name and usage only. */
 export async function readGlancesTelemetry(
   input: string
 ): Promise<DeviceTelemetry> {
@@ -90,7 +141,11 @@ export async function readGlancesTelemetry(
     ram_used_bytes: null,
     ram_total_bytes: null,
     uptime_seconds: null,
-    filesystems: []
+    filesystems: [],
+    system: null,
+    cpu_name: null,
+    load: null,
+    processes: []
   }
 
   if (!input) return empty
@@ -105,7 +160,16 @@ export async function readGlancesTelemetry(
 
     for (const version of [4, 3]) {
       const requests = await Promise.allSettled(
-        ['cpu', 'mem', 'fs', 'uptime'].map(plugin =>
+        [
+          'cpu',
+          'mem',
+          'fs',
+          'uptime',
+          'system',
+          'load',
+          'quicklook',
+          'processlist/top/5'
+        ].map(plugin =>
           readTarget(
             `${url.origin}${prefix}/api/${version}/${plugin}`,
             'GET',
@@ -117,18 +181,19 @@ export async function readGlancesTelemetry(
         result.status === 'fulfilled' ? result.value : { status: 0, body: null }
       )
 
-      if (version === 4 && results.every(result => result.status === 404))
+      if (
+        version === 4 &&
+        results.slice(0, 4).every(result => result.status === 404)
+      )
         continue
 
       const bodies = results.map(result =>
         result.status === 200 ? result.body : null
       )
-      const normalized = normalizeGlances(
-        bodies[0],
-        bodies[1],
-        bodies[2],
-        bodies[3]
-      )
+      const normalized = {
+        ...normalizeGlances(bodies[0], bodies[1], bodies[2], bodies[3]),
+        ...normalizeGlancesDetails(bodies[4], bodies[5], bodies[6], bodies[7])
+      }
       const successful = [
         normalized.cpu_percent !== null,
         normalized.ram_used_bytes !== null &&

@@ -198,5 +198,56 @@
   "addDevice": "添加设备",
   "editDevice": "编辑设备",
   "addService": "添加服务",
-  "editService": "编辑服务"
+  "editService": "编辑服务",
+  "widgets": {
+    "techLabUptime": {
+      "title": "在线时间"
+    },
+    "techLabFleet": {
+      "title": "设备"
+    }
+  },
+  "live": {
+    "machine": {
+      "up": "在线",
+      "down": "离线",
+      "off": "无遥测",
+      "pending": "正在连接"
+    },
+    "cpu": "CPU",
+    "ram": "内存",
+    "cpuHistory": "最近几分钟的 CPU",
+    "ramHistory": "最近几分钟的内存",
+    "load": "负载 {{values}}",
+    "memoryOf": "{{used}} / {{total}}",
+    "disks": "磁盘",
+    "processes": "主要进程",
+    "process": "进程",
+    "uptime": "已运行 {{value}}",
+    "unreachable": "Glances 没有响应。设备可能处于睡眠状态，或者 Glances 已停止或被防火墙拦截。",
+    "dayAvailability": "24 小时 {{value}}",
+    "bucket": "{{time}} · {{up}} 次通过，{{failed}} 次失败",
+    "noChecks": "{{time}} · 无检查",
+    "timeline": "{{name}}，最近 24 小时",
+    "open": "打开 {{name}}",
+    "ungrouped": "其他",
+    "upOf": "{{total}} 个中 {{up}} 个正常",
+    "link": "链接",
+    "noMonitors": "还没有监控。请为服务开启监控，或在此小组件的筛选中填写 Uptime Kuma 状态页 URL。",
+    "lastDay": "最近 24 小时",
+    "beat": "{{time}} · {{status}}{{ping}}",
+    "kuma": {
+      "up": "正常",
+      "down": "故障",
+      "pending": "等待中",
+      "maintenance": "维护中",
+      "unknown": "无数据"
+    },
+    "machinesOnline": "在线设备",
+    "servicesUp": "正常服务",
+    "availability": "24 小时可用性",
+    "attention": "需要关注",
+    "ofTotal": "{{total}} 个中 {{count}} 个",
+    "allClear": "一切正常"
+  }
 }

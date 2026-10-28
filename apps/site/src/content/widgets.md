@@ -26,7 +26,7 @@ Templates provide a starting arrangement. Applying a template is an explicit lay
 
 Core views include Workspace pulse, Action agenda, Project focus, Quick links, Calendar and Upcoming events. Weather uses a selected city and available weather integration. Habit and market widgets depend on the features configured on your host.
 
-Gym adds Training pulse and Training plan. Tech Lab adds Services, Health and Device views. The optional uRPG experience has character, vitals and progression widgets; it is currently included in the main client rather than independently downloadable.
+Gym adds Training pulse and Training plan. Tech Lab adds Services, Health, Device, Uptime and Machines views: live CPU and RAM charts from Glances, 24-hour availability strips from its own monitors or a public Uptime Kuma status page, and service tiles grouped by category. The optional uRPG experience has character, vitals and progression widgets; it is currently included in the main client rather than independently downloadable.
 
 Linked databases use their canvas picker to select the original database. Widget settings hold presentation choices, not duplicate task or project data.
 

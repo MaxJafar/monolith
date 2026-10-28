@@ -35,6 +35,7 @@ import {
 import { probeService } from './monitor'
 import * as schema from './schema.drizzle'
 import { checks, devices, services, settings } from './schema.drizzle'
+import { shapeTimeline } from './timeline'
 
 export { ownerId } from './model'
 
@@ -396,6 +397,61 @@ export async function getSnapshot(
     health,
     checked_at: now.toISOString()
   }
+}
+
+/** Bucketed check counts for every monitored service, for 24-hour strips. */
+export async function getTimeline(
+  db: TechLabStore,
+  owner: string,
+  input: { hours: number; buckets: number },
+  now = new Date()
+) {
+  const from = new Date(now.getTime() - input.hours * 3600000)
+  const width = (input.hours * 3600) / input.buckets
+  const bucket = sql<number>`floor(extract(epoch from (${checks.checked_at} - ${from.toISOString()}::timestamptz)) / ${width})::int`
+  const [serviceRows, rows] = await Promise.all([
+    db
+      .select({ id: services.id })
+      .from(services)
+      .where(
+        and(eq(services.owner_id, owner), eq(services.monitor_enabled, true))
+      )
+      .orderBy(asc(services.category), asc(services.name), asc(services.id)),
+    db
+      .select({
+        service_id: checks.service_id,
+        bucket,
+        up: sql<number>`(count(*) filter (where ${checks.status} = 'up'))::int`,
+        down: sql<number>`(count(*) filter (where ${checks.status} = 'down'))::int`,
+        error: sql<number>`(count(*) filter (where ${checks.status} = 'error'))::int`,
+        latency_ms: sql<
+          number | null
+        >`(avg(${checks.latency_ms}) filter (where ${checks.status} = 'up'))::float8`
+      })
+      .from(checks)
+      .innerJoin(
+        services,
+        and(
+          eq(services.owner_id, owner),
+          eq(services.id, checks.service_id),
+          eq(services.monitor_revision, checks.monitor_revision)
+        )
+      )
+      .where(
+        and(
+          eq(checks.owner_id, owner),
+          gte(checks.checked_at, from),
+          lt(checks.checked_at, new Date(now.getTime() + 1))
+        )
+      )
+      .groupBy(checks.service_id, bucket)
+  ])
+
+  return shapeTimeline(
+    rows,
+    serviceRows.map(row => row.id),
+    { from, to: now, buckets: input.buckets }
+  )
 }
 
 export async function getHistory(

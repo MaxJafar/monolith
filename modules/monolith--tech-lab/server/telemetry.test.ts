@@ -4,6 +4,7 @@ import { readTarget } from './network'
 import {
   glancesUptime,
   normalizeGlances,
+  normalizeGlancesDetails,
   readGlancesTelemetry
 } from './telemetry'
 
@@ -88,6 +89,41 @@ describe('Observed Glances values', () => {
   })
 })
 
+describe('Glances host details', () => {
+  it('keeps system, load, CPU model and process usage only', () => {
+    expect(
+      normalizeGlancesDetails(
+        {
+          hostname: 'optiplex',
+          hr_name: 'Alpine Linux 3.24.2 64bit',
+          os_name: 'Linux'
+        },
+        { min1: 0.4, min5: 0.5, min15: 0.3, cpucore: 4 },
+        { cpu_name: 'Intel(R) Core(TM) i3-6100T' },
+        [
+          { name: 'rustdesk', cpu_percent: 5.5, memory_percent: 0.4 },
+          { name: 'broken', cpu_percent: 'high', memory_percent: 1 },
+          { name: 'impossible', cpu_percent: 1, memory_percent: 140 }
+        ]
+      )
+    ).toEqual({
+      system: { hostname: 'optiplex', name: 'Alpine Linux 3.24.2 64bit' },
+      cpu_name: 'Intel(R) Core(TM) i3-6100T',
+      load: { min1: 0.4, min5: 0.5, min15: 0.3, cores: 4 },
+      processes: [{ name: 'rustdesk', cpu_percent: 5.5, memory_percent: 0.4 }]
+    })
+  })
+
+  it('reports missing details as absent rather than empty values', () => {
+    expect(normalizeGlancesDetails(null, { min1: 1 }, 'x', {})).toEqual({
+      system: null,
+      cpu_name: null,
+      load: null,
+      processes: []
+    })
+  })
+})
+
 describe('Glances plugin reads', () => {
   it('performs no request for an unconfigured device', async () => {
     expect(await readGlancesTelemetry('')).toMatchObject({
@@ -99,7 +135,7 @@ describe('Glances plugin reads', () => {
 
   it('collects only metric plugins and preserves their actual values', async () => {
     read.mockImplementation(async input => {
-      const plugin = input.split('/').pop()
+      const plugin = input.split('/api/4/').pop()
       const body =
         plugin === 'cpu'
           ? { total: 13.5 }
@@ -107,7 +143,19 @@ describe('Glances plugin reads', () => {
             ? { total: 16000, used: 8000 }
             : plugin === 'fs'
               ? [{ mnt_point: '/', size: 100000, used: 20000 }]
-              : '1 day, 00:00:00'
+              : plugin === 'uptime'
+                ? '1 day, 00:00:00'
+                : plugin === 'processlist/top/5'
+                  ? [
+                      {
+                        name: 'postgres',
+                        cpu_percent: 4.5,
+                        memory_percent: 2,
+                        cmdline: ['postgres', '--password=PRIVATE_ARGUMENT'],
+                        username: 'PRIVATE_USER'
+                      }
+                    ]
+                  : null
 
       return { status: 200, body }
     })
@@ -116,10 +164,21 @@ describe('Glances plugin reads', () => {
     )
 
     expect(read.mock.calls.map(call => call[0])).toEqual(
-      ['cpu', 'mem', 'fs', 'uptime'].map(
-        plugin => `http://fixture.invalid/glances/api/4/${plugin}`
-      )
+      [
+        'cpu',
+        'mem',
+        'fs',
+        'uptime',
+        'system',
+        'load',
+        'quicklook',
+        'processlist/top/5'
+      ].map(plugin => `http://fixture.invalid/glances/api/4/${plugin}`)
     )
+    expect(result.processes).toEqual([
+      { name: 'postgres', cpu_percent: 4.5, memory_percent: 2 }
+    ])
+    expect(JSON.stringify(result)).not.toContain('PRIVATE')
     expect(
       read.mock.calls.every(call => call[1] === 'GET' && call[2] === true)
     ).toBe(true)
@@ -165,9 +224,9 @@ describe('Glances plugin reads', () => {
     }))
     const result = await readGlancesTelemetry('http://fixture.invalid/api/3')
 
-    expect(read).toHaveBeenCalledTimes(8)
+    expect(read).toHaveBeenCalledTimes(16)
     expect(
-      read.mock.calls.slice(4).every(call => call[0].includes('/api/3/'))
+      read.mock.calls.slice(8).every(call => call[0].includes('/api/3/'))
     ).toBe(true)
     expect(result.cpu_percent).toBe(5)
   })

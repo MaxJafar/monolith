@@ -47,7 +47,7 @@ Monolith separates permanent workspace features, optional applications, and comp
 | Upcoming events                | The next events from connected workspace dates.                                                                  |
 | Linked database                | A live view of an existing database inside a page or dashboard. Configure it through the canvas database picker. |
 | Training pulse / Training plan | Gym summaries and plan views, available when Gym is enabled.                                                     |
-| Services / Health / Device     | Tech Lab monitoring views, available when Tech Lab is enabled.                                                   |
+| Services / Health / Device / Uptime / Machines | Tech Lab live monitoring views, available when Tech Lab is enabled.                              |
 | Character / Vitals / XP        | uRPG character and progression widgets when that workspace experience is active.                                 |
 
 The shop only exposes widget implementations available to the current workspace. Sidebar preferences never grant access to data that the user's workspace role cannot read. Preview controls that change shared data use the same permissions as the underlying widget.

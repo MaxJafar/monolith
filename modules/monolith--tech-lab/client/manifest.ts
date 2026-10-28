@@ -6,7 +6,7 @@ import contract from './contract'
 
 const { workspaceAPI, ...manifest } = defineAddon({
   routes: { '/': lazy(() => import('@')) },
-  widgets:[()=>import('@/widgets/ServiceLauncher'),()=>import('@/widgets/HealthSummary'),()=>import('@/widgets/DeviceResources')],
+  widgets:[()=>import('@/widgets/ServiceLauncher'),()=>import('@/widgets/HealthSummary'),()=>import('@/widgets/DeviceResources'),()=>import('@/widgets/UptimeBoard'),()=>import('@/widgets/Fleet')],
   contract
 })
 

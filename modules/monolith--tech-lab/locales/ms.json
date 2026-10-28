@@ -198,5 +198,56 @@
   "addDevice": "Tambah peranti",
   "editDevice": "Edit peranti",
   "addService": "Tambah perkhidmatan",
-  "editService": "Edit perkhidmatan"
+  "editService": "Edit perkhidmatan",
+  "widgets": {
+    "techLabUptime": {
+      "title": "Masa aktif"
+    },
+    "techLabFleet": {
+      "title": "Mesin"
+    }
+  },
+  "live": {
+    "machine": {
+      "up": "Dalam talian",
+      "down": "Luar talian",
+      "off": "Tiada telemetri",
+      "pending": "Menyambung"
+    },
+    "cpu": "CPU",
+    "ram": "RAM",
+    "cpuHistory": "CPU dalam beberapa minit lalu",
+    "ramHistory": "RAM dalam beberapa minit lalu",
+    "load": "Beban {{values}}",
+    "memoryOf": "{{used}} daripada {{total}}",
+    "disks": "Cakera",
+    "processes": "Proses teratas",
+    "process": "Proses",
+    "uptime": "Aktif {{value}}",
+    "unreachable": "Glances tidak menjawab. Mesin mungkin sedang tidur, atau Glances dihentikan atau disekat oleh tembok api.",
+    "dayAvailability": "{{value}} dalam 24 j",
+    "bucket": "{{time}} · {{up}} lulus, {{failed}} gagal",
+    "noChecks": "{{time}} · tiada semakan",
+    "timeline": "{{name}}, 24 jam lalu",
+    "open": "Buka {{name}}",
+    "ungrouped": "Lain-lain",
+    "upOf": "{{up}} daripada {{total}} aktif",
+    "link": "Pautan",
+    "noMonitors": "Belum ada pemantau. Hidupkan pemantauan untuk sesuatu perkhidmatan, atau masukkan URL halaman status Uptime Kuma dalam penapis widget ini.",
+    "lastDay": "24 jam lalu",
+    "beat": "{{time}} · {{status}}{{ping}}",
+    "kuma": {
+      "up": "Aktif",
+      "down": "Gagal",
+      "pending": "Menunggu",
+      "maintenance": "Penyelenggaraan",
+      "unknown": "Tiada data"
+    },
+    "machinesOnline": "Mesin dalam talian",
+    "servicesUp": "Perkhidmatan aktif",
+    "availability": "Ketersediaan 24 jam",
+    "attention": "Perlu perhatian",
+    "ofTotal": "{{count}} daripada {{total}}",
+    "allClear": "Semua baik"
+  }
 }

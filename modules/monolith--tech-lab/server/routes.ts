@@ -19,11 +19,17 @@ import {
   serviceSchema,
   settingsSaveSchema,
   settingsSchema,
-  snapshotSchema
+  snapshotSchema,
+  timelineInputSchema,
+  timelineSchema,
+  uptimeKumaInputSchema,
+  uptimeKumaSchema
 } from '../shared'
 import { registerTechLabCollector } from './collectors'
 import endpoints from './endpoints'
+import { readUptimeKuma } from './kuma'
 import { ownerId } from './model'
+import { TargetPolicyError } from './network'
 import {
   type TechLabDatabase,
   deleteDevice,
@@ -31,6 +37,7 @@ import {
   getHistory,
   getSettings,
   getSnapshot,
+  getTimeline,
   importInventory,
   ownedDevice,
   runTechLabChecks,
@@ -95,7 +102,11 @@ const deviceTelemetry = endpoints
         ram_used_bytes: null,
         ram_total_bytes: null,
         uptime_seconds: null,
-        filesystems: []
+        filesystems: [],
+        system: null,
+        cpu_name: null,
+        load: null,
+        processes: []
       })
 
     return response.ok(await readGlancesTelemetry(device.glances_url))
@@ -140,6 +151,37 @@ const serviceDelete = endpoints
   })
 
 export const services = { save: serviceSave, delete: serviceDelete }
+
+export const timeline = endpoints
+  .query({
+    description:
+      'Read bucketed check counts for every monitored service over recent hours',
+    input: { query: timelineInputSchema },
+    output: { OK: timelineSchema }
+  })
+  .callback(async ({ db, res, query, response }) =>
+    response.ok(await getTimeline(db, ownerId(res), query))
+  )
+
+export const uptimeKuma = endpoints
+  .query({
+    description:
+      'Read monitors and recent heartbeats from a public Uptime Kuma status page',
+    input: { query: uptimeKumaInputSchema },
+    output: { OK: uptimeKumaSchema }
+  })
+  .callback(async ({ query, response }) => {
+    try {
+      return response.ok(await readUptimeKuma(query.url))
+    } catch (error) {
+      throw new ClientError(
+        error instanceof TargetPolicyError
+          ? error.message
+          : 'The Uptime Kuma status page could not be read from this server',
+        502
+      )
+    }
+  })
 
 export const history = endpoints
   .query({

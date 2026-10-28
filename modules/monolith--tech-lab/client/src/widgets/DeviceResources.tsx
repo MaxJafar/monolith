@@ -1,10 +1,11 @@
 import type { WidgetConfig } from '@monolith/configs'
 import { useModuleTranslation } from '@monolith/localization'
-import { Stack, Text } from '@monolith/ui'
+import { Text } from '@monolith/ui'
 
 import { useTechLab } from '@/TechLabContext'
 import { TechLabProvider } from '@/TechLabProvider'
-import { DeviceTelemetry } from '@/components/DeviceTelemetry'
+import { DeviceCard } from '@/components/DeviceCard'
+import '@/live.css'
 
 function Resources({ filter }: { filter: string }) {
   const { data, loading, error } = useTechLab(),
@@ -18,26 +19,29 @@ function Resources({ filter }: { filter: string }) {
       </Text>
     )
 
-  const device = filter
-    ? data?.devices.find(item =>
-        item.name.toLocaleLowerCase().includes(filter.toLocaleLowerCase())
-      )
+  const query = filter.trim().toLocaleLowerCase()
+  const device = query
+    ? (data?.devices.find(item => item.name.toLocaleLowerCase() === query) ??
+      data?.devices.find(item =>
+        [item.name, item.host].some(value =>
+          value.toLocaleLowerCase().includes(query)
+        )
+      ))
     : data?.devices.find(item => item.glances_url)
 
   if (!device)
     return (
       <Text color="muted">
-        {filter
+        {query
           ? t('filters.results', { count: 0, total: data?.devices.length ?? 0 })
           : t('devices.telemetryDisabled')}
       </Text>
     )
 
   return (
-    <Stack gap="md">
-      <Text weight="semibold">{device.name}</Text>
-      <DeviceTelemetry compact id={device.id} />
-    </Stack>
+    <div className="tech-lab-widget">
+      <DeviceCard device={device} />
+    </div>
   )
 }
 

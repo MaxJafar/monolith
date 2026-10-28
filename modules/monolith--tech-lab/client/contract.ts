@@ -591,6 +591,105 @@ export const contract = {
                 required: ['name', 'used_bytes', 'total_bytes'],
                 additionalProperties: false
               }
+            },
+            system: {
+              default: null,
+              anyOf: [
+                {
+                  type: 'object',
+                  properties: {
+                    hostname: {
+                      type: 'string',
+                      maxLength: 255
+                    },
+                    name: {
+                      type: 'string',
+                      maxLength: 500
+                    }
+                  },
+                  required: ['hostname', 'name'],
+                  additionalProperties: false
+                },
+                {
+                  type: 'null'
+                }
+              ]
+            },
+            cpu_name: {
+              default: null,
+              anyOf: [
+                {
+                  type: 'string',
+                  maxLength: 500
+                },
+                {
+                  type: 'null'
+                }
+              ]
+            },
+            load: {
+              default: null,
+              anyOf: [
+                {
+                  type: 'object',
+                  properties: {
+                    min1: {
+                      type: 'number',
+                      minimum: 0
+                    },
+                    min5: {
+                      type: 'number',
+                      minimum: 0
+                    },
+                    min15: {
+                      type: 'number',
+                      minimum: 0
+                    },
+                    cores: {
+                      anyOf: [
+                        {
+                          type: 'integer',
+                          minimum: 0,
+                          maximum: 9007199254740991
+                        },
+                        {
+                          type: 'null'
+                        }
+                      ]
+                    }
+                  },
+                  required: ['min1', 'min5', 'min15', 'cores'],
+                  additionalProperties: false
+                },
+                {
+                  type: 'null'
+                }
+              ]
+            },
+            processes: {
+              default: [],
+              maxItems: 10,
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  name: {
+                    type: 'string',
+                    maxLength: 255
+                  },
+                  cpu_percent: {
+                    type: 'number',
+                    minimum: 0
+                  },
+                  memory_percent: {
+                    type: 'number',
+                    minimum: 0,
+                    maximum: 100
+                  }
+                },
+                required: ['name', 'cpu_percent', 'memory_percent'],
+                additionalProperties: false
+              }
             }
           },
           required: [
@@ -601,7 +700,11 @@ export const contract = {
             'ram_used_bytes',
             'ram_total_bytes',
             'uptime_seconds',
-            'filesystems'
+            'filesystems',
+            'system',
+            'cpu_name',
+            'load',
+            'processes'
           ],
           additionalProperties: false
         }
@@ -3059,6 +3162,267 @@ export const contract = {
           }
         },
         required: ['devices', 'services', 'health', 'settings', 'checked_at'],
+        additionalProperties: false
+      }
+    }
+  },
+  timeline: {
+    method: 'get',
+    description:
+      'Read bucketed check counts for every monitored service over recent hours',
+    noAuth: false,
+    encrypted: true,
+    isDownloadable: false,
+    media: null,
+    input: {
+      query: {
+        $schema: 'https://json-schema.org/draft/2020-12/schema',
+        type: 'object',
+        properties: {
+          hours: {
+            default: 24,
+            type: 'integer',
+            minimum: 1,
+            maximum: 168
+          },
+          buckets: {
+            default: 48,
+            type: 'integer',
+            minimum: 12,
+            maximum: 96
+          }
+        },
+        required: ['hours', 'buckets'],
+        additionalProperties: false
+      }
+    },
+    output: {
+      OK: {
+        $schema: 'https://json-schema.org/draft/2020-12/schema',
+        type: 'object',
+        properties: {
+          from: {
+            type: 'string',
+            format: 'date-time',
+            pattern:
+              '^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$'
+          },
+          to: {
+            type: 'string',
+            format: 'date-time',
+            pattern:
+              '^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$'
+          },
+          bucket_seconds: {
+            type: 'integer',
+            exclusiveMinimum: 0,
+            maximum: 9007199254740991
+          },
+          services: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                service_id: {
+                  type: 'string',
+                  format: 'uuid',
+                  pattern:
+                    '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$'
+                },
+                buckets: {
+                  type: 'array',
+                  items: {
+                    anyOf: [
+                      {
+                        type: 'object',
+                        properties: {
+                          up: {
+                            type: 'integer',
+                            minimum: 0,
+                            maximum: 9007199254740991
+                          },
+                          down: {
+                            type: 'integer',
+                            minimum: 0,
+                            maximum: 9007199254740991
+                          },
+                          error: {
+                            type: 'integer',
+                            minimum: 0,
+                            maximum: 9007199254740991
+                          },
+                          latency_ms: {
+                            anyOf: [
+                              {
+                                type: 'number',
+                                minimum: 0
+                              },
+                              {
+                                type: 'null'
+                              }
+                            ]
+                          }
+                        },
+                        required: ['up', 'down', 'error', 'latency_ms'],
+                        additionalProperties: false
+                      },
+                      {
+                        type: 'null'
+                      }
+                    ]
+                  }
+                }
+              },
+              required: ['service_id', 'buckets'],
+              additionalProperties: false
+            }
+          }
+        },
+        required: ['from', 'to', 'bucket_seconds', 'services'],
+        additionalProperties: false
+      }
+    }
+  },
+  uptimeKuma: {
+    method: 'get',
+    description:
+      'Read monitors and recent heartbeats from a public Uptime Kuma status page',
+    noAuth: false,
+    encrypted: true,
+    isDownloadable: false,
+    media: null,
+    input: {
+      query: {
+        $schema: 'https://json-schema.org/draft/2020-12/schema',
+        type: 'object',
+        properties: {
+          url: {
+            default: '',
+            type: 'string',
+            maxLength: 2048
+          }
+        },
+        required: ['url'],
+        additionalProperties: false
+      }
+    },
+    output: {
+      OK: {
+        $schema: 'https://json-schema.org/draft/2020-12/schema',
+        type: 'object',
+        properties: {
+          title: {
+            type: 'string',
+            maxLength: 500
+          },
+          url: {
+            type: 'string',
+            maxLength: 2048
+          },
+          captured_at: {
+            type: 'string',
+            format: 'date-time',
+            pattern:
+              '^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$'
+          },
+          monitors: {
+            maxItems: 200,
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                id: {
+                  type: 'integer',
+                  minimum: -9007199254740991,
+                  maximum: 9007199254740991
+                },
+                name: {
+                  type: 'string',
+                  maxLength: 500
+                },
+                group: {
+                  type: 'string',
+                  maxLength: 500
+                },
+                uptime_24h: {
+                  anyOf: [
+                    {
+                      type: 'number',
+                      minimum: 0,
+                      maximum: 1
+                    },
+                    {
+                      type: 'null'
+                    }
+                  ]
+                },
+                status: {
+                  anyOf: [
+                    {
+                      type: 'string',
+                      enum: ['down', 'up', 'pending', 'maintenance']
+                    },
+                    {
+                      type: 'null'
+                    }
+                  ]
+                },
+                ping_ms: {
+                  anyOf: [
+                    {
+                      type: 'number',
+                      minimum: 0
+                    },
+                    {
+                      type: 'null'
+                    }
+                  ]
+                },
+                beats: {
+                  maxItems: 100,
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      status: {
+                        type: 'string',
+                        enum: ['down', 'up', 'pending', 'maintenance']
+                      },
+                      time: {
+                        type: 'string',
+                        maxLength: 64
+                      },
+                      ping_ms: {
+                        anyOf: [
+                          {
+                            type: 'number',
+                            minimum: 0
+                          },
+                          {
+                            type: 'null'
+                          }
+                        ]
+                      }
+                    },
+                    required: ['status', 'time', 'ping_ms'],
+                    additionalProperties: false
+                  }
+                }
+              },
+              required: [
+                'id',
+                'name',
+                'group',
+                'uptime_24h',
+                'status',
+                'ping_ms',
+                'beats'
+              ],
+              additionalProperties: false
+            }
+          }
+        },
+        required: ['title', 'url', 'captured_at', 'monitors'],
         additionalProperties: false
       }
     }

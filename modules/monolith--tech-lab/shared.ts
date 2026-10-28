@@ -198,7 +198,95 @@ export const deviceTelemetrySchema = z.object({
       used_bytes: z.number().finite().min(0),
       total_bytes: z.number().finite().min(0)
     })
+  ),
+  system: z
+    .object({ hostname: z.string().max(255), name: z.string().max(500) })
+    .nullable()
+    .default(null),
+  cpu_name: z.string().max(500).nullable().default(null),
+  load: z
+    .object({
+      min1: z.number().finite().min(0),
+      min5: z.number().finite().min(0),
+      min15: z.number().finite().min(0),
+      cores: z.number().int().min(0).nullable()
+    })
+    .nullable()
+    .default(null),
+  processes: z
+    .array(
+      z.object({
+        name: z.string().max(255),
+        cpu_percent: z.number().finite().min(0),
+        memory_percent: z.number().finite().min(0).max(100)
+      })
+    )
+    .max(10)
+    .default([])
+})
+
+export const timelineInputSchema = z.object({
+  hours: z.coerce.number().int().min(1).max(168).default(24),
+  buckets: z.coerce.number().int().min(12).max(96).default(48)
+})
+
+const bucketSchema = z
+  .object({
+    up: z.number().int().min(0),
+    down: z.number().int().min(0),
+    error: z.number().int().min(0),
+    latency_ms: z.number().finite().min(0).nullable()
+  })
+  .nullable()
+
+export const timelineSchema = z.object({
+  from: instantSchema,
+  to: instantSchema,
+  bucket_seconds: z.number().int().positive(),
+  services: z.array(
+    z.object({ service_id: z.string().uuid(), buckets: z.array(bucketSchema) })
   )
+})
+
+export const uptimeKumaInputSchema = z.object({
+  url: httpUrlSchema.refine(
+    value => /\/status\/[a-z0-9-]{1,64}\/?$/i.test(value),
+    'Use an Uptime Kuma status page URL such as http://host:3001/status/homelab'
+  )
+})
+
+export const kumaBeatStatusSchema = z.enum([
+  'down',
+  'up',
+  'pending',
+  'maintenance'
+])
+
+export const uptimeKumaSchema = z.object({
+  title: z.string().max(500),
+  url: z.string().max(2048),
+  captured_at: instantSchema,
+  monitors: z
+    .array(
+      z.object({
+        id: z.number().int(),
+        name: z.string().max(500),
+        group: z.string().max(500),
+        uptime_24h: z.number().finite().min(0).max(1).nullable(),
+        status: kumaBeatStatusSchema.nullable(),
+        ping_ms: z.number().finite().min(0).nullable(),
+        beats: z
+          .array(
+            z.object({
+              status: kumaBeatStatusSchema,
+              time: z.string().max(64),
+              ping_ms: z.number().finite().min(0).nullable()
+            })
+          )
+          .max(100)
+      })
+    )
+    .max(200)
 })
 
 export const importDataSchema = z
@@ -282,6 +370,10 @@ export type ServiceHealth = z.infer<typeof serviceHealthSchema>
 export type TechLabSnapshot = z.infer<typeof snapshotSchema>
 
 export type DeviceTelemetry = z.infer<typeof deviceTelemetrySchema>
+
+export type TechLabTimeline = z.infer<typeof timelineSchema>
+
+export type UptimeKumaStatus = z.infer<typeof uptimeKumaSchema>
 
 export type TechLabImportData = z.infer<typeof importDataSchema>
 

@@ -1,6 +1,6 @@
 {
   "name": "@monolith/client",
-  "version": "0.1.19",
+  "version": "0.1.20",
   "private": true,
   "description": "Monolith workspace client",
   "license": "0BSD",

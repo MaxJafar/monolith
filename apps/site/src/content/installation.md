@@ -5,7 +5,7 @@ section: Start here
 order: 2
 ---
 
-Download **0.1.19** from [release downloads](/docs/availability), or build the public source using the steps below.
+Download **0.1.20** from [release downloads](/docs/availability), or build the public source using the steps below.
 
 ## Install Monolith
 

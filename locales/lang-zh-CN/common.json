@@ -1973,7 +1973,6 @@
     "download": "下载更新",
     "restartInstall": "重启并安装",
     "installServer": "安装服务器更新",
-    "rollback": "恢复上一版本",
     "autoDownload": "自动下载更新",
     "autoInstall": "自动安装更新",
     "idleHelp": "应用进入后台两分钟且所有修改已保存后重启。",

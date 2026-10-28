@@ -154,17 +154,6 @@ export default function UpdateCard({
                 {label(native ? 'restartInstall' : 'installServer')}
               </Button>
             )}
-            {state.canRollback && (
-              <Button
-                disabled={disabled}
-                icon="lucide:undo-2"
-                namespace={false}
-                variant="secondary"
-                onClick={() => onAction('rollback')}
-              >
-                {label('rollback')}
-              </Button>
-            )}
           </Flex>
           <Box className="monolith-update-preferences">
             <Flex align="center" gap="lg" justify="between">

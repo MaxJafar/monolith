@@ -29,7 +29,7 @@ A failed version is not repeatedly installed automatically. Read the reported er
 
 Signed metadata binds the version, platform, byte size, checksum and download URL. The updater verifies the package before activation.
 
-Desktop updates retain the previous application. The new client must start and acknowledge readiness; an early exit, launch failure or missing acknowledgement restores the previous version. **Restore previous version** provides a manual recovery action after success. User settings, credentials and drafts live outside the replaceable app files.
+Desktop updates retain the previous application. The new client must start and acknowledge readiness; an early exit, launch failure or missing acknowledgement restores the previous version. User settings, credentials and drafts live outside the replaceable app files.
 
 The server supervisor retains previous image IDs and checks both Compose health and application health. It restores the old runtime if activation fails. Single-host replacement involves a short service interruption. An interrupted transaction is recovered from its journal before another update proceeds.
 

@@ -1973,7 +1973,6 @@
     "download": "Download update",
     "restartInstall": "Restart and install",
     "installServer": "Install server update",
-    "rollback": "Restore previous version",
     "autoDownload": "Download updates automatically",
     "autoInstall": "Install updates automatically",
     "idleHelp": "Restart when the app is in the background for two minutes and all edits are saved.",

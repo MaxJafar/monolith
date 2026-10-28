@@ -38,7 +38,10 @@ import { FieldEditor } from './FieldEditor'
 import { PageConnections } from './PageConnections'
 import { PropertyCell } from './PropertyCell'
 import { RecordSurface } from './RecordSurface'
-import { CalendarScheduleEditor } from './calendar/CalendarScheduleEditor'
+import {
+  ScheduleProperties,
+  schedulePropertyCount
+} from './calendar/ScheduleProperties'
 import { ProjectActionsPanel } from './work/ProjectActionsPanel'
 
 const emptyFields: Field[] = []
@@ -386,6 +389,13 @@ export function RecordEditor({
     ...(showSystem || kind !== 'page' ? builtins : []),
     ...fields
   ]
+  const scheduled =
+    kind === 'event' ||
+    kind === 'task' ||
+    fields.some(field => field.kind === 'date')
+      ? saved
+      : undefined
+  const scheduleCount = scheduled ? schedulePropertyCount : 0
   const propertyValues: Record<string, CellValue | undefined> = {
     ...values,
     item_type: kind,
@@ -481,6 +491,12 @@ export function RecordEditor({
             <Stack gap="xs">{builtins.map(propertyRow)}</Stack>
           </AnimatedCollapse>
           {fields.map(propertyRow)}
+          {scheduled && (
+            <ScheduleProperties
+              record={scheduled}
+              onDirtyChange={setScheduleDirty}
+            />
+          )}
           {!readOnly && (
             <Button
               className="database-add-property"
@@ -512,7 +528,8 @@ export function RecordEditor({
           )}
         </Stack>
       </AnimatedCollapse>
-      {(!propertiesExpanded || fields.length + builtins.length > 5) && (
+      {(!propertiesExpanded ||
+        fields.length + builtins.length + scheduleCount > 5) && (
         <Button
           aria-controls={propertiesId}
           aria-expanded={propertiesExpanded}
@@ -524,19 +541,10 @@ export function RecordEditor({
           onClick={() => setPropertiesExpanded(!propertiesExpanded)}
         >
           {t(propertiesExpanded ? 'hideProperties' : 'showProperties', {
-            count: pageFields.length
+            count: pageFields.length + scheduleCount
           })}
         </Button>
       )}
-      {saved &&
-        (kind === 'event' ||
-          kind === 'task' ||
-          fields.some(field => field.kind === 'date')) && (
-          <CalendarScheduleEditor
-            record={saved}
-            onDirtyChange={setScheduleDirty}
-          />
-        )}
       {record && (
         <Stack className="database-comments" gap="sm">
           <Text as="h3" color="muted" size="xs" weight="semibold">

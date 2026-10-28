@@ -425,41 +425,53 @@
   outline: 2px solid var(--selection-color);
   outline-offset: 1px;
 }
-.monolith-schedule .monolith-calendar-field input,
-.monolith-schedule .monolith-choice-select {
-  min-height: 36px;
+.monolith-schedule-popover {
+  padding: 10px;
+}
+.monolith-schedule-popover .monolith-calendar-field input,
+.monolith-schedule-popover .monolith-choice-select,
+.monolith-schedule-search {
+  min-height: 34px;
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-md, 6px);
   background: var(--bg-surface);
   font-size: 13px;
   color-scheme: inherit;
 }
-.monolith-schedule [data-inline] {
-  align-self: end;
+.monolith-schedule-search {
+  width: 100%;
+  padding: 6px 8px;
+  color: var(--text-primary);
+  font-family: inherit;
 }
-.monolith-schedule-section {
-  padding: 14px 16px 16px;
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-xl, 12px);
-  background: color-mix(in srgb, var(--text-primary) 2%, var(--bg-surface));
+.monolith-schedule-zones {
+  max-height: 200px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
-.monolith-schedule-heading {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0;
+.monolith-schedule-zone {
+  padding: 6px 8px;
+  border: 0;
+  border-radius: var(--radius-sm, 4px);
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
   font-size: 13px;
-  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
 }
-.monolith-schedule-heading > svg {
-  color: var(--text-muted);
+.monolith-schedule-zone:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--selection-color) 9%, transparent);
+}
+.monolith-schedule-zone[aria-pressed='true'] {
+  background: color-mix(in srgb, var(--selection-color) 14%, transparent);
+  font-weight: 500;
 }
 .monolith-schedule-toggle {
-  min-height: 36px;
-  padding: 6px 10px 6px 12px;
+  min-height: 34px;
+  padding: 6px 8px 6px 10px;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md, 6px);
-  background: var(--bg-surface);
   cursor: pointer;
   transition: border-color var(--motion-fast) var(--motion-ease);
 }
@@ -472,36 +484,46 @@
 .monolith-schedule-toggle[data-disabled] > :first-child {
   opacity: 0.6;
 }
-.monolith-schedule .monolith-schedule-chip {
-  min-height: 30px;
-  padding: 4px 11px;
-  font-size: 13px;
+.monolith-schedule-popover .monolith-schedule-chip {
+  min-height: 28px;
+  padding: 3px 10px;
+  font-size: 12px;
   font-weight: 450;
   color: var(--text-muted);
 }
-.monolith-schedule .monolith-schedule-chip[aria-pressed='true'] {
+.monolith-schedule-weekdays > .monolith-schedule-chip {
+  padding-inline: 0;
+}
+.monolith-schedule-popover .monolith-schedule-chip[aria-pressed='true'] {
   border-color: color-mix(in srgb, var(--selection-color) 55%, transparent);
   background: color-mix(in srgb, var(--selection-color) 14%, var(--bg-surface));
   color: var(--text-primary);
 }
 .monolith-schedule-guest {
-  min-height: 36px;
-  padding: 4px 8px;
-  margin-inline: -8px;
+  min-height: 34px;
+  padding: 3px 6px;
   border-radius: var(--radius-md, 6px);
   transition: background var(--motion-fast) var(--motion-ease);
 }
 .monolith-schedule-guest:hover {
   background: color-mix(in srgb, var(--text-primary) 5%, transparent);
 }
-.monolith-schedule-rsvp {
-  padding: 2px 8px;
+.monolith-schedule-rsvp,
+.monolith-schedule-guest-chip {
+  padding: 1px 8px;
   border-radius: 999px;
   background: var(--bg-lifted);
   color: var(--text-muted);
+  font-size: 12px;
   white-space: nowrap;
 }
-.monolith-schedule-rsvp[data-status='accepted'] {
+.monolith-schedule-guest-chip {
+  color: var(--text-primary);
+}
+:is(
+  .monolith-schedule-rsvp,
+  .monolith-schedule-guest-chip
+)[data-status='accepted'] {
   color: var(--semantic-success, #3f9b6f);
   background: color-mix(
     in srgb,
@@ -509,15 +531,25 @@
     transparent
   );
 }
-.monolith-schedule-rsvp[data-status='declined'] {
+:is(
+  .monolith-schedule-rsvp,
+  .monolith-schedule-guest-chip
+)[data-status='declined'] {
   color: var(--accent-red);
   background: color-mix(in srgb, var(--accent-red) 12%, transparent);
+  text-decoration: line-through;
 }
-.monolith-schedule-footer {
-  padding-top: 2px;
+.monolith-schedule-rsvp-section {
+  padding-top: 8px;
+  border-top: 1px solid var(--border-subtle);
+}
+.monolith-schedule-status {
+  min-height: 30px;
+  padding: 4px 6px;
 }
 @media (pointer: coarse) {
-  .monolith-schedule .monolith-schedule-chip {
+  .monolith-schedule-popover .monolith-schedule-chip,
+  .monolith-schedule-zone {
     min-height: 44px;
   }
 }

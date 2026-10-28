@@ -12,7 +12,7 @@ Dragging a database entry updates that property on the original record. Custom D
 
 ## Repeating events and tasks
 
-Open a dated record and use **Schedule & guests**. Choose daily, weekly, monthly or yearly repeats, an interval, optional weekdays, and either a final date or occurrence count. The IANA time zone preserves local start time across daylight-saving changes. Invalid dates, such as February 31, and nonexistent DST times are skipped.
+Open a dated record and use its **Repeat**, **Reminders**, **Guests** and **Time zone** properties. Each opens a small editor and saves when it closes; **Hide properties** hides them with the rest of the page properties. Choose daily, weekly, monthly or yearly repeats, an interval, optional weekdays, and either a final date or occurrence count. The IANA time zone preserves local start time across daylight-saving changes. Invalid dates, such as February 31, and nonexistent DST times are skipped.
 
 Moving, resizing, skipping or completing a calendar occurrence changes only that occurrence. The record page edits the series. Once a series has individual changes, changing its recurrence pattern, time zone or seed dates is rejected to preserve those changes; create a new series for a different pattern. Marking the original task complete stops reminders for the whole series.
 

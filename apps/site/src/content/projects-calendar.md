@@ -27,7 +27,7 @@ Date properties in databases include **Open in Calendar**. Moving an entry edits
 
 ## Repeat and share work
 
-Open a dated task or event and use **Schedule & guests** to choose daily, weekly, monthly or yearly repeats, intervals, weekdays and an end date or count. Recurrence follows the selected time zone. Editing or completing an occurrence affects that occurrence; the full record represents the series. Actions shows recurring occurrences from the previous 30 days through the next 31 days.
+Open a dated task or event and use its **Repeat**, **Reminders**, **Guests** and **Time zone** properties. Repeat chooses daily, weekly, monthly or yearly repeats, intervals, weekdays and an end date or count. Recurrence follows the selected time zone. Editing or completing an occurrence affects that occurrence; the full record represents the series. Actions shows recurring occurrences from the previous 30 days through the next 31 days.
 
 Invite existing workspace members and track Accepted, Tentative or Declined responses. Viewers can answer their own invitation; owners and editors can change events. The app-bar bell shows invitations, changes and reminders. Email reminders and changes are opt-in and require server configuration; in-app delivery works without it.
 

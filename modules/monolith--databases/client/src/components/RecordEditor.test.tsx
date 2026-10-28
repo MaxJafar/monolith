@@ -48,8 +48,9 @@ vi.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key })
 }))
 vi.mock('@/manifest', () => ({ workspaceAPI: {} }))
-vi.mock('./calendar/CalendarScheduleEditor', () => ({
-  CalendarScheduleEditor: ({
+vi.mock('./calendar/ScheduleProperties', () => ({
+  schedulePropertyCount: 4,
+  ScheduleProperties: ({
     onDirtyChange
   }: {
     onDirtyChange: (dirty: boolean) => void

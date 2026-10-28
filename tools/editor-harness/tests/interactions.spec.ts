@@ -179,6 +179,55 @@ test('the Go conversion snapshot imports every block and renders its literal tex
   ).toContainText('# literally plain text')
 })
 
+test('dividers import in a note and inside a column', async ({ page }) => {
+  const result = await page.evaluate(async () => {
+    const runtime = window.monolithHarness!
+    const block = (
+      id: string,
+      flavour: string,
+      props: Record<string, unknown> = {},
+      children: unknown[] = [],
+      version = 1
+    ) => ({ type: 'block', id, flavour, version, props, children })
+    const text = (insert: string) => ({
+      '$blocksuite:internal:text$': true,
+      delta: [{ insert }]
+    })
+    const restored = await runtime.store.getTransformer().snapshotToDoc({
+      type: 'page',
+      meta: { id: 'divider-page', title: 'Dividers', createDate: 0, tags: [] },
+      blocks: block(
+        'root',
+        'affine:page',
+        { title: text('Dividers') },
+        [
+          block('surface', 'affine:surface', { elements: {} }),
+          block('note', 'affine:note', {}, [
+            block('note-divider', 'affine:divider'),
+            block('columns', 'monolith:columns', { count: 2 }, [
+              block('left', 'monolith:column', {}, [
+                block('column-divider', 'affine:divider')
+              ]),
+              block('right', 'monolith:column', {}, [
+                block('right-text', 'affine:paragraph', {
+                  type: 'text',
+                  text: text('Right')
+                })
+              ])
+            ])
+          ])
+        ],
+        2
+      )
+    } as never)
+
+    return ['note-divider', 'column-divider'].map(
+      id => restored?.getModelById(id)?.flavour ?? null
+    )
+  })
+  expect(result).toEqual(['affine:divider', 'affine:divider'])
+})
+
 test('selection, ordered group movement and one-step undo survive React renders', async ({
   page
 }) => {

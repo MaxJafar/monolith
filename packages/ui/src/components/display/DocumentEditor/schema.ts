@@ -128,8 +128,10 @@ export const monolithSchemas: ExtensionType[] = [
           'monolith:numbering': null,
           'monolith:background': ''
         }),
-        parent: [
-          ...(schema.model.parent ?? []),
+        // No parent list means "any parent" upstream (dividers, for example).
+        // Only extend explicit lists, or those blocks could not sit in a note.
+        parent: schema.model.parent && [
+          ...schema.model.parent,
           'monolith:column',
           'monolith:group'
         ]

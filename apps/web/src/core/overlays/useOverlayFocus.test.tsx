@@ -8,8 +8,12 @@ import { useOverlayFocus } from './useOverlayFocus'
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true })
 let host: HTMLDivElement, root: Root, trigger: HTMLButtonElement
 const close = vi.fn()
-function Settings() {
-  const ref = useOverlayFocus(close)
+function Settings({
+  dismissOnBackdrop = false
+}: {
+  dismissOnBackdrop?: boolean
+}) {
+  const ref = useOverlayFocus(close, { dismissOnBackdrop })
   return (
     <div data-modal-overlay data-modal-topmost="true">
       <div ref={ref}>
@@ -68,4 +72,24 @@ it('returns focus to the trigger when closing its own active surface', async () 
   host.querySelector('button')!.focus()
   await act(async () => root.render(null))
   expect(document.activeElement).toBe(trigger)
+})
+const press = (target: Element) =>
+  target.dispatchEvent(new Event('pointerdown', { bubbles: true }))
+it('closes from a backdrop press only when asked to', async () => {
+  const backdrop = host.querySelector('[data-modal-overlay]')!
+  press(backdrop)
+  expect(close).not.toHaveBeenCalled()
+  await act(async () => root.render(<Settings dismissOnBackdrop />))
+  press(host.querySelector('button')!)
+  expect(close).not.toHaveBeenCalled()
+  press(backdrop)
+  expect(close).toHaveBeenCalledOnce()
+})
+it('leaves a backdrop press to an open nested picker', async () => {
+  await act(async () => root.render(<Settings dismissOnBackdrop />))
+  const menu = document.createElement('div')
+  menu.setAttribute('role', 'listbox')
+  document.body.append(menu)
+  press(host.querySelector('[data-modal-overlay]')!)
+  expect(close).not.toHaveBeenCalled()
 })

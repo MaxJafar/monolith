@@ -107,7 +107,7 @@ export default function SettingsOverlay({
   const { t } = useTranslation('common.workspaceUI')
   const [section, setSection] = useState(data.section)
   const [query, setQuery] = useState('')
-  const ref = useOverlayFocus(onClose)
+  const ref = useOverlayFocus(onClose, { dismissOnBackdrop: true })
   const navigate = useNavigate()
 
   return (

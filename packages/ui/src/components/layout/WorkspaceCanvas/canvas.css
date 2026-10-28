@@ -2,9 +2,10 @@
   max-width: 920px;
   margin: 0 auto;
   padding-bottom: 64px;
+  transition: max-width var(--motion-expressive) var(--motion-ease);
 }
 .workspace-canvas[data-full-width='true'] {
-  max-width: none;
+  max-width: 100%;
 }
 .workspace-canvas .canvas-page-tools {
   min-height: 36px;

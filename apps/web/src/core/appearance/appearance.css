@@ -70,6 +70,28 @@
   padding: 12px 0;
   z-index: 2;
 }
+.monolith-page-content {
+  --page-gutter-top: calc(var(--spacing) * 6);
+  --page-gutter-inline: calc(var(--spacing) * 4);
+  padding: var(--page-gutter-top) var(--page-gutter-inline) 0;
+}
+@media (min-width: 700px) {
+  .monolith-page-content {
+    --page-gutter-inline: calc(var(--spacing) * 12);
+  }
+}
+/* As in Notion, a page cover cancels the page gutters and runs edge to edge
+   beneath the app bar, whatever the content width. */
+.monolith-page-content > .appearance-cover,
+.monolith-module-content > .appearance-cover {
+  width: auto;
+  max-width: none;
+  height: clamp(160px, 30vh, 280px);
+  margin-top: calc(-1 * var(--page-gutter-top));
+  margin-inline: calc(-1 * var(--page-gutter-inline));
+  border-radius: 0;
+}
+/* Full width is 100% rather than none so the change can animate. */
 .appearance-page[data-content-width='standard']
   .monolith-module-content
   > :not(.appearance-cover),
@@ -82,9 +104,13 @@
   .monolith-module-content
   > :not(.appearance-cover),
 .appearance-page[data-content-width='full'] .system-workspace {
-  max-width: none;
+  max-width: 100%;
   margin-inline: auto;
   width: 100%;
+}
+.appearance-page .monolith-module-content > :not(.appearance-cover),
+.appearance-page .system-workspace {
+  transition: max-width var(--motion-expressive) var(--motion-ease);
 }
 @media (max-width: 700px) {
   .appearance-preview-column {

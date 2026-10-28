@@ -51,9 +51,11 @@ export function SearchInput({
   onEnter,
   ...layout
 }: SearchInputProps) {
-  const { t } = useModuleTranslation(
+  const namespaces =
     namespace === false ? [] : [namespace || 'common.misc', 'common.misc']
-  )
+
+  const { t, ns } = useModuleTranslation(namespaces)
+
   const target =
     namespace === false
       ? searchTarget
@@ -65,10 +67,16 @@ export function SearchInput({
           ],
           { defaultValue: searchTarget }
         )
+  // t reads only its first namespace, but the shared "Search …" label lives
+  // in common.misc, so the label looks through every namespace in order.
   const label =
     namespace === false
       ? 'Search ' + searchTarget
-      : t('search', { item: target, defaultValue: 'Search ' + target })
+      : t('search', {
+          ns: [...(ns ? [ns] : []), ...namespaces],
+          item: target,
+          defaultValue: 'Search ' + target
+        })
   const input = useRef<HTMLInputElement>(null)
   const anchor = useRef<HTMLDivElement>(null)
   const results = useRef<HTMLDivElement>(null)

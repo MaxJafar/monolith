@@ -42,6 +42,7 @@ import {
 } from '@/providers/AppearanceProvider'
 import { usePageChrome } from '@/providers/PageChromeProvider'
 
+import './document.css'
 import {
   type DatabaseChoiceOptions,
   DocumentEditor,
@@ -512,10 +513,11 @@ function ActiveDocument({
 
   return (
     <Stack
+      className="monolith-document-column"
       gap="md"
       maxWidth={
         widgetScope || appearanceContext.appearance.contentWidth === 'full'
-          ? 'none'
+          ? '100%'
           : '920px'
       }
       minWidth="0"

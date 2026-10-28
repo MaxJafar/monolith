@@ -75,7 +75,9 @@
   text-decoration: none;
 }
 .monolith-module-content {
-  padding: 24px clamp(20px, 4vw, 64px) 48px !important;
+  --page-gutter-top: 24px;
+  --page-gutter-inline: clamp(20px, 4vw, 64px);
+  padding: var(--page-gutter-top) var(--page-gutter-inline) 48px !important;
   max-width: 1600px;
   margin-inline: auto;
 }

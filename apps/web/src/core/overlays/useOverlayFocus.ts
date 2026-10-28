@@ -1,11 +1,18 @@
 import { useEffect, useRef } from 'react'
 
-/** Focus stays in the frontmost surface; nested pickers keep their own focus. */
-export function useOverlayFocus(onClose: () => void) {
+/** Focus stays in the frontmost surface; nested pickers keep their own focus.
+ * With `dismissOnBackdrop`, a press on the backdrop around the surface closes
+ * it, unless a nested picker is open there. */
+export function useOverlayFocus(
+  onClose: () => void,
+  { dismissOnBackdrop = false }: { dismissOnBackdrop?: boolean } = {}
+) {
   const ref = useRef<HTMLDivElement>(null)
   const close = useRef(onClose)
+  const backdropDismiss = useRef(dismissOnBackdrop)
 
   close.current = onClose
+  backdropDismiss.current = dismissOnBackdrop
   useEffect(() => {
     const root = ref.current
 
@@ -24,6 +31,17 @@ export function useOverlayFocus(onClose: () => void) {
           !element.closest('[inert]')
       )
     const isTop = () => root.closest('[data-modal-topmost="true"]') !== null
+    const nestedLayerOpen = () =>
+      Array.from(
+        document.querySelectorAll<HTMLElement>(
+          '.monolith-floating-surface,[role="listbox"],[role="menu"]'
+        )
+      ).some(
+        layer =>
+          !root.contains(layer) &&
+          layer.getClientRects().length &&
+          !layer.closest('[inert]')
+      )
 
     let initialized = false
 
@@ -49,19 +67,7 @@ export function useOverlayFocus(onClose: () => void) {
 
     function keydown(event: KeyboardEvent) {
       if (!isTop() || event.defaultPrevented || event.isComposing) return
-      if (
-        Array.from(
-          document.querySelectorAll<HTMLElement>(
-            '.monolith-floating-surface,[role="listbox"],[role="menu"]'
-          )
-        ).some(
-          layer =>
-            !root!.contains(layer) &&
-            layer.getClientRects().length &&
-            !layer.closest('[inert]')
-        )
-      )
-        return
+      if (nestedLayerOpen()) return
 
       if (event.key === 'Escape') {
         event.preventDefault()
@@ -108,14 +114,26 @@ export function useOverlayFocus(onClose: () => void) {
       )
         (controls()[0] ?? root)?.focus()
     }
+
+    function backdrop(event: Event) {
+      if (
+        backdropDismiss.current &&
+        event.target === wrapper &&
+        isTop() &&
+        !nestedLayerOpen()
+      )
+        close.current()
+    }
     document.addEventListener('keydown', keydown)
     document.addEventListener('focusin', focus)
+    wrapper?.addEventListener('pointerdown', backdrop)
 
     return () => {
       cancelAnimationFrame(frame)
       observer.disconnect()
       document.removeEventListener('keydown', keydown)
       document.removeEventListener('focusin', focus)
+      wrapper?.removeEventListener('pointerdown', backdrop)
       if (
         previous instanceof HTMLElement &&
         previous.isConnected &&

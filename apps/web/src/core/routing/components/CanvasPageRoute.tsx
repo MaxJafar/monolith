@@ -39,14 +39,13 @@ export default function CanvasPageRoute({ pageId }: { pageId?: string } = {}) {
 
   return (
     <Box
+      className="monolith-page-content"
       flex="1"
       minHeight="0"
       overflowY="auto"
       onWheel={event =>
         elasticScrollEdge(event.currentTarget, event.nativeEvent)
       }
-      pt="lg"
-      px={{ base: 'md', sm: '2xl' }}
     >
       <WorkspaceCanvas
         key={id}

@@ -1,3 +1,7 @@
+/* Switching between standard and full width eases the column open or shut. */
+.monolith-document-column {
+  transition: max-width var(--motion-expressive) var(--motion-ease);
+}
 .monolith-document-body {
   padding-inline: 56px 12px;
   min-width: 0;

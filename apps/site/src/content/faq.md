@@ -15,7 +15,7 @@ Use [Installation](/docs/installation) to set up a development host, then follow
 
 ## Where do I download the desktop clients?
 
-Download the Windows x64 installer or universal macOS disk image from [release downloads](/docs/availability). Version **0.1.18** supports automatic updates: Windows is unsigned, and macOS is ad-hoc signed and not notarized. Both clients connect to a separately hosted Monolith server. You can also build the public source.
+Download the Windows x64 installer or universal macOS disk image from [release downloads](/docs/availability). Version **0.1.19** supports automatic updates: Windows is unsigned, and macOS is ad-hoc signed and not notarized. Both clients connect to a separately hosted Monolith server. You can also build the public source.
 
 ## Do I need every addon?
 

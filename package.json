@@ -4,7 +4,7 @@
   "type": "module",
   "packageManager": "pnpm@11.21.0",
   "description": "monolith — a personal workspace for projects, knowledge and connected databases",
-  "version": "0.1.18",
+  "version": "0.1.19",
   "license": "0BSD",
   "author": "Monolith contributors",
   "homepage": "https://monolith-site-maxjafars-projects.vercel.app",

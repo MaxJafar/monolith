@@ -1,6 +1,6 @@
 {
   "name": "@monolith/agent-tools",
-  "version": "0.1.18",
+  "version": "0.1.19",
   "description": "Monolith CLI and MCP bridge for coding agents",
   "author": "Monolith contributors",
   "license": "0BSD",

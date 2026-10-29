@@ -28,7 +28,6 @@ function serverEntries(root: string): Record<string, string> {
 }
 
 export function defineModuleServerConfig(dirname: string) {
-  const portable = process.env.MONOLITH_ADDON_RELEASE === '1'
   const shared = [
     'server-utils',
     'drizzle',
@@ -46,12 +45,12 @@ export function defineModuleServerConfig(dirname: string) {
         { find: /^@$/, replacement: dirname + '/index' }
       ]
     },
-    ssr: portable
-      ? {
-          noExternal: true,
-          external: [...shared, 'drizzle-orm', 'zod', 'dayjs']
-        }
-      : undefined,
+    // Server images and portable addon releases bundle the same dependencies.
+    // Hosts approve schema.js by hash, so its bytes must not depend on the mode.
+    ssr: {
+      noExternal: true,
+      external: [...shared, 'drizzle-orm', 'zod', 'dayjs']
+    },
     build: {
       ssr: true,
       target: 'node22',

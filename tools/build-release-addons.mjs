@@ -1,6 +1,8 @@
 import { spawnSync } from 'node:child_process'
 import fs from 'node:fs'
 
+import { schemaAddons, schemaParity } from './addon-schema-parity.mjs'
+
 const selected = process.argv.slice(2)
 if (
   selected.some(
@@ -12,6 +14,19 @@ const core = new Set([
   'monolith--databases'
 ])
 const pnpm = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm'
+
+// A catalog schemaHash is only approvable if server images build the same file.
+const diverged = schemaParity(
+  schemaAddons(selected).filter(id => !core.has(id))
+)
+
+if (diverged.length) {
+  console.error(
+    `Server image and portable builds emit different schema.js for ${diverged.map(item => item.id).join(', ')}. Refusing to prepare addon releases.`
+  )
+  process.exit(1)
+}
+
 for (const directory of fs.readdirSync('modules')) {
   if (
     core.has(directory) ||

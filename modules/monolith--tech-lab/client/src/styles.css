@@ -13,7 +13,9 @@
   border-radius: 0;
   padding-inline: 4px;
   border-bottom: 2px solid transparent;
-  background: transparent;
+}
+.tech-lab-navigation > a:not([aria-current='page']) {
+  color: var(--text-muted);
 }
 .tech-lab-navigation > a[aria-current='page'] {
   border-bottom-color: var(--accent-teal);

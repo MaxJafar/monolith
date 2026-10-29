@@ -66,7 +66,7 @@ export default function TechLabWorkspace() {
               as={Link}
               icon={icon}
               to={{ search: sectionParams(id).toString() }}
-              variant={section === id ? 'primary' : 'secondary'}
+              variant="plain"
             >{`sections.${id}`}</Button>
           ))}
         </Flex>

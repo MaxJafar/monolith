@@ -31,6 +31,7 @@
   --affine-brand-color: var(--selection-color, #2383e2);
   --affine-hover-color: rgba(127, 127, 127, 0.1);
   --affine-border-color: rgba(127, 127, 127, 0.22);
+  --affine-divider-color: var(--affine-border-color);
   --affine-line-height: 1.65;
   display: block;
   outline: none;

@@ -1,5 +1,12 @@
 {
   "appearance": {
+    "themes": {
+      "title": "介面主題",
+      "help": "為淺色與深色模式選擇完整風格。選擇主題會重設目前範圍內自訂的顏色、字型與圓角。",
+      "monolith": "Monolith",
+      "max-jafarov": "Max Jafarov",
+      "inherit": "使用繼承的主題"
+    },
     "title": "自訂",
     "description": "自訂整個應用程式、工作區以及每個頁面或外掛的外觀。",
     "customize": "自訂",

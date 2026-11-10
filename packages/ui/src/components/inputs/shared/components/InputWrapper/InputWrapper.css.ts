@@ -8,7 +8,10 @@ export const inputWrapperRecipe = recipe({
     transition: 'border-color 120ms ease, background-color 120ms ease',
     selectors: {
       '&:focus-within': {
-        borderColor: 'var(--selection-color, var(--color-custom-500))'
+        borderColor:
+          'var(--appearance-input-focus-color, var(--selection-color, var(--color-custom-500)))',
+        outline: 'var(--appearance-input-focus, none)',
+        outlineOffset: '2px'
       }
     },
     '@media': { '(prefers-reduced-motion: reduce)': { transition: 'none' } }
@@ -17,7 +20,7 @@ export const inputWrapperRecipe = recipe({
     variant: {
       classic: {
         borderRadius: 'var(--radius-md)',
-        minHeight: '3.5rem',
+        minHeight: 'var(--appearance-input-height, 3.5rem)',
         paddingLeft: 'calc(var(--spacing) * 3)',
         paddingRight: 'calc(var(--spacing) * 2)'
       },

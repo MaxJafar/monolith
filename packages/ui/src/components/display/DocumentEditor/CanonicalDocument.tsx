@@ -1,3 +1,18 @@
+import { useQuery } from '@tanstack/react-query'
+import {
+  type ReactNode,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useSyncExternalStore
+} from 'react'
+import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router'
+
 import {
   DraftController,
   type DraftStore,
@@ -14,20 +29,6 @@ import {
   canvasLink,
   serializeCanonical
 } from '@monolith/blocks'
-import { useQuery } from '@tanstack/react-query'
-import {
-  type ReactNode,
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  useSyncExternalStore
-} from 'react'
-import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router'
 
 import { Button } from '@/components/inputs'
 import { PageIdentity } from '@/components/layout/AppearanceCover'
@@ -399,6 +400,56 @@ function ActiveDocument({
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [recovered, setRecovered] = useState<string>()
+
+  useEffect(() => {
+    let active = true
+    let refreshing = false
+    const canReplace = () => {
+      const focused = window.document.activeElement
+      return (
+        active &&
+        !busy &&
+        !recovered &&
+        window.document.visibilityState === 'visible' &&
+        !(
+          focused?.closest('.monolith-document-column') &&
+          focused.matches('input, textarea, [contenteditable="true"]')
+        )
+      )
+    }
+    const refresh = async () => {
+      if (refreshing || !canReplace()) return
+      refreshing = true
+      try {
+        const remote = await controller.refreshRemote(readOnly, canReplace)
+        if (active && remote && !controller.state.dirty) {
+          currentGeneration.current++
+          setInitial(remote.snapshot)
+          setGeneration(currentGeneration.current)
+        }
+      } catch {
+        // A transient disconnect keeps the current snapshot and local draft.
+      } finally {
+        refreshing = false
+      }
+    }
+    const timer = setInterval(() => {
+      void refresh()
+    }, 5_000)
+    const resume = () => {
+      void refresh()
+    }
+    window.addEventListener('focus', resume)
+    window.addEventListener('online', resume)
+    window.document.addEventListener('visibilitychange', resume)
+    return () => {
+      active = false
+      clearInterval(timer)
+      window.removeEventListener('focus', resume)
+      window.removeEventListener('online', resume)
+      window.document.removeEventListener('visibilitychange', resume)
+    }
+  }, [controller, readOnly, busy, recovered])
 
   const insert = useRef<
     | ((reference: {

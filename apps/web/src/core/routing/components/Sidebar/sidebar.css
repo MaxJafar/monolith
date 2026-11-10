@@ -19,14 +19,18 @@
 
 .monolith-system-link,
 .monolith-nav-link {
-  min-height: 34px;
+  min-height: var(--appearance-nav-height, 34px);
   height: auto;
-  border-radius: 6px;
+  border-radius: var(--appearance-nav-radius, 6px);
   box-shadow: none;
 }
 .monolith-system-link[data-active='true'],
 .monolith-nav-row[data-active='true'] {
-  background: color-mix(in srgb, currentColor 7%, transparent);
+  background: var(
+    --appearance-nav-selection,
+    color-mix(in srgb, currentColor 7%, transparent)
+  );
+  color: var(--appearance-nav-foreground, inherit);
   font-weight: 600;
 }
 .monolith-system-link:hover,
@@ -35,7 +39,7 @@
 }
 .monolith-nav-row {
   position: relative;
-  border-radius: 6px;
+  border-radius: var(--appearance-nav-radius, 6px);
   transition:
     background-color var(--motion-fast) var(--motion-ease),
     opacity var(--motion-fast) var(--motion-ease);

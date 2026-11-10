@@ -1,0 +1,78 @@
+{
+  "password": "monolith-test-recovery-only",
+  "body": "Hello from Monolith — 你好 👋",
+  "context": {
+    "workspace_id": "33333333-3333-4333-8333-333333333333",
+    "room_id": "44444444-4444-4444-8444-444444444444",
+    "author_id": "11111111-1111-4111-8111-111111111111",
+    "transaction_id": "55555555-5555-4555-8555-555555555555",
+    "thread_id": null,
+    "content_revision": 1,
+    "references": [],
+    "attachment_ids": []
+  },
+  "senderIdentity": {
+    "owner_id": "11111111-1111-4111-8111-111111111111",
+    "agreement": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE3lAVMY7lkCEUNs91pDISb914GVLvvXvW7HXN0TSVQmTcdzhJTlgBkTmwlf8KHeVSK56Msr9k7qRCqiyLItO7vA",
+    "signing": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEvnFrGWLh1aegd56-ogKqic1XWoTDTsxtzcSTe8lXRRg4SxYYagnpCHwdIjlmop7HUxgxrcB0VQsYL0heqQuq8Q"
+  },
+  "receiverIdentity": {
+    "owner_id": "22222222-2222-4222-8222-222222222222",
+    "agreement": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEXgeqgOdK04VSLIH_iqP-xSFLde757pDUelE-jXMOhAZoAjYHNB6GVH5iNCU_jztUcd4LkPVdbVojxDxp5SXkCg",
+    "signing": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEnomqH0ijn-bm_2lzgF8MxIj2vnDxKJem1dw59lzUD_ZvvhInhIcuakZPVNipc2sMD-j_6N5E5i_Iu48SFCkaoA"
+  },
+  "senderBackup": {
+    "version": 1,
+    "identity": {
+      "owner_id": "11111111-1111-4111-8111-111111111111",
+      "agreement": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE3lAVMY7lkCEUNs91pDISb914GVLvvXvW7HXN0TSVQmTcdzhJTlgBkTmwlf8KHeVSK56Msr9k7qRCqiyLItO7vA",
+      "signing": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEvnFrGWLh1aegd56-ogKqic1XWoTDTsxtzcSTe8lXRRg4SxYYagnpCHwdIjlmop7HUxgxrcB0VQsYL0heqQuq8Q"
+    },
+    "salt": "OM-HFzsbJFyxTYS-9P7-TCHATGX94Mc5GMudAHdxw9I",
+    "iv": "Nm04XZG8hVdZ6e8w",
+    "ciphertext": "nHyUQtniGdIr2SyiJ1dWQq4SDw-rPqX-q6wdVBH-5d5MXmGzgWef3ClRD6C6V0h7hzloaCZlGb4y7wt_wpXpsTgn6E-SS9iDjENtIPZzYP4uCvmqbpnmucv2RpvmDo6PlBkj11GatdSXsP1BwcvrbmG8MHT_KwyH7Qe1XIvMT3ZdfPli475ud6OuBx9mqU-U9q1lwRoQasgJ47pxSlNAGNUX4-dHYuLCitK0HBb49VBxTNFQualcmv8lsjHRiYkULKTKx1oEsZVzbLow5cx7HWUU6QCUQeXat7Pv_dRUIKIsjXBwRSiMz4uAdE--4vqxVQceDLvZad9agbZmPhme7Hm07kcVuFfgo9lMtyeRKcLm2FJ1eP43Lc1_qAsDlzI3UU55xYnpNCYi7TxfwL-eyCTWitFyuGS-W5d5SRPDY7uf9KytACJG4iIxJI7AXPVAlA36Jt233aLs12B_3OKHYw_BQICKia0Ukhc8Qe0L6D8RWZnEUFeyoVXaxgUTznwcIO1gvH1BAeJpoJUlG5CR6w4fQER6VAjVqmLyM8A"
+  },
+  "receiverBackup": {
+    "version": 1,
+    "identity": {
+      "owner_id": "22222222-2222-4222-8222-222222222222",
+      "agreement": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEXgeqgOdK04VSLIH_iqP-xSFLde757pDUelE-jXMOhAZoAjYHNB6GVH5iNCU_jztUcd4LkPVdbVojxDxp5SXkCg",
+      "signing": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEnomqH0ijn-bm_2lzgF8MxIj2vnDxKJem1dw59lzUD_ZvvhInhIcuakZPVNipc2sMD-j_6N5E5i_Iu48SFCkaoA"
+    },
+    "salt": "fLB5P9aXsyXTHTFYj75JYV186Dar8QpsRbWfz1W_rEM",
+    "iv": "jOp9_5xgQUxrHI5C",
+    "ciphertext": "J4Ka_QrI919e33tLoroT_EPVqXF8OdBMyHgj4GTKbTSWoEyQjO3zVBFFXt1NYPAFdH3oIllOlww6jGqDMyrTiT1Yb48VjO3LHiAZK_r6gzTGiK1AluxGxYELmBT30YIEV-Ku6fBFNHMjCEw__YvSUS-F4s0QHQsNH0QBrhRoeIITmRo_cI98wqLRBY54uebTmJsYs6AK9K2i8agqbB--2V6J8y021kCg_zUi_C6Ut_1Tqn15BLhpfp4_i0mtkcoDEVUKzzUtkLhjdF9KXz5WSl8oapzp773LfEh503opb_373CL_R9SMoHMzQ_Zqwu1qBx7yIGE6YmOEQBd4a68qS2_JAfJSN6Gf4T9_9HR66QiV8LzG2tU8I8hZ-RvmWfcOiJyMBfdnnmcYYlANEcM06GNbftBrNAVhhpiiWFawuL9keB5dBzgv6MOJUm5-GHC7dJYPDF422VN936w0MdJoy_KreLO4kn0NkhUXjUzgDp2vJsX2st9EIDGUgJyBYCE0EXtkCOnlvd-wQs4TBtafdgI7xLY9rnSBNfOsUhg"
+  },
+  "envelope": {
+    "version": 1,
+    "context": {
+      "workspace_id": "33333333-3333-4333-8333-333333333333",
+      "room_id": "44444444-4444-4444-8444-444444444444",
+      "author_id": "11111111-1111-4111-8111-111111111111",
+      "transaction_id": "55555555-5555-4555-8555-555555555555",
+      "thread_id": null,
+      "content_revision": 1,
+      "references": [],
+      "attachment_ids": []
+    },
+    "sender": "7RKEwygNXK9JvAjHufaD7g1T52ORApiDFZ5SHkhttcI",
+    "ephemeral": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEGzN10Y27U0tsc7QfpPiAQmwtOEv5N-oO-A1G1XVNUQVBz8j9UEVPQBfMPvtcl0h3wJJfPfHQZuPUPRAfZNnCEQ",
+    "iv": "fBdxDVWfxujnDrit",
+    "ciphertext": "fi52NJiNcOfHaK8VKSICkNMNMX4sFyMd9e7vLoFlF9lfh1p2Tajd0K0bKUcjsxMgTb4dGfqOeoqIkqVa-urlQlTTzjxUqCi-cLpe4i2CkQ",
+    "recipients": [
+      {
+        "user_id": "11111111-1111-4111-8111-111111111111",
+        "fingerprint": "7RKEwygNXK9JvAjHufaD7g1T52ORApiDFZ5SHkhttcI",
+        "iv": "PDPyS5SSzJx0M0hi",
+        "key": "Db8kAW9-SNlquIGcNAYhoZsaRPCWvdvT2CYgDx32JajMKG3QjlmXhaFwaBGZfP7n"
+      },
+      {
+        "user_id": "22222222-2222-4222-8222-222222222222",
+        "fingerprint": "CkfX3CbtgW9kVg4TeXk2BjCWGsYpr-dotnN8tq4q75c",
+        "iv": "ZotA-gMJobG8Ouyh",
+        "key": "bCI3cj-dTYIj3_SqdgRprCkZlec-0yDETYkR4xo9RahbgebTCXprrwjmbWAVsYJE"
+      }
+    ],
+    "signature": "L19d2GOJ7WYz94JCJSvKr684lUeEKhcnllveDm2qKJCMcWMIuTYFyH6z9kspJyHBM21Vgpxe-YAl-4lTbLw8jg"
+  }
+}

@@ -1,8 +1,54 @@
+import tinycolor from 'tinycolor2'
 import { describe, expect, it } from 'vitest'
 
 import { appearanceVariables } from './index'
 
 describe('Appearance token scopes', () => {
+  it.each(['light', 'dark'] as const)(
+    'applies the Max Jafarov kit in %s mode with readable content',
+    mode => {
+      const tokens = appearanceVariables(
+        { themePreset: 'max-jafarov' },
+        mode
+      ) as Record<string, string>
+      expect(tokens['--bg-primary']).toBe(
+        mode === 'dark' ? '#0a0a0f' : '#f1f2f5'
+      )
+      expect(tokens['--accent-primary']).toBe('#3b8a82')
+      expect(tokens['--selection-color']).toBe('#c94a3c')
+      expect(tokens['--appearance-heading-font']).toContain('Space Grotesk')
+      expect(tokens['--shape-lg']).toBe('28px')
+      expect(tokens['--card-shadow']).toBe('none')
+      expect(
+        tinycolor.readability(tokens['--bg-primary'], tokens['--text-primary'])
+      ).toBeGreaterThan(4.5)
+      expect(
+        tinycolor.readability(tokens['--bg-surface'], tokens['--text-muted'])
+      ).toBeGreaterThan(4.5)
+    }
+  )
+  it('lets a nested Monolith scope reset every theme token and lets custom colors win', () => {
+    const expressive = appearanceVariables(
+      { themePreset: 'max-jafarov' },
+      'dark'
+    ) as Record<string, string>
+    const standard = appearanceVariables(
+      { themePreset: 'monolith' },
+      'dark'
+    ) as Record<string, string>
+    expect(Object.keys(standard).sort()).toEqual(Object.keys(expressive).sort())
+    expect(standard['--shape-lg']).toBe('8px')
+    expect(standard['--appearance-heading-font']).toBe('var(--font-inter)')
+    const custom = appearanceVariables({
+      themePreset: 'max-jafarov',
+      background: '#ffffff',
+      button: '#224466',
+      radius: 0
+    }) as Record<string, string>
+    expect(custom.backgroundColor).toBe('#ffffff')
+    expect(custom['--interactive-primary']).toBe('#224466')
+    expect(custom['--radius-md']).toBe('0px')
+  })
   it('keeps existing themes intact when no overrides are chosen', () => {
     expect(appearanceVariables({})).toEqual({})
   })

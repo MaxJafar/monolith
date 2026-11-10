@@ -93,6 +93,9 @@ function useNavigationState() {
   const navigation = useQuery({
     ...navOptions,
     queryKey: [...navOptions.queryKey, userData?.id],
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+    refetchInterval: 5_000,
     enabled: !!active
   })
   const pageOptions = workspaceAPI.workspaces.pages
@@ -101,6 +104,9 @@ function useNavigationState() {
   const pages = useQuery({
     ...pageOptions,
     queryKey: [...pageOptions.queryKey, userData?.id],
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+    refetchInterval: 5_000,
     enabled: !!active
   })
   useEffect(() => {

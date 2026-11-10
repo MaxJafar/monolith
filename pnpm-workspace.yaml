@@ -2,6 +2,7 @@ packages:
   - './apps/api'
   - './apps/web'
   - './apps/desktop'
+  - './apps/android'
   - './apps/site'
   - './packages/*'
   - './modules/*'

@@ -1,0 +1,29 @@
+[Unit]
+Description=Monolith and Tailscale availability check and bounded recovery
+Wants=network-online.target
+After=network-online.target docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/monolith-availability
+User=root
+Group=root
+StateDirectory=monolith-availability
+StateDirectoryMode=0700
+RuntimeDirectory=monolith-availability
+RuntimeDirectoryMode=0700
+TimeoutStartSec=150
+MemoryMax=128M
+CPUQuota=20%
+UMask=0077
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/monolith-availability /run/monolith-availability
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK

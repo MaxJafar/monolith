@@ -1,0 +1,12 @@
+[Unit]
+Description=Check Monolith and Tailscale availability every minute
+
+[Timer]
+OnBootSec=3min
+OnUnitInactiveSec=60s
+AccuracySec=5s
+RandomizedDelaySec=5s
+Unit=monolith-availability.service
+
+[Install]
+WantedBy=timers.target

@@ -1,4 +1,15 @@
 import {
+  type ReactNode,
+  cloneElement,
+  isValidElement,
+  useEffect,
+  useRef,
+  useState
+} from 'react'
+import { useTranslation } from 'react-i18next'
+import { useBeforeUnload } from 'react-router'
+
+import {
   type Appearance,
   type AppearanceScope,
   appearanceSchema,
@@ -21,20 +32,11 @@ import {
   Text,
   useModalStore
 } from '@monolith/ui'
-import {
-  type ReactNode,
-  cloneElement,
-  isValidElement,
-  useEffect,
-  useRef,
-  useState
-} from 'react'
-import { useTranslation } from 'react-i18next'
-import { useBeforeUnload } from 'react-router'
 
 import '../overlays/overlays.css'
 import { useAppAppearance } from './AppearanceContext'
 import { AppearancePreview } from './AppearancePreview'
+import { AppearanceThemes } from './AppearanceThemes'
 
 type BuilderProps = {
   data: { initialScope: AppearanceScope }
@@ -385,6 +387,7 @@ function AppearanceEditor({ data, onClose }: BuilderProps) {
             disabled={disabled}
             gap="lg"
           >
+            <AppearanceThemes value={draft.themePreset} onChange={update} />
             <Stack gap="sm">
               <Text as="h3" weight="semibold">
                 {t('palette')}

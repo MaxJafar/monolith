@@ -1,6 +1,9 @@
-import type { Appearance } from '@monolith/blocks'
 import type { CSSProperties } from 'react'
 import tinycolor from 'tinycolor2'
+
+import type { Appearance } from '@monolith/blocks'
+
+import { appearanceThemeVariables } from './themes'
 
 export * from './context'
 
@@ -9,7 +12,7 @@ export function appearanceVariables(
   appearance: Appearance,
   theme: 'light' | 'dark' = 'light'
 ): CSSProperties {
-  const variables: Record<string, string> = {}
+  const variables = appearanceThemeVariables(appearance.themePreset, theme)
 
   if (appearance.background) {
     const background = appearance.background
@@ -18,6 +21,7 @@ export function appearanceVariables(
       .toHexString()
     Object.assign(variables, {
       color: foreground,
+      ...(appearance.themePreset ? { backgroundColor: background } : {}),
       '--bg-primary': background,
       '--bg-surface': background,
       '--bg-sidebar': `color-mix(in srgb, ${background} 96%, ${foreground})`,
@@ -48,6 +52,8 @@ export function appearanceVariables(
     Object.assign(variables, {
       '--accent-primary': appearance.accent,
       '--selection-color': appearance.accent,
+      '--appearance-selection-background': `color-mix(in srgb, ${appearance.accent} 28%, transparent)`,
+      '--appearance-selection-text': 'inherit',
       '--block-selection': `color-mix(in srgb, ${appearance.accent} 8%, transparent)`,
       '--monolith-selection-bg': `color-mix(in srgb, ${appearance.accent} 28%, transparent)`,
       '--affine-brand-color': appearance.accent,

@@ -20,6 +20,12 @@ Primary actions use the interactive foreground/background tokens. Reserve red an
 
 Use the established spacing rhythm, fluid page gutters, and phone reflow. Standard writing pages have a readable measure; Full width fills the available pane. Embedded databases may scroll horizontally. Avoid nesting viewport-height workspaces, which clips the account controls below the main chrome.
 
+### Interface themes
+
+Customization → Interface theme offers **Monolith** and **Max Jafarov** at whole-app, workspace and page/addon scope. The optional `themePreset` field uses the existing revision-checked appearance contract. Choosing a preset clears that scope's color, font, icon-style and corner overrides; covers, page icons and content width remain. A different preset starts a fresh style at an inheritance boundary. Unset themes retain the existing appearance, and explicit tokens within a theme still win.
+
+The Max Jafarov preset adapts the [UI kit](https://max-jafarov.xyz/ru/ui-kit): cool light/dark canvases, teal actions and focus, red text selection, tonal surfaces, 12/20/28/36px corners, pill actions that tighten on press, and 160/240/360ms motion. Inter remains the reading face; bundled Space Grotesk supplies headings and JetBrains Mono supplies code. Use the kit's readable Material supporting-text role in dark mode; its dim swatch is decorative. Shared controls, overlays and Finance dashboard surfaces inherit these tokens. Reduced motion remains authoritative. Theme tokens live in `src/providers/AppearanceProvider/themes.ts`, with default styles preserved when no preset is selected.
+
 ## Inputs and saving
 
 Use the shared Button, TextInput, ListboxInput, ComboBox, Switch, Checkbox, Slider, date, icon, color, and file controls. Do not introduce a second native-select appearance in settings or dashboards. A control's label must remain available to assistive technology even when its visual layout is compact.
@@ -95,5 +101,18 @@ Menus and popovers animate opacity/transform briefly, without shifting layout. H
 The directly distributed macOS host conditionally opts into its high-refresh rendering policy. That private platform preference must be omitted from an App Store build until a supported equivalent exists. Measure frame delivery and interaction latency rather than assuming the display's advertised rate.
 
 ## Verification
+
+### Android companion
+
+The Android client in `apps/android` uses Kotlin and Jetpack Compose throughout;
+there is no WebView. `ui/Design.kt` ports these shared surface, spacing and motion
+rules into native controls. Keep Android rules in this guide. Phone navigation
+uses a bottom dock and a section sheet; wide layouts use a rail. Touch targets
+remain at least 48dp even where the visible control is compact. Native scrolling,
+system insets, text scaling, TalkBack descriptions and Android Back remain intact.
+Press feedback uses bounded scale/tilt springs and respects both Android's
+animation setting and the companion's reduced-motion preference. Canonical
+document snapshots retain IDs, rich-text attributes, embeds and revision guards;
+an unsupported block must remain visible and preserved instead of being dropped.
 
 Check light/dark themes, keyboard traversal, reduced motion, phone layout, loading/error/empty states, and viewer permissions. Exercise save failure and retry without duplicated records. Test the same scope and persistence behavior in native clients. Use local icons via `registerWorkspaceIcons()`; refresh the bundled collections with `pnpm exec node tools/desktop-assets.mjs` and retain their notices.

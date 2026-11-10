@@ -16,6 +16,7 @@
     "./apps/api",
     "./apps/web",
     "./apps/desktop",
+    "./apps/android",
     "./apps/site",
     "./packages/*",
     "./modules/*",
@@ -23,6 +24,12 @@
     "./tools"
   ],
   "scripts": {
+    "android:doctor": "pnpm --dir apps/android run doctor",
+    "android:contracts": "pnpm --dir apps/android contracts",
+    "android:build": "pnpm --dir apps/android run build:apk",
+    "android:test": "pnpm --dir apps/android run test:unit",
+    "android:lint": "pnpm --dir apps/android run lint:android",
+    "android:install": "pnpm --dir apps/android run install:device",
     "site:dev": "pnpm --filter @monolith/site dev",
     "site:build": "node \"tools/build-guard.mjs\" --task site:build",
     "site:check": "pnpm --filter @monolith/site typecheck && pnpm --filter @monolith/site verify",

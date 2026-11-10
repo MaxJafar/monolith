@@ -12,6 +12,7 @@ import {
   Text,
   type TextProps
 } from '@/components/primitives'
+import { useAppearance } from '@/providers/AppearanceProvider/context'
 import { settleElement } from '@/utils/elasticMotion'
 
 import './button.css'
@@ -76,6 +77,8 @@ export function Button<T extends ElementType = 'button'>({
   ...rest
 }: ButtonProps<T>) {
   const { t } = useModuleTranslation(namespace === false ? [] : [namespace])
+  const { appearance } = useAppearance()
+  const expressive = appearance.themePreset === 'max-jafarov'
   const blocked = loading || disabled
   const native = !as || as === 'button'
   const hasIcon = Boolean(icon)
@@ -101,10 +104,16 @@ export function Button<T extends ElementType = 'button'>({
       justify="center"
       gap="sm"
       flexShrink="0"
-      minHeight={{ base: '44px', md: '34px' }}
+      minHeight={
+        expressive
+          ? variant === 'primary'
+            ? '48px'
+            : '44px'
+          : { base: '44px', md: '34px' }
+      }
       minWidth="0"
       position="relative"
-      r="md"
+      r={expressive && appearance.radius === undefined ? 'full' : 'md'}
       px={rest.p === undefined ? 'md' : undefined}
       py={rest.p === undefined ? 'sm' : undefined}
       {...rest}
@@ -115,6 +124,7 @@ export function Button<T extends ElementType = 'button'>({
       aria-busy={loading || undefined}
       aria-disabled={blocked || undefined}
       data-variant={variant}
+      data-ui-theme={appearance.themePreset}
       data-dangerous={dangerous || undefined}
       data-icon-only={(hasIcon && !children) || undefined}
       data-loading-without-icon={(loading && !hasIcon) || undefined}
@@ -124,7 +134,7 @@ export function Button<T extends ElementType = 'button'>({
           event.stopPropagation()
           return
         }
-        if (event.currentTarget instanceof HTMLElement)
+        if (!expressive && event.currentTarget instanceof HTMLElement)
           settleElement(event.currentTarget, 0.65)
         return onClick?.(event)
       }}

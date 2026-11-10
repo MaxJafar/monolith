@@ -1,5 +1,12 @@
 {
   "appearance": {
+    "themes": {
+      "title": "Tema antara muka",
+      "help": "Pilih gaya lengkap untuk mod cerah dan gelap. Memilih tema menetapkan semula warna, fon dan bucu tersuai dalam skop ini.",
+      "monolith": "Monolith",
+      "max-jafarov": "Max Jafarov",
+      "inherit": "Gunakan tema yang diwarisi"
+    },
     "title": "Penyesuaian",
     "description": "Sesuaikan aplikasi, ruang kerja serta setiap halaman atau addon mengikut cita rasa anda.",
     "customize": "Sesuaikan",

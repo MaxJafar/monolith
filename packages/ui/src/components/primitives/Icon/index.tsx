@@ -48,7 +48,22 @@ export function Icon({
       }}
     >
       <Iconify
-        icon={preserveStyle ? icon : styledIcon(icon, appearance.iconSet)}
+        icon={
+          preserveStyle
+            ? icon
+            : styledIcon(
+                icon,
+                appearance.iconSet ??
+                  (appearance.themePreset === 'max-jafarov'
+                    ? 'lucide'
+                    : undefined)
+              )
+        }
+        strokeWidth={
+          appearance.themePreset === 'max-jafarov' && !preserveStyle
+            ? 1.8
+            : undefined
+        }
       />
     </Text>
   )

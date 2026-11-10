@@ -93,12 +93,11 @@ body {
 }
 
 ::selection {
-  background: color-mix(
-    in srgb,
-    var(--selection-color) 28%,
-    transparent
+  background: var(
+    --appearance-selection-background,
+    color-mix(in srgb, var(--selection-color) 28%, transparent)
   ) !important;
-  color: inherit !important;
+  color: var(--appearance-selection-text, inherit) !important;
 }
 
 * {
@@ -125,9 +124,12 @@ body {
   [role='button'],
   [tabindex='0']
 ):focus-visible {
-  outline: 1px solid
-    color-mix(in srgb, var(--selection-color, #2383e2) 35%, transparent) !important;
-  outline-offset: 1px;
+  outline: var(
+    --appearance-focus-outline,
+    1px solid
+      color-mix(in srgb, var(--selection-color, #2383e2) 35%, transparent)
+  ) !important;
+  outline-offset: var(--appearance-focus-offset, 1px);
 }
 :where(input, textarea):focus-visible {
   outline-offset: -1px;
@@ -141,10 +143,10 @@ body {
     [role='button'],
     [tabindex='0']
   ):focus-visible:hover {
-  outline-color: color-mix(
-    in srgb,
-    var(--selection-color, #2383e2) 85%,
-    transparent
+  outline: var(
+    --appearance-focus-outline,
+    1px solid
+      color-mix(in srgb, var(--selection-color, #2383e2) 85%, transparent)
   ) !important;
 }
 :where(button, a, input, textarea, select, [role='option'], [role='menuitem']) {
@@ -216,7 +218,7 @@ h1,
 h2,
 h3,
 h4 {
-  font-family: var(--font-inter);
+  font-family: var(--appearance-heading-font, var(--font-inter));
   letter-spacing: -0.025em;
 }
 .monolith-module-content h1 {
@@ -437,7 +439,7 @@ kbd {
   background: color-mix(in srgb, var(--text-primary) 7%, transparent);
 }
 .monolith-listbox-surface [role='option'] {
-  min-height: 34px;
+  min-height: var(--appearance-control-height, 34px);
   padding: 8px 10px;
   border: 0;
   border-radius: var(--radius-sm);
@@ -466,7 +468,10 @@ kbd {
     button[aria-haspopup='listbox'],
     .monolith-input
   ):focus-visible:hover {
-  outline: 2px solid color-mix(in srgb, var(--text-primary) 45%, transparent) !important;
+  outline: var(
+    --appearance-control-focus,
+    2px solid color-mix(in srgb, var(--text-primary) 45%, transparent)
+  ) !important;
   outline-offset: 2px;
 }
 @media (pointer: coarse) {

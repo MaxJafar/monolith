@@ -16,6 +16,7 @@ React, BlockSuite, Yjs, Tauri, Swift, Go, PostgreSQL, Tiptap, d3 and other depen
 
 - Icon collection attribution and license references: [icon notices](packages/ui/src/assets/icons/icon-notices.json). These notices are also included with native distributions.
 - Website fonts: [Inter](apps/site/public/fonts/Inter-OFL.txt) and [JetBrains Mono](apps/site/public/fonts/JetBrainsMono-OFL.txt), under their included SIL Open Font Licenses.
+- Max Jafarov theme: visual tokens adapted from the requested [UI kit](https://max-jafarov.xyz/ru/ui-kit). Space Grotesk is bundled unmodified from [Google Fonts revision 00a38a53f92aef923b9353f40128e8f4552ddae4](https://github.com/google/fonts/tree/00a38a53f92aef923b9353f40128e8f4552ddae4/ofl/spacegrotesk), under its included [SIL Open Font License](apps/web/public/fonts/SpaceGrotesk-OFL.txt).
 - English OCR model: [Tesseract source, revision and checksum](apps/api/src/core/models/NOTICE.md), under the included [Apache-2.0 license](apps/api/src/core/models/LICENSE). The model was obtained directly from that pinned source.
 - Gym exercise data: [dataset source and MIT notice](modules/monolith--gym/NOTICE.md). Third-party exercise images and animations are not distributed.
 - Redraw's embedded libraries and icons: [library licenses](modules/monolith--redraw/THIRD_PARTY_LICENSES.txt) and [icon license](modules/monolith--redraw/client/ICONS-LICENSE.txt).

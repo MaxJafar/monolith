@@ -54,6 +54,7 @@ export function safeCoverUrl(value: string) {
 
 export const appearanceSchema = z
   .object({
+    themePreset: z.enum(['monolith', 'max-jafarov']).optional(),
     background: appearanceColor.optional(),
     accent: appearanceColor.optional(),
     button: appearanceColor.optional(),
@@ -123,7 +124,35 @@ export function resolveAppearance(
   const { icon: _globalIcon, ...globalTokens } = global
   const { icon: _workspaceIcon, ...workspaceTokens } = workspace
 
-  return { ...globalTokens, ...workspaceTokens, ...page }
+  return [globalTokens, workspaceTokens, page].reduce<Appearance>(
+    (inherited, scope) => {
+      // A different design system starts with its own tokens. Identity, covers
+      // and layout still inherit; explicit colors in this scope win below.
+      if (scope.themePreset && scope.themePreset !== inherited.themePreset) {
+        for (const key of appearanceStyleKeys) delete inherited[key]
+      }
+      return { ...inherited, ...scope }
+    },
+    {}
+  )
+}
+
+export const appearanceStyleKeys = [
+  'background',
+  'accent',
+  'button',
+  'icons',
+  'iconSet',
+  'font',
+  'radius'
+] as const
+
+/** Selecting a preset clears this scope's styling, preserving page identity. */
+export function selectAppearanceTheme(themePreset: Appearance['themePreset']) {
+  return {
+    ...Object.fromEntries(appearanceStyleKeys.map(key => [key, undefined])),
+    themePreset
+  } as Partial<Appearance>
 }
 
 export function readAppearanceRecord(

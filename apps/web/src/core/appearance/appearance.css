@@ -11,6 +11,19 @@
   padding: 0;
   min-width: 0;
 }
+.appearance-theme-option {
+  min-width: 0;
+  text-align: left;
+  white-space: normal;
+}
+.appearance-theme-option[aria-pressed='true'] {
+  border-color: var(--accent-primary);
+  box-shadow: inset 0 0 0 1px var(--accent-primary);
+}
+.appearance-theme-sample {
+  min-width: 0;
+  width: 100%;
+}
 .appearance-select {
   border: 1px solid var(--border-medium);
   border-radius: var(--shape-md);

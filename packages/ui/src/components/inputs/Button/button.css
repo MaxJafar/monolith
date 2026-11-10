@@ -10,6 +10,7 @@
   white-space: nowrap;
   cursor: pointer;
   transition:
+    border-radius var(--motion-standard, 220ms) var(--motion-ease-expressive),
     background-color var(--motion-fast, 120ms) ease,
     border-color var(--motion-fast, 120ms) ease,
     opacity var(--motion-fast, 120ms) ease;
@@ -27,7 +28,7 @@
     var(--text-primary) 5%,
     var(--bg-surface)
   );
-  border-color: var(--border-subtle);
+  border-color: var(--appearance-control-border, var(--border-subtle));
   color: var(--text-primary);
 }
 .monolith-button[data-variant='secondary']:hover {
@@ -36,7 +37,7 @@
     var(--text-primary) 9%,
     var(--bg-surface)
   );
-  border-color: var(--border-medium);
+  border-color: var(--appearance-control-border, var(--border-medium));
 }
 .monolith-button[data-variant='tertiary'],
 .monolith-button[data-variant='plain'] {
@@ -71,6 +72,14 @@
 .monolith-button[data-loading-without-icon='true']
   > :not([data-loading-indicator]) {
   visibility: hidden;
+}
+.monolith-button[data-ui-theme='max-jafarov'] {
+  font-weight: 600;
+}
+.monolith-button[data-ui-theme='max-jafarov']:active:not(:disabled):not(
+    [aria-disabled='true']
+  ) {
+  border-radius: var(--shape-sm);
 }
 @media (prefers-reduced-motion: reduce) {
   .monolith-button {

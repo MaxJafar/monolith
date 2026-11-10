@@ -1,5 +1,12 @@
 {
   "appearance": {
+    "themes": {
+      "title": "界面主题",
+      "help": "为浅色和深色模式选择完整风格。选择主题会重置当前范围内自定义的颜色、字体和圆角。",
+      "monolith": "Monolith",
+      "max-jafarov": "Max Jafarov",
+      "inherit": "使用继承的主题"
+    },
     "title": "自定义",
     "description": "自定义整个应用、工作区以及每个页面或插件的外观。",
     "customize": "自定义",

@@ -102,6 +102,78 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
+describe('remote document refresh', () => {
+  it('adopts and persists a newer clean document', async () => {
+    const { controller, gateway, store } = setup()
+    await controller.initialize()
+    gateway.document.mockResolvedValueOnce({
+      ...document,
+      revision: 2,
+      snapshot: snapshot('Phone')
+    })
+    expect((await controller.refreshRemote())?.snapshot.meta.title).toBe(
+      'Phone'
+    )
+    expect(controller.snapshot.meta.title).toBe('Phone')
+    expect(controller.state.dirty).toBe(false)
+    await controller.dispose()
+    expect((await store.get(scope))?.baselineRevision).toBe(2)
+  })
+
+  it('keeps the editor intact when focus changes during a remote read', async () => {
+    const { controller, gateway } = setup()
+    await controller.initialize()
+    gateway.document.mockResolvedValueOnce({
+      ...document,
+      revision: 2,
+      snapshot: snapshot('Phone')
+    })
+    expect(await controller.refreshRemote(false, () => false)).toBeUndefined()
+    expect(controller.snapshot.meta.title).toBe('Original')
+    expect(controller.state.dirty).toBe(false)
+    await controller.dispose()
+  })
+
+  it('keeps a local edit made while the remote read is in flight', async () => {
+    const { controller, gateway } = setup()
+    await controller.initialize()
+    let finish!: (value: EditorDocumentV2) => void
+    gateway.document.mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          finish = resolve
+        })
+    )
+    const refreshing = controller.refreshRemote()
+    controller.edit(snapshot('Unsaved desktop text'))
+    finish({ ...document, revision: 2, snapshot: snapshot('Phone') })
+    expect(await refreshing).toBeUndefined()
+    expect(controller.snapshot.meta.title).toBe('Unsaved desktop text')
+    expect(controller.state.status).toBe('conflict')
+    expect(controller.state.dirty).toBe(true)
+    await controller.dispose()
+  })
+
+  it('does not regress a revision accepted by another refresh', async () => {
+    const { controller, gateway } = setup()
+    await controller.initialize()
+    gateway.document.mockResolvedValueOnce({
+      ...document,
+      revision: 3,
+      snapshot: snapshot('New')
+    })
+    await controller.refreshRemote()
+    gateway.document.mockResolvedValueOnce({
+      ...document,
+      revision: 2,
+      snapshot: snapshot('Old')
+    })
+    expect(await controller.refreshRemote()).toBeUndefined()
+    expect(controller.snapshot.meta.title).toBe('New')
+    await controller.dispose()
+  })
+})
+
 describe('durable revision-checked drafts', () => {
   it('writes locally before the 750ms idle save, and limits continuous typing to 3 seconds', async () => {
     vi.useFakeTimers()

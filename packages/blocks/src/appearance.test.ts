@@ -6,10 +6,78 @@ import {
   fontStylesheet,
   readAppearanceRecord,
   resolveAppearance,
+  selectAppearanceTheme,
   styledIcon
 } from './appearance'
 
 describe('Appearance inheritance and safe persisted choices', () => {
+  it('round-trips a named theme without changing revision or page identity', () => {
+    const appearance = appearanceSchema.parse({
+      themePreset: 'max-jafarov',
+      icon: 'lucide:wallet',
+      contentWidth: 'full'
+    })
+    expect(
+      readAppearanceRecord({
+        [APPEARANCE_LAYOUT_KEY]: { revision: 7, appearance }
+      })
+    ).toEqual({ revision: 7, appearance })
+    expect(appearanceSchema.safeParse({ themePreset: 'unknown' }).success).toBe(
+      false
+    )
+  })
+  it('starts a new design system at a scope boundary while retaining covers and layout', () => {
+    expect(
+      resolveAppearance(
+        {
+          background: '#123456',
+          font: { provider: 'system', family: 'serif' },
+          contentWidth: 'full',
+          cover: { type: 'color', value: '#ffffff' }
+        },
+        { themePreset: 'max-jafarov' },
+        { button: '#224466', icon: 'lucide:wallet' }
+      )
+    ).toEqual({
+      themePreset: 'max-jafarov',
+      contentWidth: 'full',
+      cover: { type: 'color', value: '#ffffff' },
+      button: '#224466',
+      icon: 'lucide:wallet'
+    })
+    expect(
+      resolveAppearance(
+        { themePreset: 'max-jafarov', accent: '#123456' },
+        {},
+        { themePreset: 'monolith' }
+      )
+    ).toEqual({ themePreset: 'monolith' })
+    expect(
+      resolveAppearance(
+        { themePreset: 'max-jafarov', accent: '#123456' },
+        {},
+        {}
+      )
+    ).toEqual({ themePreset: 'max-jafarov', accent: '#123456' })
+  })
+  it('clears only style overrides when choosing or inheriting a theme', () => {
+    for (const theme of ['max-jafarov', 'monolith', undefined] as const) {
+      const patch = selectAppearanceTheme(theme)
+      expect(patch).toEqual({
+        themePreset: theme,
+        background: undefined,
+        accent: undefined,
+        button: undefined,
+        icons: undefined,
+        font: undefined,
+        radius: undefined,
+        iconSet: undefined
+      })
+      expect(patch).not.toHaveProperty('cover')
+      expect(patch).not.toHaveProperty('icon')
+      expect(patch).not.toHaveProperty('contentWidth')
+    }
+  })
   it('inherits individual tokens and keeps identity scoped to its page', () => {
     expect(
       resolveAppearance(

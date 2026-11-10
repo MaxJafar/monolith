@@ -1,0 +1,21 @@
+{
+  "name": "@monolith/android",
+  "version": "0.1.23",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "contracts": "tsx ../../tools/android-contracts.mjs",
+    "doctor": "node ../../tools/android.mjs doctor",
+    "build:apk": "node ../../tools/build-guard.mjs --task build:apk",
+    "test:unit": "node ../../tools/build-guard.mjs --task test:unit",
+    "test:device:build": "node ../../tools/build-guard.mjs --task test:device:build",
+    "lint:android": "node ../../tools/build-guard.mjs --task lint:android",
+    "install:device": "node ../../tools/android.mjs install"
+  },
+  "monolithBuilds": {
+    "build:apk": "tsx ../../tools/android-contracts.mjs && node ../../tools/android.mjs assembleDebug",
+    "test:unit": "tsx ../../tools/android-contracts.mjs && node ../../tools/android.mjs testDebugUnitTest",
+    "test:device:build": "tsx ../../tools/android-contracts.mjs && node ../../tools/android.mjs assembleDebugAndroidTest",
+    "lint:android": "tsx ../../tools/android-contracts.mjs && node ../../tools/android.mjs lintDebug"
+  }
+}

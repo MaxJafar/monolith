@@ -1515,6 +1515,10 @@ export const contract = {
           appearance: {
             type: 'object',
             properties: {
+              themePreset: {
+                type: 'string',
+                enum: ['monolith', 'max-jafarov']
+              },
               background: {
                 type: 'string',
                 pattern: '^#[0-9a-f]{6}$'
@@ -2085,6 +2089,10 @@ export const contract = {
                   default: {},
                   type: 'object',
                   properties: {
+                    themePreset: {
+                      type: 'string',
+                      enum: ['monolith', 'max-jafarov']
+                    },
                     background: {
                       type: 'string',
                       pattern: '^#[0-9a-f]{6}$'
@@ -2735,6 +2743,10 @@ export const contract = {
           appearance: {
             type: 'object',
             properties: {
+              themePreset: {
+                type: 'string',
+                enum: ['monolith', 'max-jafarov']
+              },
               background: {
                 type: 'string',
                 pattern: '^#[0-9a-f]{6}$'
@@ -3015,6 +3027,10 @@ export const contract = {
           appearance: {
             type: 'object',
             properties: {
+              themePreset: {
+                type: 'string',
+                enum: ['monolith', 'max-jafarov']
+              },
               background: {
                 type: 'string',
                 pattern: '^#[0-9a-f]{6}$'
@@ -4950,6 +4966,10 @@ export const contract = {
                   default: {},
                   type: 'object',
                   properties: {
+                    themePreset: {
+                      type: 'string',
+                      enum: ['monolith', 'max-jafarov']
+                    },
                     background: {
                       type: 'string',
                       pattern: '^#[0-9a-f]{6}$'
@@ -5218,6 +5238,10 @@ export const contract = {
             default: {},
             type: 'object',
             properties: {
+              themePreset: {
+                type: 'string',
+                enum: ['monolith', 'max-jafarov']
+              },
               background: {
                 type: 'string',
                 pattern: '^#[0-9a-f]{6}$'
@@ -5478,6 +5502,10 @@ export const contract = {
                   default: {},
                   type: 'object',
                   properties: {
+                    themePreset: {
+                      type: 'string',
+                      enum: ['monolith', 'max-jafarov']
+                    },
                     background: {
                       type: 'string',
                       pattern: '^#[0-9a-f]{6}$'
@@ -5824,6 +5852,10 @@ export const contract = {
                         default: {},
                         type: 'object',
                         properties: {
+                          themePreset: {
+                            type: 'string',
+                            enum: ['monolith', 'max-jafarov']
+                          },
                           background: {
                             type: 'string',
                             pattern: '^#[0-9a-f]{6}$'
@@ -6290,6 +6322,10 @@ export const contract = {
                 appearance: {
                   type: 'object',
                   properties: {
+                    themePreset: {
+                      type: 'string',
+                      enum: ['monolith', 'max-jafarov']
+                    },
                     background: {
                       type: 'string',
                       pattern: '^#[0-9a-f]{6}$'
@@ -7473,6 +7509,10 @@ export const contract = {
                   default: {},
                   type: 'object',
                   properties: {
+                    themePreset: {
+                      type: 'string',
+                      enum: ['monolith', 'max-jafarov']
+                    },
                     background: {
                       type: 'string',
                       pattern: '^#[0-9a-f]{6}$'
@@ -8108,6 +8148,10 @@ export const contract = {
           appearance: {
             type: 'object',
             properties: {
+              themePreset: {
+                type: 'string',
+                enum: ['monolith', 'max-jafarov']
+              },
               background: {
                 type: 'string',
                 pattern: '^#[0-9a-f]{6}$'
@@ -8385,6 +8429,10 @@ export const contract = {
           appearance: {
             type: 'object',
             properties: {
+              themePreset: {
+                type: 'string',
+                enum: ['monolith', 'max-jafarov']
+              },
               background: {
                 type: 'string',
                 pattern: '^#[0-9a-f]{6}$'
@@ -14228,6 +14276,10 @@ export const contract = {
             appearance: {
               type: 'object',
               properties: {
+                themePreset: {
+                  type: 'string',
+                  enum: ['monolith', 'max-jafarov']
+                },
                 background: {
                   type: 'string',
                   pattern: '^#[0-9a-f]{6}$'
@@ -14357,6 +14409,10 @@ export const contract = {
               additionalProperties: {
                 type: 'object',
                 properties: {
+                  themePreset: {
+                    type: 'string',
+                    enum: ['monolith', 'max-jafarov']
+                  },
                   background: {
                     type: 'string',
                     pattern: '^#[0-9a-f]{6}$'
@@ -14775,6 +14831,10 @@ export const contract = {
             appearance: {
               type: 'object',
               properties: {
+                themePreset: {
+                  type: 'string',
+                  enum: ['monolith', 'max-jafarov']
+                },
                 background: {
                   type: 'string',
                   pattern: '^#[0-9a-f]{6}$'
@@ -14923,6 +14983,10 @@ export const contract = {
             appearance: {
               type: 'object',
               properties: {
+                themePreset: {
+                  type: 'string',
+                  enum: ['monolith', 'max-jafarov']
+                },
                 background: {
                   type: 'string',
                   pattern: '^#[0-9a-f]{6}$'
@@ -15052,6 +15116,10 @@ export const contract = {
               additionalProperties: {
                 type: 'object',
                 properties: {
+                  themePreset: {
+                    type: 'string',
+                    enum: ['monolith', 'max-jafarov']
+                  },
                   background: {
                     type: 'string',
                     pattern: '^#[0-9a-f]{6}$'
@@ -15354,6 +15422,10 @@ export const contract = {
             appearance: {
               type: 'object',
               properties: {
+                themePreset: {
+                  type: 'string',
+                  enum: ['monolith', 'max-jafarov']
+                },
                 background: {
                   type: 'string',
                   pattern: '^#[0-9a-f]{6}$'
@@ -15483,6 +15555,10 @@ export const contract = {
               additionalProperties: {
                 type: 'object',
                 properties: {
+                  themePreset: {
+                    type: 'string',
+                    enum: ['monolith', 'max-jafarov']
+                  },
                   background: {
                     type: 'string',
                     pattern: '^#[0-9a-f]{6}$'
@@ -15710,6 +15786,10 @@ export const contract = {
             appearance: {
               type: 'object',
               properties: {
+                themePreset: {
+                  type: 'string',
+                  enum: ['monolith', 'max-jafarov']
+                },
                 background: {
                   type: 'string',
                   pattern: '^#[0-9a-f]{6}$'
@@ -15839,6 +15919,10 @@ export const contract = {
               additionalProperties: {
                 type: 'object',
                 properties: {
+                  themePreset: {
+                    type: 'string',
+                    enum: ['monolith', 'max-jafarov']
+                  },
                   background: {
                     type: 'string',
                     pattern: '^#[0-9a-f]{6}$'
@@ -16741,6 +16825,10 @@ export const contract = {
             appearance: {
               type: 'object',
               properties: {
+                themePreset: {
+                  type: 'string',
+                  enum: ['monolith', 'max-jafarov']
+                },
                 background: {
                   type: 'string',
                   pattern: '^#[0-9a-f]{6}$'
@@ -17706,6 +17794,10 @@ export const contract = {
             appearance: {
               type: 'object',
               properties: {
+                themePreset: {
+                  type: 'string',
+                  enum: ['monolith', 'max-jafarov']
+                },
                 background: {
                   type: 'string',
                   pattern: '^#[0-9a-f]{6}$'
@@ -17986,6 +18078,10 @@ export const contract = {
             appearance: {
               type: 'object',
               properties: {
+                themePreset: {
+                  type: 'string',
+                  enum: ['monolith', 'max-jafarov']
+                },
                 background: {
                   type: 'string',
                   pattern: '^#[0-9a-f]{6}$'
@@ -19976,6 +20072,10 @@ export const contract = {
                     default: {},
                     type: 'object',
                     properties: {
+                      themePreset: {
+                        type: 'string',
+                        enum: ['monolith', 'max-jafarov']
+                      },
                       background: {
                         type: 'string',
                         pattern: '^#[0-9a-f]{6}$'
@@ -20256,6 +20356,10 @@ export const contract = {
               default: {},
               type: 'object',
               properties: {
+                themePreset: {
+                  type: 'string',
+                  enum: ['monolith', 'max-jafarov']
+                },
                 background: {
                   type: 'string',
                   pattern: '^#[0-9a-f]{6}$'
@@ -20516,6 +20620,10 @@ export const contract = {
                     default: {},
                     type: 'object',
                     properties: {
+                      themePreset: {
+                        type: 'string',
+                        enum: ['monolith', 'max-jafarov']
+                      },
                       background: {
                         type: 'string',
                         pattern: '^#[0-9a-f]{6}$'
@@ -20891,6 +20999,10 @@ export const contract = {
                           default: {},
                           type: 'object',
                           properties: {
+                            themePreset: {
+                              type: 'string',
+                              enum: ['monolith', 'max-jafarov']
+                            },
                             background: {
                               type: 'string',
                               pattern: '^#[0-9a-f]{6}$'
@@ -21358,6 +21470,10 @@ export const contract = {
                   appearance: {
                     type: 'object',
                     properties: {
+                      themePreset: {
+                        type: 'string',
+                        enum: ['monolith', 'max-jafarov']
+                      },
                       background: {
                         type: 'string',
                         pattern: '^#[0-9a-f]{6}$'
@@ -22547,6 +22663,10 @@ export const contract = {
                     default: {},
                     type: 'object',
                     properties: {
+                      themePreset: {
+                        type: 'string',
+                        enum: ['monolith', 'max-jafarov']
+                      },
                       background: {
                         type: 'string',
                         pattern: '^#[0-9a-f]{6}$'
@@ -23194,6 +23314,10 @@ export const contract = {
             appearance: {
               type: 'object',
               properties: {
+                themePreset: {
+                  type: 'string',
+                  enum: ['monolith', 'max-jafarov']
+                },
                 background: {
                   type: 'string',
                   pattern: '^#[0-9a-f]{6}$'
@@ -23471,6 +23595,10 @@ export const contract = {
             appearance: {
               type: 'object',
               properties: {
+                themePreset: {
+                  type: 'string',
+                  enum: ['monolith', 'max-jafarov']
+                },
                 background: {
                   type: 'string',
                   pattern: '^#[0-9a-f]{6}$'

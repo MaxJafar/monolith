@@ -211,6 +211,45 @@ export class DraftController {
       } else this.notify({ status: 'offline', dirty: true })
     }
   }
+  async refreshRemote(
+    readOnly = false,
+    canReplace = () => true
+  ): Promise<EditorDocumentV2 | undefined> {
+    if (this.disposed || this.resolving || this.saving || this.localFailure)
+      return
+    const current = await this.gateway.document(
+      this.document.workspaceId,
+      this.document.source
+    )
+    if (
+      this.disposed ||
+      this.resolving ||
+      this.saving ||
+      this.localFailure ||
+      current.revision <= this.draft.baselineRevision
+    )
+      return
+    if (this.draft.dirty) {
+      this.clearTimers()
+      this.notify({ status: 'conflict', current, dirty: true })
+      return
+    }
+    if (!canReplace()) return
+    this.document = current
+    this.draft = {
+      ...this.draft,
+      version: this.draft.version + 1,
+      baselineRevision: current.revision,
+      snapshot: current.snapshot,
+      dirty: false,
+      updatedAt: new Date().toISOString()
+    }
+    // Publish and return in the same turn so the editor replaces its clean
+    // snapshot before another input event. Local storage remains serialized.
+    if (!readOnly) void this.persist().catch(() => {})
+    this.notify({ status: 'saved', dirty: false })
+    return current
+  }
   async reconnect() {
     if (this.state.status === 'expired' || this.state.status === 'offline')
       this.notify({ status: 'local', dirty: this.draft.dirty })

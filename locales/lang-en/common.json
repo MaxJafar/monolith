@@ -1,5 +1,12 @@
 {
   "appearance": {
+    "themes": {
+      "title": "Interface theme",
+      "help": "Choose a complete style for light and dark mode. Selecting a theme resets the color, font and corner overrides in this scope.",
+      "monolith": "Monolith",
+      "max-jafarov": "Max Jafarov",
+      "inherit": "Use inherited theme"
+    },
     "title": "Customization",
     "description": "Make the app, your workspace, and each page or addon your own.",
     "customize": "Customize",

@@ -6,9 +6,9 @@ Monolith separates permanent workspace features, optional applications, and comp
 
 | Feature                | Overview                                                                                                                                                                                                                                                                                                                     |
 | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Calendar               | A workspace-wide view of dated records, with month, week and agenda layouts. Create and resize native events, edit recurring schedules and manage workspace invitations and reminders.                                                                                                                                     |
+| Calendar               | A workspace-wide view of dated records, with month, week and agenda layouts. Create and resize native events, edit recurring schedules and manage workspace invitations and reminders.                                                                                                                                       |
 | Projects               | Organize projects with board, list, timeline and Gantt views. Linked records and tasks share their original identities rather than becoming disconnected copies.                                                                                                                                                             |
-| Journal | Dated writing, a searchable timeline, activity history and the native page editor. Included in the platform; no addon installation. |
+| Journal                | Dated writing, a searchable timeline, activity history and the native page editor. Included in the platform; no addon installation.                                                                                                                                                                                          |
 | Actions                | Collect actionable records into Today, Upcoming, High priority, All actions and Completed. Status changes update the underlying record.                                                                                                                                                                                      |
 | Rooms                  | Workspace conversations and collaboration, with room membership, unread indicators and calling surfaces. Relay services require your own host configuration.                                                                                                                                                                 |
 | Docs                   | Nested pages and notes, rich blocks, references and linked knowledge. The canonical BlockSuite editor supports revision-protected saves, conversion recovery and inline databases.                                                                                                                                           |
@@ -30,25 +30,26 @@ Monolith separates permanent workspace features, optional applications, and comp
 | [Redraw](../modules/monolith--redraw/)                    | A visual studio for designs, whiteboards and connected ideas, with work represented inside the workspace's content model.                                                                                                     |
 | [Gym](../modules/monolith--gym/)                          | Training plans, workout sessions, exercise and strength history. Training widgets bring the current plan and activity summary into the dashboard.                                                                             |
 | [Tech Lab](../modules/monolith--tech-lab/)                | Track devices, hosted services, game servers and observed health. Monitoring widgets use the configured host collectors.                                                                                                      |
+| [Finance](../modules/monolith--finance/)                  | Accounts in any currency, renameable income streams, categorized spending with budgets, a wishlist that books purchases as expenses, VAT and income tax rules, recurring plans and exact market or custom exchange rates.     |
 | uRPG                                                      | An optional workspace experience for characters, habits, quests and progress. It is currently included in the main workspace client; it is not an independently downloadable release package.                                 |
 
 ## Included and addon-provided widgets
 
-| Widget                         | Overview                                                                                                         |
-| ------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
-| Calendar                       | Month, week or agenda next to your pages, with configurable view and filters.                                    |
-| Weather                        | Local conditions and forecast for the chosen city. Requires the configured weather integration.                  |
-| Habit tracker                  | Daily habits and check-ins without leaving your dashboard or sidebar.                                            |
-| Stocks & crypto                | A configurable market watchlist using available price integrations.                                              |
-| Workspace pulse                | A summary of the current workspace's records and activity.                                                       |
-| Action agenda                  | Relevant upcoming/today actions from the workspace's existing records.                                           |
-| Project focus                  | Project progress and a path back to the connected project.                                                       |
-| Quick links                    | Shortcuts to native workspace sections.                                                                          |
-| Upcoming events                | The next events from connected workspace dates.                                                                  |
-| Linked database                | A live view of an existing database inside a page or dashboard. Configure it through the canvas database picker. |
-| Training pulse / Training plan | Gym summaries and plan views, available when Gym is enabled.                                                     |
-| Services / Health / Device / Uptime / Machines | Tech Lab live monitoring views, available when Tech Lab is enabled.                              |
-| Character / Vitals / XP        | uRPG character and progression widgets when that workspace experience is active.                                 |
+| Widget                                         | Overview                                                                                                         |
+| ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Calendar                                       | Month, week or agenda next to your pages, with configurable view and filters.                                    |
+| Weather                                        | Local conditions and forecast for the chosen city. Requires the configured weather integration.                  |
+| Habit tracker                                  | Daily habits and check-ins without leaving your dashboard or sidebar.                                            |
+| Stocks & crypto                                | A configurable market watchlist using available price integrations.                                              |
+| Workspace pulse                                | A summary of the current workspace's records and activity.                                                       |
+| Action agenda                                  | Relevant upcoming/today actions from the workspace's existing records.                                           |
+| Project focus                                  | Project progress and a path back to the connected project.                                                       |
+| Quick links                                    | Shortcuts to native workspace sections.                                                                          |
+| Upcoming events                                | The next events from connected workspace dates.                                                                  |
+| Linked database                                | A live view of an existing database inside a page or dashboard. Configure it through the canvas database picker. |
+| Training pulse / Training plan                 | Gym summaries and plan views, available when Gym is enabled.                                                     |
+| Services / Health / Device / Uptime / Machines | Tech Lab live monitoring views, available when Tech Lab is enabled.                                              |
+| Character / Vitals / XP                        | uRPG character and progression widgets when that workspace experience is active.                                 |
 
 The shop only exposes widget implementations available to the current workspace. Sidebar preferences never grant access to data that the user's workspace role cannot read. Preview controls that change shared data use the same permissions as the underlying widget.
 

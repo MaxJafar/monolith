@@ -87,6 +87,9 @@ medium
 !modules/monolith--tech-lab/
 !modules/monolith--tech-lab/package.json
 !modules/monolith--tech-lab/locales/
+!modules/monolith--finance/
+!modules/monolith--finance/package.json
+!modules/monolith--finance/locales/
 !apps/web/public/zillion-gym-sw.js
 !apps/web/public/zillion-gym-cache.js
 !apps/web/public/zillion-gym-offline.js
